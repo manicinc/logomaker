@@ -858,6 +858,102 @@
       transform: translateY(100%);
     }
   }
+
+  /* Info */
+  .performance-notice-visible {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 320px;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    animation: slide-in 0.5s ease-out;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  @keyframes slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes fade-out {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  
+  .performance-notice-hidden {
+    animation: fade-out 0.5s ease-in forwards;
+  }
+  
+  .notice-content {
+    position: relative;
+  }
+  
+  .notice-content h3 {
+    margin-top: 0;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+  }
+  
+  .notice-content ul {
+    padding-left: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .hide-notice-btn {
+    background: var(--accent-color);
+    color: var(--background-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: block;
+    margin: 0 auto;
+  }
+  
+  .hide-notice-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Info button for showing notice again */
+  .info-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: var(--background-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    transition: all 0.2s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .info-button-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .info-button:hover {
+    transform: scale(1.1);
+  }
   
   /* Media Queries */
   @media (max-width: 768px) {
@@ -931,6 +1027,24 @@
         <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a>
       </div>
     </header>
+
+
+  <!-- Add this after your header section or before the controls -->
+  <div id="performance-notice" class="performance-notice-visible">
+    <div class="notice-content">
+      <h3>About Performance ⚡</h3>
+      <p>Initial loading might be slower on GitHub Pages than when run locally. This is by design:</p>
+      <ul>
+        <li>GitHub Pages has issues parsing font files from LFS. As such..</li>
+        <li>All 400+ fonts are embedded directly as Base64 data</li>
+        <li>This also enables our unique "one-file" approach - no server required!</li>
+        <li>You can download this entire app as a single HTML file and run it offline</li>
+        <li>Share it via email, USB drive, or any way you want - it just works</li>
+      </ul>
+      <p>Once loaded, everything runs smoothly in your browser. This extreme portability is what makes Logomaker special!</p>
+      <button id="hideNoticeBtn" class="hide-notice-btn">Got it!</button>
+    </div>
+  </div>
 
     <div class="controls-wrapper">
       <div class="tabs">
@@ -1209,6 +1323,8 @@
       Generating export... This may take a few moments.
     </div>
 
+    <div id="infoButton" class="info-button">ℹ️</div>
+
     <footer>
       <p>Logomaker by <a href="https://manic.agency" target="_blank">Manic Agency</a> | Open Source on <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a></p>
       <p>Contact us for work at team@manic.agency</p>
@@ -1219,6 +1335,54 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.13/html-to-image.min.js"></script>
   <!-- Load JSZip for bundling PNG frames into a ZIP -->
   <script src="https://cdn.jsdelivr.net/npm/jszip/dist/jszip.min.js"></script>
+
+
+  <script>
+    // Immediately executing function to handle the performance notice
+    (function() {
+      // Wait for a short moment to make sure the DOM elements are ready
+      setTimeout(function() {
+        const performanceNotice = document.getElementById('performance-notice');
+        const hideNoticeBtn = document.getElementById('hideNoticeBtn');
+        const infoButton = document.getElementById('infoButton');
+        
+        if (!performanceNotice || !hideNoticeBtn || !infoButton) {
+          console.error('Performance notice elements not found');
+          return;
+        }
+        
+        // Check if user has dismissed notice before
+        const hasSeenNotice = localStorage.getItem('logomakerHasSeenNotice');
+        
+        if (hasSeenNotice) {
+          // If user has seen notice before, don't show it automatically
+          performanceNotice.style.display = 'none';
+          infoButton.classList.add('info-button-visible');
+        }
+        
+        // Hide notice when button is clicked
+        hideNoticeBtn.onclick = function() {
+          performanceNotice.classList.add('performance-notice-hidden');
+          
+          // Store that user has seen the notice
+          localStorage.setItem('logomakerHasSeenNotice', 'true');
+          
+          // Show the info button after animation completes
+          setTimeout(function() {
+            performanceNotice.style.display = 'none';
+            infoButton.classList.add('info-button-visible');
+          }, 500);
+        };
+        
+        // Show notice again when info button is clicked
+        infoButton.onclick = function() {
+          performanceNotice.classList.remove('performance-notice-hidden');
+          performanceNotice.style.display = 'block';
+          infoButton.classList.remove('info-button-visible');
+        };
+      }, 100); // Small delay to ensure elements are available
+    })();
+  </script>
 
   <script>
 
