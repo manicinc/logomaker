@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logomaker by Manic - Local Fonts Edition</title>
+  <meta name="description" content="Create custom logos for your brand with Logomaker by Manic. Free, open-source logo generator with multiple fonts, effects, and export options.">
+  <meta name="keywords" content="logo maker, logo generator, free logo tool, brand logo, custom logo, manic agency, design tool">
+  <meta name="author" content="Manic Agency">
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Logomaker by Manic - Free Online Logo Generator">
+  <meta property="og:description" content="Create stunning logos instantly with our free, open-source logo generator. Customize fonts, colors, effects and more.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://manicinc.github.io/logomaker">
+  <meta property="og:image" content="https://manicinc.github.io/logomaker/preview.jpg">
+  
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Logomaker by Manic - Free Logo Generator">
+  <meta name="twitter:description" content="Create stunning logos instantly with this free, open-source tool by Manic Agency.">
+  <meta name="twitter:image" content="https://manicinc.github.io/logomaker/preview.jpg">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="https://manic.agency/favicon.ico" type="image/x-icon">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://manicinc.github.io/logomaker">
+
+ <!-- CSS styles -->
+ <style>
+  :root {
+    --primary-color: #ff1493;
+    --secondary-color: #8a2be2;
+    --background-color: #111;
+    --text-color: #f5f5f5;
+    --border-color: #333;
+    --accent-color: #00ffff;
+    --panel-bg: rgba(30, 30, 30, 0.8);
+    --success-color: #4CAF50;
+    --error-color: #F44336;
+    --warning-color: #FFC107;
+    
+    /* Presets for gradients */
+    --primary-gradient: linear-gradient(45deg, #ff1493, #8a2be2);
+    --cyberpunk-gradient: linear-gradient(45deg, #00ffff, #ff00ff);
+    --sunset-gradient: linear-gradient(45deg, #ff7e5f, #feb47b);
+    --ocean-gradient: linear-gradient(45deg, #2193b0, #6dd5ed);
+    --forest-gradient: linear-gradient(45deg, #134e5e, #71b280);
+    --rainbow-gradient: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+    --neon-blue-gradient: linear-gradient(45deg, #00c6ff, #0072ff);
+    --royal-gradient: linear-gradient(45deg, #141e30, #243b55);
+    --fire-gradient: linear-gradient(45deg, #f12711, #f5af19);
+    --purple-love-gradient: linear-gradient(45deg, #cc2b5e, #753a88);
+    --dark-knight-gradient: linear-gradient(45deg, #ba8b02, #181818);
+    --emerald-gradient: linear-gradient(45deg, #348f50, #56b4d3);
+    
+    --animation-duration: 2s;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 1200px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .logo-brand h1 {
+    font-size: 2rem;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+  }
+  
+  .logo-brand h1 span {
+    font-size: 1rem;
+    opacity: 0.8;
+    font-weight: normal;
+  }
+  
+  .brand-links a {
+    color: var(--accent-color);
+    text-decoration: none;
+    margin-left: 15px;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+  }
+  
+  .brand-links a:hover {
+    opacity: 1;
+  }
+  
+  /* Controls and Tabs */
+  .controls-wrapper {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--panel-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    width: 100%;
+  }
+  
+  .tabs {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+  
+  .tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    flex: 1;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  
+  .tab:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .tab.active {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid var(--primary-color);
+  }
+  
+  .tab-content {
+    display: none;
+    padding: 20px;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  .controls-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+  }
+  
+  .control-group label {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .font-preview {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 1.2rem;
+  }
+  
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.2);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+  
+  input[type="text"]:focus,
+  input[type="number"]:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.2);
+  }
+  
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+  
+  input[type="color"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 30px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  
+  input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+  }
+  
+  input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+  
+  /* Preview Container */
+  .preview-container {
+    position: relative;
+    background-color: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    padding: 40px;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  .logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .logo-text {
+    font-size: 8vw;
+    font-weight: bold;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    text-align: center;
+    animation: gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  .size-indicator {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  /* Button Container */
+  .button-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    flex: 1;
+    min-width: 150px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    background-color: rgba(50, 50, 50, 0.8);
+  }
+  
+  button:active {
+    transform: translateY(0);
+  }
+  
+  #exportPngBtn {
+    background: linear-gradient(45deg, #3a7bd5, #00d2ff);
+  }
+  
+  #exportGifBtn {
+    background: linear-gradient(45deg, #FF416C, #FF4B2B);
+  }
+  
+  #exportSvgBtn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+  }
+  
+  #copyHtmlBtn, #copyCssBtn {
+    background: linear-gradient(45deg, #0f2027, #203a43);
+  }
+  
+  /* Loading Indicator */
+  .loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  footer a {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+  
+  footer a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Utility Classes */
+  .hidden {
+    display: none !important;
+  }
+  
+  /* Text Glow Effects */
+  .text-glow-none {
+    text-shadow: none;
+  }
+  
+  .text-glow-soft {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+  }
+  
+  .text-glow-medium {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  }
+  
+  .text-glow-hard {
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+  }
+  
+  .text-glow-sharp {
+    text-shadow: 0 0 2px #fff, 0 0 4px #fff;
+  }
+  
+  .text-glow-neon {
+    text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff;
+  }
+  
+  .text-glow-outline {
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+  }
+  
+  .text-glow-retro {
+    text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.5);
+  }
+  
+  .text-glow-emboss {
+    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.5), 1px 1px 1px rgba(255, 255, 255, 0.5);
+  }
+  
+  .text-glow-inset {
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5), -1px -1px 1px rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Border Styles */
+  .border-none {
+    border: none;
+  }
+  
+  .border-solid {
+    padding: 10px;
+    border: 2px solid white;
+  }
+  
+  .border-double {
+    padding: 10px;
+    border: 4px double white;
+  }
+  
+  .border-dashed {
+    padding: 10px;
+    border: 2px dashed white;
+  }
+  
+  .border-groove {
+    padding: 10px;
+    border: 5px groove white;
+  }
+  
+  .border-ridge {
+    padding: 10px;
+    border: 5px ridge white;
+  }
+  
+  .border-inset {
+    padding: 10px;
+    border: 5px inset white;
+  }
+  
+  .border-glow {
+    padding: 10px;
+    box-shadow: 0 0 10px var(--accent-color);
+    border: 1px solid var(--accent-color);
+  }
+  
+  .border-pixel {
+    position: relative;
+    padding: 10px;
+  }
+  
+  .border-pixel::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 5px,
+      white 5px,
+      white 10px
+    );
+    z-index: -1;
+  }
+  
+  /* Animation Classes */
+  .anim-none {
+    animation: gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes gradientMove {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .anim-pulse {
+    animation: pulse var(--animation-duration) infinite alternate, 
+               gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.05);
+    }
+  }
+  
+  .anim-blink {
+    animation: blink var(--animation-duration) infinite alternate,
+               gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes blink {
+    0%, 80% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  .anim-bounce {
+    animation: bounce calc(var(--animation-duration) * 0.5) infinite alternate,
+               gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes bounce {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  .anim-shake {
+    animation: shake var(--animation-duration) infinite,
+               gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-2px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(2px);
+    }
+  }
+  
+  .anim-typing {
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 3px solid white;
+    animation: typing var(--animation-duration) steps(30, end) infinite alternate,
+               blink-caret 0.75s step-end infinite,
+               gradientMove var(--animation-duration) infinite alternate;
+    width: 0;
+  }
+  
+  @keyframes typing {
+    0% {
+      width: 0;
+    }
+    100% {
+      width: 100%;
+    }
+  }
+  
+  @keyframes blink-caret {
+    from, to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: white;
+    }
+  }
+  
+  .anim-float {
+    animation: float var(--animation-duration) infinite ease-in-out,
+               gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  
+  .anim-rotate {
+    animation: rotate calc(var(--animation-duration) * 3) infinite linear,
+               gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .anim-glitch {
+    position: relative;
+    animation: gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  .anim-glitch::before,
+  .anim-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  .anim-glitch::before {
+    animation: glitch-1 2s infinite linear alternate-reverse;
+  }
+  
+  .anim-glitch::after {
+    animation: glitch-2 3s infinite linear alternate-reverse;
+  }
+  
+  @keyframes glitch-1 {
+    0%, 100% {
+      clip-path: inset(50% 0 50% 0);
+      transform: translate(-2px, 0);
+    }
+    20% {
+      clip-path: inset(0% 0 100% 0);
+      transform: translate(2px, 0);
+    }
+    40% {
+      clip-path: inset(0% 0 50% 0);
+      transform: translate(-2px, 0);
+    }
+    60% {
+      clip-path: inset(25% 0 75% 0);
+      transform: translate(2px, 0);
+    }
+    80% {
+      clip-path: inset(75% 0 25% 0);
+      transform: translate(-2px, 0);
+    }
+  }
+  
+  @keyframes glitch-2 {
+    0%, 100% {
+      clip-path: inset(50% 0 50% 0);
+      transform: translate(2px, 0);
+    }
+    20% {
+      clip-path: inset(0% 0 100% 0);
+      transform: translate(-2px, 0);
+    }
+    40% {
+      clip-path: inset(0% 0 50% 0);
+      transform: translate(2px, 0);
+    }
+    60% {
+      clip-path: inset(25% 0 75% 0);
+      transform: translate(-2px, 0);
+    }
+    80% {
+      clip-path: inset(75% 0 25% 0);
+      transform: translate(2px, 0);
+    }
+  }
+  
+  .anim-wave {
+    animation: wave var(--animation-duration) ease-in-out infinite,
+               gradientMove var(--animation-duration) infinite alternate;
+  }
+  
+  @keyframes wave {
+    0%, 100% {
+      transform: rotate(0);
+    }
+    25% {
+      transform: rotate(5deg);
+    }
+    75% {
+      transform: rotate(-5deg);
+    }
+  }
+  
+  /* Background Classes */
+  .bg-transparent {
+    background: transparent;
+  }
+  
+  .bg-solid {
+    background-color: #000;
+  }
+  
+  .bg-gradient {
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  }
+  
+  .bg-gradient-animated {
+    background: linear-gradient(270deg, #1a1a2e, #16213e, #0f3460);
+    background-size: 600% 600%;
+    animation: gradientBG 10s ease infinite;
+  }
+  
+  @keyframes gradientBG {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .bg-transparent-gradient {
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.5), rgba(22, 33, 62, 0.5), rgba(15, 52, 96, 0.5));
+  }
+  
+  .bg-transparent-gradient-animated {
+    background: linear-gradient(270deg, rgba(26, 26, 46, 0.5), rgba(22, 33, 62, 0.5), rgba(15, 52, 96, 0.5));
+    background-size: 600% 600%;
+    animation: gradientBG 10s ease infinite;
+  }
+  
+  .bg-grid {
+    background-color: #0e0e0e;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .bg-darkgrid {
+    background-color: #0e0e0e;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+  
+  .bg-stars {
+    background-color: #0e0e0e;
+    background-image: radial-gradient(white, rgba(255, 255, 255, 0.2) 2px, transparent 2px);
+    background-size: 50px 50px;
+  }
+  
+  .bg-noise {
+    position: relative;
+  }
+  
+  .bg-noise::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.1'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  
+  .bg-synthwave {
+    background-color: #241734;
+    background-image: 
+      linear-gradient(to bottom, rgba(36, 23, 52, 0) 30%, rgba(36, 23, 52, 0.8) 80%),
+      linear-gradient(to right, #ff00cc, #3333cc);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bg-synthwave::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 100%;
+    bottom: -50%;
+    left: -50%;
+    background-image: repeating-linear-gradient(0deg, #ff00cc, #3333cc 10%, #ff00cc 20%);
+    transform: perspective(500px) rotateX(60deg);
+    opacity: 0.2;
+  }
+  
+  .bg-matrix {
+    background-color: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bg-matrix::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ctext x='0' y='3' style='font: 4px monospace;' fill='%2300ff00'%3E0%3C/text%3E%3C/svg%3E");
+    opacity: 0.2;
+    animation: matrix 5s linear infinite;
+    pointer-events: none;
+  }
+  
+  @keyframes matrix {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(100%);
+    }
+  }
+  
+  /* Media Queries */
+  @media (max-width: 768px) {
+    .controls-container {
+      grid-template-columns: 1fr;
+    }
+    
+    .tab {
+      padding: 10px;
+      font-size: 0.8rem;
+    }
+    
+    .button-container {
+      flex-direction: column;
+    }
+    
+    button {
+      width: 100%;
+    }
+  }
+</style>
+
+
+  <!-- OPTIONAL INLINE FONTS DATA
+    You can paste your fonts.json content here for offline/local usage.
+    If this array has items, it will be used instead of trying to fetch fonts.json.
+    Example structure:
+  -->
+  <script>
+    // By default, this is empty which means the app will try to load fonts.json
+    // If you want to run without a server, paste your fonts.json content here
+    const INLINE_FONTS_DATA = [];
+    /*
+    Example format for INLINE_FONTS_DATA:
+    [
+      {
+        "displayName": "Univers LT Std",
+        "familyName": "UniversLTStd",
+        "variants": [
+          {
+            "weight": 400,
+            "style": "normal",
+            "file": "fonts/UniversLTStd/UniversLTStd-Regular.woff2"
+          }
+        ],
+        "licenseFile": "fonts/UniversLTStd/LICENSE.txt"
+      }
+    ]
+    */
+  </script>
+  
+  <!-- Google Fonts (will be removed if local fonts are loaded) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Audiowide&family=Bungee+Shade&family=Bungee&family=Bungee+Outline&family=Bungee+Hairline&family=Chakra+Petch:wght@700&family=Exo+2:wght@800&family=Megrim&family=Press+Start+2P&family=Rubik+Mono+One&family=Russo+One&family=Syne+Mono&family=VT323&family=Wallpoet&family=Faster+One&family=Teko:wght@700&family=Black+Ops+One&family=Bai+Jamjuree:wght@700&family=Righteous&family=Bangers&family=Raleway+Dots&family=Monoton&family=Syncopate:wght@700&family=Lexend+Mega:wght@800&family=Michroma&family=Iceland&family=ZCOOL+QingKe+HuangYou&family=Zen+Tokyo+Zoo&family=Major+Mono+Display&family=Nova+Square&family=Kelly+Slab&family=Graduate&family=Unica+One&family=Aldrich&family=Share+Tech+Mono&family=Silkscreen&family=Rajdhani:wght@700&family=Jura:wght@700&family=Goldman&family=Tourney:wght@700&family=Saira+Stencil+One&family=Syncopate&family=Fira+Code:wght@700&family=DotGothic16&family=Gruppo&family=Cinzel:wght@700&family=Bebas+Neue&family=Comfortaa:wght@700&family=Kanit:wght@700&family=Oswald:wght@700&family=Quicksand:wght@700&family=Anton&family=Permanent+Marker&display=swap" 
+    rel="stylesheet">
+  
+  <!-- Add html2canvas for capturing frames -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-brand">
+        <h1>Logomaker <span>by Manic</span></h1>
+      </div>
+      <div class="brand-links">
+        <a href="https://manic.agency" target="_blank">manic.agency</a>
+        <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a>
+      </div>
+    </header>
+
+    <div class="controls-wrapper">
+      <div class="tabs">
+        <button class="tab active" data-tab="text">Text</button>
+        <button class="tab" data-tab="style">Style</button>
+        <button class="tab" data-tab="animation">Animation</button>
+        <button class="tab" data-tab="background">Background</button>
+        <button class="tab" data-tab="advanced">Advanced</button>
+      </div>
+
+      <!-- Text Tab -->
+      <div class="tab-content active" id="text-tab">
+        <div class="controls-container">
+          <div class="control-group">
+            <label for="logoText">Logo Text</label>
+            <input type="text" id="logoText" value="Manic" placeholder="Enter logo text" />
+          </div>
+
+          <div class="control-group">
+            <label for="fontFamily">Font Family <span id="fontPreview" class="font-preview">Aa</span></label>
+            <select id="fontFamily">
+              <!-- Options loaded dynamically from fonts.json or INLINE_FONTS_DATA -->
+            </select>
+          </div>
+
+          <!-- License area: show license text if available for the chosen font -->
+          <div id="fontLicenseContainer" class="hidden">
+            <h4>Font License</h4>
+            <pre id="fontLicenseText" style="white-space: pre-wrap; background: #333; padding: 10px;"></pre>
+          </div>
+
+          <div class="control-group">
+            <label for="fontSize">Font Size (px)</label>
+            <input type="number" id="fontSize" value="100" min="20" max="500">
+          </div>
+          <div class="control-group">
+            <label for="letterSpacing">Letter Spacing</label>
+            <input type="range" id="letterSpacing" min="0" max="0.5" step="0.01" value="0.03">
+          </div>
+          <div class="control-group">
+            <label for="textCase">Text Transform</label>
+            <select id="textCase">
+              <option value="uppercase">UPPERCASE</option>
+              <option value="lowercase">lowercase</option>
+              <option value="capitalize">Capitalize Each Word</option>
+              <option value="none">Default</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="fontWeight">Font Weight</label>
+            <select id="fontWeight">
+              <option value="400">Normal (400)</option>
+              <option value="700" selected>Bold (700)</option>
+              <option value="900">Extra Bold (900)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Style Tab -->
+      <div class="tab-content" id="style-tab">
+        <div class="controls-container">
+          <div class="control-group">
+            <label for="gradientPreset">Gradient Preset</label>
+            <select id="gradientPreset">
+              <option value="primary-gradient">Primary Pink</option>
+              <option value="cyberpunk-gradient">Cyberpunk</option>
+              <option value="sunset-gradient">Sunset</option>
+              <option value="ocean-gradient">Ocean</option>
+              <option value="forest-gradient">Forest</option>
+              <option value="rainbow-gradient">Rainbow</option>
+              <option value="neon-blue-gradient">Neon Blue</option>
+              <option value="royal-gradient">Royal</option>
+              <option value="fire-gradient">Fire</option>
+              <option value="purple-love-gradient">Purple Love</option>
+              <option value="dark-knight-gradient">Dark Knight</option>
+              <option value="emerald-gradient">Emerald</option>
+              <option value="custom">Custom Gradient</option>
+            </select>
+          </div>
+          
+          <div id="customGradientControls" class="hidden">
+            <div class="control-group">
+              <label for="color1">Color 1</label>
+              <input type="color" id="color1" value="#FF1493">
+            </div>
+            <div class="control-group">
+              <label for="color2">Color 2</label>
+              <input type="color" id="color2" value="#8A2BE2">
+            </div>
+            <div class="control-group">
+              <label for="useColor3">Use 3rd Color</label>
+              <input type="checkbox" id="useColor3">
+            </div>
+            <div class="control-group hidden" id="color3Control">
+              <label for="color3">Color 3</label>
+              <input type="color" id="color3" value="#FF4500">
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label for="textShadow">Text Glow</label>
+            <select id="textShadow">
+              <option value="text-glow-none">None</option>
+              <option value="text-glow-sharp">Sharp Edges</option>
+              <option value="text-glow-soft">Soft Glow</option>
+              <option value="text-glow-medium" selected>Medium Glow</option>
+              <option value="text-glow-hard">Hard Glow</option>
+              <option value="text-glow-neon">Neon</option>
+              <option value="text-glow-outline">Outline</option>
+              <option value="text-glow-retro">Retro</option>
+              <option value="text-glow-emboss">Emboss</option>
+              <option value="text-glow-inset">Inset</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label for="borderStyle">Border Style</label>
+            <select id="borderStyle">
+              <option value="border-none" selected>None</option>
+              <option value="border-solid">Solid</option>
+              <option value="border-double">Double</option>
+              <option value="border-dashed">Dashed</option>
+              <option value="border-groove">Groove</option>
+              <option value="border-ridge">Ridge</option>
+              <option value="border-inset">Inset</option>
+              <option value="border-glow">Glow</option>
+              <option value="border-pixel">Pixel</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label for="textAlign">Text Alignment</label>
+            <select id="textAlign">
+              <option value="center" selected>Center</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label for="rotation">Rotation (deg)</label>
+            <input type="range" id="rotation" min="-15" max="15" value="0" step="1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Animation Tab -->
+      <div class="tab-content" id="animation-tab">
+        <div class="controls-container">
+          <div class="control-group">
+            <label for="textAnimation">Text Animation</label>
+            <select id="textAnimation">
+              <option value="anim-none" selected>None (Gradient Only)</option>
+              <option value="anim-blink">Blink</option>
+              <option value="anim-pulse">Pulse</option>
+              <option value="anim-bounce">Bounce</option>
+              <option value="anim-shake">Shake</option>
+              <option value="anim-typing">Typing</option>
+              <option value="anim-float">Float</option>
+              <option value="anim-rotate">Rotate</option>
+              <option value="anim-glitch">Glitch</option>
+              <option value="anim-wave">Wave</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label for="animationSpeed">Animation Speed</label>
+            <input type="range" id="animationSpeed" min="0.5" max="3" step="0.1" value="1">
+          </div>
+          
+          <div class="control-group">
+            <label for="animationDirection">Gradient Direction</label>
+            <input type="range" id="animationDirection" min="0" max="360" step="15" value="45">
+          </div>
+        </div>
+      </div>
+
+      <!-- Background Tab -->
+      <div class="tab-content" id="background-tab">
+        <div class="controls-container">
+          <div class="control-group">
+            <label for="backgroundType">Background Type</label>
+            <select id="backgroundType">
+              <option value="bg-transparent">Transparent</option>
+              <option value="bg-solid" selected>Solid Color</option>
+              <option value="bg-gradient">Gradient</option>
+              <option value="bg-gradient-animated">Animated Gradient</option>
+              <option value="bg-transparent-gradient">Transparent Gradient</option>
+              <option value="bg-transparent-gradient-animated">Animated Transparent Gradient</option>
+              <option value="bg-grid">Grid</option>
+              <option value="bg-darkgrid">Dark Grid</option>
+              <option value="bg-stars">Stars</option>
+              <option value="bg-noise">Noise</option>
+              <option value="bg-synthwave">Synthwave</option>
+              <option value="bg-matrix">Matrix</option>
+            </select>
+          </div>
+          
+          <div class="control-group" id="backgroundColorControl">
+            <label for="backgroundColor">Background Color</label>
+            <input type="color" id="backgroundColor" value="#000000">
+          </div>
+          
+          <div class="control-group">
+            <label for="bgOpacity">Background Opacity</label>
+            <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Tab -->
+      <div class="tab-content" id="advanced-tab">
+        <div class="controls-container">
+          <div class="control-group">
+            <label for="previewSize">Preview Size</label>
+            <select id="previewSize">
+              <option value="small">Small</option>
+              <option value="medium" selected>Medium</option>
+              <option value="large">Large</option>
+              <option value="x-large">Extra Large</option>
+            </select>
+          </div>
+          
+          <div class="control-group">
+            <label for="exportWidth">Export Width (px)</label>
+            <input type="number" id="exportWidth" min="100" max="3000" value="800">
+          </div>
+          
+          <div class="control-group">
+            <label for="exportHeight">Export Height (px)</label>
+            <input type="number" id="exportHeight" min="100" max="3000" value="400">
+          </div>
+          
+          <div class="control-group">
+            <label for="exportQuality">Export Quality (%)</label>
+            <input type="range" id="exportQuality" min="50" max="100" value="90">
+          </div>
+          
+          <div class="control-group">
+            <label for="exportTransparent">Transparent Background</label>
+            <input type="checkbox" id="exportTransparent">
+          </div>
+          
+          <div class="control-group">
+            <label for="exportFrames">GIF Frames (1-30)</label>
+            <input type="number" id="exportFrames" min="1" max="30" value="10">
+          </div>
+          
+          <div class="control-group">
+            <label for="cssCode">CSS Code</label>
+            <textarea id="cssCode" rows="4" readonly></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-container" id="previewContainer">
+      <div class="logo-container">
+        <div class="logo-text">Manic</div>
+      </div>
+      <div class="size-indicator">
+        <span id="logoWidth">0</span> × <span id="logoHeight">0</span>px
+      </div>
+    </div>
+
+    <div class="button-container">
+      <button id="exportPngBtn">Export as PNG</button>
+      <button id="exportGifBtn">Export as GIF</button>
+      <button id="exportSvgBtn">Export as SVG</button>
+      <button id="copyHtmlBtn">Copy HTML</button>
+      <button id="copyCssBtn">Copy CSS</button>
+    </div>
+
+    <div id="loadingIndicator" class="loading-indicator">
+      Generating export... This may take a few moments.
+    </div>
+
+    <footer>
+      <p>Logomaker by <a href="https://manic.agency" target="_blank">Manic Agency</a> | Open Source on <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a></p>
+      <p>Contact us for work at team@manic.agency</p>
+    </footer>
+  </div>
+
+  <!-- Load html-to-image for PNG/SVG export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.13/html-to-image.min.js"></script>
+  <!-- Load JSZip for bundling PNG frames into a ZIP -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip/dist/jszip.min.js"></script>
+
+  <script>
+
+    // Show width/height in preview
+    function updateSizeIndicator() {
+      const logoWidth = document.getElementById('logoWidth');
+      const logoHeight = document.getElementById('logoHeight');
+      if (!logoElement || !logoWidth || !logoHeight) return;
+      logoWidth.textContent = logoElement.offsetWidth;
+      logoHeight.textContent = logoElement.offsetHeight;
+    }
+
+    // Add the new tab navigation function:
+    function setupTabNavigation() {
+      const tabs = document.querySelectorAll('.tab');
+      const tabContents = document.querySelectorAll('.tab-content');
+      
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          // Remove active class from all tabs
+          tabs.forEach(t => t.classList.remove('active'));
+          
+          // Add active class to clicked tab
+          this.classList.add('active');
+          
+          // Hide all tab contents
+          tabContents.forEach(content => content.classList.remove('active'));
+          
+          // Show the corresponding tab content
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(tabId + '-tab').classList.add('active');
+        });
+      });
+    }
+
+    /**********************************************
+     * 2) EVENT LISTENERS & UI CONTROLS
+     **********************************************/
+    let textAnimation; // forward declaration so we can reference in updateSelectedFont
+
+    function initializeEventListeners() {
+      // Font family
+      fontFamilySelect.addEventListener('change', updateSelectedFont);
+
+      // Basic text controls
+      const logoTextInput = document.getElementById('logoText');
+      const fontSizeInput = document.getElementById('fontSize');
+      const letterSpacingInput = document.getElementById('letterSpacing');
+      const textCaseSelect = document.getElementById('textCase');
+      const fontWeightSelect = document.getElementById('fontWeight');
+
+      logoTextInput.addEventListener('input', function() {
+        logoElement.textContent = this.value;
+        logoElement.setAttribute('data-text', this.value);
+      });
+      fontSizeInput.addEventListener('input', function() {
+        logoElement.style.fontSize = `${this.value}px`;
+        updateSizeIndicator();
+      });
+      letterSpacingInput.addEventListener('input', function() {
+        logoElement.style.letterSpacing = `${this.value}em`;
+      });
+      textCaseSelect.addEventListener('change', function() {
+        logoElement.style.textTransform = this.value;
+      });
+      fontWeightSelect.addEventListener('change', function() {
+        logoElement.style.fontWeight = this.value;
+      });
+
+      // Style tab
+      const gradientPreset = document.getElementById('gradientPreset');
+      const customGradientControls = document.getElementById('customGradientControls');
+      const color1Input = document.getElementById('color1');
+      const color2Input = document.getElementById('color2');
+      const color3Input = document.getElementById('color3');
+      const useColor3Input = document.getElementById('useColor3');
+      const textShadowSelect = document.getElementById('textShadow');
+      const borderStyleSelect = document.getElementById('borderStyle');
+      const textAlignSelect = document.getElementById('textAlign');
+      const rotationInput = document.getElementById('rotation');
+
+      gradientPreset.addEventListener('change', function() {
+        if (this.value === 'custom') {
+          customGradientControls.classList.remove('hidden');
+          updateCustomGradient();
+        } else {
+          customGradientControls.classList.add('hidden');
+          logoElement.style.backgroundImage = `var(--${this.value})`;
+        }
+      });
+      useColor3Input.addEventListener('change', function() {
+        document.getElementById('color3Control').classList.toggle('hidden', !this.checked);
+        updateCustomGradient();
+      });
+      color1Input.addEventListener('input', updateCustomGradient);
+      color2Input.addEventListener('input', updateCustomGradient);
+      color3Input.addEventListener('input', updateCustomGradient);
+
+      function updateCustomGradient() {
+        const directionVal = document.getElementById('animationDirection').value || 45;
+        const c1 = color1Input.value;
+        const c2 = color2Input.value;
+        const c3 = color3Input.value;
+        let gradient;
+        if (useColor3Input.checked) {
+          gradient = `linear-gradient(${directionVal}deg, ${c1}, ${c2}, ${c3})`;
+        } else {
+          gradient = `linear-gradient(${directionVal}deg, ${c1}, ${c2})`;
+        }
+        logoElement.style.backgroundImage = gradient;
+      }
+
+      textShadowSelect.addEventListener('change', function() {
+        // Remove old text-glow- classes
+        logoElement.classList.forEach(cls => {
+          if (cls.startsWith('text-glow-')) {
+            logoElement.classList.remove(cls);
+          }
+        });
+        // Add new
+        logoElement.classList.add(this.value);
+      });
+
+      borderStyleSelect.addEventListener('change', function() {
+        // Remove old border- classes
+        logoElement.classList.forEach(cls => {
+          if (cls.startsWith('border-')) {
+            logoElement.classList.remove(cls);
+          }
+        });
+        // Add new
+        logoElement.classList.add(this.value);
+      });
+
+      textAlignSelect.addEventListener('change', function() {
+        logoElement.style.textAlign = this.value;
+      });
+
+      rotationInput.addEventListener('input', function() {
+        logoElement.style.transform = `rotate(${this.value}deg)`;
+      });
+
+      // Animation tab
+      textAnimation = document.getElementById('textAnimation');
+      const animationSpeedInput = document.getElementById('animationSpeed');
+      const animationDirectionInput = document.getElementById('animationDirection');
+
+      textAnimation.addEventListener('change', function() {
+        // Remove all anim- classes
+        logoElement.classList.forEach(cls => {
+          if (cls.startsWith('anim-')) {
+            logoElement.classList.remove(cls);
+          }
+        });
+        // Add new
+        logoElement.classList.add(this.value);
+        if (this.value === 'anim-glitch') {
+          logoElement.setAttribute('data-text', logoElement.textContent);
+        }
+      });
+
+      animationSpeedInput.addEventListener('input', function() {
+        const speed = parseFloat(this.value);
+        document.documentElement.style.setProperty('--animation-duration', `${2/speed}s`);
+        // Attempt to update existing animations’ playbackRate
+        const anims = logoElement.getAnimations();
+        anims.forEach(anim => anim.playbackRate = speed);
+      });
+
+      animationDirectionInput.addEventListener('input', function() {
+        const directionVal = parseInt(this.value);
+        const currentBg = window.getComputedStyle(logoElement).backgroundImage;
+        if (currentBg.includes('linear-gradient')) {
+          if (gradientPreset.value === 'custom') {
+            updateCustomGradient();
+          } else {
+            const colors = currentBg.match(/(#[0-9a-f]{3,8}|rgba?\([^)]+\))/gi);
+            if (colors && colors.length >= 2) {
+              let newGradient = `linear-gradient(${directionVal}deg`;
+              colors.forEach(col => {
+                newGradient += `, ${col}`;
+              });
+              newGradient += ')';
+              logoElement.style.backgroundImage = newGradient;
+            }
+          }
+        }
+      });
+
+      // Background tab
+      const backgroundTypeSelect = document.getElementById('backgroundType');
+      const backgroundColorInput = document.getElementById('backgroundColor');
+      const backgroundColorControl = document.getElementById('backgroundColorControl');
+      const bgOpacityInput = document.getElementById('bgOpacity');
+
+      backgroundTypeSelect.addEventListener('change', function() {
+        // Remove old bg- classes from previewContainer
+        const previewContainer = document.getElementById('previewContainer');
+        previewContainer.classList.forEach(cls => {
+          if (cls.startsWith('bg-')) {
+            previewContainer.classList.remove(cls);
+          }
+        });
+        previewContainer.classList.add(this.value);
+
+        backgroundColorControl.classList.toggle('hidden', this.value !== 'bg-solid');
+        if (this.value === 'bg-solid') {
+          previewContainer.style.backgroundColor = backgroundColorInput.value;
+        } else {
+          previewContainer.style.backgroundColor = '';
+        }
+      });
+      backgroundColorInput.addEventListener('input', function() {
+        if (backgroundTypeSelect.value === 'bg-solid') {
+          document.getElementById('previewContainer').style.backgroundColor = this.value;
+        }
+      });
+      bgOpacityInput.addEventListener('input', function() {
+        document.getElementById('previewContainer').style.opacity = this.value;
+      });
+
+      // Advanced tab
+      const previewSizeSelect = document.getElementById('previewSize');
+      previewSizeSelect.addEventListener('change', function() {
+        const previewContainer = document.getElementById('previewContainer');
+        switch (this.value) {
+          case 'small':
+            previewContainer.style.padding = '20px';
+            logoElement.style.fontSize = '6vw';
+            break;
+          case 'medium':
+            previewContainer.style.padding = '40px';
+            logoElement.style.fontSize = '8vw';
+            break;
+          case 'large':
+            previewContainer.style.padding = '60px';
+            logoElement.style.fontSize = '10vw';
+            break;
+          case 'x-large':
+            previewContainer.style.padding = '80px';
+            logoElement.style.fontSize = '12vw';
+            break;
+        }
+        updateSizeIndicator();
+      });
+
+      // Copy CSS
+      document.getElementById('copyCssBtn').addEventListener('click', function() {
+        updateCssCode();
+        const cssCode = document.getElementById('cssCode');
+        cssCode.select();
+        document.execCommand('copy');
+        alert('CSS copied to clipboard!');
+      });
+
+      // Copy HTML
+      document.getElementById('copyHtmlBtn').addEventListener('click', function() {
+        const html = `<div class="logo">${logoElement.textContent}</div>`;
+        const tempTextarea = document.createElement('textarea');
+        tempTextarea.value = html;
+        document.body.appendChild(tempTextarea);
+        tempTextarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextarea);
+        alert('HTML copied to clipboard!');
+      });
+
+      // Update size indicator initially
+      updateSizeIndicator();
+    }
+
+    // Update CSS code in the advanced tab
+    function updateCssCode() {
+      const cssCode = document.getElementById('cssCode');
+      const computedStyle = window.getComputedStyle(logoElement);
+      const css = `
+        .logo {
+          font-family: ${computedStyle.fontFamily};
+          font-size: ${computedStyle.fontSize};
+          font-weight: ${computedStyle.fontWeight};
+          letter-spacing: ${computedStyle.letterSpacing};
+          text-transform: ${computedStyle.textTransform};
+          background-image: ${computedStyle.backgroundImage};
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+          text-shadow: ${computedStyle.textShadow};
+          transform: ${computedStyle.transform};
+        }
+      `;
+      cssCode.value = css.trim();
+    }
+
+    // Add this new function call
+    setupTabNavigation();
+    
+    // Update size indicator initially
+    updateSizeIndicator();
+
+  </script>
+
+  <script>
+    /**********************************************
+     * 1) FONT LOADING SYSTEM (Updated to handle empty variants)
+     **********************************************/
+    const fontFamilySelect = document.getElementById('fontFamily');
+    const fontPreview = document.getElementById('fontPreview');
+    const fontLicenseContainer = document.getElementById('fontLicenseContainer');
+    const fontLicenseText = document.getElementById('fontLicenseText');
+    const logoElement = document.querySelector('.logo-text');
+
+    // On page load, load fonts from either inline data or fetch from fonts.json
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if we have inline fonts data
+      if (typeof INLINE_FONTS_DATA !== 'undefined' && INLINE_FONTS_DATA.length > 0) {
+        console.log('Using inline fonts data');
+        removeGoogleFontsLink();
+        initializeFonts(INLINE_FONTS_DATA);
+      } else {
+        console.log('Fetching fonts.json');
+        // Try to fetch fonts.json
+        fetch('fonts.json')
+          .then(res => res.json())
+          .then((fontsData) => {
+            // If loaded, remove google fonts link so we use local only
+            removeGoogleFontsLink();
+            console.log('Loaded fonts from fonts.json');
+            initializeFonts(fontsData);
+          })
+          .catch(err => {
+            console.error('Failed to load fonts.json:', err);
+            // Add some default fonts as fallback
+            const defaultFonts = [
+              {
+                "displayName": "Orbitron",
+                "familyName": "Orbitron",
+                "variants": [],
+                "licenseFile": null
+              },
+              {
+                "displayName": "Audiowide",
+                "familyName": "Audiowide", 
+                "variants": [],
+                "licenseFile": null
+              },
+              {
+                "displayName": "Press Start 2P",
+                "familyName": "Press Start 2P",
+                "variants": [],
+                "licenseFile": null
+              }
+            ];
+            initializeFonts(defaultFonts);
+          });
+      }
+    });
+
+    function removeGoogleFontsLink() {
+      // Remove google fonts link if it exists
+      const googleFontsLink = document.querySelectorAll('link[href*="fonts.googleapis.com"]');
+      googleFontsLink.forEach(link => link.remove());
+    }
+    
+    /**
+     * Initializes the font dropdown and loads font CSS based on the updated metadata structure
+     * @param {Array} fontsData - Array of font objects with enhanced metadata
+     */
+    function initializeFonts(fontsData) {
+      // Handle the case where fonts might be in a nested "fonts" property (from new generator)
+      if (fontsData.fonts && Array.isArray(fontsData.fonts)) {
+        fontsData = fontsData.fonts;
+      }
+      
+      // Clear any existing options
+      fontFamilySelect.innerHTML = '';
+      
+      // Create a style element for all font-face declarations
+      const styleElement = document.createElement('style');
+      let fontFaceRules = '';
+      
+      // Create a document fragment for dropdown options
+      const selectFragment = document.createDocumentFragment();
+      
+      // Process all fonts
+      fontsData.forEach(font => {
+        // Add select option
+        const option = document.createElement('option');
+        option.value = font.familyName;
+        option.textContent = font.displayName;
+        option.dataset.fontInfo = JSON.stringify({
+          familyName: font.familyName,
+          displayName: font.displayName,
+          hasVariants: font.fontCount > 1,
+          licenseFile: font.licenseFile,
+          licenseText: font.licenseText // New property from enhanced generator
+        });
+        selectFragment.appendChild(option);
+        
+        // Generate @font-face rules for this font family's variants
+        if (font.variants && font.variants.length > 0) {
+          font.variants.forEach(variant => {
+            // Handle the updated variant format that has "format" property
+            const formatString = variant.format ? {
+              'woff2': 'woff2',
+              'woff': 'woff',
+              'ttf': 'truetype',
+              'otf': 'opentype',
+              'eot': 'embedded-opentype'
+            }[variant.format] : 'opentype';
+            
+            // Check if file is a data URL (Base64 encoded)
+            const isDataUrl = typeof variant.file === 'string' && variant.file.startsWith('data:');
+            
+            // Create the @font-face rule
+            fontFaceRules += `
+    @font-face {
+      font-family: '${font.familyName}';
+      font-style: ${variant.style || 'normal'};
+      font-weight: ${variant.weight || 400};
+      src: url('${variant.file}') format('${formatString}')${!isDataUrl && variant.weight === 400 && variant.style === 'normal' ? `, local('${font.displayName}')` : ''};
+      font-display: swap;
+    }`;
+          });
+        } else {
+          // Fallback for fonts without explicit variants
+          const defaultPath = `fonts/${font.familyName}/${font.familyName}.otf`;
+          
+          fontFaceRules += `
+    @font-face {
+      font-family: '${font.familyName}';
+      src: url('${defaultPath}') format('opentype'), local('${font.displayName}');
+      font-display: swap;
+    }`;
+        }
+      });
+      
+      // Add the font-face rules to the page
+      styleElement.textContent = fontFaceRules;
+      document.head.appendChild(styleElement);
+      
+      // Add all options to the select element at once
+      fontFamilySelect.appendChild(selectFragment);
+      
+      // Set initial font
+      updateSelectedFont();
+      
+      // Initialize all event listeners
+      initializeEventListeners();
+      
+      // Log font loading completion
+      console.log(`Loaded ${fontsData.length} font families`);
+    }
+
+    /**
+     * Updates the selected font when the dropdown changes
+     */
+    function updateSelectedFont() {
+      const selectedOption = fontFamilySelect.options[fontFamilySelect.selectedIndex];
+      if (!selectedOption || !selectedOption.dataset.fontInfo) return;
+
+      const fontObj = JSON.parse(selectedOption.dataset.fontInfo);
+
+      // Apply the selected font family to logo text
+      logoElement.style.fontFamily = `'${fontObj.familyName}', sans-serif`;
+      // Update font preview
+      fontPreview.style.fontFamily = `'${fontObj.familyName}', sans-serif`;
+
+      // Show license info (if any)
+      // First check for embedded licenseText (from Base64 version)
+      if (fontObj.licenseText) {
+        fontLicenseText.textContent = fontObj.licenseText;
+        fontLicenseContainer.classList.remove('hidden');
+      } 
+      // Otherwise try to fetch from licenseFile
+      else if (fontObj.licenseFile) {
+        fetch(fontObj.licenseFile)
+          .then(res => res.text())
+          .then(licenseTxt => {
+            fontLicenseText.textContent = licenseTxt;
+            fontLicenseContainer.classList.remove('hidden');
+          })
+          .catch(err => {
+            console.error('Error loading license file:', err);
+            fontLicenseText.textContent = 'Error loading license.';
+            fontLicenseContainer.classList.remove('hidden');
+          });
+      } else {
+        fontLicenseText.textContent = 'Open/Free License';
+        fontLicenseContainer.classList.remove('hidden');
+      }
+
+      // Force a quick redraw for glitch effect
+      logoElement.textContent = logoElement.textContent + ' ';
+      setTimeout(() => {
+        logoElement.textContent = logoElement.textContent.trim();
+        if (textAnimation && textAnimation.value === 'anim-glitch') {
+          logoElement.setAttribute('data-text', logoElement.textContent);
+        }
+      }, 10);
+    }
+    </script>
+   <script>
+
+    /**********************************************
+     * 3) EXPORT FUNCTIONS
+     **********************************************/
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const exportPngBtn = document.getElementById('exportPngBtn');
+    const exportSvgBtn = document.getElementById('exportSvgBtn');
+    const exportGifBtn = document.getElementById('exportGifBtn');
+    const previewContainer = document.getElementById('previewContainer');
+
+    // Controls
+    const exportWidth = document.getElementById('exportWidth');
+    const exportHeight = document.getElementById('exportHeight');
+    const exportQuality = document.getElementById('exportQuality');
+    const exportTransparent = document.getElementById('exportTransparent');
+    const exportFrames = document.getElementById('exportFrames');
+    const logoTextInput = document.getElementById('logoText');
+
+    // -- Export PNG (single)
+    exportPngBtn.addEventListener('click', async function() {
+      loadingIndicator.style.display = 'flex';
+      try {
+        // We use html2canvas on either the entire preview or just the .logo-text
+        // For best results capturing background, do the entire previewContainer
+        const scaleWidth = parseInt(exportWidth.value) || 800;
+        const scaleHeight = parseInt(exportHeight.value) || 400;
+
+        // Temporarily set the size for capture
+        const originalWidth = previewContainer.style.width;
+        const originalHeight = previewContainer.style.height;
+        previewContainer.style.width = scaleWidth + 'px';
+        previewContainer.style.height = scaleHeight + 'px';
+
+        // If user wants transparent, set background to none
+        const originalBg = previewContainer.style.backgroundColor;
+        if (exportTransparent.checked) {
+          previewContainer.style.backgroundColor = 'transparent';
+        }
+
+        const canvas = await html2canvas(previewContainer, {
+          backgroundColor: exportTransparent.checked ? null : null,
+          scale: 1
+        });
+
+        // restore
+        previewContainer.style.width = originalWidth;
+        previewContainer.style.height = originalHeight;
+        if (exportTransparent.checked) {
+          previewContainer.style.backgroundColor = originalBg;
+        }
+
+        // Convert to dataURL
+        const dataUrl = canvas.toDataURL('image/png', parseInt(exportQuality.value) / 100);
+        const link = document.createElement('a');
+        link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.png';
+        link.href = dataUrl;
+        link.click();
+      } catch (error) {
+        console.error('PNG Export Error:', error);
+        alert('Error exporting PNG: ' + error.message);
+      }
+      loadingIndicator.style.display = 'none';
+    });
+
+    // -- Export SVG
+    exportSvgBtn.addEventListener('click', function() {
+      if (typeof htmlToImage === 'undefined') {
+        alert('html-to-image library is not available.');
+        return;
+      }
+
+      loadingIndicator.style.display = 'flex';
+
+      const captureElement = previewContainer;
+      const originalWidth = captureElement.style.width;
+      const originalHeight = captureElement.style.height;
+
+      const targetWidth = parseInt(exportWidth.value) || 800;
+      const targetHeight = parseInt(exportHeight.value) || 400;
+
+      captureElement.style.width = targetWidth + 'px';
+      captureElement.style.height = targetHeight + 'px';
+
+      const originalBg = captureElement.style.backgroundColor;
+      if (exportTransparent.checked) {
+        captureElement.style.backgroundColor = 'transparent';
+      }
+
+      // Pause CSS animation
+      const originalPlayState = logoElement.style.animationPlayState;
+      logoElement.style.animationPlayState = 'paused';
+
+      htmlToImage.toSvg(captureElement, {
+        backgroundColor: exportTransparent.checked ? null : originalBg
+      })
+      .then(function(dataUrl) {
+        // restore
+        captureElement.style.width = originalWidth;
+        captureElement.style.height = originalHeight;
+        logoElement.style.animationPlayState = originalPlayState;
+        if (exportTransparent.checked) {
+          captureElement.style.backgroundColor = originalBg;
+        }
+
+        const link = document.createElement('a');
+        link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.svg';
+        link.href = dataUrl;
+        link.click();
+        loadingIndicator.style.display = 'none';
+      })
+      .catch(function(error) {
+        console.error('SVG Export Error:', error);
+        captureElement.style.width = originalWidth;
+        captureElement.style.height = originalHeight;
+        logoElement.style.animationPlayState = originalPlayState;
+        if (exportTransparent.checked) {
+          captureElement.style.backgroundColor = originalBg;
+        }
+        loadingIndicator.style.display = 'none';
+        alert('Error exporting SVG: ' + error.message);
+      });
+    });
+
+    // -- "Export GIF" => Actually export multiple PNG frames in a ZIP
+    exportGifBtn.addEventListener('click', async function() {
+      loadingIndicator.style.display = 'flex';
+
+      try {
+        const framesCount = parseInt(exportFrames.value) || 10;
+        const zip = new JSZip();
+        const folder = zip.folder('frames');
+
+        // We'll scale the container up to exportWidth/exportHeight
+        const targetWidth = parseInt(exportWidth.value) || 800;
+        const targetHeight = parseInt(exportHeight.value) || 400;
+
+        // Save original styles
+        const originalWidth = previewContainer.style.width;
+        const originalHeight = previewContainer.style.height;
+        const originalBg = previewContainer.style.backgroundColor;
+
+        // Set container size
+        previewContainer.style.width = targetWidth + 'px';
+        previewContainer.style.height = targetHeight + 'px';
+
+        if (exportTransparent.checked) {
+          previewContainer.style.backgroundColor = 'transparent';
+        }
+
+        // Attempt to manipulate animation time – if you want more precise steps, you’d do so here
+        const animations = logoElement.getAnimations();
+        // Pause them so we can manually step time
+        animations.forEach(anim => anim.pause && anim.pause());
+
+        for (let i = 0; i < framesCount; i++) {
+          // If we wanted to step time on each animation:
+          // animations.forEach(anim => {
+          //   const fraction = i / framesCount;
+          //   const duration = anim.effect.getTiming().duration;
+          //   anim.currentTime = duration * fraction;
+          // });
+
+          // Wait a moment to let the browser render at this step
+          await new Promise(r => setTimeout(r, 200));
+
+          // Capture via html2canvas
+          const canvas = await html2canvas(previewContainer, {
+            backgroundColor: exportTransparent.checked ? null : null,
+            scale: 1
+          });
+
+          const dataUrl = canvas.toDataURL('image/png', parseInt(exportQuality.value)/100);
+          // dataUrl is "data:image/png;base64,...."
+          // We want just the Base64 data
+          const base64Data = dataUrl.substring(dataUrl.indexOf(',') + 1);
+
+          // Add to ZIP as "frame_0.png", etc.
+          folder.file(`frame_${String(i).padStart(2,'0')}.png`, base64Data, {base64:true});
+        }
+
+        // After all frames, restore everything
+        previewContainer.style.width = originalWidth;
+        previewContainer.style.height = originalHeight;
+        if (exportTransparent.checked) {
+          previewContainer.style.backgroundColor = originalBg;
+        }
+        animations.forEach(anim => anim.play && anim.play());
+
+        // Generate ZIP
+        const blob = await zip.generateAsync({type: 'blob'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        // name the zip based on the text
+        a.download = (logoTextInput.value || 'logo') + '_frames.zip';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('ZIP Export Error:', err);
+        alert('Error creating ZIP of frames: ' + err.message);
+      }
+
+      loadingIndicator.style.display = 'none';
+    });
+
+    // Keep glitch data-text updated
+    logoElement.setAttribute('data-text', logoElement.textContent);
+  </script>
+</body>
+</html>
