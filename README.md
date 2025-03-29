@@ -213,6 +213,23 @@ For Base64-encoded fonts, the `file` value will be a data URL instead of a file 
 "file": "data:font/woff2;base64,d09GMgABAAAAAAm..."
 ```
 
+### Converting OTF fonts to WOFF2
+Web browsers have better support for WOFF2 font format. If you encounter font decoding errors (like "OTS parsing error: invalid sfntVersion"), convert your OTF fonts to WOFF2:
+
+1. Install the required tools:
+```bash
+pip install fonttools brotli
+```
+
+2. Run this script to convert all OTF fonts in your directory:
+```bash
+./convert-fonts.sh
+```
+
+3. For problematic fonts, try the Font Squirrel Webfont Generator: https://www.fontsquirrel.com/tools/webfont-generator
+
+4. Move / name your new fonts folder to `/fonts' where the `index.html` file is or where the scripts are if you're bundling it to one file.
+
 ### Generating Font Data
 The included generate-fonts-json.js script scans your font directories and creates a fonts.json file:
 ```bash
