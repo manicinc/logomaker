@@ -1,4 +1,4 @@
-# Logomaker by Manic 🎨✨
+# Logomaker by Manic.agency 🎨✨
 
 ![Logomaker Preview](./preview.png)
 
@@ -65,6 +65,12 @@ This approach isn't just a workaround for GitHub Pages / LFS limitations - it's 
 
 ## Getting Started 🚀
 
+Want to get started immediately?
+
+Just open `single_file_app.html` on any computer. Literally. That's it.
+
+It may be a struggle to process the 60mb HTML file, but when it's finished loading, it should run like a breeze with **no** online connections / dependencies needed. 
+
 ### Use Online 🌐
 
 Visit https://manicinc.github.io/logomaker to use the tool directly in your browser with all features enabled.
@@ -73,7 +79,7 @@ Visit https://manicinc.github.io/logomaker to use the tool directly in your brow
 
 Two options are available for local usage:
 
-#### Option 1: Web Server with External Font Data
+#### Web Server with External Font Data
 
 1. Clone the repository with Git LFS to fetch font files:
 
@@ -124,7 +130,7 @@ python -m http.server 8000
 
 7. Open http://localhost:8000 in your browser
 
-#### Option 2: Self-Contained Version (Ultra-Portable) 🔥
+#### Self-Contained Version (Ultra-Portable) 🔥
 
 1. Clone the repository with Git LFS:
 
@@ -158,18 +164,7 @@ let _INLINE_FONTS_DATA = [
 
 Now you have a single, self-contained HTML file with everything included! 🎉 Just open index.html in any browser, even offline.
 
-## Creating a Single-File Portable Version 📱
-
-To make Logomaker even more portable, follow these steps for the "Manic Edition" (everything in one file!):
-
-1. Generate Base64-encoded fonts:
-```bash
-node generate-fonts-json.js --base64
-```
-
-2. Copy the entire array from `inline-fonts-data.js` into index.html's `_INLINE_FONTS_DATA` variable (line 992).
-
-3. That's it! You now have one HTML file (~2000 lines) containing:
+That's it! You now have one HTML file (~2000 lines) containing:
    - All the UI
    - All the CSS
    - All the JavaScript
@@ -180,8 +175,6 @@ Perfect for:
 - 💾 USB drives
 - ✈️ Offline usage
 - 🚀 Quick demos
-
-The entire application in one file - no servers, no dependencies, no hassle!
 
 ## Font System 🔤
 
