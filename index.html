@@ -1582,7 +1582,7 @@
       const googleFontsLink = document.querySelectorAll('link[href*="fonts.googleapis.com"]');
       googleFontsLink.forEach(link => link.remove());
     }
-    
+
     /**
      * Initializes the font dropdown and loads font CSS based on the updated metadata structure
      * @param {Array} fontsData - Array of font objects with enhanced metadata
@@ -1739,42 +1739,58 @@
     const exportTransparent = document.getElementById('exportTransparent');
     const exportFrames = document.getElementById('exportFrames');
     const logoTextInput = document.getElementById('logoText');
-
+    
     // -- Export PNG (single)
     exportPngBtn.addEventListener('click', async function() {
       loadingIndicator.style.display = 'flex';
       try {
-        // We use html2canvas on either the entire preview or just the .logo-text
-        // For best results capturing background, do the entire previewContainer
-        const scaleWidth = parseInt(exportWidth.value) || 800;
-        const scaleHeight = parseInt(exportHeight.value) || 400;
+        const targetWidth = parseInt(exportWidth.value) || 800;
+        const targetHeight = parseInt(exportHeight.value) || 400;
 
-        // Temporarily set the size for capture
+        // Store original styles for restoration later
         const originalWidth = previewContainer.style.width;
         const originalHeight = previewContainer.style.height;
-        previewContainer.style.width = scaleWidth + 'px';
-        previewContainer.style.height = scaleHeight + 'px';
+        const originalBgColor = previewContainer.style.backgroundColor;
+        const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
+        const originalOpacity = previewContainer.style.opacity;
 
-        // If user wants transparent, set background to none
-        const originalBg = previewContainer.style.backgroundColor;
+        // Set dimensions for export
+        previewContainer.style.width = targetWidth + 'px';
+        previewContainer.style.height = targetHeight + 'px';
+        
+        // Handle transparency/background
         if (exportTransparent.checked) {
+          // Save the original background class if any
+          if (originalBgClass) {
+            previewContainer.classList.remove(originalBgClass);
+          }
           previewContainer.style.backgroundColor = 'transparent';
+          previewContainer.style.opacity = '1';
         }
+        
+        // Wait for DOM updates to apply
+        await new Promise(resolve => setTimeout(resolve, 50));
 
-        const canvas = await html2canvas(previewContainer, {
-          backgroundColor: exportTransparent.checked ? null : null,
-          scale: 1
+        // Create canvas using html-to-image library for better handling of styles
+        const dataUrl = await htmlToImage.toPng(previewContainer, {
+          width: targetWidth,
+          height: targetHeight,
+          quality: parseInt(exportQuality.value) / 100,
+          backgroundColor: exportTransparent.checked ? null : undefined
         });
 
-        // restore
+        // Restore original styles
         previewContainer.style.width = originalWidth;
         previewContainer.style.height = originalHeight;
-        if (exportTransparent.checked) {
-          previewContainer.style.backgroundColor = originalBg;
+        previewContainer.style.backgroundColor = originalBgColor;
+        previewContainer.style.opacity = originalOpacity;
+        
+        // Restore the original background class if it was removed
+        if (exportTransparent.checked && originalBgClass) {
+          previewContainer.classList.add(originalBgClass);
         }
-
-        // Convert to dataURL
-        const dataUrl = canvas.toDataURL('image/png', parseInt(exportQuality.value) / 100);
+        
+        // Download the image
         const link = document.createElement('a');
         link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.png';
         link.href = dataUrl;
@@ -1786,147 +1802,185 @@
       loadingIndicator.style.display = 'none';
     });
 
-    // -- Export SVG
-    exportSvgBtn.addEventListener('click', function() {
-      if (typeof htmlToImage === 'undefined') {
-        alert('html-to-image library is not available.');
-        return;
-      }
+  // -- Export SVG
+  exportSvgBtn.addEventListener('click', async function() {
+    if (typeof htmlToImage === 'undefined') {
+      alert('html-to-image library is not available.');
+      return;
+    }
 
-      loadingIndicator.style.display = 'flex';
-
-      const captureElement = previewContainer;
-      const originalWidth = captureElement.style.width;
-      const originalHeight = captureElement.style.height;
-
+    loadingIndicator.style.display = 'flex';
+    
+    try {
       const targetWidth = parseInt(exportWidth.value) || 800;
       const targetHeight = parseInt(exportHeight.value) || 400;
 
-      captureElement.style.width = targetWidth + 'px';
-      captureElement.style.height = targetHeight + 'px';
-
-      const originalBg = captureElement.style.backgroundColor;
+      // Store original styles
+      const originalWidth = previewContainer.style.width;
+      const originalHeight = previewContainer.style.height;
+      const originalBgColor = previewContainer.style.backgroundColor;
+      const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
+      const originalOpacity = previewContainer.style.opacity;
+      
+      // Set dimensions for export
+      previewContainer.style.width = targetWidth + 'px';
+      previewContainer.style.height = targetHeight + 'px';
+      
+      // Handle transparency
       if (exportTransparent.checked) {
-        captureElement.style.backgroundColor = 'transparent';
+        if (originalBgClass) {
+          previewContainer.classList.remove(originalBgClass);
+        }
+        previewContainer.style.backgroundColor = 'transparent';
+        previewContainer.style.opacity = '1';
       }
+      
+      // Pause animations to get a clean capture
+      const logoAnimations = logoElement.getAnimations();
+      logoAnimations.forEach(anim => anim.pause && anim.pause());
+      
+      // Wait for DOM updates to apply
+      await new Promise(resolve => setTimeout(resolve, 50));
 
-      // Pause CSS animation
-      const originalPlayState = logoElement.style.animationPlayState;
-      logoElement.style.animationPlayState = 'paused';
-
-      htmlToImage.toSvg(captureElement, {
-        backgroundColor: exportTransparent.checked ? null : originalBg
-      })
-      .then(function(dataUrl) {
-        // restore
-        captureElement.style.width = originalWidth;
-        captureElement.style.height = originalHeight;
-        logoElement.style.animationPlayState = originalPlayState;
-        if (exportTransparent.checked) {
-          captureElement.style.backgroundColor = originalBg;
-        }
-
-        const link = document.createElement('a');
-        link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.svg';
-        link.href = dataUrl;
-        link.click();
-        loadingIndicator.style.display = 'none';
-      })
-      .catch(function(error) {
-        console.error('SVG Export Error:', error);
-        captureElement.style.width = originalWidth;
-        captureElement.style.height = originalHeight;
-        logoElement.style.animationPlayState = originalPlayState;
-        if (exportTransparent.checked) {
-          captureElement.style.backgroundColor = originalBg;
-        }
-        loadingIndicator.style.display = 'none';
-        alert('Error exporting SVG: ' + error.message);
+      const dataUrl = await htmlToImage.toSvg(previewContainer, {
+        width: targetWidth,
+        height: targetHeight,
+        backgroundColor: exportTransparent.checked ? null : undefined
       });
-    });
 
-    // -- "Export GIF" => Actually export multiple PNG frames in a ZIP
-    exportGifBtn.addEventListener('click', async function() {
-      loadingIndicator.style.display = 'flex';
+      // Restore original styles
+      previewContainer.style.width = originalWidth;
+      previewContainer.style.height = originalHeight;
+      previewContainer.style.backgroundColor = originalBgColor;
+      previewContainer.style.opacity = originalOpacity;
+      
+      // Restore background class if needed
+      if (exportTransparent.checked && originalBgClass) {
+        previewContainer.classList.add(originalBgClass);
+      }
+      
+      // Resume animations
+      logoAnimations.forEach(anim => anim.play && anim.play());
+      
+      // Download SVG
+      const link = document.createElement('a');
+      link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.svg';
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('SVG Export Error:', error);
+      alert('Error exporting SVG: ' + error.message);
+    }
+    
+    loadingIndicator.style.display = 'none';
+  });
 
-      try {
-        const framesCount = parseInt(exportFrames.value) || 10;
-        const zip = new JSZip();
-        const folder = zip.folder('frames');
+  // -- "Export GIF" => Export multiple PNG frames in a ZIP
+  exportGifBtn.addEventListener('click', async function() {
+    loadingIndicator.style.display = 'flex';
 
-        // We'll scale the container up to exportWidth/exportHeight
-        const targetWidth = parseInt(exportWidth.value) || 800;
-        const targetHeight = parseInt(exportHeight.value) || 400;
+    try {
+      const framesCount = parseInt(exportFrames.value) || 10;
+      const zip = new JSZip();
+      const folder = zip.folder('frames');
+      
+      const targetWidth = parseInt(exportWidth.value) || 800;
+      const targetHeight = parseInt(exportHeight.value) || 400;
 
-        // Save original styles
-        const originalWidth = previewContainer.style.width;
-        const originalHeight = previewContainer.style.height;
-        const originalBg = previewContainer.style.backgroundColor;
-
-        // Set container size
-        previewContainer.style.width = targetWidth + 'px';
-        previewContainer.style.height = targetHeight + 'px';
-
-        if (exportTransparent.checked) {
-          previewContainer.style.backgroundColor = 'transparent';
+      // Store original styles
+      const originalWidth = previewContainer.style.width;
+      const originalHeight = previewContainer.style.height;
+      const originalBgColor = previewContainer.style.backgroundColor;
+      const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
+      const originalOpacity = previewContainer.style.opacity;
+      
+      // Set dimensions for export
+      previewContainer.style.width = targetWidth + 'px';
+      previewContainer.style.height = targetHeight + 'px';
+      
+      // Handle transparency
+      if (exportTransparent.checked) {
+        if (originalBgClass) {
+          previewContainer.classList.remove(originalBgClass);
         }
-
-        // Attempt to manipulate animation time – if you want more precise steps, you’d do so here
-        const animations = logoElement.getAnimations();
-        // Pause them so we can manually step time
-        animations.forEach(anim => anim.pause && anim.pause());
-
-        for (let i = 0; i < framesCount; i++) {
-          // If we wanted to step time on each animation:
-          // animations.forEach(anim => {
-          //   const fraction = i / framesCount;
-          //   const duration = anim.effect.getTiming().duration;
-          //   anim.currentTime = duration * fraction;
-          // });
-
-          // Wait a moment to let the browser render at this step
-          await new Promise(r => setTimeout(r, 200));
-
-          // Capture via html2canvas
-          const canvas = await html2canvas(previewContainer, {
-            backgroundColor: exportTransparent.checked ? null : null,
-            scale: 1
-          });
-
-          const dataUrl = canvas.toDataURL('image/png', parseInt(exportQuality.value)/100);
-          // dataUrl is "data:image/png;base64,...."
-          // We want just the Base64 data
-          const base64Data = dataUrl.substring(dataUrl.indexOf(',') + 1);
-
-          // Add to ZIP as "frame_0.png", etc.
-          folder.file(`frame_${String(i).padStart(2,'0')}.png`, base64Data, {base64:true});
-        }
-
-        // After all frames, restore everything
-        previewContainer.style.width = originalWidth;
-        previewContainer.style.height = originalHeight;
-        if (exportTransparent.checked) {
-          previewContainer.style.backgroundColor = originalBg;
-        }
-        animations.forEach(anim => anim.play && anim.play());
-
-        // Generate ZIP
-        const blob = await zip.generateAsync({type: 'blob'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        // name the zip based on the text
-        a.download = (logoTextInput.value || 'logo') + '_frames.zip';
-        a.click();
-        URL.revokeObjectURL(url);
-      } catch (err) {
-        console.error('ZIP Export Error:', err);
-        alert('Error creating ZIP of frames: ' + err.message);
+        previewContainer.style.backgroundColor = 'transparent';
+        previewContainer.style.opacity = '1';
       }
 
-      loadingIndicator.style.display = 'none';
-    });
+      // Get animations to manipulate for frame generation
+      const animations = logoElement.getAnimations();
+      
+      // Create animation duration for consistent frame timing
+      const duration = 2000; // 2 seconds total animation
+      
+      for (let i = 0; i < framesCount; i++) {
+        // Calculate time position for this frame (0-1 range)
+        const progress = i / (framesCount - 1);
+        
+        // Set each animation to this position in time
+        animations.forEach(anim => {
+          if (anim.currentTime !== undefined) {
+            anim.currentTime = duration * progress;
+          }
+        });
+        
+        // Wait for rendering
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Capture frame with html-to-image for consistent rendering
+        const dataUrl = await htmlToImage.toPng(previewContainer, {
+          width: targetWidth,
+          height: targetHeight,
+          quality: parseInt(exportQuality.value) / 100,
+          backgroundColor: exportTransparent.checked ? null : undefined
+        });
+        
+        // Convert data URL to base64 data
+        const base64Data = dataUrl.split(',')[1];
+        
+        // Add to ZIP as frame
+        folder.file(`frame_${String(i).padStart(2,'0')}.png`, base64Data, {base64: true});
+        
+        // Update loading text
+        loadingIndicator.innerText = `Generating frame ${i+1} of ${framesCount}...`;
+      }
 
+      // Restore original styles
+      previewContainer.style.width = originalWidth;
+      previewContainer.style.height = originalHeight;
+      previewContainer.style.backgroundColor = originalBgColor;
+      previewContainer.style.opacity = originalOpacity;
+      
+      // Restore background class if needed
+      if (exportTransparent.checked && originalBgClass) {
+        previewContainer.classList.add(originalBgClass);
+      }
+      
+      // Restart animations
+      animations.forEach(anim => {
+        if (anim.play) {
+          anim.currentTime = 0;
+          anim.play();
+        }
+      });
+
+      // Generate ZIP
+      loadingIndicator.innerText = "Creating ZIP file...";
+      const blob = await zip.generateAsync({type: 'blob'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '_frames.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('ZIP Export Error:', err);
+      alert('Error creating ZIP of frames: ' + err.message);
+    }
+
+    loadingIndicator.innerText = "Generating export... This may take a few moments.";
+    loadingIndicator.style.display = 'none';
+  });
     // Keep glitch data-text updated
     logoElement.setAttribute('data-text', logoElement.textContent);
   </script>
