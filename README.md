@@ -6,15 +6,18 @@ A sleek logo generator that allows you to create stunning logos directly in your
 
 **Live Demo**: https://manicinc.github.io/logomaker
 
-Free forever hosted on GitHub pages
+Free forever hosted on GitHub pages (with limitations noted below)
 
-## Portability Features 🚀
+## Note ⚠️
 
-Logomaker is designed to be exceptionally portable, maniacally even:
+The online version hosted on GitHub Pages has much longer initial loading times compared to running Logomaker locally or on a different host. This is because all font data (over 400 fonts) is loaded client-side as Base64-encoded strings rather than standard font files.
 
-- **Single-File Option**: The entire application can be bundled into one HTML file. The entire UI and styles IS one HTML file! 
+This approach isn't just a workaround for GitHub Pages / LFS limitations - it's a deliberate design choice aligned with our core philosophy of **extreme portability** and **mania-driven development**. By embedding fonts directly into the application:
 
-- **No Server Required**: Use it offline, on any device with a modern browser
+- **One-file wonder**: The entire application can run from a single HTML file
+- **No server required**: Use it offline, on any device, anywhere
+- **Zero dependencies**: No need for external font servers or CDNs
+- **Ultimate shareability**: Email the file to clients or colleagues - it just works. Anybody can own the software fully-functional offline forever with no technical experience.
 
 ## Features 💫
 
