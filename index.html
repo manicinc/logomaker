@@ -973,6 +973,45 @@
     button {
       width: 100%;
     }
+
+    .reset-btn {
+      background: linear-gradient(45deg, #2d3436, #636e72);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    
+    .reset-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .reset-btn:active {
+      transform: translateY(0);
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .reset-btn svg {
+      transition: transform 0.3s ease;
+    }
+    
+    .reset-btn:hover svg {
+      animation: spin 1s linear;
+    }
   }
 </style>
 
@@ -1154,10 +1193,10 @@
           <div class="control-group">
             <label for="textShadow">Text Glow</label>
             <select id="textShadow">
-              <option value="text-glow-none">None</option>
+              <option value="text-glow-none" selected>None</option>
               <option value="text-glow-sharp">Sharp Edges</option>
               <option value="text-glow-soft">Soft Glow</option>
-              <option value="text-glow-medium" selected>Medium Glow</option>
+              <option value="text-glow-medium">Medium Glow</option>
               <option value="text-glow-hard">Hard Glow</option>
               <option value="text-glow-neon">Neon</option>
               <option value="text-glow-outline">Outline</option>
@@ -1317,6 +1356,15 @@
       </div>
     </div>
 
+    <div class="button-container">
+    <button id="resetBtn" class="reset-btn" title="Reset to default settings">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+        <path d="M3 3v5h5"></path>
+      </svg>
+      Reset to Defaults
+    </button>
+  </div>
     <div class="button-container">
       <button id="exportPngBtn">Export as PNG</button>
       <button id="exportGifBtn">Export as GIF</button>
@@ -2555,5 +2603,211 @@
       updateSizeIndicator();
 
   </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const resetBtn = document.getElementById('resetBtn');
+    
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function() {
+        // Show confirmation dialog
+        if (confirm('Reset all logo settings to default?')) {
+          resetLogoToDefaults();
+        }
+      });
+    }
+    
+    function resetLogoToDefaults() {
+      // Default text
+      const logoTextInput = document.getElementById('logoText');
+      if (logoTextInput) logoTextInput.value = 'Manic';
+      
+      // Default font
+      const fontFamilySelect = document.getElementById('fontFamily');
+      if (fontFamilySelect) {
+        // Try to find Orbitron or similar font in the options
+        const preferredFonts = ['Orbitron', 'Audiowide', 'Russo One'];
+        let found = false;
+        
+        for (const fontName of preferredFonts) {
+          const option = Array.from(fontFamilySelect.options).find(opt => 
+            opt.textContent.includes(fontName)
+          );
+          
+          if (option) {
+            fontFamilySelect.value = option.value;
+            found = true;
+            break;
+          }
+        }
+        
+        // If preferred fonts not found, use the first option
+        if (!found && fontFamilySelect.options.length > 0) {
+          fontFamilySelect.selectedIndex = 0;
+        }
+        
+        // Trigger the font change event if it exists
+        if (typeof updateSelectedFont === 'function') {
+          updateSelectedFont();
+        }
+      }
+      
+      // Reset font size
+      const fontSize = document.getElementById('fontSize');
+      if (fontSize) fontSize.value = 100;
+      
+      // Reset letter spacing
+      const letterSpacing = document.getElementById('letterSpacing');
+      if (letterSpacing) letterSpacing.value = 0.03;
+      
+      // Reset text transform
+      const textCase = document.getElementById('textCase');
+      if (textCase) textCase.value = 'uppercase';
+      
+      // Reset font weight
+      const fontWeight = document.getElementById('fontWeight');
+      if (fontWeight) fontWeight.value = 700;
+      
+      // Reset gradient
+      const gradientPreset = document.getElementById('gradientPreset');
+      if (gradientPreset) gradientPreset.value = 'primary-gradient';
+      
+      // Hide custom gradient controls if visible
+      const customGradientControls = document.getElementById('customGradientControls');
+      if (customGradientControls) customGradientControls.classList.add('hidden');
+      
+      // Reset colors
+      const color1 = document.getElementById('color1');
+      if (color1) color1.value = '#FF1493';
+      
+      const color2 = document.getElementById('color2');
+      if (color2) color2.value = '#8A2BE2';
+      
+      const useColor3 = document.getElementById('useColor3');
+      if (useColor3) useColor3.checked = false;
+      
+      const color3Control = document.getElementById('color3Control');
+      if (color3Control) color3Control.classList.add('hidden');
+      
+      // Reset text shadow
+      const textShadow = document.getElementById('textShadow');
+      if (textShadow) textShadow.value = 'text-glow-none';
+      
+      // Reset border style
+      const borderStyle = document.getElementById('borderStyle');
+      if (borderStyle) borderStyle.value = 'border-none';
+      
+      // Reset text alignment
+      const textAlign = document.getElementById('textAlign');
+      if (textAlign) textAlign.value = 'center';
+      
+      // Reset rotation
+      const rotation = document.getElementById('rotation');
+      if (rotation) rotation.value = 0;
+      
+      // Reset animation
+      const textAnimation = document.getElementById('textAnimation');
+      if (textAnimation) textAnimation.value = 'anim-none';
+      
+      // Reset animation speed
+      const animationSpeed = document.getElementById('animationSpeed');
+      if (animationSpeed) animationSpeed.value = 1;
+      
+      // Reset animation direction
+      const animationDirection = document.getElementById('animationDirection');
+      if (animationDirection) animationDirection.value = 45;
+      
+      // Reset background type
+      const backgroundType = document.getElementById('backgroundType');
+      if (backgroundType) backgroundType.value = 'bg-solid';
+      
+      // Reset background color
+      const backgroundColor = document.getElementById('backgroundColor');
+      if (backgroundColor) backgroundColor.value = '#000000';
+      
+      // Reset background opacity
+      const bgOpacity = document.getElementById('bgOpacity');
+      if (bgOpacity) bgOpacity.value = 1;
+      
+      // Reset preview size
+      const previewSize = document.getElementById('previewSize');
+      if (previewSize) previewSize.value = 'medium';
+      
+      // Reset export dimensions
+      const exportWidth = document.getElementById('exportWidth');
+      if (exportWidth) exportWidth.value = 800;
+      
+      const exportHeight = document.getElementById('exportHeight');
+      if (exportHeight) exportHeight.value = 400;
+      
+      // Reset export quality
+      const exportQuality = document.getElementById('exportQuality');
+      if (exportQuality) exportQuality.value = 90;
+      
+      // Reset export transparent
+      const exportTransparent = document.getElementById('exportTransparent');
+      if (exportTransparent) exportTransparent.checked = false;
+      
+      // Reset export frames
+      const exportFrames = document.getElementById('exportFrames');
+      if (exportFrames) exportFrames.value = 10;
+      
+      // Apply all changes to the logo element
+      const logoElement = document.querySelector('.logo-text');
+      if (logoElement) {
+        logoElement.textContent = 'Manic';
+        logoElement.style.fontFamily = "'Orbitron', sans-serif";
+        logoElement.style.fontSize = '8vw';
+        logoElement.style.letterSpacing = '0.03em';
+        logoElement.style.textTransform = 'uppercase';
+        logoElement.style.fontWeight = '700';
+        logoElement.style.backgroundImage = 'var(--primary-gradient)';
+        logoElement.style.textAlign = 'center';
+        logoElement.style.transform = 'rotate(0deg)';
+        
+        // Reset all CSS classes
+        logoElement.className = 'logo-text';
+        logoElement.classList.add('text-glow-none');
+        logoElement.classList.add('anim-none');
+        
+        // Set data-text attribute for glitch animation if needed
+        logoElement.setAttribute('data-text', 'Manic');
+      }
+      
+      // Reset preview container
+      const previewContainer = document.getElementById('previewContainer');
+      if (previewContainer) {
+        // Remove all background classes
+        previewContainer.classList.forEach(cls => {
+          if (cls.startsWith('bg-')) {
+            previewContainer.classList.remove(cls);
+          }
+        });
+        
+        // Add default background
+        previewContainer.classList.add('bg-solid');
+        previewContainer.style.backgroundColor = '#000000';
+        previewContainer.style.opacity = '1';
+        previewContainer.style.padding = '40px';
+      }
+      
+      // Reset animation duration CSS variable
+      document.documentElement.style.setProperty('--animation-duration', '2s');
+      
+      // Update size indicator
+      if (typeof updateSizeIndicator === 'function') {
+        updateSizeIndicator();
+      }
+      
+      // Update CSS code in textarea
+      if (typeof updateCssCode === 'function') {
+        updateCssCode();
+      }
+      
+      // Show a success message
+      alert('Logo has been reset to default settings!');
+    }
+  });
+</script>
 </body>
 </html>
