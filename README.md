@@ -250,13 +250,41 @@ pip install fonttools brotli
 - JSZip for packaging animation frames
 - Git LFS for font file storage
 
+## Project Status
+
+[![Stars](https://img.shields.io/github/stars/manicinc/logomaker?style=social)](https://github.com/manicinc/logomaker/stargazers)
+[![Forks](https://img.shields.io/github/forks/manicinc/logomaker?style=social)](https://github.com/manicinc/logomaker/network/members)
+[![GitHub license](https://img.shields.io/github/license/manicinc/logomaker)](https://github.com/manicinc/logomaker/blob/main/LICENSE)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/manicinc/logomaker/graphs/commit-activity)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/manicinc/logomaker/pulls)
+
+## Support This Project
+
+If you find Logomaker useful, please consider supporting its development. Your support helps us maintain and improve this free tool!
+
+[!["Sponsor"](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/manicinc)
+[!["Buy Me A Coffee"](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/manicinc)
+[![Tweet](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fmanicinc%2Flogomaker)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20free%20logo%20maker%20tool!&url=https://manicinc.github.io/logomaker)
+
+## Connect With Us
+
+[![Website](https://img.shields.io/badge/Website-manic.agency-blue?style=flat-square&logo=firefox-browser)](https://manic.agency)
+[![Email](https://img.shields.io/badge/Email-team%40manic.agency-red?style=flat-square&logo=gmail)](mailto:team@manic.agency)
+[![GitHub](https://img.shields.io/badge/GitHub-manicinc-black?style=flat-square&logo=github)](https://github.com/manicinc)
+[![Twitter](https://img.shields.io/badge/Twitter-@manicinc-blue?style=flat-square&logo=twitter)](https://twitter.com/manicinc)
+<!-- [![LinkedIn](https://img.shields.io/badge/LinkedIn-Manic_Agency-blue?style=flat-square&logo=linkedin)](https://linkedin.com/company/manicinc) -->
+<!-- [![Instagram](https://img.shields.io/badge/Instagram-@manicinc-purple?style=flat-square&logo=instagram)](https://instagram.com/manicinc) -->
+<!-- [![YouTube](https://img.shields.io/badge/YouTube-Manic_Agency-red?style=flat-square&logo=youtube)](https://youtube.com/@manicinc) -->
+<!-- [![Discord](https://img.shields.io/badge/Discord-Manic_Community-7289DA?style=flat-square&logo=discord)](https://discord.gg/your-invite-link) -->
+<!-- [![Facebook](https://img.shields.io/badge/Facebook-Manic_Agency-blue?style=flat-square&logo=facebook)](https://facebook.com/manicinc) -->
+<!-- [![Dev.to](https://img.shields.io/badge/Dev.to-manicinc-black?style=flat-square&logo=dev.to)](https://dev.to/manicinc) -->
+<!-- [![Medium](https://img.shields.io/badge/Medium-Manic_Agency-black?style=flat-square&logo=medium)](https://medium.com/@manicinc) -->
+<!-- 
+[![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/YOUR_INVITE_LINK) -->
+[![Twitter Follow](https://img.shields.io/twitter/follow/manicinc?style=social)](https://twitter.com/manicinc)
+
+Join our community to get help, share ideas, or contribute to the project!
+
 ## License 📄
 
 MIT License
-
-## Contact 📬
-
-- Manic Agency: https://manic.agency
-- Manic Email:  team@manic.agency
-- Project Link: https://github.com/manicinc/logomaker
-- Web Link:     https://manicinc.github.io/logomaker/
