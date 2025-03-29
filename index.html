@@ -1226,10 +1226,28 @@
     function updateSizeIndicator() {
       const logoWidth = document.getElementById('logoWidth');
       const logoHeight = document.getElementById('logoHeight');
+      const logoElement = document.querySelector('.logo-text'); // Define it locally
+      
       if (!logoElement || !logoWidth || !logoHeight) return;
+      
       logoWidth.textContent = logoElement.offsetWidth;
       logoHeight.textContent = logoElement.offsetHeight;
     }
+
+    // Move this line inside DOMContentLoaded or after logoElement is defined
+    // Remove or comment out any early calls to updateSizeIndicator()
+    // updateSizeIndicator();  // <- Remove this if it exists outside DOMContentLoaded
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize the logo element reference first, before any function calls that use it
+      const logoElement = document.querySelector('.logo-text');
+      
+      // Initialize fonts...
+      // [Your existing font loading code]
+      
+      // Now it's safe to call this
+      updateSizeIndicator();
+    });
 
     // Add the new tab navigation function:
     function setupTabNavigation() {
@@ -1584,8 +1602,7 @@
     }
 
     /**
-     * Initializes the font dropdown and loads font CSS based on the updated metadata structure
-     * @param {Array} fontsData - Array of font objects with enhanced metadata
+     * More robust font loading function with improved error handling
      */
     function initializeFonts(fontsData) {
       // Handle the case where fonts might be in a nested "fonts" property (from new generator)
@@ -1621,6 +1638,9 @@
         // Generate @font-face rules for this font family's variants
         if (font.variants && font.variants.length > 0) {
           font.variants.forEach(variant => {
+            // Skip if no file is specified
+            if (!variant.file) return;
+            
             // Handle the updated variant format that has "format" property
             const formatString = variant.format ? {
               'woff2': 'woff2',
@@ -1633,28 +1653,42 @@
             // Check if file is a data URL (Base64 encoded)
             const isDataUrl = typeof variant.file === 'string' && variant.file.startsWith('data:');
             
-            // Create the @font-face rule
+            // Create the @font-face rule with error handling
             fontFaceRules += `
-    @font-face {
-      font-family: '${font.familyName}';
-      font-style: ${variant.style || 'normal'};
-      font-weight: ${variant.weight || 400};
-      src: url('${variant.file}') format('${formatString}')${!isDataUrl && variant.weight === 400 && variant.style === 'normal' ? `, local('${font.displayName}')` : ''};
-      font-display: swap;
-    }`;
+        @font-face {
+          font-family: '${font.familyName}';
+          font-style: ${variant.style || 'normal'};
+          font-weight: ${variant.weight || 400};
+          src: url('${variant.file}') format('${formatString}')${!isDataUrl && variant.weight === 400 && variant.style === 'normal' ? `, local('${font.displayName}')` : ''};
+          font-display: swap;
+        }`;
           });
         } else {
-          // Fallback for fonts without explicit variants
-          const defaultPath = `fonts/${font.familyName}/${font.familyName}.otf`;
-          
+          // For fonts without variants, link to a generic web font as fallback
           fontFaceRules += `
-    @font-face {
-      font-family: '${font.familyName}';
-      src: url('${defaultPath}') format('opentype'), local('${font.displayName}');
-      font-display: swap;
-    }`;
+        @font-face {
+          font-family: '${font.familyName}';
+          src: local('${font.displayName}'), local('Arial');
+          font-display: swap;
+        }`;
         }
       });
+      
+      // Add fallback fonts for common font families
+      fontFaceRules += `
+      /* Fallback system fonts */
+      @font-face {
+        font-family: 'Arial';
+        src: local('Arial');
+      }
+      @font-face {
+        font-family: 'Helvetica';
+        src: local('Helvetica'), local('Arial');
+      }
+      @font-face {
+        font-family: 'Times New Roman';
+        src: local('Times New Roman');
+      }`;
       
       // Add the font-face rules to the page
       styleElement.textContent = fontFaceRules;
@@ -1663,7 +1697,33 @@
       // Add all options to the select element at once
       fontFamilySelect.appendChild(selectFragment);
       
-      // Set initial font
+      // Set initial font to something reliable
+      try {
+        // Try to select a reliable system font first
+        const defaultFonts = ['Arial', 'Helvetica', 'Roboto', 'Open Sans', 'Orbitron'];
+        let foundDefault = false;
+        
+        for (const fontName of defaultFonts) {
+          const option = Array.from(fontFamilySelect.options).find(opt => 
+            opt.textContent.includes(fontName) || opt.value.includes(fontName)
+          );
+          
+          if (option) {
+            fontFamilySelect.value = option.value;
+            foundDefault = true;
+            break;
+          }
+        }
+        
+        // If no default found, just use the first option
+        if (!foundDefault && fontFamilySelect.options.length > 0) {
+          fontFamilySelect.selectedIndex = 0;
+        }
+      } catch (e) {
+        console.warn('Error setting initial font:', e);
+      }
+      
+      // Update selected font
       updateSelectedFont();
       
       // Initialize all event listeners
@@ -1673,6 +1733,58 @@
       console.log(`Loaded ${fontsData.length} font families`);
     }
 
+    /**
+     * Add more robust error handling to font loading process
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+      // First, ensure we have fallback fonts no matter what
+      const fallbackFonts = [
+        { displayName: "Arial", familyName: "Arial", variants: [] },
+        { displayName: "Helvetica", familyName: "Helvetica", variants: [] },
+        { displayName: "Sans-serif", familyName: "sans-serif", variants: [] }
+      ];
+      
+      // Check if we have inline fonts data
+      if (typeof INLINE_FONTS_DATA !== 'undefined' && INLINE_FONTS_DATA.length > 0) {
+        console.log('Using inline fonts data');
+        removeGoogleFontsLink();
+        initializeFonts(INLINE_FONTS_DATA);
+      } else {
+        console.log('Fetching fonts.json');
+        // Try to fetch fonts.json
+        fetch('fonts.json')
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`Failed to load fonts.json (status ${res.status})`);
+            }
+            return res.json();
+          })
+          .then((fontsData) => {
+            // If loaded, remove google fonts link so we use local only
+            removeGoogleFontsLink();
+            console.log('Loaded fonts from fonts.json');
+            initializeFonts(fontsData);
+          })
+          .catch(err => {
+            console.error('Failed to load fonts.json:', err);
+            
+            // Keep Google Fonts as they will be more reliable
+            console.log('Using Google Fonts as fallback');
+            
+            // Add some default web fonts as fallback
+            const defaultWebFonts = [
+              { displayName: "Orbitron", familyName: "Orbitron", variants: [] },
+              { displayName: "Audiowide", familyName: "Audiowide", variants: [] },
+              { displayName: "Press Start 2P", familyName: "Press Start 2P", variants: [] },
+              { displayName: "Roboto", familyName: "Roboto", variants: [] },
+              { displayName: "Open Sans", familyName: "Open Sans", variants: [] }
+            ];
+            
+            // Combine both fallback sets
+            initializeFonts([...fallbackFonts, ...defaultWebFonts]);
+          });
+      }
+    });
     /**
      * Updates the selected font when the dropdown changes
      */
@@ -1739,7 +1851,7 @@
     const exportTransparent = document.getElementById('exportTransparent');
     const exportFrames = document.getElementById('exportFrames');
     const logoTextInput = document.getElementById('logoText');
-    
+
     // -- Export PNG (single)
     exportPngBtn.addEventListener('click', async function() {
       loadingIndicator.style.display = 'flex';
