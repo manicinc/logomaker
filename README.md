@@ -4,15 +4,15 @@
 
 A sleek logo generator that allows you to create stunning logos directly in your browser. Designed for rapid development with extreme portability in mind.
 
-**Live Demo**: https://manicinc.github.io/logomaker
-
-Free forever hosted on GitHub pages (with limitations noted below)
+**Live Demo**: https://manicinc.github.io/logomaker (Will load slowly at first, see below). Free forever hosted on GitHub pages (with limitations below)
 
 ## Note ⚠️
 
-The online version hosted on GitHub Pages has much longer initial loading times compared to running Logomaker locally or on a different host. This is because all font data (over 400 fonts) is loaded client-side as Base64-encoded strings rather than standard font files.
+The online version hosted on GitHub Pages has much longer initial loading times compared to running Logomaker locally or on a different host. This is because all font data (over 400 fonts in this repo) is loaded client-side as Base64-encoded strings rather than standard font files (GitHub pages has issues rendering fonts from typical font files from LFS).
 
-This approach isn't just a workaround for GitHub Pages / LFS limitations - it's a deliberate design choice aligned with our core philosophy of **extreme portability** and **mania-driven development**. By embedding fonts directly into the application:
+But the approach isn't just a workaround for GitHub Pages / LFS limitations - it's a deliberate design choice aligned with our core philosophy of **extreme portability** and **mania-driven development**. Logomaker directly supports embedding fonts into the application.
+
+This allows for:
 
 - **One-file wonder**: The entire application can run from a single HTML file
 - **No server required**: Use it offline, on any device, anywhere
@@ -20,6 +20,14 @@ This approach isn't just a workaround for GitHub Pages / LFS limitations - it's 
 - **Ultimate shareability**: Email the file to clients or colleagues - it just works. Anybody can own the software fully-functional offline forever with no technical experience.
 
 ## Features 💫
+
+### Flexible Usage / Dependency Options 🤔
+
+- Can load fonts dynamically fron `fonts/` folder, when running `index.html` from a web server (smallest size, fastest loadtime)
+
+- Can load fonts from `inlines-fonts-data.js` file, generated from `generate-fonts-json.js`, so no web server is required (small size, slow loadtime)
+
+- Ability to compile all data and assets in a single HTML file for portable usage (largest size, slow loadtime)
 
 ### Text Customization 🔤
 
