@@ -29,6 +29,8 @@ This allows for:
 
 - Ability to compile all data and assets in a single HTML file for portable usage (largest size, slow loadtime)
 
+- Logomaker automatically adjusts how it optimizes / loads font files based on how you run it, so all you need to worry about is running the `index.html` file somewhere
+
 ### Text Customization 🔤
 
 - Font selection from thousands of royalty-free web fonts
