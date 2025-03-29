@@ -381,24 +381,133 @@
     text-align: center;
     padding: 20px;
   }
-  
-  /* Footer */
-  footer {
-    text-align: center;
-    padding: 20px 0;
-    margin-top: 20px;
-    border-top: 1px solid var(--border-color);
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
+   /* GitHub stats styles */
+   .github-stats {
+    margin: 10px 0;
   }
   
-  footer a {
-    color: var(--accent-color);
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  
+  .github-link svg {
+    margin-right: 8px;
+  }
+  
+  .github-link:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  #github-star-count {
+    font-weight: bold;
+    margin-right: 3px;
+  }
+  
+  /* Enhanced footer styles */
+  footer {
+    border-top: 1px solid var(--border-color);
+    padding: 20px 0;
+    margin-top: 30px;
+  }
+  
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0;
+    padding: 0 10px;
+  }
+  
+  .manic-logo a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-decoration: none;
   }
   
-  footer a:hover {
-    text-decoration: underline;
+  .logo-text-animated {
+    font-size: 1.8rem;
+    font-weight: bold;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    animation: gradientMove 3s infinite alternate;
+  }
+  
+  .logo-agency {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin-top: -5px;
+  }
+  
+  .footer-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .footer-links a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+  
+  .footer-links a:hover {
+    opacity: 1;
+  }
+  
+  .contact-button {
+    display: flex !important;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem !important;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  
+  .contact-button svg {
+    margin-right: 8px;
+  }
+  
+  .contact-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  .copyright {
+    text-align: center;
+    font-size: 0.8rem;
+    opacity: 0.6;
+    margin-top: 20px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .footer-content {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+    
+    .footer-links {
+      flex-direction: column;
+    }
   }
   
   /* Utility Classes */
@@ -1013,6 +1122,167 @@
       animation: spin 1s linear;
     }
   }
+
+    /* Promo Banner Styles */
+  .promo-banner {
+    background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+    padding: 8px 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .promo-banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .promo-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px;
+  }
+  
+  .promo-text {
+    padding: 5px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  
+  .highlight {
+    font-weight: 700;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 2px;
+    margin-right: 8px;
+  }
+  
+  .promo-link {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .promo-link svg {
+    margin-left: 5px;
+    transition: transform 0.2s ease;
+  }
+  
+  .promo-link:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+  
+  .promo-link:hover svg {
+    transform: translateX(2px);
+  }
+  
+  /* Sponsor Banner Styles */
+  .sponsor-banner {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    text-align: center;
+    border: 1px dashed var(--border-color);
+  }
+  
+  .hearts {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+  
+  .heart {
+    animation: heartbeat 2s infinite;
+    display: inline-block;
+    font-size: 1.2rem;
+  }
+  
+  .heart:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+  
+  .heart:nth-child(3) {
+    animation-delay: 1s;
+  }
+  
+  @keyframes heartbeat {
+    0% { transform: scale(1); }
+    10% { transform: scale(1.2); }
+    20% { transform: scale(1); }
+    30% { transform: scale(1.2); }
+    40% { transform: scale(1); }
+    100% { transform: scale(1); }
+  }
+  
+  .sponsor-banner p {
+    margin: 5px 0 10px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.9;
+  }
+  
+  .sponsor-button {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(45deg, #ff59c7, #ff7eb3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 20, 147, 0.3);
+  }
+  
+  .sponsor-button svg {
+    margin-right: 8px;
+    fill: rgba(255, 255, 255, 0.3);
+    stroke: white;
+    transition: transform 0.3s ease;
+  }
+  
+  .sponsor-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 20, 147, 0.4);
+  }
+  
+  .sponsor-button:hover svg {
+    transform: scale(1.1);
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .promo-content {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .promo-banner {
+      padding: 12px 15px;
+    }
+    
+    .promo-text, .promo-link {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+}
 </style>
 
 
@@ -1068,9 +1338,26 @@
         <h1>Logomaker <span>by Manic</span></h1>
       </div>
       <div class="brand-links">
-        <a href="https://manic.agency" target="_blank">manic.agency</a>
-        <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a>
+        <a href="https://manic.agency" target="_blank">mania-driven development</a>
+        <!-- <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a> -->
       </div>
+      <!-- Add this just before the closing </header> tag -->
+      <div class="promo-banner">
+        <div class="promo-content">
+          <div class="promo-text">
+            <span class="highlight">Pro design work?</span> Hire the creators of Logomaker
+          </div>
+          <a href="https://manic.agency/contact" target="_blank" class="promo-link">
+            Work with Manic
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
+        </div>
+      </div>
+
     </header>
 
 
@@ -1358,7 +1645,7 @@
 
     <div class="button-container">
     <button id="resetBtn" class="reset-btn" title="Reset to default settings">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; padding: 0px">
         <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
         <path d="M3 3v5h5"></path>
       </svg>
@@ -1378,12 +1665,56 @@
     </div>
 
     <div id="infoButton" class="info-button">ℹ️</div>
-
     <footer>
-      <p>Logomaker by <a href="https://manic.agency" target="_blank">Manic Agency</a> | Open Source on <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a></p>
-      <p>Free here forever, as long as GitHub Pages is free</p>
-      <p>Contact us for work at team@manic.agency</p>
+      <!-- GitHub stats and sponsor section -->
+      <div class="sponsor-banner">
+        <div class="hearts">
+          <span class="heart">❤️</span>
+          <span class="heart">💜</span>
+          <span class="heart">💙</span>
+        </div>
+        <p>Love Logomaker? It's free and open source!</p>
+        
+        <div class="github-stats">
+          <a href="https://github.com/manicinc/logomaker" target="_blank" class="github-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+            </svg>
+            <span id="github-star-count">0</span> Stars
+          </a>
+        </div>
+        
+        <a href="https://github.com/sponsors/manicinc" target="_blank" class="sponsor-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          Sponsor This Project
+        </a>
+      </div>
+    
+      <!-- Main footer content -->
+      <div class="footer-content">
+        <div class="manic-logo">
+          <a href="https://manic.agency" target="_blank">
+            <div class="logo-text-animated">Manic</div>
+            <span class="logo-agency">Agency</span>
+          </a>
+        </div>
+        
+        <div class="footer-links">
+          <a href="https://github.com/manicinc/logomaker" target="_blank">GitHub</a>
+          <a href="mailto:team@manic.agency" class="contact-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            Contact Us
+          </a>
+        </div>
+      </div>
+      
     </footer>
+    
   </div>
 
   <!-- Load html-to-image for PNG/SVG export -->
