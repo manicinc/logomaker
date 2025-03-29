@@ -145,12 +145,14 @@ node generate-fonts-json.js --base64
 
 4. **🌟 Super-simple method:** Just place `inline-fonts-data.js` in the same directory as `index.html` - it will be automatically detected and loaded! You can now run `index.html` directly without a server.
 
-5. **🌠 Ultimate single-file method:** For a truly portable solution, copy the contents from `inline-fonts-data.js` and paste it directly inside index.html where the `INLINE_FONTS_DATA` variable is defined:
+5. **🌠 Ultimate single-file method:** For a truly portable solution, copy the contents from `inline-fonts-data.js` and paste it directly inside index.html where the `_INLINE_FONTS_DATA` variable is defined:
 
 ```javascript
-const INLINE_FONTS_DATA = [
-  // Paste the entire array from inline-fonts-data.js here!
-  // This replaces the placeholder content
+// PASTE YOUR FONTS DATA HERE TO HAVE EVERYTHING CONTAINED IN ONE FILE WITH
+// NO EXTERNAL DEPENDENCIES
+
+let _INLINE_FONTS_DATA = [
+
 ];
 ```
 
@@ -165,7 +167,7 @@ To make Logomaker even more portable, follow these steps for the "Manic Edition"
 node generate-fonts-json.js --base64
 ```
 
-2. Copy the entire array from `inline-fonts-data.js` into index.html's `INLINE_FONTS_DATA` variable
+2. Copy the entire array from `inline-fonts-data.js` into index.html's `_INLINE_FONTS_DATA` variable (line 992).
 
 3. That's it! You now have one HTML file (~2000 lines) containing:
    - All the UI
@@ -252,4 +254,6 @@ MIT License
 ## Contact 📬
 
 - Manic Agency: https://manic.agency
+- Manic Email:  team@manic.agency
 - Project Link: https://github.com/manicinc/logomaker
+- Web Link:     https://manicinc.github.io/logomaker/
