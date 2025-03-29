@@ -1602,10 +1602,11 @@
     }
 
     /**
-     * More robust font loading function with improved error handling
+     * Initializes the font dropdown with local-first approach and proper fallbacks
+     * @param {Array} fontsData - Array of font objects with enhanced metadata
      */
     function initializeFonts(fontsData) {
-      // Handle the case where fonts might be in a nested "fonts" property (from new generator)
+      // Handle the case where fonts might be in a nested "fonts" property
       if (fontsData.fonts && Array.isArray(fontsData.fonts)) {
         fontsData = fontsData.fonts;
       }
@@ -1620,75 +1621,142 @@
       // Create a document fragment for dropdown options
       const selectFragment = document.createDocumentFragment();
       
-      // Process all fonts
+      // Define our fallback fonts (only used if local fonts fail)
+      const fallbackFonts = [
+        { displayName: "Arial", familyName: "Arial" },
+        { displayName: "Helvetica", familyName: "Helvetica" },
+        { displayName: "Verdana", familyName: "Verdana" },
+        { displayName: "Times New Roman", familyName: "Times New Roman" },
+        { displayName: "Courier New", familyName: "Courier New" },
+        { displayName: "Impact", familyName: "Impact" }
+      ];
+      
+      // Add Google Fonts definitions as fallbacks (will only be used if needed)
+      fontFaceRules += `
+      /* Google font fallbacks (only used if local fonts fail) */
+      @font-face { font-family: 'GoogleOrbitron'; src: url('https://fonts.gstatic.com/s/orbitron/v29/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nyGy6xpmIyXw.woff2') format('woff2'); font-weight: 400; font-style: normal; }
+      @font-face { font-family: 'GoogleAudiowide'; src: url('https://fonts.gstatic.com/s/audiowide/v16/l7gdbjpo0cum0ckerWCdlg_OkD.woff2') format('woff2'); font-weight: 400; font-style: normal; }
+      @font-face { font-family: 'GooglePressStart2P'; src: url('https://fonts.gstatic.com/s/pressstart2p/v14/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2') format('woff2'); font-weight: 400; font-style: normal; }
+      `;
+      
+      // Track fonts for debugging
+      let successCount = 0;
+      let errorCount = 0;
+      
+      // Process all fonts from the JSON data - prioritize local fonts
       fontsData.forEach(font => {
-        // Add select option
+        try {
+          // Add select option for this font
+          const option = document.createElement('option');
+          option.value = font.familyName;
+          option.textContent = font.displayName;
+          option.dataset.fontInfo = JSON.stringify({
+            familyName: font.familyName,
+            displayName: font.displayName,
+            hasVariants: font.variants && font.variants.length > 1,
+            licenseFile: font.licenseFile,
+            licenseText: font.licenseText
+          });
+          selectFragment.appendChild(option);
+          
+          // Generate @font-face rules for this font family's variants
+          if (font.variants && font.variants.length > 0) {
+            font.variants.forEach(variant => {
+              // Skip if no file is specified
+              if (!variant.file) return;
+              
+              // Fix URL encoding properly for non-data URLs
+              let fontUrl = variant.file;
+              try {
+                if (!fontUrl.startsWith('data:')) {
+                  // Split the URL into path components and encode each part separately
+                  const urlParts = fontUrl.split('/');
+                  const fileName = urlParts.pop(); // Get the last part (filename)
+                  
+                  // Encode each part of the path properly
+                  fontUrl = urlParts.map(part => encodeURIComponent(part)).join('/') + 
+                            '/' + encodeURIComponent(fileName);
+                }
+              } catch (urlErr) {
+                console.warn('Error processing URL for font:', font.displayName, urlErr);
+                // Use original URL as fallback
+              }
+              
+              // Determine the font format
+              const formatString = variant.format ? {
+                'woff2': 'woff2',
+                'woff': 'woff',
+                'ttf': 'truetype',
+                'otf': 'opentype',
+                'eot': 'embedded-opentype'
+              }[variant.format] : 'opentype';
+              
+              // Create the @font-face rule with proper URL encoding
+              fontFaceRules += `
+      @font-face {
+        font-family: '${font.familyName}';
+        font-style: ${variant.style || 'normal'};
+        font-weight: ${variant.weight || 400};
+        src: url('${fontUrl}') format('${formatString}');
+        font-display: swap;
+      }`;
+              
+              successCount++;
+            });
+          } else {
+            // For fonts without variants, try to guess a default path
+            const defaultPath = `fonts/${encodeURIComponent(font.familyName)}/${encodeURIComponent(font.familyName)}.woff2`;
+            
+            fontFaceRules += `
+      /* Auto-generated fallback path - may not work */
+      @font-face {
+        font-family: '${font.familyName}';
+        src: url('${defaultPath}') format('woff2');
+        font-display: swap;
+      }`;
+          }
+        } catch (err) {
+          console.warn(`Error processing font: ${font.displayName}`, err);
+          errorCount++;
+        }
+      });
+      
+      // Now add system fallback fonts at the end of the dropdown
+      // These will show up after all local fonts
+      fallbackFonts.forEach(font => {
+        const option = document.createElement('option');
+        option.value = font.familyName;
+        option.textContent = font.displayName + " (System)";
+        option.dataset.fontInfo = JSON.stringify({
+          familyName: font.familyName,
+          displayName: font.displayName,
+          hasVariants: false,
+          licenseFile: null,
+          licenseText: "System Font"
+        });
+        selectFragment.appendChild(option);
+      });
+      
+      // Add Google Font fallbacks at the very end
+      const googleFonts = [
+        { displayName: "Orbitron (Google)", familyName: "GoogleOrbitron" },
+        { displayName: "Audiowide (Google)", familyName: "GoogleAudiowide" },
+        { displayName: "Press Start 2P (Google)", familyName: "GooglePressStart2P" }
+      ];
+      
+      googleFonts.forEach(font => {
         const option = document.createElement('option');
         option.value = font.familyName;
         option.textContent = font.displayName;
         option.dataset.fontInfo = JSON.stringify({
           familyName: font.familyName,
-          displayName: font.displayName,
-          hasVariants: font.fontCount > 1,
-          licenseFile: font.licenseFile,
-          licenseText: font.licenseText // New property from enhanced generator
+          displayName: font.displayName.replace(" (Google)", ""),
+          hasVariants: false,
+          licenseFile: null,
+          licenseText: "Google Font"
         });
         selectFragment.appendChild(option);
-        
-        // Generate @font-face rules for this font family's variants
-        if (font.variants && font.variants.length > 0) {
-          font.variants.forEach(variant => {
-            // Skip if no file is specified
-            if (!variant.file) return;
-            
-            // Handle the updated variant format that has "format" property
-            const formatString = variant.format ? {
-              'woff2': 'woff2',
-              'woff': 'woff',
-              'ttf': 'truetype',
-              'otf': 'opentype',
-              'eot': 'embedded-opentype'
-            }[variant.format] : 'opentype';
-            
-            // Check if file is a data URL (Base64 encoded)
-            const isDataUrl = typeof variant.file === 'string' && variant.file.startsWith('data:');
-            
-            // Create the @font-face rule with error handling
-            fontFaceRules += `
-        @font-face {
-          font-family: '${font.familyName}';
-          font-style: ${variant.style || 'normal'};
-          font-weight: ${variant.weight || 400};
-          src: url('${variant.file}') format('${formatString}')${!isDataUrl && variant.weight === 400 && variant.style === 'normal' ? `, local('${font.displayName}')` : ''};
-          font-display: swap;
-        }`;
-          });
-        } else {
-          // For fonts without variants, link to a generic web font as fallback
-          fontFaceRules += `
-        @font-face {
-          font-family: '${font.familyName}';
-          src: local('${font.displayName}'), local('Arial');
-          font-display: swap;
-        }`;
-        }
       });
-      
-      // Add fallback fonts for common font families
-      fontFaceRules += `
-      /* Fallback system fonts */
-      @font-face {
-        font-family: 'Arial';
-        src: local('Arial');
-      }
-      @font-face {
-        font-family: 'Helvetica';
-        src: local('Helvetica'), local('Arial');
-      }
-      @font-face {
-        font-family: 'Times New Roman';
-        src: local('Times New Roman');
-      }`;
       
       // Add the font-face rules to the page
       styleElement.textContent = fontFaceRules;
@@ -1697,15 +1765,15 @@
       // Add all options to the select element at once
       fontFamilySelect.appendChild(selectFragment);
       
-      // Set initial font to something reliable
+      // Set initial font - try to select a nice default font that will likely work
       try {
-        // Try to select a reliable system font first
-        const defaultFonts = ['Arial', 'Helvetica', 'Roboto', 'Open Sans', 'Orbitron'];
+        // Try to find either Audiowide or Orbitron first (local or Google version)
+        const preferredFonts = ["Audiowide", "Orbitron", "GoogleAudiowide", "GoogleOrbitron"];
         let foundDefault = false;
         
-        for (const fontName of defaultFonts) {
+        for (const fontName of preferredFonts) {
           const option = Array.from(fontFamilySelect.options).find(opt => 
-            opt.textContent.includes(fontName) || opt.value.includes(fontName)
+            opt.value === fontName || opt.textContent.includes(fontName)
           );
           
           if (option) {
@@ -1715,76 +1783,77 @@
           }
         }
         
-        // If no default found, just use the first option
+        // If no preferred font found, just use the first option
         if (!foundDefault && fontFamilySelect.options.length > 0) {
           fontFamilySelect.selectedIndex = 0;
         }
       } catch (e) {
         console.warn('Error setting initial font:', e);
+        // Try first option as fallback
+        if (fontFamilySelect.options.length > 0) {
+          fontFamilySelect.selectedIndex = 0;
+        }
       }
       
-      // Update selected font
+      // Update selected font and initialize event listeners
       updateSelectedFont();
-      
-      // Initialize all event listeners
       initializeEventListeners();
       
-      // Log font loading completion
-      console.log(`Loaded ${fontsData.length} font families`);
+      // Log font loading completion with stats
+      console.log(`Loaded ${fontsData.length} font families (${successCount} variants processed, ${errorCount} errors)`);
     }
-
+  
     /**
-     * Add more robust error handling to font loading process
+     * Updates the font loading on document ready with better error handling
      */
     document.addEventListener('DOMContentLoaded', function() {
-      // First, ensure we have fallback fonts no matter what
-      const fallbackFonts = [
-        { displayName: "Arial", familyName: "Arial", variants: [] },
-        { displayName: "Helvetica", familyName: "Helvetica", variants: [] },
-        { displayName: "Sans-serif", familyName: "sans-serif", variants: [] }
-      ];
+      // Define a function to handle font loading errors
+      const loadFallbackFonts = () => {
+        console.log('Using fallback fonts');
+        // Create basic set of fallbacks that will definitely work
+        const fallbackFonts = [
+          { displayName: "Arial", familyName: "Arial", variants: [] },
+          { displayName: "Helvetica", familyName: "Helvetica", variants: [] },
+          { displayName: "Verdana", familyName: "Verdana", variants: [] },
+          { displayName: "Times New Roman", familyName: "Times New Roman", variants: [] },
+          { displayName: "Courier New", familyName: "Courier New", variants: [] }
+        ];
+        initializeFonts(fallbackFonts);
+      };
       
-      // Check if we have inline fonts data
+      // Try to load local fonts.json first
       if (typeof INLINE_FONTS_DATA !== 'undefined' && INLINE_FONTS_DATA.length > 0) {
         console.log('Using inline fonts data');
-        removeGoogleFontsLink();
         initializeFonts(INLINE_FONTS_DATA);
       } else {
         console.log('Fetching fonts.json');
-        // Try to fetch fonts.json
+        
+        // Try to fetch fonts.json with timeout and error handling
+        const fontTimeout = setTimeout(() => {
+          console.warn('Font loading timed out');
+          loadFallbackFonts();
+        }, 5000); // 5 second timeout
+        
         fetch('fonts.json')
           .then(res => {
+            clearTimeout(fontTimeout);
             if (!res.ok) {
               throw new Error(`Failed to load fonts.json (status ${res.status})`);
             }
             return res.json();
           })
           .then((fontsData) => {
-            // If loaded, remove google fonts link so we use local only
-            removeGoogleFontsLink();
             console.log('Loaded fonts from fonts.json');
             initializeFonts(fontsData);
           })
           .catch(err => {
+            clearTimeout(fontTimeout);
             console.error('Failed to load fonts.json:', err);
-            
-            // Keep Google Fonts as they will be more reliable
-            console.log('Using Google Fonts as fallback');
-            
-            // Add some default web fonts as fallback
-            const defaultWebFonts = [
-              { displayName: "Orbitron", familyName: "Orbitron", variants: [] },
-              { displayName: "Audiowide", familyName: "Audiowide", variants: [] },
-              { displayName: "Press Start 2P", familyName: "Press Start 2P", variants: [] },
-              { displayName: "Roboto", familyName: "Roboto", variants: [] },
-              { displayName: "Open Sans", familyName: "Open Sans", variants: [] }
-            ];
-            
-            // Combine both fallback sets
-            initializeFonts([...fallbackFonts, ...defaultWebFonts]);
+            loadFallbackFonts();
           });
       }
     });
+
     /**
      * Updates the selected font when the dropdown changes
      */
