@@ -889,7 +889,7 @@
   <script>
     // By default, this is empty which means the app will try to load fonts.json
     // If you want to run without a server, paste your fonts.json content here
-    const INLINE_FONTS_DATA = [];
+    let _INLINE_FONTS_DATA = [];
     /*
     Example format for INLINE_FONTS_DATA:
     [
@@ -908,7 +908,7 @@
     ]
     */
   </script>
-  
+  <script src="inline-fonts-data.js"></script>
   <!-- Google Fonts (will be removed if local fonts are loaded) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1234,43 +1234,66 @@
       logoHeight.textContent = logoElement.offsetHeight;
     }
 
-    // Move this line inside DOMContentLoaded or after logoElement is defined
-    // Remove or comment out any early calls to updateSizeIndicator()
-    // updateSizeIndicator();  // <- Remove this if it exists outside DOMContentLoaded
-
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize the logo element reference first, before any function calls that use it
-      const logoElement = document.querySelector('.logo-text');
-      
-      // Initialize fonts...
-      // [Your existing font loading code]
-      
-      // Now it's safe to call this
-      updateSizeIndicator();
+      // First check if inline-fonts-data.js was loaded and defined INLINE_FONTS_DATA
+      if (typeof _INLINE_FONTS_DATA !== 'undefined' && _INLINE_FONTS_DATA.length > 0) {
+        console.log('Using external Base64 encoded fonts from inline-fonts-data.js');
+        removeGoogleFontsLink(); // If this function exists in your code
+        initializeFonts(_INLINE_FONTS_DATA);
+      } 
+      else {
+        console.log('Inline font data not found, checking for inline-fonts-data.js');
+        
+        // Try to dynamically load the inline-fonts-data.js
+        const script = document.createElement('script');
+        script.src = 'inline-fonts-data.js';
+        script.onload = function() {
+          // Script loaded successfully, check if INLINE_FONTS_DATA is defined
+          if (typeof INLINE_FONTS_DATA !== 'undefined' && INLINE_FONTS_DATA.length > 0) {
+            console.log('Successfully loaded inline-fonts-data.js');
+            removeGoogleFontsLink();
+            initializeFonts(INLINE_FONTS_DATA);
+          } else {
+            fallbackToFontsJson();
+          }
+        };
+        script.onerror = function() {
+          // Script failed to load, fall back to fonts.json
+          console.log('inline-fonts-data.js not found, falling back to fonts.json');
+          fallbackToFontsJson();
+        };
+        document.head.appendChild(script);
+        
+        // Function to handle fallback to fonts.json
+        function fallbackToFontsJson() {
+          console.log('Fetching fonts.json');
+          fetch('fonts.json')
+            .then(res => res.json())
+            .then((fontsData) => {
+              console.log('Loaded fonts from fonts.json');
+              // Check if fonts.json contains Base64-encoded data
+              const hasBase64 = fontsData.some(font => 
+                font.variants && font.variants.some(v => 
+                  v.file && v.file.startsWith('data:')
+                )
+              );
+              
+              if (hasBase64) {
+                console.log('Using Base64-encoded fonts from fonts.json');
+              } else {
+                console.log('Using file path references from fonts.json');
+              }
+              
+              removeGoogleFontsLink();
+              initializeFonts(fontsData);
+            })
+            .catch(err => {
+              console.error('Failed to load fonts.json:', err);
+              // Your fallback logic...
+            });
+        }
+      }
     });
-
-    // Add the new tab navigation function:
-    function setupTabNavigation() {
-      const tabs = document.querySelectorAll('.tab');
-      const tabContents = document.querySelectorAll('.tab-content');
-      
-      tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-          // Remove active class from all tabs
-          tabs.forEach(t => t.classList.remove('active'));
-          
-          // Add active class to clicked tab
-          this.classList.add('active');
-          
-          // Hide all tab contents
-          tabContents.forEach(content => content.classList.remove('active'));
-          
-          // Show the corresponding tab content
-          const tabId = this.getAttribute('data-tab');
-          document.getElementById(tabId + '-tab').classList.add('active');
-        });
-      });
-    }
 
     /**********************************************
      * 2) EVENT LISTENERS & UI CONTROLS
@@ -1904,267 +1927,463 @@
     </script>
    <script>
 
-    /**********************************************
-     * 3) EXPORT FUNCTIONS
-     **********************************************/
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const exportPngBtn = document.getElementById('exportPngBtn');
-    const exportSvgBtn = document.getElementById('exportSvgBtn');
-    const exportGifBtn = document.getElementById('exportGifBtn');
-    const previewContainer = document.getElementById('previewContainer');
+      /**********************************************
+       * 3) EXPORT FUNCTIONS - CLEAN VERSION
+       **********************************************/
+      const loadingIndicator = document.getElementById('loadingIndicator');
+      const exportPngBtn = document.getElementById('exportPngBtn');
+      const exportSvgBtn = document.getElementById('exportSvgBtn');
+      const exportGifBtn = document.getElementById('exportGifBtn');
+      const previewContainer = document.getElementById('previewContainer');
 
-    // Controls
-    const exportWidth = document.getElementById('exportWidth');
-    const exportHeight = document.getElementById('exportHeight');
-    const exportQuality = document.getElementById('exportQuality');
-    const exportTransparent = document.getElementById('exportTransparent');
-    const exportFrames = document.getElementById('exportFrames');
-    const logoTextInput = document.getElementById('logoText');
+      // Controls
+      const exportWidth = document.getElementById('exportWidth');
+      const exportHeight = document.getElementById('exportHeight');
+      const exportQuality = document.getElementById('exportQuality');
+      const exportTransparent = document.getElementById('exportTransparent');
+      const exportFrames = document.getElementById('exportFrames');
+      const logoTextInput = document.getElementById('logoText');
+
+      // -- Export PNG (single)
+      exportPngBtn.addEventListener('click', async function() {
+        loadingIndicator.style.display = 'flex';
+        try {
+          const targetWidth = parseInt(exportWidth.value) || 800;
+          const targetHeight = parseInt(exportHeight.value) || 400;
+
+          // Store original styles
+          const originalWidth = previewContainer.style.width;
+          const originalHeight = previewContainer.style.height;
+          const originalBgColor = previewContainer.style.backgroundColor;
+          const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
+          const originalOpacity = previewContainer.style.opacity;
+          
+          // Get reference to the size indicator to hide it during export
+          const sizeIndicator = previewContainer.querySelector('.size-indicator');
+          const sizeIndicatorDisplay = sizeIndicator ? sizeIndicator.style.display : null;
+          
+          // Hide the size indicator during export
+          if (sizeIndicator) {
+            sizeIndicator.style.display = 'none';
+          }
+
+          // Set dimensions for export
+          previewContainer.style.width = targetWidth + 'px';
+          previewContainer.style.height = targetHeight + 'px';
+          
+          // Handle transparency/background
+          if (exportTransparent.checked) {
+            if (originalBgClass) {
+              previewContainer.classList.remove(originalBgClass);
+            }
+            previewContainer.style.backgroundColor = 'transparent';
+            previewContainer.style.opacity = '1';
+          }
+          
+          // Wait for DOM updates to apply
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          // Create canvas using html-to-image
+          const dataUrl = await htmlToImage.toPng(previewContainer, {
+            width: targetWidth,
+            height: targetHeight,
+            quality: parseInt(exportQuality.value) / 100,
+            backgroundColor: exportTransparent.checked ? null : undefined,
+            // Filter out any elements we don't want in the export
+            filter: (node) => !node.classList || 
+                            (!node.classList.contains('size-indicator') && 
+                              !node.classList.contains('controls-wrapper') &&
+                              !node.classList.contains('button-container'))
+          });
+
+          // Restore original styles
+          previewContainer.style.width = originalWidth;
+          previewContainer.style.height = originalHeight;
+          previewContainer.style.backgroundColor = originalBgColor;
+          previewContainer.style.opacity = originalOpacity;
+          
+          // Restore the original background class if it was removed
+          if (exportTransparent.checked && originalBgClass) {
+            previewContainer.classList.add(originalBgClass);
+          }
+          
+          // Restore size indicator
+          if (sizeIndicator && sizeIndicatorDisplay !== null) {
+            sizeIndicator.style.display = sizeIndicatorDisplay;
+          }
+          
+          // Download the image
+          const link = document.createElement('a');
+          link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.png';
+          link.href = dataUrl;
+          link.click();
+        } catch (error) {
+          console.error('PNG Export Error:', error);
+          alert('Error exporting PNG: ' + error.message);
+        }
+        loadingIndicator.style.display = 'none';
+      });
+
+      // -- Export SVG
+      exportSvgBtn.addEventListener('click', async function() {
+        if (typeof htmlToImage === 'undefined') {
+          alert('html-to-image library is not available.');
+          return;
+        }
+
+        loadingIndicator.style.display = 'flex';
+        
+        try {
+          const targetWidth = parseInt(exportWidth.value) || 800;
+          const targetHeight = parseInt(exportHeight.value) || 400;
+
+          // Store original styles
+          const originalWidth = previewContainer.style.width;
+          const originalHeight = previewContainer.style.height;
+          const originalBgColor = previewContainer.style.backgroundColor;
+          const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
+          const originalOpacity = previewContainer.style.opacity;
+          
+          // Get reference to the size indicator to hide it during export
+          const sizeIndicator = previewContainer.querySelector('.size-indicator');
+          const sizeIndicatorDisplay = sizeIndicator ? sizeIndicator.style.display : null;
+          
+          // Hide the size indicator during export
+          if (sizeIndicator) {
+            sizeIndicator.style.display = 'none';
+          }
+          
+          // Set dimensions for export
+          previewContainer.style.width = targetWidth + 'px';
+          previewContainer.style.height = targetHeight + 'px';
+          
+          // Handle transparency
+          if (exportTransparent.checked) {
+            if (originalBgClass) {
+              previewContainer.classList.remove(originalBgClass);
+            }
+            previewContainer.style.backgroundColor = 'transparent';
+            previewContainer.style.opacity = '1';
+          }
+          
+          // Pause animations to get a clean capture
+          const logoAnimations = logoElement.getAnimations();
+          logoAnimations.forEach(anim => anim.pause && anim.pause());
+          
+          // Wait for DOM updates to apply
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          const dataUrl = await htmlToImage.toSvg(previewContainer, {
+            width: targetWidth,
+            height: targetHeight,
+            backgroundColor: exportTransparent.checked ? null : undefined,
+            // Filter out any elements we don't want in the export
+            filter: (node) => !node.classList || 
+                            (!node.classList.contains('size-indicator') && 
+                              !node.classList.contains('controls-wrapper') &&
+                              !node.classList.contains('button-container'))
+          });
+
+          // Restore original styles
+          previewContainer.style.width = originalWidth;
+          previewContainer.style.height = originalHeight;
+          previewContainer.style.backgroundColor = originalBgColor;
+          previewContainer.style.opacity = originalOpacity;
+          
+          // Restore background class if needed
+          if (exportTransparent.checked && originalBgClass) {
+            previewContainer.classList.add(originalBgClass);
+          }
+          
+          // Restore size indicator
+          if (sizeIndicator && sizeIndicatorDisplay !== null) {
+            sizeIndicator.style.display = sizeIndicatorDisplay;
+          }
+          
+          // Resume animations
+          logoAnimations.forEach(anim => anim.play && anim.play());
+          
+          // Download SVG
+          const link = document.createElement('a');
+          link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.svg';
+          link.href = dataUrl;
+          link.click();
+        } catch (error) {
+          console.error('SVG Export Error:', error);
+          alert('Error exporting SVG: ' + error.message);
+        }
+        
+        loadingIndicator.style.display = 'none';
+      });
+
+      // -- "Export GIF" => Export multiple PNG frames in a ZIP
+      exportGifBtn.addEventListener('click', async function() {
+        loadingIndicator.style.display = 'flex';
+
+        try {
+          const framesCount = parseInt(exportFrames.value) || 10;
+          const zip = new JSZip();
+          const folder = zip.folder('frames');
+          
+          const targetWidth = parseInt(exportWidth.value) || 800;
+          const targetHeight = parseInt(exportHeight.value) || 400;
+
+          // Store original styles
+          const originalWidth = previewContainer.style.width;
+          const originalHeight = previewContainer.style.height;
+          const originalBgColor = previewContainer.style.backgroundColor;
+          const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
+          const originalOpacity = previewContainer.style.opacity;
+          
+          // Get reference to the size indicator to hide it during export
+          const sizeIndicator = previewContainer.querySelector('.size-indicator');
+          const sizeIndicatorDisplay = sizeIndicator ? sizeIndicator.style.display : null;
+          
+          // Hide the size indicator during export
+          if (sizeIndicator) {
+            sizeIndicator.style.display = 'none';
+          }
+          
+          // Set dimensions for export
+          previewContainer.style.width = targetWidth + 'px';
+          previewContainer.style.height = targetHeight + 'px';
+          
+          // Handle transparency
+          if (exportTransparent.checked) {
+            if (originalBgClass) {
+              previewContainer.classList.remove(originalBgClass);
+            }
+            previewContainer.style.backgroundColor = 'transparent';
+            previewContainer.style.opacity = '1';
+          }
+
+          // Get animations to manipulate for frame generation
+          const animations = logoElement.getAnimations();
+          
+          // Create animation duration for consistent frame timing
+          const duration = 2000; // 2 seconds total animation
+          
+          for (let i = 0; i < framesCount; i++) {
+            // Calculate time position for this frame (0-1 range)
+            const progress = i / (framesCount - 1);
+            
+            // Set each animation to this position in time
+            animations.forEach(anim => {
+              if (anim.currentTime !== undefined) {
+                anim.currentTime = duration * progress;
+              }
+            });
+            
+            // Wait for rendering
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Capture frame with html-to-image for consistent rendering
+            const dataUrl = await htmlToImage.toPng(previewContainer, {
+              width: targetWidth,
+              height: targetHeight,
+              quality: parseInt(exportQuality.value) / 100,
+              backgroundColor: exportTransparent.checked ? null : undefined,
+              // Filter out any elements we don't want in the export
+              filter: (node) => !node.classList || 
+                              (!node.classList.contains('size-indicator') && 
+                                !node.classList.contains('controls-wrapper') &&
+                                !node.classList.contains('button-container'))
+            });
+            
+            // Convert data URL to base64 data
+            const base64Data = dataUrl.split(',')[1];
+            
+            // Add to ZIP as frame
+            folder.file(`frame_${String(i).padStart(2,'0')}.png`, base64Data, {base64: true});
+            
+            // Update loading text
+            loadingIndicator.innerText = `Generating frame ${i+1} of ${framesCount}...`;
+          }
+
+          // Restore original styles
+          previewContainer.style.width = originalWidth;
+          previewContainer.style.height = originalHeight;
+          previewContainer.style.backgroundColor = originalBgColor;
+          previewContainer.style.opacity = originalOpacity;
+          
+          // Restore background class if needed
+          if (exportTransparent.checked && originalBgClass) {
+            previewContainer.classList.add(originalBgClass);
+          }
+          
+          // Restore size indicator
+          if (sizeIndicator && sizeIndicatorDisplay !== null) {
+            sizeIndicator.style.display = sizeIndicatorDisplay;
+          }
+          
+          // Restart animations
+          animations.forEach(anim => {
+            if (anim.play) {
+              anim.currentTime = 0;
+              anim.play();
+            }
+          });
+
+          // Generate ZIP
+          loadingIndicator.innerText = "Creating ZIP file...";
+          const blob = await zip.generateAsync({type: 'blob'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '_frames.zip';
+          a.click();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          console.error('ZIP Export Error:', err);
+          alert('Error creating ZIP of frames: ' + err.message);
+        }
+
+        loadingIndicator.innerText = "Generating export... This may take a few moments.";
+        loadingIndicator.style.display = 'none';
+      });
+    // Keep glitch data-text updated
+    logoElement.setAttribute('data-text', logoElement.textContent);
 
 
-// -- Export PNG (single)
-exportPngBtn.addEventListener('click', async function() {
-  loadingIndicator.style.display = 'flex';
-  try {
-    const targetWidth = parseInt(exportWidth.value) || 800;
-    const targetHeight = parseInt(exportHeight.value) || 400;
 
-    // Store original styles for restoration later
-    const originalWidth = previewContainer.style.width;
-    const originalHeight = previewContainer.style.height;
-    const originalBgColor = previewContainer.style.backgroundColor;
-    const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
-    const originalOpacity = previewContainer.style.opacity;
-
-    // Set dimensions for export
-    previewContainer.style.width = targetWidth + 'px';
-    previewContainer.style.height = targetHeight + 'px';
-    
-    // Handle transparency/background
-    if (exportTransparent.checked) {
-      // Save the original background class if any
-      if (originalBgClass) {
-        previewContainer.classList.remove(originalBgClass);
-      }
-      previewContainer.style.backgroundColor = 'transparent';
-      previewContainer.style.opacity = '1';
-    }
-    
-    // Wait for DOM updates to apply
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    // Create canvas using html-to-image library for better handling of styles
-    const dataUrl = await htmlToImage.toPng(previewContainer, {
-      width: targetWidth,
-      height: targetHeight,
-      quality: parseInt(exportQuality.value) / 100,
-      backgroundColor: exportTransparent.checked ? null : undefined
-    });
-
-    // Restore original styles
-    previewContainer.style.width = originalWidth;
-    previewContainer.style.height = originalHeight;
-    previewContainer.style.backgroundColor = originalBgColor;
-    previewContainer.style.opacity = originalOpacity;
-    
-    // Restore the original background class if it was removed
-    if (exportTransparent.checked && originalBgClass) {
-      previewContainer.classList.add(originalBgClass);
-    }
-    
-    // Download the image with simplified filename
-    const link = document.createElement('a');
-    link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.png';
-    link.href = dataUrl;
-    link.click();
-  } catch (error) {
-    console.error('PNG Export Error:', error);
-    alert('Error exporting PNG: ' + error.message);
-  }
-  loadingIndicator.style.display = 'none';
-});
-
-// -- Export SVG
-exportSvgBtn.addEventListener('click', async function() {
-  if (typeof htmlToImage === 'undefined') {
-    alert('html-to-image library is not available.');
-    return;
-  }
-
-  loadingIndicator.style.display = 'flex';
-  
-  try {
-    const targetWidth = parseInt(exportWidth.value) || 800;
-    const targetHeight = parseInt(exportHeight.value) || 400;
-
-    // Store original styles
-    const originalWidth = previewContainer.style.width;
-    const originalHeight = previewContainer.style.height;
-    const originalBgColor = previewContainer.style.backgroundColor;
-    const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
-    const originalOpacity = previewContainer.style.opacity;
-    
-    // Set dimensions for export
-    previewContainer.style.width = targetWidth + 'px';
-    previewContainer.style.height = targetHeight + 'px';
-    
-    // Handle transparency
-    if (exportTransparent.checked) {
-      if (originalBgClass) {
-        previewContainer.classList.remove(originalBgClass);
-      }
-      previewContainer.style.backgroundColor = 'transparent';
-      previewContainer.style.opacity = '1';
-    }
-    
-    // Pause animations to get a clean capture
-    const logoAnimations = logoElement.getAnimations();
-    logoAnimations.forEach(anim => anim.pause && anim.pause());
-    
-    // Wait for DOM updates to apply
-    await new Promise(resolve => setTimeout(resolve, 50));
-
-    const dataUrl = await htmlToImage.toSvg(previewContainer, {
-      width: targetWidth,
-      height: targetHeight,
-      backgroundColor: exportTransparent.checked ? null : undefined
-    });
-
-    // Restore original styles
-    previewContainer.style.width = originalWidth;
-    previewContainer.style.height = originalHeight;
-    previewContainer.style.backgroundColor = originalBgColor;
-    previewContainer.style.opacity = originalOpacity;
-    
-    // Restore background class if needed
-    if (exportTransparent.checked && originalBgClass) {
-      previewContainer.classList.add(originalBgClass);
-    }
-    
-    // Resume animations
-    logoAnimations.forEach(anim => anim.play && anim.play());
-    
-    // Download SVG with simplified filename
-    const link = document.createElement('a');
-    link.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '.svg';
-    link.href = dataUrl;
-    link.click();
-  } catch (error) {
-    console.error('SVG Export Error:', error);
-    alert('Error exporting SVG: ' + error.message);
-  }
-  
-  loadingIndicator.style.display = 'none';
-});
-
-// -- "Export GIF" => Export multiple PNG frames in a ZIP
-exportGifBtn.addEventListener('click', async function() {
-  loadingIndicator.style.display = 'flex';
-
-  try {
-    const framesCount = parseInt(exportFrames.value) || 10;
-    const zip = new JSZip();
-    const folder = zip.folder('frames');
-    
-    const targetWidth = parseInt(exportWidth.value) || 800;
-    const targetHeight = parseInt(exportHeight.value) || 400;
-
-    // Store original styles
-    const originalWidth = previewContainer.style.width;
-    const originalHeight = previewContainer.style.height;
-    const originalBgColor = previewContainer.style.backgroundColor;
-    const originalBgClass = Array.from(previewContainer.classList).find(c => c.startsWith('bg-'));
-    const originalOpacity = previewContainer.style.opacity;
-    
-    // Set dimensions for export
-    previewContainer.style.width = targetWidth + 'px';
-    previewContainer.style.height = targetHeight + 'px';
-    
-    // Handle transparency
-    if (exportTransparent.checked) {
-      if (originalBgClass) {
-        previewContainer.classList.remove(originalBgClass);
-      }
-      previewContainer.style.backgroundColor = 'transparent';
-      previewContainer.style.opacity = '1';
-    }
-
-    // Get animations to manipulate for frame generation
-    const animations = logoElement.getAnimations();
-    
-    // Create animation duration for consistent frame timing
-    const duration = 2000; // 2 seconds total animation
-    
-    for (let i = 0; i < framesCount; i++) {
-      // Calculate time position for this frame (0-1 range)
-      const progress = i / (framesCount - 1);
+      // Background tab controls
+      const backgroundType = document.getElementById('backgroundType');
+      const backgroundColor = document.getElementById('backgroundColor');
+      const backgroundColorControl = document.getElementById('backgroundColorControl');
+      const bgOpacity = document.getElementById('bgOpacity');
       
-      // Set each animation to this position in time
-      animations.forEach(anim => {
-        if (anim.currentTime !== undefined) {
-          anim.currentTime = duration * progress;
+      backgroundType.addEventListener('change', function() {
+        const previewContainer = document.getElementById('previewContainer');
+        
+        // Remove all background classes
+        previewContainer.classList.forEach(cls => {
+          if (cls.startsWith('bg-')) {
+            previewContainer.classList.remove(cls);
+          }
+        });
+        
+        // Add the selected one
+        previewContainer.classList.add(this.value);
+        
+        // Show/hide color control for solid background
+        backgroundColorControl.classList.toggle('hidden', this.value !== 'bg-solid');
+        
+        if (this.value === 'bg-solid') {
+          previewContainer.style.backgroundColor = backgroundColor.value;
+        } else {
+          previewContainer.style.backgroundColor = '';
         }
       });
       
-      // Wait for rendering
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Capture frame with html-to-image for consistent rendering
-      const dataUrl = await htmlToImage.toPng(previewContainer, {
-        width: targetWidth,
-        height: targetHeight,
-        quality: parseInt(exportQuality.value) / 100,
-        backgroundColor: exportTransparent.checked ? null : undefined
+      backgroundColor.addEventListener('input', function() {
+        if (backgroundType.value === 'bg-solid') {
+          document.getElementById('previewContainer').style.backgroundColor = this.value;
+        }
       });
       
-      // Convert data URL to base64 data
-      const base64Data = dataUrl.split(',')[1];
+      bgOpacity.addEventListener('input', function() {
+        document.getElementById('previewContainer').style.opacity = this.value;
+      });
       
-      // Add to ZIP as frame
-      folder.file(`frame_${String(i).padStart(2,'0')}.png`, base64Data, {base64: true});
+      // Advanced tab controls
+      const previewSize = document.getElementById('previewSize');
+      previewSize.addEventListener('change', function() {
+        const previewContainer = document.getElementById('previewContainer');
+        const logoText = document.querySelector('.logo-text');
+        
+        switch (this.value) {
+          case 'small':
+            previewContainer.style.padding = '20px';
+            logoText.style.fontSize = '6vw';
+            break;
+          case 'medium':
+            previewContainer.style.padding = '40px';
+            logoText.style.fontSize = '8vw';
+            break;
+          case 'large':
+            previewContainer.style.padding = '60px';
+            logoText.style.fontSize = '10vw';
+            break;
+          case 'x-large':
+            previewContainer.style.padding = '80px';
+            logoText.style.fontSize = '12vw';
+            break;
+        }
+        
+        updateSizeIndicator();
+      });
       
-      // Update loading text
-      loadingIndicator.innerText = `Generating frame ${i+1} of ${framesCount}...`;
-    }
-
-    // Restore original styles
-    previewContainer.style.width = originalWidth;
-    previewContainer.style.height = originalHeight;
-    previewContainer.style.backgroundColor = originalBgColor;
-    previewContainer.style.opacity = originalOpacity;
-    
-    // Restore background class if needed
-    if (exportTransparent.checked && originalBgClass) {
-      previewContainer.classList.add(originalBgClass);
-    }
-    
-    // Restart animations
-    animations.forEach(anim => {
-      if (anim.play) {
-        anim.currentTime = 0;
-        anim.play();
+      // Tab Navigation
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          // Remove active class from all tabs
+          tabs.forEach(t => t.classList.remove('active'));
+          // Add active class to clicked tab
+          this.classList.add('active');
+          
+          // Hide all tab content
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+          });
+          
+          // Show corresponding tab content
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(`${tabId}-tab`).classList.add('active');
+        });
+      });
+      
+      // Update CSS code for copying
+      function updateCssCode() {
+        const cssCode = document.getElementById('cssCode');
+        const logoText = document.querySelector('.logo-text');
+        const computedStyle = window.getComputedStyle(logoText);
+        
+        const css = `
+        .logo {
+          font-family: ${computedStyle.fontFamily};
+          font-size: ${computedStyle.fontSize};
+          font-weight: ${computedStyle.fontWeight};
+          letter-spacing: ${computedStyle.letterSpacing};
+          text-transform: ${computedStyle.textTransform};
+          background-image: ${computedStyle.backgroundImage};
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+          text-shadow: ${computedStyle.textShadow};
+          transform: ${computedStyle.transform};
+        }`;
+        
+        cssCode.value = css.trim();
       }
-    });
+      
+      // Copy buttons
+      document.getElementById('copyCssBtn').addEventListener('click', function() {
+        updateCssCode();
+        const cssCode = document.getElementById('cssCode');
+        cssCode.select();
+        document.execCommand('copy');
+        alert('CSS copied to clipboard!');
+      });
+      
+      document.getElementById('copyHtmlBtn').addEventListener('click', function() {
+        const logoText = document.querySelector('.logo-text');
+        const html = `<div class="logo">${logoText.textContent}</div>`;
+        
+        const tempTextarea = document.createElement('textarea');
+        tempTextarea.value = html;
+        document.body.appendChild(tempTextarea);
+        tempTextarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextarea);
+        
+        alert('HTML copied to clipboard!');
+      });
+      
+      // Update size indicator initially
+      updateSizeIndicator();
 
-    // Generate ZIP with simplified filename
-    loadingIndicator.innerText = "Creating ZIP file...";
-    const blob = await zip.generateAsync({type: 'blob'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = (logoTextInput.value || 'logo').replace(/\s+/g, '-').toLowerCase() + '_frames.zip';
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error('ZIP Export Error:', err);
-    alert('Error creating ZIP of frames: ' + err.message);
-  }
-
-  loadingIndicator.innerText = "Generating export... This may take a few moments.";
-  loadingIndicator.style.display = 'none';
-});
-    // Keep glitch data-text updated
-    logoElement.setAttribute('data-text', logoElement.textContent);
   </script>
 </body>
 </html>
