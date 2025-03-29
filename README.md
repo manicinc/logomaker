@@ -2,9 +2,11 @@
 
 ![Logomaker Preview](./preview.png)
 
-A free, open-source logo generator that allows you to create stunning logos directly in your browser. Designed for rapid development with extreme portability in mind.
+A sleek logo generator that allows you to create stunning logos directly in your browser. Designed for rapid development with extreme portability in mind.
 
 **Live Demo**: https://manicinc.github.io/logomaker
+
+Free forever hosted on GitHub pages
 
 ## Portability Features
 
