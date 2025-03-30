@@ -63,6 +63,8 @@ Join our community to get help, share ideas, or contribute to the project!
 
 ## Features 💫
 
+Our `index.html` file contains all styles and JS logic for the UI. Things have been commented and separated out there, so if desired, you may refactor them out into multiple scripts for additional development (CSS and JS in separate files). 
+
 ### Flexible Usage / Dependency Options 🤔
 
 - Can load fonts dynamically fron `fonts/` folder, when running `index.html` from a web server (smallest size, fastest loadtime)
@@ -121,11 +123,11 @@ Want to get started immediately?
 
 Download the full single file HTML file with all CSS and scripts in-line.
 
-[https://drive.google.com/file/d/1hNZ12n3OXVg4CaoR47B4BkiDSO4sFuNa/view?usp=sharing](https://drive.google.com/file/d/1hNZ12n3OXVg4CaoR47B4BkiDSO4sFuNa/view?usp=sharing)
+[https://drive.google.com/file/d/1-HtugqDInxb9TpLpBrc7wbefHK5l5crj/view?usp=sharing](https://drive.google.com/file/d/1-HtugqDInxb9TpLpBrc7wbefHK5l5crj/view?usp=sharing)
 
 Then just open `single-file-app.html` in any browser. That's it!
 
-It may be a struggle to process the 60mb HTML file, 💣 but after its initial load, it should run easily with everything taking place in your client. 
+It may be a struggle to process the 90mb HTML file 💣 but after its initial load, it should run easily with everything taking place in your client. 
 
 ### Use Online 🌐
 

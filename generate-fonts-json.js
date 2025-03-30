@@ -313,7 +313,7 @@ function generateFontsJson() {
   console.log(`- Detected font formats: ${Array.from(allFormats).join(', ')}`);
   
   // Create a direct INLINE_FONTS_DATA variable for easy copying
-  const inlineVariable = `const INLINE_FONTS_DATA = ${JSON.stringify(fontFamilies, null, 2)};`;
+  const inlineVariable = `let INLINE_FONTS_DATA = ${JSON.stringify(fontFamilies, null, 2)};`;
   const inlinePath = path.join(__dirname, 'inline-fonts-data.js');
   fs.writeFileSync(inlinePath, inlineVariable, 'utf-8');
   

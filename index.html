@@ -1151,9 +1151,11 @@
     button {
       width: 100%;
     }
+  }
 
+  
+    /* Base reset button styling */
     .reset-btn {
-      background: linear-gradient(45deg, #2d3436, #636e72);
       color: white;
       border: none;
       border-radius: 5px;
@@ -1166,23 +1168,304 @@
       justify-content: center;
       gap: 8px;
       margin-top: 10px;
-      width: 100%;
+      height: 44px;
     }
-    
+
     .reset-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(45deg, #3d3d3d, #7a7a7a);
     }
-    
+
     .reset-btn:active {
       transform: translateY(0);
     }
-    
+
+    /* Mobile-specific reset button styles */
+    @media (max-width: 768px) {
+      /* Floating action button style for mobile */
+      .reset-btn.mobile-visible {
+        position: fixed;
+        bottom: max(20px, env(safe-area-inset-bottom, 20px));
+        right: max(20px, env(safe-area-inset-right, 20px));
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        z-index: 100;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      /* Text label disappears on mobile floating button */
+      .reset-btn.mobile-visible span {
+        display: none;
+      }
+      
+      /* Center the icon */
+      .reset-btn.mobile-visible svg {
+        margin: 0;
+        stroke-width: 2px;
+        width: 24px;
+        height: 24px;
+      }
+      
+      /* Add a pulse animation to draw attention */
+      @keyframes pulse-border {
+        0% {
+          box-shadow: 0 0 0 0 rgba(255, 20, 147, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(255, 20, 147, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 20, 147, 0);
+        }
+      }
+      
+      /* Apply the pulse animation */
+      .reset-btn.mobile-visible:not(:active):not(:hover) {
+        animation: pulse-border 2s infinite;
+      }
+      
+      /* Active state */
+      .reset-btn.mobile-visible:active {
+        transform: scale(0.95);
+      }
+    }
+
+    /* Interactive ripple effect for the button */
+    .reset-btn.mobile-visible::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.8);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%, -50%);
+      transform-origin: 50% 50%;
+    }
+
+    .reset-btn.mobile-visible:active::after {
+      animation: ripple 1s ease-out;
+    }
+
+    /* Reset Confirmation Modal Styles */
+
+    /* Modal background overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Modal content box */
+    .modal-content {
+      background-color: var(--panel-bg, rgba(30, 30, 30, 0.9));
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: translateY(0);
+    }
+
+    /* Modal header */
+    .modal-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      background: linear-gradient(45deg, var(--primary-color, #ff1493), var(--secondary-color, #8a2be2));
+    }
+
+    .modal-header-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .modal-title {
+      flex: 1;
+      margin: 0;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    /* Modal body */
+    .modal-body {
+      padding: 20px;
+      color: var(--text-color, #f5f5f5);
+    }
+
+    .modal-body p {
+      margin: 0 0 15px;
+      line-height: 1.5;
+    }
+
+    .reset-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .reset-option {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .reset-option:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .reset-option input[type="radio"] {
+      margin-right: 12px;
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent-color, #00ffff);
+    }
+
+    .reset-option-label {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .reset-option-desc {
+      font-size: 0.85rem;
+      margin-top: 3px;
+      opacity: 0.7;
+    }
+
+    /* Modal footer */
+    .modal-footer {
+      padding: 15px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .modal-btn-cancel {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--text-color, #f5f5f5);
+    }
+
+    .modal-btn-cancel:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .modal-btn-reset {
+      background: linear-gradient(45deg, var(--primary-color, #ff1493), var(--secondary-color, #8a2be2));
+      color: white;
+    }
+
+    .modal-btn-reset:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Animation for modal appearance */
+    @keyframes modal-appear {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Mobile-specific adjustments */
+    @media (max-width: 576px) {
+      .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      
+      .modal-footer {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .modal-btn {
+        width: 100%;
+        padding: 12px 16px;
+      }
+      
+      .modal-header {
+        padding: 12px 15px;
+      }
+      
+      .modal-body {
+        padding: 15px;
+      }
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0) translate(-50%, -50%);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(20, 20) translate(-50%, -50%);
+        opacity: 0;
+      }
+    }
+        
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-  }
 
 /* Logomaker Mobile Responsive Styles
  * Complete stylesheet for responsive functionality
@@ -2494,6 +2777,49 @@ input[type="checkbox"] {
       <button id="copyCssBtn">Copy CSS</button>
     </div>
 
+    <!-- Reset confirmation modal structure -->
+    <div id="resetConfirmModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <svg class="modal-header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <h3 class="modal-title">Reset Settings</h3>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to reset your logo settings?</p>
+          <div class="reset-options">
+            <label class="reset-option">
+              <input type="radio" name="reset-type" value="all" checked>
+              <div>
+                <div class="reset-option-label">Reset everything</div>
+                <div class="reset-option-desc">Restore all settings to their default values</div>
+              </div>
+            </label>
+            <label class="reset-option">
+              <input type="radio" name="reset-type" value="text">
+              <div>
+                <div class="reset-option-label">Reset text only</div>
+                <div class="reset-option-desc">Reset font, size, and text properties</div>
+              </div>
+            </label>
+            <label class="reset-option">
+              <input type="radio" name="reset-type" value="style">
+              <div>
+                <div class="reset-option-label">Reset style only</div>
+                <div class="reset-option-desc">Reset colors, gradients, and effects</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="resetModalCancel" class="modal-btn modal-btn-cancel">Cancel</button>
+          <button id="resetModalConfirm" class="modal-btn modal-btn-reset">Reset</button>
+        </div>
+      </div>
+    </div>
+
     <div id="loadingIndicator" class="loading-indicator">
       Generating export... This may take a few moments.
     </div>
@@ -2975,17 +3301,6 @@ input[type="checkbox"] {
         }
         updateSizeIndicator();
       });
-
-      // Copy CSS
-      document.getElementById('copyCssBtn').addEventListener('click', function() {
-        updateCssCode();
-        const cssCode = document.getElementById('cssCode');
-        cssCode.select();
-        document.execCommand('copy');
-        alert('CSS copied to clipboard!');
-      });
-
-      // Copy HTML
       document.getElementById('copyHtmlBtn').addEventListener('click', function() {
         const html = `<div class="logo">${logoElement.textContent}</div>`;
         const tempTextarea = document.createElement('textarea');
@@ -2994,7 +3309,12 @@ input[type="checkbox"] {
         tempTextarea.select();
         document.execCommand('copy');
         document.body.removeChild(tempTextarea);
-        alert('HTML copied to clipboard!');
+        showToast({
+          message: 'HTML copied to clipboard!',
+          type: 'success',
+          title: 'Copied!',
+          duration: 2000
+        });
       });
 
       // Update size indicator initially
@@ -3489,7 +3809,11 @@ input[type="checkbox"] {
           link.click();
         } catch (error) {
           console.error('PNG Export Error:', error);
-          alert('Error exporting PNG: ' + error.message);
+          showModal({
+            message: 'Error exporting PNG: ' + error.message,
+            type: 'error',
+            title: 'Export Failed'
+          });
         }
         loadingIndicator.style.display = 'none';
       });
@@ -3497,7 +3821,11 @@ input[type="checkbox"] {
       // -- Export SVG
       exportSvgBtn.addEventListener('click', async function() {
         if (typeof htmlToImage === 'undefined') {
-          alert('html-to-image library is not available.');
+          showModal({
+            message: 'The html-to-image library is not available. Please refresh the page and try again.',
+            type: 'error',
+            title: 'Missing Component'
+          });
           return;
         }
 
@@ -3580,7 +3908,11 @@ input[type="checkbox"] {
           link.click();
         } catch (error) {
           console.error('SVG Export Error:', error);
-          alert('Error exporting SVG: ' + error.message);
+          showModal({
+            message: 'Error exporting SVG: ' + error.message,
+            type: 'error',
+            title: 'Export Failed'
+          });
         }
         
         loadingIndicator.style.display = 'none';
@@ -3705,7 +4037,11 @@ input[type="checkbox"] {
           URL.revokeObjectURL(url);
         } catch (err) {
           console.error('ZIP Export Error:', err);
-          alert('Error creating ZIP of frames: ' + err.message);
+          showModal({
+            message: 'Error creating ZIP of frames: ' + err.message,
+            type: 'error',
+            title: 'Export Failed'
+          });
         }
 
         loadingIndicator.innerText = "Generating export... This may take a few moments.";
@@ -3834,7 +4170,6 @@ input[type="checkbox"] {
         const cssCode = document.getElementById('cssCode');
         cssCode.select();
         document.execCommand('copy');
-        alert('CSS copied to clipboard!');
       });
       
       document.getElementById('copyHtmlBtn').addEventListener('click', function() {
@@ -3848,219 +4183,19 @@ input[type="checkbox"] {
         document.execCommand('copy');
         document.body.removeChild(tempTextarea);
         
-        alert('HTML copied to clipboard!');
+        showToast({
+          message: 'HTML copied to clipboard!',
+          type: 'success',
+          title: 'Copied!',
+          duration: 2000
+        });
       });
       
       // Update size indicator initially
       updateSizeIndicator();
 
   </script>
-
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const resetBtn = document.getElementById('resetBtn');
-    
-    if (resetBtn) {
-      resetBtn.addEventListener('click', function() {
-        // Show confirmation dialog
-        if (confirm('Reset all logo settings to default?')) {
-          resetLogoToDefaults();
-        }
-      });
-    }
-    
-    function resetLogoToDefaults() {
-      // Default text
-      const logoTextInput = document.getElementById('logoText');
-      if (logoTextInput) logoTextInput.value = 'Manic';
-      
-      // Default font
-      const fontFamilySelect = document.getElementById('fontFamily');
-      if (fontFamilySelect) {
-        // Try to find Orbitron or similar font in the options
-        const preferredFonts = ['Orbitron', 'Audiowide', 'Russo One'];
-        let found = false;
-        
-        for (const fontName of preferredFonts) {
-          const option = Array.from(fontFamilySelect.options).find(opt => 
-            opt.textContent.includes(fontName)
-          );
-          
-          if (option) {
-            fontFamilySelect.value = option.value;
-            found = true;
-            break;
-          }
-        }
-        
-        // If preferred fonts not found, use the first option
-        if (!found && fontFamilySelect.options.length > 0) {
-          fontFamilySelect.selectedIndex = 0;
-        }
-        
-        // Trigger the font change event if it exists
-        if (typeof updateSelectedFont === 'function') {
-          updateSelectedFont();
-        }
-      }
-      
-      // Reset font size
-      const fontSize = document.getElementById('fontSize');
-      if (fontSize) fontSize.value = 100;
-      
-      // Reset letter spacing
-      const letterSpacing = document.getElementById('letterSpacing');
-      if (letterSpacing) letterSpacing.value = 0.03;
-      
-      // Reset text transform
-      const textCase = document.getElementById('textCase');
-      if (textCase) textCase.value = 'uppercase';
-      
-      // Reset font weight
-      const fontWeight = document.getElementById('fontWeight');
-      if (fontWeight) fontWeight.value = 700;
-      
-      // Reset gradient
-      const gradientPreset = document.getElementById('gradientPreset');
-      if (gradientPreset) gradientPreset.value = 'primary-gradient';
-      
-      // Hide custom gradient controls if visible
-      const customGradientControls = document.getElementById('customGradientControls');
-      if (customGradientControls) customGradientControls.classList.add('hidden');
-      
-      // Reset colors
-      const color1 = document.getElementById('color1');
-      if (color1) color1.value = '#FF1493';
-      
-      const color2 = document.getElementById('color2');
-      if (color2) color2.value = '#8A2BE2';
-      
-      const useColor3 = document.getElementById('useColor3');
-      if (useColor3) useColor3.checked = false;
-      
-      const color3Control = document.getElementById('color3Control');
-      if (color3Control) color3Control.classList.add('hidden');
-      
-      // Reset text shadow
-      const textShadow = document.getElementById('textShadow');
-      if (textShadow) textShadow.value = 'text-glow-none';
-      
-      // Reset border style
-      const borderStyle = document.getElementById('borderStyle');
-      if (borderStyle) borderStyle.value = 'border-none';
-      
-      // Reset text alignment
-      const textAlign = document.getElementById('textAlign');
-      if (textAlign) textAlign.value = 'center';
-      
-      // Reset rotation
-      const rotation = document.getElementById('rotation');
-      if (rotation) rotation.value = 0;
-      
-      // Reset animation
-      const textAnimation = document.getElementById('textAnimation');
-      if (textAnimation) textAnimation.value = 'anim-none';
-      
-      // Reset animation speed
-      const animationSpeed = document.getElementById('animationSpeed');
-      if (animationSpeed) animationSpeed.value = 1;
-      
-      // Reset animation direction
-      const animationDirection = document.getElementById('animationDirection');
-      if (animationDirection) animationDirection.value = 45;
-      
-      // Reset background type
-      const backgroundType = document.getElementById('backgroundType');
-      if (backgroundType) backgroundType.value = 'bg-solid';
-      
-      // Reset background color
-      const backgroundColor = document.getElementById('backgroundColor');
-      if (backgroundColor) backgroundColor.value = '#000000';
-      
-      // Reset background opacity
-      const bgOpacity = document.getElementById('bgOpacity');
-      if (bgOpacity) bgOpacity.value = 1;
-      
-      // Reset preview size
-      const previewSize = document.getElementById('previewSize');
-      if (previewSize) previewSize.value = 'medium';
-      
-      // Reset export dimensions
-      const exportWidth = document.getElementById('exportWidth');
-      if (exportWidth) exportWidth.value = 800;
-      
-      const exportHeight = document.getElementById('exportHeight');
-      if (exportHeight) exportHeight.value = 400;
-      
-      // Reset export quality
-      const exportQuality = document.getElementById('exportQuality');
-      if (exportQuality) exportQuality.value = 90;
-      
-      // Reset export transparent
-      const exportTransparent = document.getElementById('exportTransparent');
-      if (exportTransparent) exportTransparent.checked = false;
-      
-      // Reset export frames
-      const exportFrames = document.getElementById('exportFrames');
-      if (exportFrames) exportFrames.value = 10;
-      
-      // Apply all changes to the logo element
-      const logoElement = document.querySelector('.logo-text');
-      if (logoElement) {
-        logoElement.textContent = 'Manic';
-        logoElement.style.fontFamily = "'Orbitron', sans-serif";
-        logoElement.style.fontSize = '8vw';
-        logoElement.style.letterSpacing = '0.03em';
-        logoElement.style.textTransform = 'uppercase';
-        logoElement.style.fontWeight = '700';
-        logoElement.style.backgroundImage = 'var(--primary-gradient)';
-        logoElement.style.textAlign = 'center';
-        logoElement.style.transform = 'rotate(0deg)';
-        
-        // Reset all CSS classes
-        logoElement.className = 'logo-text';
-        logoElement.classList.add('text-glow-none');
-        logoElement.classList.add('anim-none');
-        
-        // Set data-text attribute for glitch animation if needed
-        logoElement.setAttribute('data-text', 'Manic');
-      }
-      
-      // Reset preview container
-      const previewContainer = document.getElementById('previewContainer');
-      if (previewContainer) {
-        // Remove all background classes
-        previewContainer.classList.forEach(cls => {
-          if (cls.startsWith('bg-')) {
-            previewContainer.classList.remove(cls);
-          }
-        });
-        
-        // Add default background
-        previewContainer.classList.add('bg-solid');
-        previewContainer.style.backgroundColor = '#000000';
-        previewContainer.style.opacity = '1';
-        previewContainer.style.padding = '40px';
-      }
-      
-      // Reset animation duration CSS variable
-      document.documentElement.style.setProperty('--animation-duration', '2s');
-      
-      // Update size indicator
-      if (typeof updateSizeIndicator === 'function') {
-        updateSizeIndicator();
-      }
-      
-      // Update CSS code in textarea
-      if (typeof updateCssCode === 'function') {
-        updateCssCode();
-      }
-      
-      // Show a success message
-      alert('Logo has been reset to default settings!');
-    }
-  });
-
   /**
    * Enhanced Mobile Responsiveness JavaScript
    * Adds mobile-specific functionality and improves user experience
@@ -4683,6 +4818,1059 @@ input[type="checkbox"] {
     enhanceExportButtons();
     enableSettingsPersistence();
   });
+</script>
+<script>
+  /**
+ * Reset Confirmation Modal JavaScript
+ * Handles modal opening, closing, and reset functionality
+ */
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize the reset functionality
+  initResetModal();
+});
+
+function initResetModal() {
+  // Get DOM elements
+  const resetBtn = document.getElementById('resetBtn');
+  const resetConfirmModal = document.getElementById('resetConfirmModal');
+  const resetModalCancel = document.getElementById('resetModalCancel');
+  const resetModalConfirm = document.getElementById('resetModalConfirm');
+  
+  // Exit if elements don't exist
+  if (!resetBtn || !resetConfirmModal || !resetModalCancel || !resetModalConfirm) {
+    console.warn('Reset modal elements not found');
+    return;
+  }
+  
+  // Show modal when reset button is clicked
+  resetBtn.addEventListener('click', function() {
+    resetConfirmModal.classList.add('active');
+    
+    // Add some nice entrance animation
+    const modalContent = resetConfirmModal.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.style.animation = 'modal-appear 0.3s ease forwards';
+    }
+    
+    // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+  });
+  
+  // Hide modal when cancel is clicked
+  resetModalCancel.addEventListener('click', function() {
+    closeResetModal();
+  });
+  
+  // Handle click outside the modal to close it
+  resetConfirmModal.addEventListener('click', function(e) {
+    if (e.target === resetConfirmModal) {
+      closeResetModal();
+    }
+  });
+  
+  // Handle escape key to close modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && resetConfirmModal.classList.contains('active')) {
+      closeResetModal();
+    }
+  });
+  
+  // Handle reset confirmation
+  resetModalConfirm.addEventListener('click', function() {
+    // Get selected reset type
+    const resetType = document.querySelector('input[name="reset-type"]:checked').value;
+    
+    // Perform the reset based on the selected type
+    performReset(resetType);
+    
+    // Close the modal
+    closeResetModal();
+    
+    // Show success message
+    showResetSuccessMessage(resetType);
+  });
+  
+  // Function to close the modal
+  function closeResetModal() {
+    resetConfirmModal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  
+  // // Function to show success message
+  // function showResetSuccessMessage(resetType) {
+  //   // Create a toast notification
+  //   const toast = document.createElement('div');
+  //   toast.className = 'reset-toast';
+    
+  //   let message = '';
+  //   switch(resetType) {
+  //     case 'all':
+  //       message = 'All settings have been reset to defaults';
+  //       break;
+  //     case 'text':
+  //       message = 'Text settings have been reset';
+  //       break;
+  //     case 'style':
+  //       message = 'Style settings have been reset';
+  //       break;
+  //     default:
+  //       message = 'Settings have been reset';
+  //   }
+    
+  //   toast.innerHTML = `
+  //     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  //       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+  //       <polyline points="22 4 12 14.01 9 11.01"></polyline>
+  //     </svg>
+  //     <span>${message}</span>
+  //   `;
+    
+  //   // Add to document
+  //   document.body.appendChild(toast);
+    
+  //   // Animate in
+  //   setTimeout(() => {
+  //     toast.classList.add('show');
+  //   }, 10);
+    
+  //   // Remove after 3 seconds
+  //   setTimeout(() => {
+  //     toast.classList.remove('show');
+  //     setTimeout(() => {
+  //       document.body.removeChild(toast);
+  //     }, 300);
+  //   }, 3000);
+  // }
+}
+
+/**
+ * Perform the reset based on the selected type
+ * @param {string} resetType - Type of reset: 'all', 'text', or 'style'
+ */
+function performReset(resetType) {
+  switch(resetType) {
+    case 'all':
+      resetAllSettings();
+      break;
+    case 'text':
+      resetTextSettings();
+      break;
+    case 'style':
+      resetStyleSettings();
+      break;
+    default:
+      resetAllSettings();
+  }
+  
+  // Update the preview
+  updateLogoPreview();
+  
+  // Update size indicator
+  if (typeof updateSizeIndicator === 'function') {
+    updateSizeIndicator();
+  }
+}
+
+/**
+ * Reset all logo settings to defaults
+ */
+function resetAllSettings() {
+  // Reset text settings
+  resetTextSettings();
+  
+  // Reset style settings
+  resetStyleSettings();
+  
+  // Reset animation settings
+  const textAnimation = document.getElementById('textAnimation');
+  if (textAnimation) textAnimation.value = 'anim-none';
+  
+  const animationSpeed = document.getElementById('animationSpeed');
+  if (animationSpeed) animationSpeed.value = 1;
+  
+  const animationDirection = document.getElementById('animationDirection');
+  if (animationDirection) animationDirection.value = 45;
+  
+  // Reset background settings
+  const backgroundType = document.getElementById('backgroundType');
+  if (backgroundType) backgroundType.value = 'bg-solid';
+  
+  const backgroundColor = document.getElementById('backgroundColor');
+  if (backgroundColor) backgroundColor.value = '#000000';
+  
+  const bgOpacity = document.getElementById('bgOpacity');
+  if (bgOpacity) bgOpacity.value = 1;
+  
+  // Reset preview container
+  const previewContainer = document.getElementById('previewContainer');
+  if (previewContainer) {
+    // Remove all background classes
+    previewContainer.classList.forEach(cls => {
+      if (cls.startsWith('bg-')) {
+        previewContainer.classList.remove(cls);
+      }
+    });
+    
+    // Add default background
+    previewContainer.classList.add('bg-solid');
+    previewContainer.style.backgroundColor = '#000000';
+    previewContainer.style.opacity = '1';
+    previewContainer.style.padding = '40px';
+  }
+  
+  // Reset animation duration CSS variable
+  document.documentElement.style.setProperty('--animation-duration', '2s');
+  
+  // Reset any other global settings
+  const previewSize = document.getElementById('previewSize');
+  if (previewSize) previewSize.value = 'medium';
+  
+  // Reset export settings
+  const exportWidth = document.getElementById('exportWidth');
+  if (exportWidth) exportWidth.value = 800;
+  
+  const exportHeight = document.getElementById('exportHeight');
+  if (exportHeight) exportHeight.value = 400;
+  
+  const exportQuality = document.getElementById('exportQuality');
+  if (exportQuality) exportQuality.value = 90;
+  
+  const exportTransparent = document.getElementById('exportTransparent');
+  if (exportTransparent) exportTransparent.checked = false;
+  
+  const exportFrames = document.getElementById('exportFrames');
+  if (exportFrames) exportFrames.value = 10;
+
+}
+
+/**
+ * Reset only text-related settings
+ */
+function resetTextSettings() {
+  // Reset logo text
+  const logoTextInput = document.getElementById('logoText');
+  if (logoTextInput) logoTextInput.value = 'Manic';
+  
+  // Reset font family
+  const fontFamilySelect = document.getElementById('fontFamily');
+  if (fontFamilySelect) {
+    // Try to find preferred fonts
+    const preferredFonts = ['Orbitron', 'Audiowide', 'Russo One'];
+    let found = false;
+    
+    for (const fontName of preferredFonts) {
+      const option = Array.from(fontFamilySelect.options).find(opt => 
+        opt.textContent.includes(fontName)
+      );
+      
+      if (option) {
+        fontFamilySelect.value = option.value;
+        found = true;
+        break;
+      }
+    }
+    
+    // If preferred fonts not found, use the first option
+    if (!found && fontFamilySelect.options.length > 0) {
+      fontFamilySelect.selectedIndex = 0;
+    }
+    
+    // Trigger font change event
+    if (typeof updateSelectedFont === 'function') {
+      updateSelectedFont();
+    }
+  }
+  
+  // Reset font size
+  const fontSize = document.getElementById('fontSize');
+  if (fontSize) fontSize.value = 100;
+  
+  // Reset letter spacing
+  const letterSpacing = document.getElementById('letterSpacing');
+  if (letterSpacing) letterSpacing.value = 0.03;
+  
+  // Reset text transform
+  const textCase = document.getElementById('textCase');
+  if (textCase) textCase.value = 'uppercase';
+  
+  // Reset font weight
+  const fontWeight = document.getElementById('fontWeight');
+  if (fontWeight) fontWeight.value = 700;
+  
+  // Apply to logo element
+  const logoElement = document.querySelector('.logo-text');
+  if (logoElement) {
+    logoElement.textContent = 'Manic';
+    logoElement.style.fontFamily = "'Orbitron', sans-serif";
+    logoElement.style.fontSize = '8vw';
+    logoElement.style.letterSpacing = '0.03em';
+    logoElement.style.textTransform = 'uppercase';
+    logoElement.style.fontWeight = '700';
+    
+    // Set data-text attribute for glitch animation if needed
+    logoElement.setAttribute('data-text', 'Manic');
+  }
+}
+
+/**
+ * Reset only style-related settings
+ */
+function resetStyleSettings() {
+  // Reset gradient
+  const gradientPreset = document.getElementById('gradientPreset');
+  if (gradientPreset) gradientPreset.value = 'primary-gradient';
+  
+  // Hide custom gradient controls if visible
+  const customGradientControls = document.getElementById('customGradientControls');
+  if (customGradientControls) customGradientControls.classList.add('hidden');
+  
+  // Reset colors
+  const color1 = document.getElementById('color1');
+  if (color1) color1.value = '#FF1493';
+  
+  const color2 = document.getElementById('color2');
+  if (color2) color2.value = '#8A2BE2';
+  
+  const useColor3 = document.getElementById('useColor3');
+  if (useColor3) useColor3.checked = false;
+  
+  const color3Control = document.getElementById('color3Control');
+  if (color3Control) color3Control.classList.add('hidden');
+  
+  // Reset text shadow
+  const textShadow = document.getElementById('textShadow');
+  if (textShadow) textShadow.value = 'text-glow-none';
+  
+  // Reset border style
+  const borderStyle = document.getElementById('borderStyle');
+  if (borderStyle) borderStyle.value = 'border-none';
+  
+  // Reset text alignment
+  const textAlign = document.getElementById('textAlign');
+  if (textAlign) textAlign.value = 'center';
+  
+  // Reset rotation
+  const rotation = document.getElementById('rotation');
+  if (rotation) rotation.value = 0;
+  
+  // Apply to logo element
+  const logoElement = document.querySelector('.logo-text');
+  if (logoElement) {
+    logoElement.style.backgroundImage = 'var(--primary-gradient)';
+    logoElement.style.textAlign = 'center';
+    logoElement.style.transform = 'rotate(0deg)';
+    
+    // Reset classes
+    logoElement.classList.forEach(cls => {
+      if (cls.startsWith('text-glow-') || cls.startsWith('border-')) {
+        logoElement.classList.remove(cls);
+      }
+    });
+    
+    // Add default classes
+    logoElement.classList.add('text-glow-none');
+    logoElement.classList.add('border-none');
+  }
+}
+
+/**
+ * Update the logo preview with current settings
+ */
+function updateLogoPreview() {
+  // Get logo element
+  const logoElement = document.querySelector('.logo-text');
+  if (!logoElement) return;
+  
+  // Simulate changes to all relevant controls
+  document.getElementById('logoText')?.dispatchEvent(new Event('input'));
+  document.getElementById('fontSize')?.dispatchEvent(new Event('input'));
+  document.getElementById('letterSpacing')?.dispatchEvent(new Event('input'));
+  document.getElementById('textCase')?.dispatchEvent(new Event('change'));
+  document.getElementById('fontWeight')?.dispatchEvent(new Event('change'));
+  
+  document.getElementById('gradientPreset')?.dispatchEvent(new Event('change'));
+  document.getElementById('textShadow')?.dispatchEvent(new Event('change'));
+  document.getElementById('borderStyle')?.dispatchEvent(new Event('change'));
+  document.getElementById('textAlign')?.dispatchEvent(new Event('change'));
+  document.getElementById('rotation')?.dispatchEvent(new Event('input'));
+  
+  document.getElementById('textAnimation')?.dispatchEvent(new Event('change'));
+  document.getElementById('animationSpeed')?.dispatchEvent(new Event('input'));
+  document.getElementById('animationDirection')?.dispatchEvent(new Event('input'));
+  
+  document.getElementById('backgroundType')?.dispatchEvent(new Event('change'));
+  document.getElementById('backgroundColor')?.dispatchEvent(new Event('input'));
+  document.getElementById('bgOpacity')?.dispatchEvent(new Event('input'));
+}
+
+// Add toast notification styles
+(function addToastStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .reset-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: var(--success-color, #4CAF50);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .reset-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    @media (max-width: 576px) {
+      .reset-toast {
+        width: 90%;
+        padding: 14px 16px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+})();
+</script>
+<script>
+/**
+ * Modern Notification System
+ * Replaces all alert() calls with stylish modals and toasts
+ */
+
+// Add necessary styles to the document
+(function addNotificationStyles() {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    /* Toast notifications */
+    .logo-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: var(--panel-bg, rgba(30, 30, 30, 0.9));
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 90%;
+    }
+    
+    .logo-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    .logo-toast-success {
+      border-left: 4px solid var(--success-color, #4CAF50);
+    }
+    
+    .logo-toast-error {
+      border-left: 4px solid var(--error-color, #F44336);
+    }
+    
+    .logo-toast-info {
+      border-left: 4px solid var(--accent-color, #00ffff);
+    }
+    
+    .logo-toast-warning {
+      border-left: 4px solid var(--warning-color, #FFC107);
+    }
+    
+    .toast-icon {
+      flex-shrink: 0;
+    }
+    
+    .toast-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .toast-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    
+    .toast-message {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    
+    .toast-close {
+      background: none;
+      border: none;
+      color: white;
+      opacity: 0.5;
+      cursor: pointer;
+      padding: 5px;
+      margin: -5px;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    
+    .toast-close:hover {
+      opacity: 1;
+    }
+    
+    /* Full modal notifications */
+    .notification-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    
+    .notification-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .notification-modal {
+      background-color: var(--panel-bg, rgba(30, 30, 30, 0.9));
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0;
+    }
+    
+    .notification-modal-overlay.active .notification-modal {
+      transform: translateY(0);
+    }
+    
+    .notification-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+    }
+    
+    .notification-header.success {
+      background: linear-gradient(45deg, #43A047, #66BB6A);
+    }
+    
+    .notification-header.error {
+      background: linear-gradient(45deg, #E53935, #EF5350);
+    }
+    
+    .notification-header.info {
+      background: linear-gradient(45deg, #0288D1, #29B6F6);
+    }
+    
+    .notification-header.warning {
+      background: linear-gradient(45deg, #FB8C00, #FFA726);
+    }
+    
+    .notification-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .notification-title {
+      flex: 1;
+      margin: 0;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .notification-body {
+      padding: 20px;
+      color: var(--text-color, #f5f5f5);
+    }
+    
+    .notification-message {
+      margin: 0 0 15px;
+      line-height: 1.5;
+    }
+    
+    .notification-footer {
+      padding: 15px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: center;
+    }
+    
+    .notification-btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      background-color: rgba(255, 255, 255, 0.1);
+      color: white;
+      min-width: 100px;
+    }
+    
+    .notification-btn:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    @media (max-width: 576px) {
+      .notification-modal {
+        width: 95%;
+      }
+      
+      .logo-toast {
+        width: 90%;
+        padding: 12px 16px;
+      }
+    }
+    
+    /* Animation for modal appearance */
+    @keyframes modal-appear {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `;
+  document.head.appendChild(styleElement);
+})();
+
+// Initialize DOM elements for the notification system
+function initNotificationSystem() {
+  // Create modal container if it doesn't exist
+  if (!document.getElementById('notification-modal-overlay')) {
+    const modalHTML = `
+      <div id="notification-modal-overlay" class="notification-modal-overlay">
+        <div class="notification-modal">
+          <div class="notification-header">
+            <div class="notification-icon"></div>
+            <h3 class="notification-title">Notification</h3>
+          </div>
+          <div class="notification-body">
+            <p class="notification-message"></p>
+          </div>
+          <div class="notification-footer">
+            <button class="notification-btn" id="notification-ok-btn">OK</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const modalContainer = document.createElement('div');
+    modalContainer.innerHTML = modalHTML;
+    document.body.appendChild(modalContainer.firstElementChild);
+    
+    // Add event listeners
+    const overlay = document.getElementById('notification-modal-overlay');
+    const okBtn = document.getElementById('notification-ok-btn');
+    
+    okBtn.addEventListener('click', function() {
+      overlay.classList.remove('active');
+    });
+    
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.classList.remove('active');
+      }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && overlay.classList.contains('active')) {
+        overlay.classList.remove('active');
+      }
+    });
+  }
+}
+
+// Call initialization when the document is ready
+document.addEventListener('DOMContentLoaded', initNotificationSystem);
+
+/**
+ * Show a toast notification
+ * @param {Object} options - Notification options
+ * @param {string} options.message - The message to display
+ * @param {string} [options.type='info'] - Type of notification: 'success', 'error', 'info', 'warning'
+ * @param {string} [options.title] - Optional title for the notification
+ * @param {number} [options.duration=3000] - How long to show the notification in ms
+ */
+function showToast(options) {
+  const { 
+    message, 
+    type = 'info', 
+    title = '', 
+    duration = 3000 
+  } = options;
+  
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = `logo-toast logo-toast-${type}`;
+  
+  // Set icon based on type
+  let iconSvg = '';
+  switch(type) {
+    case 'success':
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+      break;
+    case 'error':
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+      break;
+    case 'warning':
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFC107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+      break;
+    case 'info':
+    default:
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  }
+  
+  // Build toast content
+  toast.innerHTML = `
+    <div class="toast-icon">${iconSvg}</div>
+    <div class="toast-content">
+      ${title ? `<div class="toast-title">${title}</div>` : ''}
+      <div class="toast-message">${message}</div>
+    </div>
+    <button class="toast-close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  `;
+  
+  // Add to document
+  document.body.appendChild(toast);
+  
+  // Add close button functionality
+  const closeBtn = toast.querySelector('.toast-close');
+  closeBtn.addEventListener('click', function() {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 300);
+  });
+  
+  // Animate in
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+  
+  // Remove after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        document.body.removeChild(toast);
+      }
+    }, 300);
+  }, duration);
+}
+
+/**
+ * Show a modal notification
+ * @param {Object} options - Notification options
+ * @param {string} options.message - The message to display
+ * @param {string} [options.type='info'] - Type of notification: 'success', 'error', 'info', 'warning'
+ * @param {string} [options.title] - Title for the notification
+ * @param {Function} [options.onClose] - Callback when the modal is closed
+ * @param {number} [options.autoClose] - Auto close after ms (optional)
+ */
+function showModal(options) {
+  const { 
+    message, 
+    type = 'info', 
+    title = getDefaultTitle(type), 
+    onClose = null,
+    autoClose = null
+  } = options;
+  
+  // Initialize the notification system if needed
+  initNotificationSystem();
+  
+  // Get modal elements
+  const overlay = document.getElementById('notification-modal-overlay');
+  const modal = overlay.querySelector('.notification-modal');
+  const header = overlay.querySelector('.notification-header');
+  const titleElement = overlay.querySelector('.notification-title');
+  const messageElement = overlay.querySelector('.notification-message');
+  const iconContainer = overlay.querySelector('.notification-icon');
+  const okBtn = document.getElementById('notification-ok-btn');
+  
+  // Reset styles
+  header.className = 'notification-header';
+  header.classList.add(type);
+  
+  // Set content
+  titleElement.textContent = title;
+  messageElement.textContent = message;
+  
+  // Set icon based on type
+  let iconSvg = '';
+  switch(type) {
+    case 'success':
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+      break;
+    case 'error':
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+      break;
+    case 'warning':
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+      break;
+    case 'info':
+    default:
+      iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  }
+  iconContainer.innerHTML = iconSvg;
+  
+  // Set up close handler
+  const closeHandler = function() {
+    overlay.classList.remove('active');
+    if (typeof onClose === 'function') {
+      onClose();
+    }
+  };
+  
+  // Remove any existing listeners
+  const newOkBtn = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+  newOkBtn.addEventListener('click', closeHandler);
+  
+  // Show the modal
+  overlay.classList.add('active');
+  modal.style.animation = 'modal-appear 0.3s ease forwards';
+  
+  // Auto close if specified
+  if (autoClose) {
+    setTimeout(closeHandler, autoClose);
+  }
+}
+
+/**
+ * Get a default title based on notification type
+ */
+function getDefaultTitle(type) {
+  switch(type) {
+    case 'success': return 'Success!';
+    case 'error': return 'Error';
+    case 'warning': return 'Warning';
+    case 'info': 
+    default: return 'Information';
+  }
+}
+
+/**
+ * Replace all basic alerts with modern notifications
+ */
+function replaceAlerts() {
+  // Store original alert function
+  window._originalAlert = window.alert;
+  
+  // Override alert with our custom notification
+  window.alert = function(message) {
+    console.log('Alert intercepted:', message);
+    
+    // Determine notification type based on message content
+    let type = 'info';
+    let useModal = false;
+    let title = '';
+    
+    // Check message content to determine type
+    if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) {
+      type = 'error';
+      useModal = true;
+    } else if (message.toLowerCase().includes('copied') || message.toLowerCase().includes('success') || message.toLowerCase().includes('reset')) {
+      type = 'success';
+    } else if (message.toLowerCase().includes('warning')) {
+      type = 'warning';
+      useModal = true;
+    }
+    
+    // Set appropriate title
+    if (message.toLowerCase().includes('copied')) {
+      title = 'Copied!';
+    } else if (message.toLowerCase().includes('exported')) {
+      title = 'Export Complete';
+    } else if (message.toLowerCase().includes('reset')) {
+      title = 'Reset Complete';
+    } else if (message.toLowerCase().includes('error')) {
+      title = 'Error Occurred';
+    }
+    
+    // Use appropriate notification type
+    if (useModal) {
+      showModal({
+        message: message,
+        type: type,
+        title: title || getDefaultTitle(type),
+        autoClose: 5000
+      });
+    } else {
+      showToast({
+        message: message,
+        type: type,
+        title: title || getDefaultTitle(type),
+        duration: 3000
+      });
+    }
+  };
+}
+
+// Replace alerts when the document is ready
+document.addEventListener('DOMContentLoaded', replaceAlerts);
+
+/**
+ * Specific notification functions for common actions
+ */
+
+// Notify when something is copied to clipboard
+function notifyCopied(itemType) {
+  showToast({
+    message: `${itemType} copied to clipboard!`,
+    type: 'success',
+    title: 'Copied!',
+    duration: 2000
+  });
+}
+
+// Notify about export errors
+function notifyExportError(format, error) {
+  showModal({
+    message: `Error exporting ${format}: ${error}`,
+    type: 'error',
+    title: 'Export Failed'
+  });
+}
+
+// Notify about export success
+function notifyExportSuccess(format) {
+  showToast({
+    message: `${format} export complete!`,
+    type: 'success',
+    title: 'Export Successful',
+    duration: 2000
+  });
+}
+
+// Notify about reset success
+function notifyResetSuccess(resetType = 'all') {
+  let message = '';
+  
+  switch(resetType) {
+    case 'all':
+      message = 'All settings have been reset to defaults';
+      break;
+    case 'text':
+      message = 'Text settings have been reset to defaults';
+      break;
+    case 'style':
+      message = 'Style settings have been reset to defaults';
+      break;
+    default:
+      message = 'Settings have been reset to defaults';
+  }
+  
+  showToast({
+    message: message,
+    type: 'success',
+    title: 'Reset Complete',
+    duration: 2000
+  });
+}
+
+// Replace the specific alert calls with our custom functions
+function replaceSpecificAlerts() {
+  // Find copy CSS button
+  const copyCssBtn = document.getElementById('copyCssBtn');
+  if (copyCssBtn) {
+    const originalOnClick = copyCssBtn.onclick;
+    copyCssBtn.onclick = function(e) {
+      // Call original
+      if (originalOnClick) originalOnClick.call(this, e);
+      
+      // Replace the alert
+      setTimeout(() => {
+        notifyCopied('CSS');
+      }, 100);
+    };
+  }
+  
+  // Find copy HTML button
+  const copyHtmlBtn = document.getElementById('copyHtmlBtn');
+  if (copyHtmlBtn) {
+    const originalOnClick = copyHtmlBtn.onclick;
+    copyHtmlBtn.onclick = function(e) {
+      // Call original
+      if (originalOnClick) originalOnClick.call(this, e);
+      
+      // Replace the alert
+      setTimeout(() => {
+        notifyCopied('HTML');
+      }, 100);
+    };
+  }
+  
+  // Find export buttons to handle export errors
+  const exportButtons = document.querySelectorAll('#exportPngBtn, #exportSvgBtn, #exportGifBtn');
+  exportButtons.forEach(btn => {
+    // We'll leave the original handlers as they are, but our global alert override will handle the alerts
+  });
+  
+  // For the reset button, we need to update the resetModalConfirm button
+  const resetModalConfirm = document.getElementById('resetModalConfirm');
+  if (resetModalConfirm) {
+    const originalOnClick = resetModalConfirm.onclick;
+    resetModalConfirm.onclick = function(e) {
+      // Call original
+      if (originalOnClick) originalOnClick.call(this, e);
+      
+      // Get the reset type
+      const resetType = document.querySelector('input[name="reset-type"]:checked')?.value || 'all';
+      
+      // Show our custom notification instead of alert
+      setTimeout(() => {
+        notifyResetSuccess(resetType);
+      }, 100);
+    };
+  }
+}
+
+// Run our specific replacements when document is ready
+document.addEventListener('DOMContentLoaded', replaceSpecificAlerts);
+</script>
+
+<script>
+  
 </script>
 </body>
 </html>
