@@ -109,7 +109,7 @@
   .brand-links a {
     color: var(--accent-color);
     text-decoration: none;
-    margin-left: 15px;
+    margin-left: -55px;
     font-size: 0.9rem;
     opacity: 0.7;
     transition: opacity 0.3s ease;
@@ -364,23 +364,47 @@
     background: linear-gradient(45deg, #0f2027, #203a43);
   }
   
-  /* Loading Indicator */
-  .loading-indicator {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.8);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    color: white;
-    font-size: 1.2rem;
-    text-align: center;
-    padding: 20px;
-  }
+/* Fix for loading indicator showing permanently */
+.loading-indicator {
+  z-index: 9999;
+  display: none; /* This should be none by default */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 20px;
+}
+
+/* When active, we'll use display: flex instead */
+.loading-indicator.active {
+  display: flex;
+}
+
+/* Add loading spinner for better visual feedback */
+.loading-indicator:after {
+  content: "";
+  width: 40px;
+  height: 40px;
+  margin: 20px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
    /* GitHub stats styles */
    .github-stats {
     margin: 10px 0;
@@ -1158,18 +1182,75 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    
-    .reset-btn svg {
-      transition: transform 0.3s ease;
-    }
-    
-    .reset-btn:hover svg {
-      animation: spin 1s linear;
-    }
   }
 
+/* Logomaker Mobile Responsive Styles
+ * Complete stylesheet for responsive functionality
+ * Import this file after your main CSS
+ */
+
+/* Base responsive adjustments */
+:root {
+  /* Add responsive variables for consistent spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  /* Control font sizes responsively */
+  --font-size-xs: 0.75rem;  /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-md: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.5rem;   /* 24px */
+  
+  /* Mobile-friendly widths */
+  --container-width-mobile: 100%;
+  --container-width-tablet: 90%;
+  --container-width-desktop: 1200px;
+}
+
+/* Set viewport constraints to prevent zoom/scale issues on mobile */
+@viewport {
+  width: device-width;
+  zoom: 1.0;
+  user-zoom: fixed;
+}
+
+/* Prevent horizontal scrolling on all devices */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Base container sizing */
+body {
+  padding: 10px;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-width-desktop);
+  padding: 0 var(--space-sm);
+}
+
+/* Header improvements */
+header {
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+}
+
+.logo-brand h1 {
+  font-size: 1.8rem;
+  margin-bottom: var(--space-sm);
+}
+
+
+
     /* Promo Banner Styles */
-  .promo-banner {
+    .promo-banner {
     background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
     padding: 8px 15px;
     border-radius: 8px;
@@ -1274,60 +1355,768 @@
     100% { transform: scale(1); }
   }
   
-  .sponsor-banner p {
-    margin: 5px 0 10px;
-    font-size: 0.9rem;
-    color: var(--text-color);
-    opacity: 0.9;
-  }
-  
-  .sponsor-button {
-    display: inline-flex;
-    align-items: center;
-    background: linear-gradient(45deg, #ff59c7, #ff7eb3);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(255, 20, 147, 0.3);
-  }
-  
-  .sponsor-button svg {
-    margin-right: 8px;
-    fill: rgba(255, 255, 255, 0.3);
-    stroke: white;
-    transition: transform 0.3s ease;
-  }
-  
-  .sponsor-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 20, 147, 0.4);
-  }
-  
-  .sponsor-button:hover svg {
-    transform: scale(1.1);
-  }
-  
-  /* Responsive adjustments */
-  @media (max-width: 600px) {
-    .promo-content {
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .promo-banner {
-      padding: 12px 15px;
-    }
-    
-    .promo-text, .promo-link {
-      width: 100%;
-      text-align: center;
-      justify-content: center;
-    }
+.sponsor-banner p {
+  margin: 5px 0 10px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  opacity: 0.9;
 }
+
+.sponsor-button {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(45deg, #ff59c7, #ff7eb3);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 20, 147, 0.3);
+}
+
+.sponsor-button svg {
+  margin-right: 8px;
+  fill: rgba(255, 255, 255, 0.3);
+  stroke: white;
+  transition: transform 0.3s ease;
+}
+
+.sponsor-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 20, 147, 0.4);
+}
+
+.sponsor-button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Control panel improvements */
+.controls-wrapper {
+  width: 100%;
+}
+
+.tabs {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+}
+
+.tabs::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.tab {
+  white-space: nowrap;
+  padding: 10px 15px;
+  font-size: var(--font-size-sm);
+}
+
+.tab-content {
+  padding: var(--space-md);
+}
+
+.controls-container {
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+/* Preview container improvements */
+.preview-container {
+  min-height: 200px;
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.logo-text {
+  /* Make font size relatively responsive */
+  font-size: min(12vw, 80px);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Buttons */
+.button-container {
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+button {
+  padding: 12px var(--space-md);
+  width: 100%;
+  min-width: unset;
+  max-width: unset;
+}
+
+/* Fixed performance notice for mobile */
+.performance-notice-visible {
+  width: 90%;
+  max-width: 320px;
+  right: 5%;
+  max-height: 70vh;
+}
+
+.info-button {
+  width: 36px;
+  height: 36px;
+  right: 10px;
+}
+
+/* Footer adjustments */
+footer {
+  margin-top: var(--space-xl);
+  padding: var(--space-md) 0;
+}
+
+.footer-content {
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.social-links {
+  margin: var(--space-md) 0;
+}
+
+.social-icons {
+  gap: var(--space-sm);
+}
+
+.sponsor-banner {
+  padding: var(--space-md);
+}
+
+/* Improvements for specific UI elements */
+.size-indicator {
+  font-size: var(--font-size-xs);
+  padding: 3px 6px;
+}
+
+/* Make the logo text container more responsive */
+.logo-container {
+  width: 100%;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* Improve touch areas for controls */
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+/* Make font license more mobile-friendly */
+#fontLicenseContainer {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#fontLicenseText {
+  font-size: var(--font-size-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Adjustments to make control groups more consistent */
+.control-group {
+  margin-bottom: 12px;
+}
+
+/* Fix layout of color pickers */
+#customGradientControls .control-group {
+  margin-bottom: 15px;
+}
+
+/* Better spacing for custom gradient controls */
+.hidden {
+  display: none !important;
+}
+
+/* Reset button improvements */
+.reset-btn {
+  margin-top: 15px;
+  height: 44px;
+}
+
+/* Mobile helper classes */
+.mobile-device .desktop-only {
+  display: none !important;
+}
+
+.mobile-visible {
+  display: none;
+}
+
+.mobile-device .mobile-visible {
+  display: block;
+}
+
+/* Enhanced mobile tabs navigation */
+.mobile-tabs-helper {
+  display: none;
+}
+
+/* Mobile preview helpers */
+.mobile-preview-helper {
+  text-align: center;
+  padding: 5px 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 10px;
+}
+
+/* Fullscreen preview mode */
+.preview-fullscreen {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+.fullscreen-preview {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.fullscreen-preview .logo-text {
+  font-size: min(15vw, 20vh) !important;
+}
+
+.hidden-during-preview {
+  display: none !important;
+}
+
+/* Preview toggle button */
+.preview-toggle-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.preview-toggle-btn:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+/* Mobile-optimized reset button */
+.reset-btn.mobile-visible {
+  position: fixed;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  right: max(10px, env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.reset-btn.mobile-visible svg {
+  margin: 0;
+}
+
+.reset-btn.mobile-visible span {
+  display: none;
+}
+
+/* Improve media queries */
+
+/* Small phones (up to 375px) */
+@media (max-width: 375px) {
+  .logo-brand h1 {
+    font-size: 1.5rem;
+  }
+  
+  .tab {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .preview-container {
+    min-height: 150px;
+  }
+  
+  .control-group label {
+    font-size: 0.85rem;
+  }
+  
+  input, select, textarea {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+  
+  /* Extra small screen adjustments */
+  .tab {
+    padding: 8px 10px;
+    font-size: 0.7rem;
+  }
+  
+  .logo-brand h1 {
+    font-size: 1.2rem;
+  }
+  
+  .logo-brand h1 span {
+    font-size: 0.7rem;
+  }
+  
+  .brand-links a {
+    font-size: 0.7rem;
+    margin-left: 8px;
+  }
+  
+  /* Stack the top header completely on very small screens */
+  header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .brand-links {
+    margin-top: 5px;
+  }
+  
+  /* Make sure number inputs are readable */
+  input[type="number"] {
+    min-width: 60px;
+  }
+  
+  /* Especially small screens get more extreme adjustments */
+  .controls-container {
+    gap: 10px;
+  }
+  
+  .control-group {
+    margin-bottom: 8px;
+  }
+  
+  .control-group label {
+    font-size: 0.75rem;
+  }
+  
+  .loading-indicator {
+    font-size: 0.9rem;
+  }
+}
+
+/* General mobile (up to 576px) */
+@media (max-width: 576px) {
+  body {
+    padding: 5px;
+  }
+  
+  .container {
+    padding: 0 var(--space-xs);
+  }
+  
+  .logo-text {
+    font-size: 10vw;
+  }
+  
+  .promo-content {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  
+  .promo-text, .promo-link {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+  
+  /* Simplify banner for very small screens */
+  .promo-text .highlight {
+    border-bottom: none;
+    display: block;
+    margin-bottom: 4px;
+  }
+}
+
+/* Tablet (577px - 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+  
+  header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .controls-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .logo-text {
+    font-size: 8vw;
+  }
+  
+  .button-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  button {
+    flex: 1 0 45%;
+  }
+}
+
+/* Large tablets to small desktops (769px - 992px) */
+@media (min-width: 769px) and (max-width: 992px) {
+  .container {
+    padding: 0 var(--space-lg);
+  }
+  
+  header {
+    flex-direction: row;
+  }
+  
+  .controls-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .button-container {
+    flex-direction: row;
+  }
+  
+  .footer-content {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* Desktops (993px and up) */
+@media (min-width: 993px) {
+  .container {
+    padding: 0;
+  }
+  
+  .controls-container {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  
+  .button-container {
+    flex-direction: row;
+  }
+  
+  button {
+    flex: 1;
+  }
+  
+  .preview-container {
+    min-height: 300px;
+  }
+  
+  .logo-text {
+    font-size: 8vw;
+  }
+}
+
+/* Keyboard adjustments for mobile */
+@media (max-width: 768px) {
+  /* Make inputs larger for better touch targets */
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 10px 12px;
+    height: 44px;
+  }
+  
+  /* Adjust range inputs for touch */
+  input[type="range"] {
+    height: 10px;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+  
+  /* Improve color picker size */
+  input[type="color"] {
+    height: 44px;
+  }
+  
+  /* Enhanced mobile tabs navigation */
+  .mobile-tabs-helper {
+    display: block;
+    position: relative;
+    height: 3px;
+    background-color: rgba(255, 255, 255, 0.1);
+    margin-top: -3px;
+  }
+  
+  .active-tab-indicator {
+    position: absolute;
+    height: 3px;
+    background-color: var(--accent-color);
+    transition: left 0.3s ease, width 0.3s ease;
+  }
+  
+  /* Better tab scroll behavior */
+  .tabs {
+    position: relative;
+    padding-bottom: 3px;
+  }
+  
+  .tabs:after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 30px;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.5));
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  /* Enhanced range inputs */
+  .range-value-display {
+    display: inline-block;
+    margin-left: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    min-width: 30px;
+    text-align: center;
+  }
+  
+  .control-group {
+    position: relative;
+  }
+  
+  /* Enhanced number input controls */
+  .number-controls {
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: flex;
+    gap: 2px;
+  }
+  
+  .number-control-btn {
+    width: 25px;
+    height: 25px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .number-control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Export tooltip styles */
+  .export-tooltip {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: normal;
+    margin-top: 5px;
+    opacity: 0.8;
+  }
+  
+  /* Mobile export size presets */
+  .export-size-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+  }
+  
+  .preset-size-btn {
+    flex: 0 0 calc(25% - 4px);
+    padding: 5px 0;
+    font-size: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .preset-size-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Make loading indicator more mobile-friendly */
+  .loading-indicator {
+    padding: 40px 20px;
+    text-align: center;
+  }
+  
+  .export-progress {
+    margin: 15px 0;
+    font-size: 0.85rem;
+  }
+  
+  .export-tip {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 10px;
+  }
+  
+  /* Better button tap targets */
+  button, .tab, select, input[type="color"] {
+    min-height: 44px; /* Apple recommends minimum 44px tap targets */
+  }
+  
+  /* Performance optimizations for lower-end devices */
+  .bg-matrix::before,
+  .bg-noise::before,
+  .bg-synthwave::before {
+    /* Simplify complex backgrounds on mobile */
+    opacity: 0.15;
+    animation-duration: 10s !important;
+  }
+  
+  .border-pixel::after {
+    /* Simplify pixel border effect */
+    background-size: 15px 15px;
+  }
+  
+  /* Make SVG icons more visible on mobile */
+  .social-icon svg,
+  .contact-button svg,
+  .reset-btn svg {
+    stroke-width: 2.5px;
+  }
+}
+
+/* Fix orientation change issues */
+@media screen and (orientation: portrait) {
+  .logo-text {
+    font-size: min(12vw, 80px);
+  }
+}
+
+@media screen and (orientation: landscape) and (max-height: 600px) {
+  /* Optimize for landscape phones */
+  .preview-container {
+    min-height: 150px;
+    padding: var(--space-sm);
+  }
+  
+  .logo-text {
+    font-size: min(6vw, 60px);
+  }
+  
+  .controls-wrapper {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+
+/* Orientation change handling */
+.orientation-changing {
+  transition: none !important;
+}
+
+.orientation-changing * {
+  transition: none !important;
+}
+
+/* iOS specific adjustments */
+.ios-device {
+  /* Add padding when keyboard is shown */
+  &.keyboard-visible {
+    padding-bottom: 40vh;
+  }
+  
+  /* Ensure scrollable areas work on iOS */
+  .tab-content {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent elastic scrolling */
+  &.preview-fullscreen {
+    position: fixed;
+    overflow: hidden;
+  }
+}
+
+/* Prevent performance impact from animations on mobile */
+@media (max-width: 768px) {
+  .anim-glitch::before,
+  .anim-glitch::after {
+    /* Simplified animation for mobile */
+    animation-duration: 3s !important;
+  }
+  
+  /* Reduce animation complexity on lower-power devices */
+  @media (prefers-reduced-motion) {
+    .anim-glitch, .anim-shake, .anim-wave, .anim-rotate {
+      animation: gradientMove var(--animation-duration) infinite alternate !important;
+    }
+    
+    .anim-glitch::before,
+    .anim-glitch::after {
+      display: none;
+    }
+  }
+}
+
+/* Navigation bar/bottom safe area on modern mobile browsers */
+@supports (padding: env(safe-area-inset-bottom)) {
+  /* Apply safe area padding */
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* When in fullscreen preview mode */
+  .fullscreen-preview {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 
+             env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
+  }
+  
+  /* Position fixed elements properly */
+  .info-button {
+    right: calc(10px + env(safe-area-inset-right));
+  }
+}
+
 </style>
 
 
@@ -3270,6 +4059,629 @@
       // Show a success message
       alert('Logo has been reset to default settings!');
     }
+  });
+
+  /**
+   * Enhanced Mobile Responsiveness JavaScript
+   * Adds mobile-specific functionality and improves user experience
+   */
+
+  // Execute when DOM is fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize mobile-specific features
+    initMobileFeatures();
+    
+    // Make sure tabs work well on mobile
+    setupTabNavigation();
+    
+    // Handle orientation changes
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    // Make preview container touch-friendly
+    setupPreviewInteractions();
+    
+    // Optimize form inputs for mobile
+    optimizeFormInputs();
+    
+    // Update size indicator on window resize
+    window.addEventListener('resize', updateSizeIndicator);
+  });
+
+  /**
+   * Sets up responsive tab navigation for mobile devices
+   */
+  function setupTabNavigation() {
+    const tabs = document.querySelectorAll('.tab');
+    const tabContent = document.querySelectorAll('.tab-content');
+    
+    // Skip if we already set this up or no tabs found
+    if (!tabs.length) return;
+    
+    // Enhanced tab switching with visual feedback
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        // Remove active class from all tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        // Add active class to clicked tab
+        this.classList.add('active');
+        
+        // Hide all tab content
+        tabContent.forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        // Show corresponding tab content
+        const tabId = this.getAttribute('data-tab');
+        const targetTab = document.getElementById(`${tabId}-tab`);
+        
+        if (targetTab) {
+          targetTab.classList.add('active');
+          
+          // Scroll to the tab content on mobile
+          if (window.innerWidth <= 768) {
+            setTimeout(() => {
+              targetTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+          }
+        }
+        
+        // Update tab active indicator on mobile
+        updateActiveTabIndicator(this);
+      });
+    });
+    
+    // Initialize active tab indicator
+    function updateActiveTabIndicator(activeTab) {
+      const indicator = document.querySelector('.active-tab-indicator');
+      if (!indicator) return;
+      
+      // Position indicator under the active tab
+      const tabRect = activeTab.getBoundingClientRect();
+      const tabsContainer = document.querySelector('.tabs');
+      const containerRect = tabsContainer.getBoundingClientRect();
+      
+      indicator.style.width = tabRect.width + 'px';
+      indicator.style.left = (tabRect.left - containerRect.left) + 'px';
+    }
+    
+    // Initialize with first tab
+    if (tabs.length > 0) {
+      updateActiveTabIndicator(tabs[0]);
+    }
+  }
+
+  /**
+   * Initializes mobile-specific features and optimizations
+   */
+  function initMobileFeatures() {
+    // Detect if we're on mobile
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // Add mobile class to body for CSS targeting
+      document.body.classList.add('mobile-device');
+      
+      // Show mobile helper elements
+      const mobileHelpers = document.querySelectorAll('.mobile-preview-helper');
+      mobileHelpers.forEach(helper => helper.classList.remove('hidden'));
+      
+      // Make reset button more prominent on mobile
+      const resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) {
+        resetBtn.classList.add('mobile-visible');
+      }
+    }
+    
+    // Check for iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+      document.body.classList.add('ios-device');
+    }
+  }
+
+  /**
+   * Handle orientation changes on mobile devices
+   */
+  function handleOrientationChange() {
+    // Update size indicator when orientation changes
+    setTimeout(function() {
+      updateSizeIndicator();
+      
+      // Refresh the logo preview
+      const logoElement = document.querySelector('.logo-text');
+      if (logoElement) {
+        // Force a redraw
+        logoElement.style.display = 'none';
+        setTimeout(() => {
+          logoElement.style.display = '';
+          
+          // If we're in landscape on a small device, adjust font size
+          if (window.innerHeight < 500) {
+            logoElement.style.fontSize = '6vw';
+          }
+        }, 50);
+      }
+    }, 300); // Delay to allow orientation to complete
+  }
+
+  /**
+   * Setup interactive preview container for mobile
+   */
+  function setupPreviewInteractions() {
+    const previewContainer = document.getElementById('previewContainer');
+    if (!previewContainer) return;
+    
+    // On mobile, allow tapping the preview to expand/collapse it
+    if (window.innerWidth <= 768) {
+      let isExpanded = false;
+      
+      previewContainer.addEventListener('click', function() {
+        if (!isExpanded) {
+          // Expand preview
+          this.classList.add('preview-expanded');
+          document.body.classList.add('preview-mode');
+          isExpanded = true;
+        } else {
+          // Collapse preview
+          this.classList.remove('preview-expanded');
+          document.body.classList.remove('preview-mode');
+          isExpanded = false;
+        }
+        
+        // Update size indicator
+        updateSizeIndicator();
+      });
+    }
+  }
+
+  /**
+   * Optimize form inputs for mobile devices
+   */
+  function optimizeFormInputs() {
+    // Get references to all range inputs
+    const rangeInputs = document.querySelectorAll('input[type="range"]');
+    
+    // For each range input, create a numeric display of its value
+    rangeInputs.forEach(input => {
+      // Create a small display element
+      const valueDisplay = document.createElement('span');
+      valueDisplay.className = 'range-value-display';
+      valueDisplay.textContent = input.value;
+      
+      // Insert after the input
+      input.parentNode.insertBefore(valueDisplay, input.nextSibling);
+      
+      // Update on change
+      input.addEventListener('input', function() {
+        valueDisplay.textContent = this.value;
+      });
+    });
+    
+    // Optimize number inputs for easier touch input
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    numberInputs.forEach(input => {
+      // Add touch-friendly increment/decrement buttons
+      const controlsWrapper = document.createElement('div');
+      controlsWrapper.className = 'number-controls';
+      
+      const increaseBtn = document.createElement('button');
+      increaseBtn.className = 'number-control-btn';
+      increaseBtn.textContent = '+';
+      increaseBtn.setAttribute('type', 'button');
+      
+      const decreaseBtn = document.createElement('button');
+      decreaseBtn.className = 'number-control-btn';
+      decreaseBtn.textContent = '-';
+      decreaseBtn.setAttribute('type', 'button');
+      
+      // Add event listeners
+      increaseBtn.addEventListener('click', function() {
+        input.value = parseInt(input.value) + 1;
+        // Trigger change event
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      
+      decreaseBtn.addEventListener('click', function() {
+        input.value = parseInt(input.value) - 1;
+        // Trigger change event
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      
+      // Add buttons to wrapper
+      controlsWrapper.appendChild(decreaseBtn);
+      controlsWrapper.appendChild(increaseBtn);
+      
+      // Add wrapper after input
+      input.parentNode.insertBefore(controlsWrapper, input.nextSibling);
+    });
+    
+    // Prevent zoom on iOS by setting proper font size
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      const inputs = document.querySelectorAll('input[type="text"], input[type="number"], select');
+      inputs.forEach(input => {
+        input.style.fontSize = '16px';
+      });
+    }
+  }
+
+  /**
+   * Enhanced size indicator update function
+   */
+  function updateSizeIndicator() {
+    const logoWidth = document.getElementById('logoWidth');
+    const logoHeight = document.getElementById('logoHeight');
+    const logoElement = document.querySelector('.logo-text');
+    
+    if (!logoElement || !logoWidth || !logoHeight) return;
+    
+    // Get actual rendered dimensions
+    const rect = logoElement.getBoundingClientRect();
+    const width = Math.round(rect.width);
+    const height = Math.round(rect.height);
+    
+    // Update size display
+    logoWidth.textContent = width;
+    logoHeight.textContent = height;
+    
+    // Adjust for very large logos on mobile
+    if (window.innerWidth <= 768 && (width > window.innerWidth * 0.8 || height > window.innerHeight * 0.3)) {
+      // If logo is too large for screen, reduce its size
+      logoElement.style.fontSize = 'min(8vw, 60px)';
+    }
+  }
+
+  /**
+   * Fixes CSS variable initialization for animations on mobile
+   */
+  function initCssVariables() {
+    // Make sure animation duration is set
+    const animationSpeed = document.getElementById('animationSpeed');
+    if (animationSpeed) {
+      const speed = parseFloat(animationSpeed.value || 1);
+      document.documentElement.style.setProperty('--animation-duration', `${2/speed}s`);
+    }
+    
+    // Initialize any other CSS variables needed for mobile
+    document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
+    document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
+    
+    // Update on resize
+    window.addEventListener('resize', function() {
+      document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
+      document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
+    });
+  }
+
+  /**
+   * Fix input handling for Export dimensions
+   */
+  function fixExportSizeControls() {
+    const exportWidth = document.getElementById('exportWidth');
+    const exportHeight = document.getElementById('exportHeight');
+    
+    if (exportWidth && exportHeight) {
+      // Add custom increment buttons for mobile
+      const addButtons = (input) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'export-size-controls';
+        
+        // Add presets
+        const presets = [
+          { label: 'SM', width: 400, height: 200 },
+          { label: 'MD', width: 800, height: 400 },
+          { label: 'LG', width: 1200, height: 600 },
+          { label: 'SQ', width: 600, height: 600 }
+        ];
+        
+        presets.forEach(preset => {
+          const btn = document.createElement('button');
+          btn.className = 'preset-size-btn';
+          btn.textContent = preset.label;
+          btn.setAttribute('type', 'button');
+          btn.setAttribute('data-width', preset.width);
+          btn.setAttribute('data-height', preset.height);
+          
+          btn.addEventListener('click', function() {
+            exportWidth.value = this.getAttribute('data-width');
+            exportHeight.value = this.getAttribute('data-height');
+            
+            // Trigger change events
+            exportWidth.dispatchEvent(new Event('change', { bubbles: true }));
+            exportHeight.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          
+          wrapper.appendChild(btn);
+        });
+        
+        // Insert after height input
+        input.parentNode.insertBefore(wrapper, input.nextSibling);
+      };
+      
+      // Only add on mobile
+      if (window.innerWidth <= 768) {
+        addButtons(exportHeight);
+      }
+    }
+  }
+
+  // Initialize mobile-specific features when loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    initCssVariables();
+    
+    // Only run these on mobile devices
+    if (window.innerWidth <= 768) {
+      fixExportSizeControls();
+    }
+    
+    // Fix mobile view on page load
+    setTimeout(updateSizeIndicator, 300);
+  });
+
+  /**
+   * Handle device rotation and viewport changes
+   */
+  window.addEventListener('orientationchange', function() {
+    // Add a class when orientation changes to trigger CSS transitions
+    document.body.classList.add('orientation-changing');
+    
+    // Force update viewport dimensions
+    setTimeout(function() {
+      document.body.classList.remove('orientation-changing');
+      
+      // Update CSS variables
+      document.documentElement.style.setProperty('--viewport-width', `${window.innerWidth}px`);
+      document.documentElement.style.setProperty('--viewport-height', `${window.innerHeight}px`);
+      
+      // Update logo size
+      updateSizeIndicator();
+    }, 300);
+  });
+
+  /**
+   * Mobile Preview Mode Toggle
+   * Adds ability to view the logo in fullscreen on mobile
+   */
+  function setupPreviewToggle() {
+    const previewContainer = document.getElementById('previewContainer');
+    if (!previewContainer) return;
+    
+    // Only on mobile
+    if (window.innerWidth <= 768) {
+      // Add a toggle button
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'preview-toggle-btn';
+      toggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M9 21H3v-6"></path><path d="M21 3l-7 7"></path><path d="M3 21l7-7"></path></svg>';
+      toggleBtn.setAttribute('type', 'button');
+      toggleBtn.setAttribute('aria-label', 'Toggle fullscreen preview');
+      
+      // Add to preview container
+      previewContainer.appendChild(toggleBtn);
+      
+      // Handle click
+      toggleBtn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent other click handlers
+        
+        document.body.classList.toggle('preview-fullscreen');
+        previewContainer.classList.toggle('fullscreen-preview');
+        
+        if (previewContainer.classList.contains('fullscreen-preview')) {
+          // Switch to exit icon
+          this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"></path><path d="M20 10h-6V4"></path><path d="M14 10l7-7"></path><path d="M3 21l7-7"></path></svg>';
+          
+          // Hide other elements
+          document.querySelectorAll('.controls-wrapper, .button-container, header, footer').forEach(el => {
+            el.classList.add('hidden-during-preview');
+          });
+        } else {
+          // Switch back to expand icon
+          this.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M9 21H3v-6"></path><path d="M21 3l-7 7"></path><path d="M3 21l7-7"></path></svg>';
+          
+          // Show other elements again
+          document.querySelectorAll('.controls-wrapper, .button-container, header, footer').forEach(el => {
+            el.classList.remove('hidden-during-preview');
+          });
+        }
+        
+        // Update size after toggle
+        setTimeout(updateSizeIndicator, 300);
+      });
+    }
+  }
+
+  /**
+   * Fix for iOS-specific issues
+   */
+  function applyIOSFixes() {
+    // Check if this is an iOS device
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
+    if (isIOS) {
+      // Fix for iOS scroll issues
+      document.addEventListener('touchmove', function(e) {
+        if (document.body.classList.contains('preview-fullscreen')) {
+          e.preventDefault(); // Prevent scrolling when in fullscreen mode
+        }
+      }, { passive: false });
+      
+      // Fix for iOS input focusing issues
+      const inputs = document.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          // Add padding to bottom of page when keyboard appears
+          document.body.classList.add('keyboard-visible');
+          
+          // Scroll to input after a slight delay
+          setTimeout(() => {
+            this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 300);
+        });
+        
+        input.addEventListener('blur', function() {
+          document.body.classList.remove('keyboard-visible');
+        });
+      });
+    }
+  }
+
+  /**
+   * Makes the export buttons more mobile-friendly
+   */
+  function enhanceExportButtons() {
+    const exportButtons = document.querySelectorAll('#exportPngBtn, #exportSvgBtn, #exportGifBtn');
+    
+    if (window.innerWidth <= 768) {
+      // On mobile, add confirmation before heavy operations
+      const gifBtn = document.getElementById('exportGifBtn');
+      if (gifBtn) {
+        const originalClickHandler = gifBtn.onclick;
+        gifBtn.onclick = null; // Remove original handler
+        
+        gifBtn.addEventListener('click', function(e) {
+          if (confirm('GIF export may take longer on mobile devices. Continue?')) {
+            // Call original handler
+            if (typeof originalClickHandler === 'function') {
+              originalClickHandler.call(this, e);
+            }
+            
+            // Show a more detailed loading indicator for mobile
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+              loadingIndicator.innerHTML = `
+                <p>Generating frames...</p>
+                <p class="export-progress">This might take a while on mobile devices.</p>
+                <p class="export-tip">Your device may appear to freeze briefly, this is normal.</p>
+              `;
+            }
+          }
+        });
+      }
+      
+      // Add tooltip explanations for export formats
+      exportButtons.forEach(btn => {
+        const format = btn.id.replace('export', '').replace('Btn', '');
+        const tooltips = {
+          'Png': 'Best for sharing online',
+          'Svg': 'Vector format for print',
+          'Gif': 'Animated frames in a ZIP'
+        };
+        
+        const tooltip = document.createElement('span');
+        tooltip.className = 'export-tooltip';
+        tooltip.textContent = tooltips[format] || '';
+        btn.appendChild(tooltip);
+      });
+    }
+  }
+
+  /**
+   * Enable persistent settings via localStorage
+   */
+  function enableSettingsPersistence() {
+    // Save current settings when export buttons are clicked
+    const exportButtons = document.querySelectorAll('#exportPngBtn, #exportSvgBtn, #exportGifBtn');
+    exportButtons.forEach(btn => {
+      btn.addEventListener('click', saveCurrentSettings);
+    });
+    
+    // Load settings on page load
+    loadSavedSettings();
+    
+    // Function to save all settings
+    function saveCurrentSettings() {
+      const settings = {
+        logoText: document.getElementById('logoText')?.value,
+        fontFamily: document.getElementById('fontFamily')?.value,
+        fontSize: document.getElementById('fontSize')?.value,
+        letterSpacing: document.getElementById('letterSpacing')?.value,
+        textCase: document.getElementById('textCase')?.value,
+        fontWeight: document.getElementById('fontWeight')?.value,
+        gradientPreset: document.getElementById('gradientPreset')?.value,
+        color1: document.getElementById('color1')?.value,
+        color2: document.getElementById('color2')?.value,
+        useColor3: document.getElementById('useColor3')?.checked,
+        color3: document.getElementById('color3')?.value,
+        textShadow: document.getElementById('textShadow')?.value,
+        borderStyle: document.getElementById('borderStyle')?.value,
+        textAlign: document.getElementById('textAlign')?.value,
+        rotation: document.getElementById('rotation')?.value,
+        textAnimation: document.getElementById('textAnimation')?.value,
+        animationSpeed: document.getElementById('animationSpeed')?.value,
+        animationDirection: document.getElementById('animationDirection')?.value,
+        backgroundType: document.getElementById('backgroundType')?.value,
+        backgroundColor: document.getElementById('backgroundColor')?.value,
+        bgOpacity: document.getElementById('bgOpacity')?.value,
+        exportWidth: document.getElementById('exportWidth')?.value,
+        exportHeight: document.getElementById('exportHeight')?.value,
+        exportQuality: document.getElementById('exportQuality')?.value,
+        exportTransparent: document.getElementById('exportTransparent')?.checked,
+        exportFrames: document.getElementById('exportFrames')?.value
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('logomakerSettings', JSON.stringify(settings));
+    }
+    
+    // Function to load saved settings
+    function loadSavedSettings() {
+      const savedSettings = localStorage.getItem('logomakerSettings');
+      if (!savedSettings) return;
+      
+      try {
+        const settings = JSON.parse(savedSettings);
+        
+        // Apply settings to form elements
+        for (const [key, value] of Object.entries(settings)) {
+          const element = document.getElementById(key);
+          if (!element) continue;
+          
+          if (element.type === 'checkbox') {
+            element.checked = value;
+            // Trigger change event for elements that need it
+            if (key === 'useColor3') {
+              element.dispatchEvent(new Event('change'));
+            }
+          } else {
+            element.value = value;
+            // Trigger change event for elements that need it
+            if (['fontFamily', 'textShadow', 'borderStyle', 'textAnimation', 
+                'backgroundType', 'gradientPreset'].includes(key)) {
+              element.dispatchEvent(new Event('change'));
+            }
+          }
+        }
+        
+        // Update the logo preview
+        updateLogoPreview();
+      } catch (e) {
+        console.error('Error loading saved settings:', e);
+      }
+    }
+    
+    // Function to update logo preview with all current settings
+    function updateLogoPreview() {
+      // Simulate changes to all relevant controls
+      document.getElementById('logoText')?.dispatchEvent(new Event('input'));
+      document.getElementById('fontSize')?.dispatchEvent(new Event('input'));
+      document.getElementById('letterSpacing')?.dispatchEvent(new Event('input'));
+      document.getElementById('rotation')?.dispatchEvent(new Event('input'));
+      document.getElementById('animationSpeed')?.dispatchEvent(new Event('input'));
+      document.getElementById('animationDirection')?.dispatchEvent(new Event('input'));
+      document.getElementById('bgOpacity')?.dispatchEvent(new Event('input'));
+      
+      // Update size indicator
+      updateSizeIndicator();
+    }
+  }
+
+  // Call our enhancement functions on DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', function() {
+    setupPreviewToggle();
+    applyIOSFixes();
+    enhanceExportButtons();
+    enableSettingsPersistence();
   });
 </script>
 </body>

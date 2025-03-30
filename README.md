@@ -119,9 +119,13 @@ Join our community to get help, share ideas, or contribute to the project!
 
 Want to get started immediately?
 
-Just open `single_file_app.html` on any computer. Literally. That's it.
+Download the full single file HTML file with all CSS and scripts in-line.
 
-It may be a struggle to process the 60mb HTML file, but when it's finished loading, it should run like a breeze with **no** online connections / dependencies needed. 
+[https://drive.google.com/file/d/1hNZ12n3OXVg4CaoR47B4BkiDSO4sFuNa/view?usp=sharing](https://drive.google.com/file/d/1hNZ12n3OXVg4CaoR47B4BkiDSO4sFuNa/view?usp=sharing)
+
+Then just open `single-file-app.html` in any browser. That's it!
+
+It may be a struggle to process the 60mb HTML file, 💣 but after its initial load, it should run easily with everything taking place in your client. 
 
 ### Use Online 🌐
 
