@@ -3344,9 +3344,6 @@ input[type="checkbox"] {
       cssCode.value = css.trim();
     }
 
-    // Add this new function call
-    setupTabNavigation();
-    
     // Update size indicator initially
     updateSizeIndicator();
 
@@ -4196,36 +4193,12 @@ input[type="checkbox"] {
 
   </script>
 <script>
-  /**
-   * Enhanced Mobile Responsiveness JavaScript
-   * Adds mobile-specific functionality and improves user experience
-   */
 
-  // Execute when DOM is fully loaded
-  document.addEventListener('DOMContentLoaded', function() {
-    // Initialize mobile-specific features
-    initMobileFeatures();
-    
-    // Make sure tabs work well on mobile
-    setupTabNavigation();
-    
-    // Handle orientation changes
-    window.addEventListener('orientationchange', handleOrientationChange);
-    
-    // Make preview container touch-friendly
-    setupPreviewInteractions();
-    
-    // Optimize form inputs for mobile
-    optimizeFormInputs();
-    
-    // Update size indicator on window resize
-    window.addEventListener('resize', updateSizeIndicator);
-  });
 
   /**
    * Sets up responsive tab navigation for mobile devices
    */
-  function setupTabNavigation() {
+   function setupTabNavigation() {
     const tabs = document.querySelectorAll('.tab');
     const tabContent = document.querySelectorAll('.tab-content');
     
@@ -5871,6 +5844,32 @@ document.addEventListener('DOMContentLoaded', replaceSpecificAlerts);
 
 <script>
   
+
+  /**
+   * Enhanced Mobile Responsiveness JavaScript
+   * Adds mobile-specific functionality and improves user experience
+   */
+
+  // Execute when DOM is fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize mobile-specific features
+    initMobileFeatures();
+    
+    // Make sure tabs work well on mobile
+    setupTabNavigation();
+    
+    // Handle orientation changes
+    window.addEventListener('orientationchange', handleOrientationChange);
+    
+    // Make preview container touch-friendly
+    setupPreviewInteractions();
+    
+    // Optimize form inputs for mobile
+    optimizeFormInputs();
+    
+    // Update size indicator on window resize
+    window.addEventListener('resize', updateSizeIndicator);
+  });
 </script>
 </body>
 </html>
