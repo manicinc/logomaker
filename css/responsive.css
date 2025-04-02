@@ -1,0 +1,164 @@
+/* css/responsive.css */
+ /* All media queries consolidated */
+
+ /* Include Variables */
+ /* @import url('variables.css'); */
+
+ /* --- Tablet & Smaller Desktop --- */
+ @media (max-width: 992px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+  .controls-container {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Adjust grid */
+  }
+  .preview-container {
+      min-height: 250px;
+  }
+ }
+
+ /* --- Mobile --- */
+ @media (max-width: 768px) {
+  body {
+    padding: var(--space-sm);
+  }
+  .container {
+    gap: var(--space-md);
+    padding: 0; /* Remove container padding on mobile */
+  }
+  header, .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-links {
+      justify-content: center;
+  }
+  .controls-wrapper {
+    border-radius: 0; /* Full width */
+    border-left: none;
+    border-right: none;
+  }
+  .controls-container {
+    grid-template-columns: 1fr; /* Single column */
+    gap: var(--space-md);
+  }
+  .tab-content {
+      padding: var(--space-md);
+  }
+  .preview-container {
+    min-height: 200px;
+    padding: var(--space-md);
+    border-radius: 0; /* Full width */
+    border-left: none;
+    border-right: none;
+  }
+  .logo-text {
+    font-size: clamp(36px, 10vw, 90px); /* Adjust clamp for mobile */
+  }
+  .button-container {
+    flex-direction: column; /* Stack buttons */
+    gap: var(--space-sm);
+  }
+  button, .button {
+    flex: 1 0 auto; /* Allow button to take full width */
+    width: 100%;
+  }
+
+  /* Modal adjustments */
+  .modal-content {
+    max-width: 95%;
+    max-height: 85vh;
+  }
+  .modal-footer { flex-direction: column-reverse; gap: var(--space-sm); }
+  .modal-btn { width: 100%; }
+
+  /* Specific component adjustments */
+  .promo-content { flex-direction: column; gap: var(--space-sm); }
+  .promo-text, .promo-link { width: 100%; justify-content: center; }
+  .info-button, .performance-notice-visible { /* Adjust info button/panel position */
+    top: 10px; right: 10px; width: auto; max-width: 90%;
+  }
+  .performance-notice-visible { width: calc(100% - 20px); } /* Full width notice */
+
+  /* **FIX FOR TABS ON MOBILE** */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap; /* Allow tabs to wrap to the next line on small screens */
+    overflow-x: auto; /* Keep horizontal scroll for many tabs */
+  }
+
+  .tab {
+    flex: 1 1 auto; /* Allow tabs to grow and shrink, distribute space */
+    min-width: auto; /* Remove fixed minimum width on mobile */
+    text-align: center; /* Keep text centered */
+    font-size: var(--font-size-xs); /* Slightly smaller font on mobile */
+    padding: 10px 10px; /* Adjust padding for smaller size */
+  }
+
+  /* Very small mobile adjustments */
+  @media (max-width: 400px) {
+    .tab {
+      font-size: 0.7rem; /* Even smaller on very narrow screens */
+      padding: 8px 8px;
+    }
+  }
+
+  /* Reduce motion/complexity further on mobile if preferred */
+  :root { --animation-duration: 3s; }
+  .bg-matrix::before, .bg-noise::before, .bg-synthwave::before {
+      opacity: 0.1; animation-duration: 12s !important;
+  }
+  .anim-glitch::before, .anim-glitch::after { animation-duration: 4s !important; }
+ }
+
+ /* Very Small Mobile */
+ @media (max-width: 480px) {
+    .tab { padding: 10px 12px; min-width: 70px; font-size: var(--font-size-xs); }
+    .logo-brand h1 { font-size: var(--font-size-lg); }
+    .logo-brand h1 span { font-size: var(--font-size-xs); }
+    .preview-container { min-height: 150px; padding: var(--space-sm); }
+ }
+
+ /* Landscape Mobile */
+ @media (max-height: 500px) and (orientation: landscape) {
+    .preview-container { min-height: 150px; }
+    .logo-text { font-size: clamp(30px, 8vh, 70px); }
+    .modal-content { max-height: 80vh; } /* Allow more height in landscape */
+ }
+
+ /* Reduced Motion Preference */
+ @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; } /* Disable smooth scroll */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transition: none !important; /* Disable transitions globally */
+    animation: none !important; /* Disable animations globally */
+  }
+    /* Keep gradient move if desired, comment out if not */
+    /* .logo-text[style*='background-image: linear-gradient'] { animation: gradientMove 10s infinite alternate !important; } */
+ }
+
+ 
+ .info-button, .performance-notice-visible { /* Adjust info button/panel position */
+  top: 10px;
+  right: 10px;
+  width: auto; /* Keep auto width */
+  max-width: 90%; /* Keep max width for responsiveness if needed */
+}
+
+/* **Force info-button to the right in mobile** */
+.tabs {
+  position: relative; /* Ensure positioning context for absolute child */
+}
+
+.info-button {
+  position: absolute; /* Keep absolute positioning */
+  top: 0px;
+  right: 10px;
+  margin-left: auto; /* Push to the right within the flex container */
+}
+
+.performance-notice-visible { width: calc(100% - 20px); } /* Full width notice */

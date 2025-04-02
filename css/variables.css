@@ -1,0 +1,267 @@
+/* css/variables.css */
+ /* Central definitions for theming, layout, typography, etc. */
+
+ :root {
+  /* --- Color Palette (Dark Mode Default) --- */
+  --primary-color: #ff1493; /* Deep Pink */
+  --secondary-color: #8a2be2; /* Blue Violet */
+  --accent-color: #00ffff; /* Cyan / Aqua */
+  --text-color: #f0f2f5; /* Light greyish */
+  --text-color-muted: #a0a4b1; /* Muted text */
+  --background-color: #10121a; /* Very dark blue/grey */
+  --panel-bg: rgba(30, 33, 46, 0.85); /* Dark semi-transparent panel */
+  --panel-bg-opaque: #1e212e; /* Opaque panel */
+  --input-bg: rgba(15, 17, 26, 0.5); /* Darker input */
+  --input-bg-opaque: #181a25; /* Opaque input bg */
+  --border-color: #35394a; /* Medium grey border */
+  --border-highlight: #50556b;
+  --modal-bg: #1f2233; /* Slightly lighter than panel */
+  --code-bg: rgba(0,0,0,0.3);
+  --scrollbar-thumb: var(--primary-color);
+  --scrollbar-track: rgba(0,0,0,0.1);
+  --tooltip-bg: #2a2e40;
+  --tooltip-text: #e0e2ea;
+  --success-color: #4CAF50;
+  --error-color: #F44336;
+  --warning-color: #FFC107;
+  --info-color: #2196F3;
+
+  /* --- Gradient Presets --- */
+  /* Text Gradients */
+  --primary-gradient: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  --cyberpunk-gradient: linear-gradient(45deg, #00ffff, #ff00ff);
+  --sunset-gradient: linear-gradient(45deg, #ff7e5f, #feb47b);
+  --ocean-gradient: linear-gradient(45deg, #2193b0, #6dd5ed);
+  --forest-gradient: linear-gradient(45deg, #134e5e, #71b280);
+  --rainbow-gradient: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+  --neon-blue-gradient: linear-gradient(45deg, #00c6ff, #0072ff);
+  --royal-gradient: linear-gradient(45deg, #141e30, #243b55);
+  --fire-gradient: linear-gradient(45deg, #f12711, #f5af19);
+  --purple-love-gradient: linear-gradient(45deg, #cc2b5e, #753a88);
+  --dark-knight-gradient: linear-gradient(45deg, #ba8b02, #181818);
+  --emerald-gradient: linear-gradient(45deg, #348f50, #56b4d3);
+
+  /* Background Gradients (Can reuse text ones or define separately) */
+  --bg-primary-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #1a1a2e, #16213e, #0f3460);
+  --bg-cyberpunk-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #0f0c29, #302b63, #24243e);
+  --bg-sunset-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #ff7e5f, #feb47b);
+  --bg-ocean-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #2193b0, #6dd5ed);
+  --bg-forest-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #155724, #43a047);
+  --bg-rainbow-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+  --bg-neon-blue-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #00c6ff, #0072ff);
+  --bg-royal-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #141e30, #243b55);
+  --bg-fire-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #f12711, #f5af19);
+  --bg-purple-love-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #cc2b5e, #753a88);
+  --bg-dark-knight-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #ba8b02, #181818);
+  --bg-emerald-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #348f50, #56b4d3);
+  --bg-synthwave-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #210047, #4a006e, #7b0094, #a900bb, #ff00ff, #ff69b4, #ffb6c1);
+  --bg-matrix-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #004d00, #008000, #00b300, #00e600, #00ff00, #33ff33);
+
+  /* Animated Gradient */
+  --animated-gradient-primary: #833ab4; /* Purple */
+  --animated-gradient-secondary: #fd1d1d; /* Red */
+  --animated-gradient-tertiary: #fcb045; /* Orange */
+  --animated-gradient-speed: 5s;
+
+  /* Grid Background */
+  --grid-color: rgba(50, 50, 50, 0.3);
+  --grid-size: 20px;
+
+  /* Dark Grid Background */
+  --darkgrid-color: rgba(150, 150, 150, 0.15);
+  --darkgrid-size: 20px;
+
+  /* Stars Background */
+  --star-color: #ffffff;
+  --star-size: 2px;
+  --star-density: 0.05; /* Percentage of pixels that are stars */
+
+  /* Noise Background */
+  --noise-opacity: 0.08;
+  --noise-size: 100px; /* Size of the noise pattern */
+
+  /* --- Animation & Transition --- */
+  --animation-duration: 2s;
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+  --gradient-direction: 45deg; /* Text gradient direction */
+  --bg-gradient-direction: 90deg; /* Background gradient direction */
+
+  /* --- Layout & Spacing --- */
+  --space-xs: 0.25rem; /* 4px */
+  --space-sm: 0.5rem;   /* 8px */
+  --space-md: 1rem;     /* 16px */
+  --space-lg: 1.5rem;   /* 24px */
+  --space-xl: 2rem;     /* 32px */
+  --container-width-desktop: 1200px;
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --box-shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.2);
+  --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --box-shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.4);
+
+  /* --- Typography --- */
+  --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-family-logo: 'Orbitron', sans-serif; /* Default logo font */
+  --font-family-code: monospace;
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-md: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.5rem;    /* 24px */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* --- Dynamic / JS Controlled --- */
+  --dynamic-border-color: var(--text-color); /* Default border/effect color */
+
+  /* --- Custom Backgrounds --- */
+  --bg-transparent: transparent;
+  --bg-solid: var(--background-color);
+  --bg-gradient: var(--bg-primary-gradient); /* Default gradient */
+  --bg-gradient-animated: linear-gradient(45deg, var(--animated-gradient-primary), var(--animated-gradient-secondary), var(--animated-gradient-tertiary));
+  --bg-grid: repeating-linear-gradient(0deg, transparent, transparent var(--grid-size), var(--grid-color) var(--grid-size), var(--grid-color) calc(var(--grid-size) * 2));
+  --bg-darkgrid: repeating-linear-gradient(0deg, transparent, transparent var(--darkgrid-size), var(--darkgrid-color) var(--darkgrid-size), var(--darkgrid-color) calc(var(--darkgrid-size) * 2));
+  --bg-stars: radial-gradient(circle, var(--star-color) var(--star-size), transparent var(--star-size));
+  --bg-noise: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAQAAADJaqJ/AAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="); /* Tiny transparent noise */
+  --bg-synthwave: var(--bg-synthwave-gradient);
+  --bg-matrix: var(--bg-matrix-gradient);
+
+
+      /* Polka Dots */
+      --polka-dot-color: rgba(70, 70, 70, 0.4);
+      --polka-dot-size: 15px;
+      --polka-dot-spacing: 30px;
+  
+      /* Diagonal Stripes */
+      --diagonal-stripe-color1: rgba(40, 40, 40, 0.5);
+      --diagonal-stripe-color2: rgba(60, 60, 60, 0.5);
+      --diagonal-stripe-angle: 45deg;
+      --diagonal-stripe-width: 10px;
+      --diagonal-stripe-spacing: 20px;
+  
+      /* Chevron Pattern */
+      --chevron-color: rgba(80, 80, 80, 0.6);
+      --chevron-size: 20px;
+  
+      /* Isometric Grid */
+      --isometric-grid-color: rgba(90, 90, 90, 0.3);
+      --isometric-grid-size: 30px;
+  
+      /* Wavy Lines */
+      --wavy-line-color: rgba(50, 100, 150, 0.4);
+      --wavy-line-amplitude: 10px;
+      --wavy-line-frequency: 20px;
+      --wavy-line-thickness: 2px;
+  
+      /* Hexagon Pattern */
+      --hexagon-color: rgba(100, 100, 100, 0.5);
+      --hexagon-size: 25px;
+  
+      /* Brick Wall */
+      --brick-color1: #5f574f;
+      --brick-color2: #7b685e;
+      --brick-size: 30px;
+      --brick-spacing: 5px;
+  
+      /* Circuit Board */
+      --circuit-board-color1: #222;
+      --circuit-board-color2: #00ff00;
+      --circuit-board-spacing: 15px;
+  
+      /* Carbon Fiber */
+      --carbon-fiber-color1: #333;
+      --carbon-fiber-color2: #444;
+      --carbon-fiber-size: 10px;
+  
+      /* Aurora Borealis (Basic Static Version) */
+      --aurora-color1: #00ff00;
+      --aurora-color2: #00ffff;
+      --aurora-color3: #a020f0;
+  
+      /* --- Update Custom Backgrounds --- */
+      --bg-transparent: transparent;
+      --bg-solid: var(--background-color);
+      --bg-gradient: var(--bg-primary-gradient); /* Default gradient */
+      --bg-gradient-animated: linear-gradient(45deg, var(--animated-gradient-primary), var(--animated-gradient-secondary), var(--animated-gradient-tertiary));
+      --bg-grid: repeating-linear-gradient(0deg, transparent, transparent var(--grid-size), var(--grid-color) var(--grid-size), var(--grid-color) calc(var(--grid-size) * 2));
+      --bg-darkgrid: repeating-linear-gradient(0deg, transparent, transparent var(--darkgrid-size), var(--darkgrid-color) var(--darkgrid-size), var(--darkgrid-color) calc(var(--darkgrid-size) * 2));
+      --bg-stars: radial-gradient(circle, var(--star-color) var(--star-size), transparent var(--star-size));
+      --bg-noise: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAQAAADJaqJ/AAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="); /* Tiny transparent noise */
+      --bg-synthwave: var(--bg-synthwave-gradient);
+      --bg-matrix: var(--bg-matrix-gradient);
+  
+      /* --- NEW Custom Backgrounds --- */
+      --bg-polka-dots: radial-gradient(circle, var(--polka-dot-color) var(--polka-dot-size), transparent var(--polka-dot-size)) 0 0 / var(--polka-dot-spacing) var(--polka-dot-spacing);
+      --bg-diagonal-stripes: linear-gradient(var(--diagonal-stripe-angle), var(--diagonal-stripe-color1) var(--diagonal-stripe-width), var(--diagonal-stripe-color2) var(--diagonal-stripe-width) var(--diagonal-stripe-spacing), transparent var(--diagonal-stripe-spacing));
+      --bg-chevron: repeating-linear-gradient(45deg, transparent, transparent var(--chevron-size), var(--chevron-color) var(--chevron-size), var(--chevron-color) calc(var(--chevron-size) * 2));
+      --bg-isometric-grid: linear-gradient(45deg, var(--isometric-grid-color) 1px, transparent 1px), linear-gradient(-45deg, var(--isometric-grid-color) 1px, transparent 1px);
+      --bg-wavy-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20'%3E%3Cpath d='M0,10 C30,0 70,20 100,10' fill='none' stroke='%23" + encodeURIComponent(getComputedStyle(document.documentElement).getPropertyValue('--wavy-line-color').trim().slice(1)) + "' stroke-width='" + getComputedStyle(document.documentElement).getPropertyValue('--wavy-line-thickness').trim() + "'/%3E%3C/svg%3E");
+      --bg-hexagon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='" + (Math.sqrt(3) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + "' height='" + (2 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + "' viewBox='0 0 " + (Math.sqrt(3) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + " " + (2 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + "'%3E%3Cpath d='M" + (Math.sqrt(3) / 2 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + "," + (0.5 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + " L" + (Math.sqrt(3) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + "," + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim()) + " L" + (Math.sqrt(3) * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + "," + (1.5 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + " L" + (Math.sqrt(3) / 2 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + "," + (2 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + " L0," + (1.5 * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim())) + " L0," + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hexagon-size').trim()) + " Z' fill='" + getComputedStyle(document.documentElement).getPropertyValue('--hexagon-color').trim() + "'/%3E%3C/svg%3E");
+      --bg-brick-wall: repeating-linear-gradient(0deg, var(--brick-color1), var(--brick-color1) var(--brick-size), var(--brick-color2) var(--brick-size), var(--brick-color2) calc(var(--brick-size) * 2 + var(--brick-spacing))), repeating-linear-gradient(90deg, var(--brick-color1), var(--brick-color1) var(--brick-size), var(--brick-color2) var(--brick-size), var(--brick-color2) calc(var(--brick-size) * 2 + var(--brick-spacing)));
+      --bg-circuit-board: repeating-radial-gradient(circle at center, var(--circuit-board-color2) 2px, transparent 3px, var(--circuit-board-color1) var(--circuit-board-spacing));
+      --bg-carbon-fiber: repeating-radial-gradient(circle at 0 0, var(--carbon-fiber-color1) 0, var(--carbon-fiber-color1) var(--carbon-fiber-size), transparent var(--carbon-fiber-size), transparent calc(var(--carbon-fiber-size) * 2)), repeating-radial-gradient(circle at var(--carbon-fiber-size) var(--carbon-fiber-size), var(--carbon-fiber-color1) 0, var(--carbon-fiber-color1) var(--carbon-fiber-size), transparent var(--carbon-fiber-size), transparent calc(var(--carbon-fiber-size) * 2));
+      --bg-aurora-borealis: linear-gradient(90deg, var(--aurora-color1), var(--aurora-color2), var(--aurora-color3), var(--aurora-color2), var(--aurora-color1));
+   }
+
+/* --- Light Mode Overrides --- */
+body.light-mode {
+  --primary-color: #e6007e; /* Slightly adjust pink */
+  --secondary-color: #7a1fb8;
+  --accent-color: #008B8B; /* Dark Cyan */
+  --text-color: #2d3436; /* Dark Grey */
+  --text-color-muted: #636e72;
+  --background-color: #f4f6f9; /* Light Grey */
+  --panel-bg: rgba(255, 255, 255, 0.9); /* Less transparent */
+  --panel-bg-opaque: #ffffff;
+  --input-bg: rgba(230, 235, 240, 0.7); /* Slightly more opaque */
+  --input-bg-opaque: #e6eaf0;
+  --border-color: #d1d8e0; /* Lighter Grey */
+  --border-highlight: #b0b8c0;
+  --modal-bg: #ffffff;
+  --code-bg: rgba(0,0,0,0.05);
+  --scrollbar-thumb: #aeb8c2;
+  --scrollbar-track: rgba(0,0,0,0.05);
+  --tooltip-bg: #343a40;
+  --tooltip-text: #f8f9fa;
+
+  /* Adjust gradient opacities or colors if needed for light mode contrast */
+  --royal-gradient: linear-gradient(45deg, #6a85b6, #bac8e0);
+  --dark-knight-gradient: linear-gradient(45deg, #fad961, #f7f0c6);
+
+  /* Adjust animated gradient for light mode (optional) */
+  --animated-gradient-primary: #a770ef; /* Light Purple */
+  --animated-gradient-secondary: #cf8bfd; /* Lilac */
+  --animated-gradient-tertiary: #fdb99b; /* Peach */
+
+  /* Grid Background Light Mode */
+  --grid-color: rgba(200, 200, 200, 0.5);
+
+  /* Dark Grid Background Light Mode */
+  --darkgrid-color: rgba(50, 50, 50, 0.1);
+
+  /* Stars Background Light Mode (can keep the same or adjust) */
+
+  /* Noise Background Light Mode */
+  --noise-opacity: 0.04;
+
+  /* Synthwave Background Light Mode */
+  --bg-synthwave-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #6dd5ed, #2193b0, #00bfff, #add8e6, #87cefa);
+
+  /* Matrix Background Light Mode (subtler for light theme) */
+  --bg-matrix-gradient: linear-gradient(var(--bg-gradient-direction, 135deg), #8fbc8f, #98fb98, #b8f7b8, #d0fdd0, #e0ffe0);
+
+  /* Adjust dynamic border for light mode */
+  --dynamic-border-color: #333;
+}
+
+/* --- Keyframes for Animated Gradient --- */
+@keyframes animated-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

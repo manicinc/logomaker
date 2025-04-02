@@ -1,0 +1,132 @@
+/* css/base.css */
+/* Global resets, base element styles, typography */
+
+/* Base Reset */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Viewport Settings */
+@viewport {
+  width: device-width;
+  zoom: 1.0;
+  user-zoom: fixed; /* Consider removing if pinch-zoom is desired */
+}
+
+/* HTML & Body */
+html {
+  scroll-behavior: smooth;
+  font-size: 16px; /* Base font size */
+  -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape */
+}
+
+body {
+  font-family: var(--font-family-base);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex; /* Helps center container */
+  justify-content: center;
+  padding: var(--space-md);
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  max-width: 100%;
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+/* Basic Typography */
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: var(--space-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.3;
+  color: inherit; /* Inherit body color by default */
+}
+h1 { font-size: var(--font-size-xl); }
+h2 { font-size: 1.3rem; }
+h3 { font-size: var(--font-size-lg); }
+h4 { font-size: var(--font-size-md); }
+
+p {
+  margin-bottom: var(--space-md);
+  max-width: 65ch; /* Improve readability */
+}
+
+ul, ol {
+    padding-left: var(--space-lg); /* Indent lists */
+    margin-bottom: var(--space-md);
+}
+li {
+    margin-bottom: var(--space-xs);
+}
+
+/* Basic Link Style */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* Horizontal Rule */
+hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: var(--space-lg) 0;
+}
+.section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-color), transparent);
+    border: none;
+    margin: var(--space-lg) 0;
+}
+
+
+/* Selection Style */
+::selection {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Basic scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+  border: 2px solid var(--scrollbar-track);
+}
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Utility Classes */
+.hidden {
+  display: none !important;
+}
+.visually-hidden { /* For screen readers */
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
+}
