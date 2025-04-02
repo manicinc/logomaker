@@ -1,0 +1,187 @@
+/* css/effects.css */
+/* Text Glows, Borders, Animations, Background Patterns */
+
+/* Include Variables */
+/* @import url('variables.css'); */
+
+/* ====== TEXT GLOW EFFECTS ====== */
+.text-glow-none { text-shadow: none; }
+.text-glow-soft { text-shadow: 0 0 8px var(--dynamic-border-color), 0 0 12px rgba(255, 255, 255, 0.3); }
+.text-glow-medium { text-shadow: 0 0 6px var(--dynamic-border-color), 0 0 15px var(--dynamic-border-color); }
+.text-glow-sharp { text-shadow: 0 0 1px var(--dynamic-border-color), 0 0 3px var(--dynamic-border-color); }
+.text-glow-hard { text-shadow: 1px 1px 1px rgba(0,0,0,0.5), 2px 2px 0px var(--dynamic-border-color); }
+.text-glow-neon { text-shadow: 0 0 5px var(--dynamic-border-color), 0 0 10px var(--dynamic-border-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color); }
+.text-glow-outline { text-shadow: -1px -1px 0 var(--dynamic-border-color), 1px -1px 0 var(--dynamic-border-color), -1px 1px 0 var(--dynamic-border-color), 1px 1px 0 var(--dynamic-border-color), 0 0 5px rgba(0,0,0,0.3); }
+.text-glow-retro { text-shadow: 3px 3px 0px var(--secondary-color), 6px 6px 0px var(--primary-color); }
+.text-glow-emboss { text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.7), 1px 1px 1px rgba(255, 255, 255, 0.2); }
+.text-glow-inset { text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.7), -1px -1px 1px rgba(255, 255, 255, 0.2); }
+
+
+/* ====== BORDER STYLES ====== */
+/* Base element receiving border classes */
+.dynamic-border {
+  padding: var(--space-sm); /* Base padding for borders */
+  border: 2px solid transparent; /* Default transparent border */
+  transition: border var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+/* Fix: Rule for border-none */
+.dynamic-border.border-none {
+  border: none !important;
+  padding: calc(var(--space-sm) + 2px); /* Adjust padding back */
+  box-shadow: none !important;
+}
+/* Ensure direct .logo-text also gets border reset if needed */
+.logo-text.border-none { border: none !important; }
+
+/* Specific Border Styles */
+.dynamic-border.border-solid { border: 2px solid var(--dynamic-border-color); }
+.dynamic-border.border-double { border: 5px double var(--dynamic-border-color); }
+.dynamic-border.border-dashed { border: 2px dashed var(--dynamic-border-color); }
+.dynamic-border.border-dotted { border: 2px dotted var(--dynamic-border-color); } /* Added dotted */
+.dynamic-border.border-groove { border: 5px groove var(--dynamic-border-color); }
+.dynamic-border.border-ridge { border: 5px ridge var(--dynamic-border-color); }
+.dynamic-border.border-inset { border: 5px inset var(--dynamic-border-color); } /* Needs care with lighting */
+.dynamic-border.border-outset { border: 5px outset var(--dynamic-border-color); } /* Added outset */
+.dynamic-border.border-glow {
+  border: 1px solid var(--dynamic-border-color);
+  box-shadow: 0 0 8px var(--dynamic-border-color), 0 0 15px var(--dynamic-border-color);
+}
+/* Pixel border needs adjustment - simplified */
+.dynamic-border.border-pixel {
+  border: 5px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg width='3' height='3' viewBox='0 0 3 3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2z' fill='%23fff'/%3E%3C/svg%3E") 1 stretch;
+  image-rendering: pixelated;
+  padding: calc(var(--space-sm) - 3px); /* Adjust padding for border width */
+}
+body.light-mode .dynamic-border.border-pixel {
+   border-image: url("data:image/svg+xml,%3Csvg width='3' height='3' viewBox='0 0 3 3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2z' fill='%23333'/%3E%3C/svg%3E") 1 stretch;
+}
+
+/* ====== ANIMATIONS ====== */
+/* Base settings for animated elements */
+.logo-text[class*="anim-"] {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Keyframes */
+@keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } } /* Slightly less bounce */
+@keyframes shake { 0%,100%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-2px)} 20%,40%,60%,80%{transform:translateX(2px)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes rotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+/* Glitch requires ::before/::after, styled here for completeness */
+@keyframes glitch-1{0%,100%{clip-path:inset(50% 0 50% 0);transform:translate(-2px,0)}20%{clip-path:inset(0 0 100% 0);transform:translate(2px,0)}40%{clip-path:inset(0 0 50% 0);transform:translate(-2px,0)}60%{clip-path:inset(25% 0 75% 0);transform:translate(2px,0)}80%{clip-path:inset(75% 0 25% 0);transform:translate(-2px,0)}}
+@keyframes glitch-2{0%,100%{clip-path:inset(50% 0 50% 0);transform:translate(2px,0)}20%{clip-path:inset(0 0 100% 0);transform:translate(-2px,0)}40%{clip-path:inset(0 0 50% 0);transform:translate(2px,0)}60%{clip-path:inset(25% 0 75% 0);transform:translate(-2px,0)}80%{clip-path:inset(75% 0 25% 0);transform:translate(2px,0)}}
+@keyframes wave { 0%,100%{transform:rotate(0)} 25%{transform:rotate(3deg)} 75%{transform:rotate(-3deg)} }
+
+/* Animation Classes */
+.anim-none { animation: none !important; } /* Explicitly none */
+/* Apply gradient move ONLY if text is gradient */
+.logo-text:is(.anim-pulse, .anim-bounce, .anim-shake, .anim-float, .anim-rotate, .anim-wave, .anim-glitch) {
+    /* Base animation without gradient */
+}
+.logo-text[style*='background-image: linear-gradient']:is(.anim-pulse, .anim-bounce, .anim-shake, .anim-float, .anim-rotate, .anim-wave, .anim-glitch) {
+    animation: gradientMove var(--animation-duration) infinite alternate; /* Add gradient move if gradient is applied */
+}
+
+.anim-pulse { animation-name: pulse, gradientMove; animation-duration: var(--animation-duration), var(--animation-duration); animation-iteration-count: infinite, infinite; animation-direction: alternate, alternate; animation-timing-function: ease-in-out, linear; }
+.anim-bounce { animation-name: bounce, gradientMove; animation-duration: calc(var(--animation-duration) * 0.7), var(--animation-duration); animation-iteration-count: infinite, infinite; animation-direction: alternate, alternate; animation-timing-function: ease-in-out, linear; }
+.anim-shake { animation-name: shake, gradientMove; animation-duration: calc(var(--animation-duration) * 0.5), var(--animation-duration); animation-iteration-count: infinite, infinite; animation-direction: normal, alternate; animation-timing-function: ease-in-out, linear; }
+.anim-float { animation-name: float, gradientMove; animation-duration: calc(var(--animation-duration) * 1.5), var(--animation-duration); animation-iteration-count: infinite, infinite; animation-direction: normal, alternate; animation-timing-function: ease-in-out, linear; }
+.anim-rotate { animation-name: rotate, gradientMove; animation-duration: calc(var(--animation-duration) * 2), var(--animation-duration); animation-iteration-count: infinite, infinite; animation-direction: normal, alternate; animation-timing-function: linear, linear; }
+.anim-wave { animation-name: wave, gradientMove; animation-duration: var(--animation-duration), var(--animation-duration); animation-iteration-count: infinite, infinite; animation-direction: normal, alternate; animation-timing-function: ease-in-out, linear; }
+
+/* Glitch Specifics */
+.anim-glitch { position: relative; /* Animation applied via ::before/::after */}
+.anim-glitch::before, .anim-glitch::after {
+  content: attr(data-text); position: absolute; inset: 0;
+  background: inherit; -webkit-background-clip: text; background-clip: text;
+  color: transparent; -webkit-text-fill-color: transparent; pointer-events: none;
+}
+.anim-glitch::before { animation: glitch-1 calc(var(--animation-duration) * 0.7) infinite linear alternate-reverse; }
+.anim-glitch::after { animation: glitch-2 calc(var(--animation-duration) * 1.1) infinite linear alternate-reverse; }
+
+
+/* ====== BACKGROUND STYLES/PATTERNS ====== */
+.preview-container { /* Base transition for background changes */
+    transition: background var(--transition-base);
+}
+
+.bg-transparent { background: transparent !important; } /* Force transparent */
+.bg-solid { /* background-color set by JS */ }
+
+.bg-gradient { background-image: var(--bg-primary-gradient); } /* Default, overridden by JS */
+.bg-gradient-animated {
+  background-image: var(--bg-primary-gradient); /* Base */
+  background-size: 400% 400%; /* Needs to be large for smooth anim */
+  animation: gradientBG 15s ease infinite;
+}
+@keyframes gradientBG { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+/* Patterns */
+.bg-grid {
+  background-color: var(--input-bg-opaque);
+  background-image:
+    linear-gradient(var(--border-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+  background-size: 25px 25px; /* Slightly larger grid */
+}
+.bg-darkgrid {
+  background-color: var(--background-color);
+  background-image:
+    linear-gradient(var(--border-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+body.light-mode .bg-darkgrid { background-color: #e0e4e8; } /* Adjust for light */
+
+.bg-stars {
+  background-color: #080810;
+  background-image: radial-gradient(rgba(255,255,255,0.8), rgba(255, 255, 255, 0.2) 1px, transparent 1.5px), radial-gradient(rgba(255,255,255,0.5), rgba(255, 255, 255, 0.1) 1px, transparent 1.2px);
+  background-size: 60px 60px, 90px 90px;
+  background-position: 0 0, 30px 30px;
+}
+
+.bg-noise { background-color: var(--panel-bg-opaque); } /* Base color */
+.bg-noise::before { /* Use ::before overlay */
+  content: ""; position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1;
+}
+body.light-mode .bg-noise::before { opacity: 0.08; } /* Less intense on light */
+
+.bg-synthwave {
+  background: linear-gradient(to bottom, #241734 0%, #3f2b6f 70%, #f44a96 100%);
+  position: relative; overflow: hidden;
+}
+.bg-synthwave::before { /* Grid lines */
+    content: ""; position: absolute; inset: 0;
+    background-image:
+        linear-gradient(to right, rgba(0, 255, 255, 0.4) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 255, 255, 0.4) 1px, transparent 1px);
+    background-size: 50px 25px;
+    transform: perspective(300px) rotateX(60deg) translateY(50%);
+    transform-origin: bottom center;
+    opacity: 0.5;
+}
+
+.bg-matrix {
+  background-color: #000;
+  position: relative; overflow: hidden;
+}
+.bg-matrix::before { /* Simple repeating character */
+  content: "01"; position: absolute; inset: 0;
+  font-family: monospace; font-size: 12px; line-height: 1.2;
+  color: rgba(0, 255, 0, 0.3);
+  word-break: break-all;
+  white-space: pre-wrap;
+  animation: matrixScroll 10s linear infinite;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+@keyframes matrixScroll { 0% { transform: translateY(0%); } 100% { transform: translateY(-50%); } }

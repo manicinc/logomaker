@@ -1,5 +1,7 @@
 # Logomaker by Manic.agency 🎨✨
 
+(WIP VERSION)
+
 ![Logomaker Preview](./preview.png)
 
 A sleek logo generator that allows you to create stunning logos directly in your browser. Designed for rapid development with extreme portability in mind.
