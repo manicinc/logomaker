@@ -77,132 +77,319 @@ window.getActiveAnimationKeyframes = getActiveAnimationKeyframes;
 let shareUrlModal, shareUrlInput, copyShareUrlBtn, copyBtnText, shareModalClose, shareModalCancel, qrCodeDisplay, downloadQrCodeBtn;
 let shareTwitter, shareFacebook, shareEmail, shareWhatsapp, shareLinkedin, sharePinterest; // Social links
 
-/** Internal function to open and populate the Share modal */
+
 export function openShareModal() {
     console.log('[Share] Opening Share Modal...');
-    // Ensure modal elements are available
-    if (!shareUrlModal || !shareUrlInput || !copyShareUrlBtn /* || etc */ ) {
-         console.error("[Share] Cannot open modal, elements not found (setupShareUrlModal likely failed).");
-         if(typeof showAlert === 'function') showAlert("Cannot open share dialog: UI elements missing.", "error");
-         return;
+    
+    // Get modal elements
+    const shareUrlModal = document.getElementById('shareUrlModal');
+    const shareUrlInput = document.getElementById('shareUrlInput');
+    const copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
+    const copyBtnText = copyShareUrlBtn?.querySelector('span');
+    const qrCodeDisplay = document.getElementById('qrCodeDisplay');
+    const downloadQrCodeBtn = document.getElementById('downloadQrCode');
+    
+    // Social sharing elements
+    const shareTwitter = document.getElementById('shareTwitter');
+    const shareFacebook = document.getElementById('shareFacebook');
+    const shareEmail = document.getElementById('shareEmail');
+    
+    // Ensure elements exist
+    if (!shareUrlModal || !shareUrlInput || !copyShareUrlBtn) {
+        console.error("[Share] Cannot open modal, elements not found (setupShareUrlModal likely failed).");
+        if(typeof showAlert === 'function') {
+            showAlert("Cannot open share dialog: UI elements missing.", "error");
+        }
+        return;
     }
-    // Use imported SettingsManager directly
-    if (!SettingsManager || typeof SettingsManager.getCurrentSettings !== 'function') {
-         console.error("[Share] SettingsManager (imported) not available to generate URL.");
-         if(typeof showAlert === 'function') showAlert("Cannot generate share URL: Settings Manager error.", "error");
-         shareUrlInput.value = "Error: Settings unavailable";
-         return;
+    
+    // FIXED: Check SettingsManager using both import and window fallback
+    const settingsManager = window.SettingsManager;
+    if (!settingsManager || typeof settingsManager.getCurrentSettings !== 'function') {
+        console.error("[Share] SettingsManager not available to generate URL.");
+        if(typeof showAlert === 'function') {
+            showAlert("Cannot generate share URL: Settings Manager error.", "error");
+        }
+        shareUrlInput.value = "Error: Settings unavailable";
+        return;
     }
 
-    // 1. Generate URL
+    // Generate URL with proper error handling
     let generatedUrl = '';
     try {
         const baseUrl = window.location.origin + window.location.pathname;
-        const currentSettings = SettingsManager.getCurrentSettings();
-        const defaults = typeof SettingsManager.getDefaults === 'function' ? SettingsManager.getDefaults() : {};
+        const currentSettings = settingsManager.getCurrentSettings();
+        const defaults = typeof settingsManager.getDefaults === 'function' 
+            ? settingsManager.getDefaults() 
+            : {};
+            
+        // FIXED: Create params with more robust handling
         const params = new URLSearchParams();
-        const relevantKeys = [ /* ... keys ... */
-             'logoText', 'fontFamily', 'fontSize', 'letterSpacing', 'textCase', 'fontWeight',
-             'textColorMode', 'solidColorPicker', 'gradientPreset', 'color1', 'color2', 'useColor3', 'color3', 'animationDirection',
-             'textShadow', 'borderColorPicker', 'borderStyle', 'textAlign', 'rotation',
-             'textAnimation', 'animationSpeed',
-             'backgroundType', 'backgroundColor', 'bgOpacity', 'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection'
-         ];
+        
+        // Relevant settings keys to include in URL
+        const relevantKeys = [
+            'logoText', 'fontFamily', 'fontSize', 'letterSpacing', 'textCase', 'fontWeight',
+            'textColorMode', 'solidColorPicker', 'gradientPreset', 'color1', 'color2', 'useColor3', 'color3', 'animationDirection',
+            'textShadow', 'borderColorPicker', 'borderStyle', 'textAlign', 'rotation',
+            'textAnimation', 'animationSpeed',
+            'backgroundType', 'backgroundColor', 'bgOpacity', 'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection'
+        ];
 
+        // FIXED: More robust parameter generation with type handling
+        let paramsAdded = 0;
         relevantKeys.forEach(key => {
-            if (currentSettings.hasOwnProperty(key) && currentSettings[key] !== undefined && currentSettings[key] !== null && (!defaults.hasOwnProperty(key) || currentSettings[key] !== defaults[key])) {
-                 let value = currentSettings[key];
-                 if (typeof value === 'boolean') value = value ? '1' : '0';
-                 if (key.toLowerCase().includes('color') && typeof value === 'string' && value.startsWith('#')) { value = value.substring(1); }
-                 params.append(key, value);
+            if (currentSettings.hasOwnProperty(key) && 
+                currentSettings[key] !== undefined && 
+                currentSettings[key] !== null) {
+                
+                // Only add if different from default or if key is essential (like logoText)
+                const isEssential = ['logoText', 'fontFamily'].includes(key);
+                const isDifferentFromDefault = 
+                    !defaults.hasOwnProperty(key) || 
+                    String(currentSettings[key]) !== String(defaults[key]);
+                
+                if (isEssential || isDifferentFromDefault) {
+                    let value = currentSettings[key];
+                    
+                    // Handle different value types
+                    if (typeof value === 'boolean') {
+                        value = value ? '1' : '0';
+                    } else if (typeof value === 'number') {
+                        value = String(value);
+                    } else if (typeof value === 'string' && value.startsWith('#')) {
+                        // Remove # from color codes to shorten URL
+                        value = value.substring(1);
+                    }
+                    
+                    params.append(key, value);
+                    paramsAdded++;
+                }
             }
         });
+        
+        // FIXED: Ensure we have at least some parameters
+        if (paramsAdded === 0) {
+            // Add at least logoText if nothing else
+            const logoText = currentSettings.logoText || 'Manic';
+            params.append('logoText', logoText);
+        }
 
         generatedUrl = `${baseUrl}?${params.toString()}`;
         shareUrlInput.value = generatedUrl;
         console.log(`[Share] Generated URL (${generatedUrl.length} chars): ${generatedUrl}`);
 
     } catch (err) {
-         console.error("[Share] Error generating share URL:", err);
-         shareUrlInput.value = "Error generating URL.";
-         generatedUrl = '';
+        console.error("[Share] Error generating share URL:", err);
+        shareUrlInput.value = "Error generating URL.";
+        generatedUrl = '';
     }
 
-    // 2. Update Social Links & QR (Check elements exist)
+    // Update social links & QR
     if (generatedUrl) {
-         const encodedUrl = encodeURIComponent(generatedUrl);
-         const shareText = encodeURIComponent("Check out this logo I designed with Logomaker by Manic!");
-         const shareTitle = encodeURIComponent("Logomaker Design");
+        const encodedUrl = encodeURIComponent(generatedUrl);
+        const shareText = encodeURIComponent("Check out this logo I designed with Logomaker by Manic!");
+        const shareTitle = encodeURIComponent("Logomaker Design");
 
-         if(shareTwitter) shareTwitter.href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${shareText}`;
-         if(shareFacebook) shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-         // ... update other social links ...
+        // Update social sharing buttons
+        if (shareTwitter) {
+            shareTwitter.href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${shareText}`;
+        }
+        if (shareFacebook) {
+            shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        }
+        if (shareEmail) {
+            const subject = shareTitle;
+            const body = `${shareText}\n\n${generatedUrl}`;
+            shareEmail.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+        }
 
-         // 3. Generate QR Code
-         if (qrCodeDisplay) {
-             qrCodeDisplay.innerHTML = '<div class="qr-placeholder">Generating QR...</div>';
-             if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = true;
-             if (typeof QRCode === 'undefined') {
-                 console.warn('[Share] QRCode library not found.');
-                 qrCodeDisplay.innerHTML = '<div class="qr-placeholder" style="font-size: 0.8em; color: #888;">QR Code library not loaded.</div>';
-             } else { /* ... QR Generation logic ... */
-                  try {
-                       qrCodeDisplay.innerHTML = ''; // Clear placeholder
-                       new QRCode(qrCodeDisplay, { text: generatedUrl, width: 160, height: 160, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M });
-                       if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = false;
-                       console.log('[Share] QR Code generated.');
-                  } catch (qrError) { /* ... error handling ... */ }
-             }
-         }
-    } else { /* ... disable links/QR ... */ }
+        // Generate QR Code
+        if (qrCodeDisplay) {
+            qrCodeDisplay.innerHTML = '<div class="qr-placeholder">Generating QR...</div>';
+            if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = true;
+            
+            // Check if QRCode library is available
+            if (typeof QRCode === 'undefined') {
+                console.warn('[Share] QRCode library not found.');
+                qrCodeDisplay.innerHTML = '<div class="qr-placeholder" style="font-size: 0.8em; color: #888;">QR Code library not loaded.</div>';
+            } else {
+                try {
+                    qrCodeDisplay.innerHTML = ''; // Clear placeholder
+                    new QRCode(qrCodeDisplay, {
+                        text: generatedUrl,
+                        width: 160,
+                        height: 160,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                    if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = false;
+                    console.log('[Share] QR Code generated.');
+                } catch (qrError) {
+                    console.error('[Share] QR generation failed:', qrError);
+                    qrCodeDisplay.innerHTML = '<div class="qr-placeholder">QR Generation Failed</div>';
+                }
+            }
+        }
+    } else {
+        // Disable links/QR if URL generation failed
+        if (qrCodeDisplay) {
+            qrCodeDisplay.innerHTML = '<div class="qr-placeholder">URL Generation Failed</div>';
+        }
+        if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = true;
+    }
 
-    // 4. Show Modal
+    // Show modal
     shareUrlModal.style.display = 'flex';
     shareUrlModal.classList.add('active');
 }
-
 
 /** Share URL Modal Logic */
 
 /** Sets up listeners and elements for the Share Modal */
 function setupShareUrlModal() {
     console.log('[Share] Initializing Share URL Modal logic...');
-    // Assign elements to module-scoped variables
-    shareUrlModal = document.getElementById('shareUrlModal');
-    shareUrlInput = document.getElementById('shareUrlInput');
-    copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
-    copyBtnText = copyShareUrlBtn?.querySelector('span');
-    shareModalClose = document.getElementById('shareModalClose');
-    shareModalCancel = document.getElementById('shareModalCancel');
-    qrCodeDisplay = document.getElementById('qrCodeDisplay');
-    downloadQrCodeBtn = document.getElementById('downloadQrCode');
-    shareTwitter = document.getElementById('shareTwitter');
-    shareFacebook = document.getElementById('shareFacebook');
-    shareEmail = document.getElementById('shareEmail');
-    shareWhatsapp = document.getElementById('shareWhatsapp');
-    shareLinkedin = document.getElementById('shareLinkedin');
-    sharePinterest = document.getElementById('sharePinterest');
-
-
-    if (!shareUrlModal || !shareUrlInput /* || etc */ ) {
+    
+    // Get modal elements
+    const shareUrlModal = document.getElementById('shareUrlModal');
+    const shareUrlInput = document.getElementById('shareUrlInput');
+    const copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
+    const copyBtnText = copyShareUrlBtn?.querySelector('span');
+    const shareModalClose = document.getElementById('shareModalClose');
+    const shareModalCancel = document.getElementById('shareModalCancel');
+    const qrCodeDisplay = document.getElementById('qrCodeDisplay');
+    const downloadQrCodeBtn = document.getElementById('downloadQrCode');
+    
+    // Check for essential elements
+    if (!shareUrlModal || !shareUrlInput || !copyShareUrlBtn) {
         console.warn('[Share] Setup failed: One or more Share URL modal elements are missing.');
-        return; // Don't attach listeners if elements missing
+        return;
     }
 
-    const closeShareModal = () => { /* ... close logic ... */
-         shareUrlModal.style.display = 'none';
-         shareUrlModal.classList.remove('active');
-         console.log('[Share] Modal closed.');
-     };
+    // Modal close function
+    const closeShareModal = () => {
+        shareUrlModal.style.display = 'none';
+        shareUrlModal.classList.remove('active');
+        console.log('[Share] Modal closed.');
+        
+        // Reset copy button text when modal closes
+        if (copyBtnText) copyBtnText.textContent = 'Copy';
+    };
 
-    // Attach listeners for controls *inside* the modal
+    // Attach event listeners
     shareModalClose?.addEventListener('click', closeShareModal);
     shareModalCancel?.addEventListener('click', closeShareModal);
-    shareUrlModal?.addEventListener('click', (e) => { if (e.target === shareUrlModal) closeShareModal(); });
-    copyShareUrlBtn?.addEventListener('click', () => { /* ... copy logic using navigator.clipboard ... */ });
-    downloadQrCodeBtn?.addEventListener('click', () => { /* ... QR download logic ... */ });
+    
+    // Close when clicking outside
+    shareUrlModal?.addEventListener('click', (e) => {
+        if (e.target === shareUrlModal) closeShareModal();
+    });
+    
+    // FIXED: Copy button functionality
+    copyShareUrlBtn?.addEventListener('click', () => {
+        const textToCopy = shareUrlInput.value;
+        
+        // Skip empty text
+        if (!textToCopy || textToCopy.includes('Error:')) {
+            if (typeof showAlert === 'function') {
+                showAlert('Nothing to copy: URL generation failed', 'error');
+            }
+            return;
+        }
+        
+        // Use clipboard API with fallback
+        const copyText = () => {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(textToCopy)
+                    .then(() => true)
+                    .catch(err => {
+                        console.error('[Share] Clipboard API error:', err);
+                        return false;
+                    });
+            } else {
+                // Fallback for browsers without clipboard API
+                try {
+                    shareUrlInput.select();
+                    shareUrlInput.setSelectionRange(0, 99999);
+                    const success = document.execCommand('copy');
+                    if (success) {
+                        return Promise.resolve(true);
+                    } else {
+                        return Promise.resolve(false);
+                    }
+                } catch (err) {
+                    console.error('[Share] execCommand copy error:', err);
+                    return Promise.resolve(false);
+                }
+            }
+        };
+        
+        // Execute copy and show feedback
+        copyText().then(success => {
+            if (success) {
+                // Update button text for feedback
+                if (copyBtnText) {
+                    copyBtnText.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtnText.textContent = 'Copy';
+                    }, 2000);
+                }
+                
+                // Show toast notification
+                if (typeof showToast === 'function') {
+                    showToast({
+                        message: 'Share URL copied to clipboard! ✓',
+                        type: 'success',
+                        duration: 2000
+                    });
+                }
+                console.log('[Share] URL copied successfully');
+            } else {
+                // Show error
+                if (typeof showAlert === 'function') {
+                    showAlert('Failed to copy URL to clipboard', 'error');
+                }
+                console.error('[Share] Copy failed');
+            }
+        });
+    });
 
-    // Note: The main #shareUrlBtn listener is now attached in main.js
+    // QR code download button
+    downloadQrCodeBtn?.addEventListener('click', () => {
+        try {
+            // Find QR code canvas
+            const canvas = qrCodeDisplay.querySelector('canvas');
+            if (!canvas) {
+                console.error('[Share] QR canvas not found');
+                return;
+            }
+            
+            // Convert to image and download
+            const dataURL = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = 'logomaker-qr.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            console.log('[Share] QR downloaded');
+            
+            // Show notification
+            if (typeof showToast === 'function') {
+                showToast({
+                    message: 'QR Code downloaded!',
+                    type: 'success',
+                    duration: 2000
+                });
+            }
+        } catch (err) {
+            console.error('[Share] QR download error:', err);
+            if (typeof showAlert === 'function') {
+                showAlert('QR download failed', 'error');
+            }
+        }
+    });
 
     console.log('[Share] Share URL Modal setup complete.');
 }
