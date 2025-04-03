@@ -11,7 +11,7 @@
  * 5. Border Styles (Static)
  * 6. Border Effects (Glows, Gradients, Animated)
  * 7. Text Animations (Movement, Fades, Glitches)
- * 8. Background Patterns & Effects
+ * 8. Background Patterns & Effects <-- SELECTORS FIXED HERE
  * 9. Performance & Accessibility Overrides
  * =========================================
  */
@@ -19,35 +19,36 @@
 /* --- 1. Base Setup & Helpers --- */
 
 .logo-text { /* Base for all text effects */
-    transition: color var(--transition-duration-fast),
-                text-shadow var(--transition-duration-base),
-                opacity var(--transition-duration-base),
-                transform var(--transition-duration-base);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    transform-style: preserve-3d; /* Enable 3D transforms for animations */
-    backface-visibility: hidden; /* Hide backface during transforms */
-    position: relative; /* Needed for pseudo-elements in some effects */
-    z-index: 1; /* Ensure text is above static background patterns */
-    background-clip: text; /* Required for gradient text */
-    -webkit-background-clip: text; /* Required for gradient text */
+  transition: color var(--transition-duration-fast),
+              text-shadow var(--transition-duration-base),
+              opacity var(--transition-duration-base),
+              transform var(--transition-duration-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform-style: preserve-3d; /* Enable 3D transforms for animations */
+  backface-visibility: hidden; /* Hide backface during transforms */
+  position: relative; /* Needed for pseudo-elements in some effects */
+  z-index: 1; /* Ensure text is above static background patterns */
+  background-clip: text; /* Required for gradient text */
+  -webkit-background-clip: text; /* Required for gradient text */
 }
 
-/* Base for border effects */
+/* Base for border effects - Applied to .logo-container */
 .dynamic-border {
-  border: var(--dynamic-border-width, 2px) solid transparent;
-  transition: border var(--transition-duration-fast), box-shadow var(--transition-duration-base);
-  background-clip: padding-box;
-  position: relative; /* For pseudo-elements */
-  z-index: 0; /* Ensure border effects are behind text */
+border: var(--dynamic-border-width, 2px) solid transparent;
+transition: border var(--transition-duration-fast), box-shadow var(--transition-duration-base);
+background-clip: padding-box; /* Important for border display */
+position: relative; /* For pseudo-elements */
+z-index: 0; /* Ensure border effects are behind text */
 }
+
 
 /* Animation duration variable */
-:root { --current-animation-duration: var(--animation-duration-base); }
+:root { --current-animation-duration: var(--animation-duration-base, 2s); } /* Added fallback */
 [class*="anim-"] {
-  animation-duration: var(--current-animation-duration);
-  animation-timing-function: var(--transition-timing-function);
-  animation-iteration-count: infinite;
+animation-duration: var(--current-animation-duration);
+animation-timing-function: var(--transition-timing-function, ease); /* Added fallback */
+animation-iteration-count: infinite;
 }
 
 /* Helper keyframes used by multiple effects */
@@ -81,22 +82,22 @@
 
 /* --- Multi-Layer Shadows --- */
 .text-shadow-multi-layer-retro {
-    text-shadow:
-        3px 3px 0px var(--secondary-color),
-        6px 6px 0px var(--primary-color),
-        9px 9px 5px rgba(0,0,0,0.2); /* Combined from old glow */
+  text-shadow:
+      3px 3px 0px var(--secondary-color),
+      6px 6px 0px var(--primary-color),
+      9px 9px 5px rgba(0,0,0,0.2); /* Combined from old glow */
 }
 .text-shadow-multi-layer-cool {
-    text-shadow:
-        2px 2px 0px rgba(var(--accent-color-rgb), 0.8),
-        4px 4px 0px rgba(var(--secondary-color-rgb), 0.6),
-        6px 6px 3px rgba(0,0,0,0.2);
+  text-shadow:
+      2px 2px 0px rgba(var(--accent-color-rgb), 0.8),
+      4px 4px 0px rgba(var(--secondary-color-rgb), 0.6),
+      6px 6px 3px rgba(0,0,0,0.2);
 }
 .text-shadow-multi-layer-warm {
-    text-shadow:
-        2px 2px 0px rgba(255, 100, 0, 0.8), /* Orange */
-        4px 4px 0px rgba(var(--primary-color-rgb), 0.6), /* Pink */
-        6px 6px 3px rgba(0,0,0,0.2);
+  text-shadow:
+      2px 2px 0px rgba(255, 100, 0, 0.8), /* Orange */
+      4px 4px 0px rgba(var(--primary-color-rgb), 0.6), /* Pink */
+      6px 6px 3px rgba(0,0,0,0.2);
 }
 
 /* --- Inset/Emboss Style Shadows --- */
@@ -106,27 +107,27 @@
 
 /* --- Outline Style Shadows --- */
 .text-shadow-outline-thin {
-    text-shadow:
-        -1px -1px 0 var(--dynamic-border-color),
-        1px -1px 0 var(--dynamic-border-color),
-        -1px 1px 0 var(--dynamic-border-color),
-        1px 1px 0 var(--dynamic-border-color);
+  text-shadow:
+      -1px -1px 0 var(--dynamic-border-color),
+      1px -1px 0 var(--dynamic-border-color),
+      -1px 1px 0 var(--dynamic-border-color),
+      1px 1px 0 var(--dynamic-border-color);
 }
 .text-shadow-outline-thick {
-    text-shadow: /* Multiple layers for thickness */
-        -1px -1px 0 var(--dynamic-border-color), 1px -1px 0 var(--dynamic-border-color), -1px 1px 0 var(--dynamic-border-color), 1px 1px 0 var(--dynamic-border-color),
-        -2px -2px 0 var(--dynamic-border-color), 2px -2px 0 var(--dynamic-border-color), -2px 2px 0 var(--dynamic-border-color), 2px 2px 0 var(--dynamic-border-color),
-        0 0 5px rgba(0,0,0,0.2); /* Soft shadow behind outline */
+  text-shadow: /* Multiple layers for thickness */
+      -1px -1px 0 var(--dynamic-border-color), 1px -1px 0 var(--dynamic-border-color), -1px 1px 0 var(--dynamic-border-color), 1px 1px 0 var(--dynamic-border-color),
+      -2px -2px 0 var(--dynamic-border-color), 2px -2px 0 var(--dynamic-border-color), -2px 2px 0 var(--dynamic-border-color), 2px 2px 0 var(--dynamic-border-color),
+      0 0 5px rgba(0,0,0,0.2); /* Soft shadow behind outline */
 }
 .text-shadow-outline-dashed { /* Note: True dashed outline needs SVG or complex pseudo-elements */
-    /* Simulate with multiple shadows */
-    text-shadow:
-       0 0 0 var(--dynamic-border-color),
-       0 2px 0 var(--dynamic-border-color), 0 -2px 0 var(--dynamic-border-color),
-       2px 0 0 var(--dynamic-border-color), -2px 0 0 var(--dynamic-border-color),
-       2px 2px 0 var(--dynamic-border-color), -2px -2px 0 var(--dynamic-border-color),
-       2px -2px 0 var(--dynamic-border-color), -2px 2px 0 var(--dynamic-border-color);
-    /* This won't look truly dashed */
+  /* Simulate with multiple shadows */
+  text-shadow:
+      0 0 0 var(--dynamic-border-color),
+      0 2px 0 var(--dynamic-border-color), 0 -2px 0 var(--dynamic-border-color),
+      2px 0 0 var(--dynamic-border-color), -2px 0 0 var(--dynamic-border-color),
+      2px 2px 0 var(--dynamic-border-color), -2px -2px 0 var(--dynamic-border-color),
+      2px -2px 0 var(--dynamic-border-color), -2px 2px 0 var(--dynamic-border-color);
+  /* This won't look truly dashed */
 }
 
 
@@ -143,62 +144,62 @@
 
 /* --- Neon Glows --- */
 .text-glow-neon-primary {
-    text-shadow:
-        0 0 5px var(--dynamic-border-color),
-        0 0 10px var(--dynamic-border-color),
-        0 0 20px rgba(var(--primary-color-rgb), 0.8), /* Primary bloom */
-        0 0 35px rgba(var(--primary-color-rgb), 0.6),
-        0 0 50px rgba(var(--primary-color-rgb), 0.4);
+  text-shadow:
+      0 0 5px var(--dynamic-border-color),
+      0 0 10px var(--dynamic-border-color),
+      0 0 20px rgba(var(--primary-color-rgb), 0.8), /* Primary bloom */
+      0 0 35px rgba(var(--primary-color-rgb), 0.6),
+      0 0 50px rgba(var(--primary-color-rgb), 0.4);
 }
 .text-glow-neon-accent {
-    text-shadow:
-        0 0 5px var(--dynamic-border-color),
-        0 0 10px var(--dynamic-border-color),
-        0 0 20px rgba(var(--accent-color-rgb), 0.8), /* Accent bloom */
-        0 0 35px rgba(var(--accent-color-rgb), 0.6),
-        0 0 50px rgba(var(--accent-color-rgb), 0.4);
+  text-shadow:
+      0 0 5px var(--dynamic-border-color),
+      0 0 10px var(--dynamic-border-color),
+      0 0 20px rgba(var(--accent-color-rgb), 0.8), /* Accent bloom */
+      0 0 35px rgba(var(--accent-color-rgb), 0.6),
+      0 0 50px rgba(var(--accent-color-rgb), 0.4);
 }
 .text-glow-neon-dual { /* Blends primary and accent */
-    text-shadow:
-        0 0 5px var(--dynamic-border-color),
-        0 0 15px rgba(var(--primary-color-rgb), 0.7),
-        0 0 30px rgba(var(--accent-color-rgb), 0.5);
+  text-shadow:
+      0 0 5px var(--dynamic-border-color),
+      0 0 15px rgba(var(--primary-color-rgb), 0.7),
+      0 0 30px rgba(var(--accent-color-rgb), 0.5);
 }
 .text-glow-neon-intense {
-    text-shadow:
-        0 0 2px #fff, /* Inner white hot */
-        0 0 6px var(--dynamic-border-color),
-        0 0 12px var(--dynamic-border-color),
-        0 0 25px rgba(var(--primary-color-rgb), 1),
-        0 0 45px rgba(var(--primary-color-rgb), 0.8),
-        0 0 70px rgba(var(--primary-color-rgb), 0.6);
+  text-shadow:
+      0 0 2px #fff, /* Inner white hot */
+      0 0 6px var(--dynamic-border-color),
+      0 0 12px var(--dynamic-border-color),
+      0 0 25px rgba(var(--primary-color-rgb), 1),
+      0 0 45px rgba(var(--primary-color-rgb), 0.8),
+      0 0 70px rgba(var(--primary-color-rgb), 0.6);
 }
 
 /* --- Themed Glows --- */
 .text-glow-fire { /* Use warmer colors */
-    text-shadow:
-        0 0 4px #fff,
-        0 0 8px #ff0, /* Yellow */
-        0 0 15px #f90, /* Orange */
-        0 0 25px #f40; /* Red */
+  text-shadow:
+      0 0 4px #fff,
+      0 0 8px #ff0, /* Yellow */
+      0 0 15px #f90, /* Orange */
+      0 0 25px #f40; /* Red */
 }
 .text-glow-ice { /* Use cooler colors */
-    text-shadow:
-        0 0 4px #fff,
-        0 0 8px #adf, /* Light cyan */
-        0 0 15px #7cf, /* Sky blue */
-        0 0 25px #49f; /* Deeper blue */
+  text-shadow:
+      0 0 4px #fff,
+      0 0 8px #adf, /* Light cyan */
+      0 0 15px #7cf, /* Sky blue */
+      0 0 25px #49f; /* Deeper blue */
 }
 .text-glow-electric {
-    text-shadow:
-        0 0 3px #fff,
-        0 0 7px rgba(var(--accent-color-rgb), 0.8),
-        0 0 15px rgba(var(--accent-color-rgb), 0.6),
-        1px -1px 20px rgba(var(--primary-color-rgb), 0.4), /* Offset flicker */
-        -1px 1px 20px rgba(var(--accent-color-rgb), 0.4); /* Offset flicker */
+  text-shadow:
+      0 0 3px #fff,
+      0 0 7px rgba(var(--accent-color-rgb), 0.8),
+      0 0 15px rgba(var(--accent-color-rgb), 0.6),
+      1px -1px 20px rgba(var(--primary-color-rgb), 0.4), /* Offset flicker */
+      -1px 1px 20px rgba(var(--accent-color-rgb), 0.4); /* Offset flicker */
 }
 .text-glow-ghostly {
-    text-shadow: 0 0 15px rgba(200, 255, 230, 0.6), 0 0 25px rgba(150, 255, 200, 0.4); /* Pale green/cyan */
+  text-shadow: 0 0 15px rgba(200, 255, 230, 0.6), 0 0 25px rgba(150, 255, 200, 0.4); /* Pale green/cyan */
 }
 
 
@@ -207,38 +208,39 @@
 /* ========================================= */
 
 .text-effect-none { /* Reset specific effects if needed */
-    -webkit-text-fill-color: initial;
-    background-image: none;
-    mix-blend-mode: normal;
+  -webkit-text-fill-color: initial;
+  background-image: none;
+  mix-blend-mode: normal;
 }
 
 /* --- Gradient Text --- */
 /* Applied via JS by setting background-image and adding .dynamic-gradient-text */
-.dynamic-gradient-text {
-  background-size: 200% auto;
-  background-clip: text; -webkit-background-clip: text;
-  text-fill-color: transparent; -webkit-text-fill-color: transparent;
+.dynamic-gradient-text { /* This class might be added by JS for gradient text */
+background-size: 200% auto;
+background-clip: text; -webkit-background-clip: text;
+text-fill-color: transparent; -webkit-text-fill-color: transparent;
 }
-.dynamic-gradient-text.anim-gradient-flow { /* Add class for animation */
-   animation: gradientTextFlow 8s linear infinite alternate;
+
+.logo-text.dynamic-gradient-text.anim-gradient-flow { /* Combine gradient + flow anim */
+ animation: gradientTextFlow 8s linear infinite alternate;
 }
 @keyframes gradientTextFlow {
-  from { background-position: 0% 50%; }
-  to { background-position: 100% 50%; }
+from { background-position: 0% 50%; }
+to { background-position: 100% 50%; }
 }
 
 /* --- Anaglyph/Chromatic Aberration --- */
 .text-effect-anaglyph-cyan-red {
-    text-shadow: -1px 0 rgba(var(--accent-color-rgb), 0.7), 1px 0 rgba(var(--primary-color-rgb), 0.7);
+  text-shadow: -1px 0 rgba(var(--accent-color-rgb), 0.7), 1px 0 rgba(var(--primary-color-rgb), 0.7);
 }
 .text-effect-anaglyph-subtle {
-    text-shadow: -0.5px 0 rgba(0, 255, 255, 0.6), 0.5px 0 rgba(255, 0, 150, 0.6);
+  text-shadow: -0.5px 0 rgba(0, 255, 255, 0.6), 0.5px 0 rgba(255, 0, 150, 0.6);
 }
 .text-effect-chromatic-blur {
-    text-shadow:
-        -0.5px -0.5px 1px rgba(0, 255, 255, 0.5),
-         0.5px  0.5px 1px rgba(255, 0, 150, 0.5);
-    color: rgba(255,255,255,0.9); /* Slightly transparent base color */
+  text-shadow:
+      -0.5px -0.5px 1px rgba(0, 255, 255, 0.5),
+       0.5px  0.5px 1px rgba(255, 0, 150, 0.5);
+  color: rgba(255,255,255,0.9); /* Slightly transparent base color */
 }
 
 /* --- Blend Modes (Requires background to show effect) --- */
@@ -252,6 +254,7 @@
 /* == 5. Border Styles (Static)           == */
 /* ========================================= */
 /* Basic border styles using --dynamic-border-color and --dynamic-border-width */
+/* Applied to .logo-container when .dynamic-border class is present */
 .dynamic-border.border-none { border-style: none !important; box-shadow: none !important; }
 .dynamic-border.border-solid { border-style: solid; border-color: var(--dynamic-border-color); border-width: var(--dynamic-border-width); }
 .dynamic-border.border-double { border-style: double; border-color: var(--dynamic-border-color); border-width: calc(var(--dynamic-border-width) * 2.5); } /* Thicker double */
@@ -269,180 +272,183 @@
 .dynamic-border.border-dashed-thick { border-style: dashed; border-color: var(--dynamic-border-color); border-width: calc(var(--dynamic-border-width) * 1.5); }
 .dynamic-border.border-dotted-thick { border-style: dotted; border-color: var(--dynamic-border-color); border-width: calc(var(--dynamic-border-width) * 1.5); }
 
-/* Pixel Border - Relies on JS to update SVG color */
-/* Pixel Border - Relies on JS to update SVG color */
+/* Pixel Border */
 .dynamic-border.border-pixel {
-  border-width: calc(var(--dynamic-border-width) + 3px); /* Adjust thickness */
-  border-style: solid;
-  border-color: transparent;
-  /* Using currentColor as a placeholder; JS needs to generate/update this URL or a variable */
-  border-image-source: url("data:image/svg+xml,%3Csvg width='3' height='3' viewBox='0 0 3 3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2z' fill='currentColor'/%3E%3C/svg%3E");
-  border-image-slice: 1;
-  border-image-width: 1;
-  border-image-repeat: stretch;
-  image-rendering: pixelated;
-  box-shadow: none;
+border-width: calc(var(--dynamic-border-width) + 3px); /* Adjust thickness */
+border-style: solid;
+border-color: transparent; /* Color comes from image */
+/* Using currentColor as fill in SVG; JS could update fill='%23ff0000' etc. */
+border-image-source: url("data:image/svg+xml,%3Csvg width='3' height='3' viewBox='0 0 3 3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2z' fill='currentColor'/%3E%3C/svg%3E");
+border-image-slice: 1;
+border-image-width: 1; /* Controls how much of the border area the image covers */
+border-image-repeat: repeat; /* Changed from stretch for pixelated look */
+image-rendering: pixelated; /* Crucial for sharp pixels */
+box-shadow: none;
+/* Need to set color on the .logo-container itself for currentColor to work */
+color: var(--dynamic-border-color);
 }
 
 /* Inset/Outset Subtle (using box-shadow) */
 .dynamic-border.border-shadow-inset {
-  border: none;
-  box-shadow: inset 0 0 0 var(--dynamic-border-width) var(--dynamic-border-color),
-              inset 1px 1px 3px rgba(0,0,0,0.3),
-              inset -1px -1px 3px rgba(255,255,255,0.1);
+border: none;
+box-shadow: inset 0 0 0 var(--dynamic-border-width) var(--dynamic-border-color),
+            inset 1px 1px 3px rgba(0,0,0,0.3),
+            inset -1px -1px 3px rgba(255,255,255,0.1);
 }
 
 .dynamic-border.border-shadow-outset {
-  border: var(--dynamic-border-width) solid var(--dynamic-border-color);
-  box-shadow: 1px 1px 3px rgba(0,0,0,0.3),
-              -1px -1px 3px rgba(255,255,255,0.1);
+border: var(--dynamic-border-width) solid var(--dynamic-border-color);
+box-shadow: 1px 1px 3px rgba(0,0,0,0.3),
+            -1px -1px 3px rgba(255,255,255,0.1);
 }
 
 /* ============================================================ */
-/* == 6. Border Effects (Glows, Animated)                   == */
+/* == 6. Border Effects (Glows, Animated)                    == */
 /* ============================================================ */
 
 .dynamic-border.border-effect-none { box-shadow: none !important; } /* Reset specific effects */
 .dynamic-border.border-effect-none::before,
-.dynamic-border.border-effect-none::after { display: none; }
+.dynamic-border.border-effect-none::after { display: none !important; animation: none !important; }
 
 /* --- Border Glows --- */
 .dynamic-border.border-glow-soft {
-  border: 1px solid rgba(var(--dynamic-border-color-rgb), 0.5);
-  box-shadow: 0 0 10px rgba(var(--dynamic-border-color-rgb), 0.5),
-              0 0 20px rgba(var(--dynamic-border-color-rgb), 0.3);
+border: 1px solid rgba(var(--dynamic-border-color-rgb), 0.5);
+box-shadow: 0 0 10px rgba(var(--dynamic-border-color-rgb), 0.5),
+            0 0 20px rgba(var(--dynamic-border-color-rgb), 0.3);
 }
 
 .dynamic-border.border-glow-strong {
-  border: 1px solid rgba(var(--dynamic-border-color-rgb), 0.8);
-  box-shadow: 0 0 8px rgba(var(--dynamic-border-color-rgb), 0.7),
-              0 0 15px rgba(var(--dynamic-border-color-rgb), 0.5),
-              0 0 25px rgba(var(--dynamic-border-color-rgb), 0.3),
-              inset 0 0 5px rgba(var(--dynamic-border-color-rgb), 0.2);
+border: 1px solid rgba(var(--dynamic-border-color-rgb), 0.8);
+box-shadow: 0 0 8px rgba(var(--dynamic-border-color-rgb), 0.7),
+            0 0 15px rgba(var(--dynamic-border-color-rgb), 0.5),
+            0 0 25px rgba(var(--dynamic-border-color-rgb), 0.3),
+            inset 0 0 5px rgba(var(--dynamic-border-color-rgb), 0.2);
 }
 
 .dynamic-border.border-glow-pulse {
-  border: 1px solid rgba(var(--dynamic-border-color-rgb), 0.8);
-  box-shadow: 0 0 8px rgba(var(--dynamic-border-color-rgb), 0.7);
-  animation: borderGlowPulseAnim 2s infinite alternate;
+border: 1px solid rgba(var(--dynamic-border-color-rgb), 0.8);
+box-shadow: 0 0 8px rgba(var(--dynamic-border-color-rgb), 0.7);
+animation: borderGlowPulseAnim 2s infinite alternate;
 }
 
 @keyframes borderGlowPulseAnim {
-  from { box-shadow: 0 0 5px rgba(var(--dynamic-border-color-rgb), 0.5), 0 0 10px rgba(var(--dynamic-border-color-rgb), 0.3); }
-  to   { box-shadow: 0 0 12px rgba(var(--dynamic-border-color-rgb), 0.8), 0 0 25px rgba(var(--dynamic-border-color-rgb), 0.5); }
+from { box-shadow: 0 0 5px rgba(var(--dynamic-border-color-rgb), 0.5), 0 0 10px rgba(var(--dynamic-border-color-rgb), 0.3); }
+to   { box-shadow: 0 0 12px rgba(var(--dynamic-border-color-rgb), 0.8), 0 0 25px rgba(var(--dynamic-border-color-rgb), 0.5); }
 }
 
 /* --- Neon Animated Border --- */
 .dynamic-border.border-neon-animated {
-  border: var(--dynamic-border-width) solid transparent;
-  position: relative;
-  box-shadow: none;
+border: var(--dynamic-border-width) solid transparent;
+position: relative;
+box-shadow: none;
 }
 
 .dynamic-border.border-neon-animated::before,
 .dynamic-border.border-neon-animated::after {
-  content: '';
-  position: absolute;
-  inset: calc(-1 * var(--dynamic-border-width));
-  border: var(--dynamic-border-width) solid var(--dynamic-border-color);
-  border-radius: inherit;
-  animation: borderNeonPulse 2s infinite alternate;
+content: '';
+position: absolute;
+inset: calc(-1 * var(--dynamic-border-width)); /* Position outside the element */
+border: var(--dynamic-border-width) solid var(--dynamic-border-color);
+border-radius: inherit; /* Match container's radius */
+animation: borderNeonPulse 2s infinite alternate;
 }
 
 .dynamic-border.border-neon-animated::before { filter: blur(8px); opacity: 0.8; }
 .dynamic-border.border-neon-animated::after { filter: blur(20px); opacity: 0.5; animation-delay: -1s; }
 
 @keyframes borderNeonPulse {
-  from { opacity: 0.4; filter: blur(15px); }
-  to   { opacity: 0.9; filter: blur(5px); }
+from { opacity: 0.4; filter: blur(15px); border-color: rgba(var(--dynamic-border-color-rgb), 0.6); }
+to   { opacity: 0.9; filter: blur(5px); border-color: var(--dynamic-border-color); }
 }
 
 /* --- Gradient Animated Border --- */
 .dynamic-border.border-gradient-animated {
-  border: var(--dynamic-border-width) solid transparent;
-  position: relative;
-  z-index: 0;
-  box-shadow: none;
+border: var(--dynamic-border-width) solid transparent;
+position: relative;
+z-index: 0;
+box-shadow: none;
 }
 
 .dynamic-border.border-gradient-animated::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: calc(-1 * var(--dynamic-border-width));
-  border-radius: inherit;
-  padding: var(--dynamic-border-width);
-  background: linear-gradient(60deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--primary-color));
-  background-size: 300% 300%;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: borderGradientSpin 4s linear infinite;
+content: '';
+position: absolute;
+z-index: -1; /* Behind the content */
+inset: calc(-1 * var(--dynamic-border-width)); /* Position outside */
+border-radius: inherit; /* Match container radius */
+padding: var(--dynamic-border-width); /* Create space for the background */
+background: linear-gradient(60deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--primary-color));
+background-size: 300% 300%;
+-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+-webkit-mask-composite: xor;
+        mask-composite: exclude; /* Cut out the middle */
+animation: borderGradientSpin 4s linear infinite;
 }
 
 @keyframes borderGradientSpin {
-  to { background-position: 300% 0; }
+to { background-position: 300% 0; }
 }
 
 /* --- Dashed Animated Border --- */
 .dynamic-border.border-dashed-animated {
-  border: var(--dynamic-border-width) solid transparent;
-  background-image: linear-gradient(var(--dynamic-border-color), var(--dynamic-border-color)),
-                    linear-gradient(var(--dynamic-border-color), var(--dynamic-border-color)),
-                    linear-gradient(var(--dynamic-border-color), var(--dynamic-border-color)),
-                    linear-gradient(var(--dynamic-border-color), var(--dynamic-border-color));
-  background-repeat: no-repeat;
-  background-size: var(--dynamic-border-width) 20px, 20px var(--dynamic-border-width); /* Thickness x Length */
-  background-position: 0 0, 100% 0, 0 100%, 0 0;
-  animation: borderDashAnim 1s linear infinite;
-  box-shadow: none;
+border: var(--dynamic-border-width) solid transparent;
+--dash-length: 20px;
+--gap-length: 10px;
+background-image:
+  linear-gradient(90deg, var(--dynamic-border-color) var(--dash-length), transparent 0), /* Top */
+  linear-gradient(180deg, var(--dynamic-border-color) var(--dash-length), transparent 0), /* Right */
+  linear-gradient(270deg, var(--dynamic-border-color) var(--dash-length), transparent 0), /* Bottom */
+  linear-gradient(360deg, var(--dynamic-border-color) var(--dash-length), transparent 0); /* Left */
+background-size:
+  calc(var(--dash-length) + var(--gap-length)) var(--dynamic-border-width), /* Top size */
+  var(--dynamic-border-width) calc(var(--dash-length) + var(--gap-length)), /* Right size */
+  calc(var(--dash-length) + var(--gap-length)) var(--dynamic-border-width), /* Bottom size */
+  var(--dynamic-border-width) calc(var(--dash-length) + var(--gap-length)); /* Left size */
+background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+background-position: 0 0, 100% 0, 100% 100%, 0 100%; /* Initial positions */
+animation: borderDashAnim calc(var(--dash-length) + var(--gap-length)) * 0.1s linear infinite; /* Adjust speed */
+box-shadow: none;
 }
-
 @keyframes borderDashAnim {
-  0%   { background-position: 0 0, 100% 0, 0 100%, 0 0; } /* Top, Right, Bottom, Left */
-  25%  { background-position: 100% 0, 100% 100%, 0 100%, 0 100%; }
-  50%  { background-position: 100% 100%, 0 100%, 0 0, 100% 100%; }
-  75%  { background-position: 0 100%, 0 0, 100% 0, 100% 0; }
-  100% { background-position: 0 0, 100% 0, 0 100%, 0 0; }
+  to { background-position: calc(var(--dash-length) + var(--gap-length)) 0, 100% calc(var(--dash-length) + var(--gap-length)), 0 100%, 0 calc(var(--dash-length) + var(--gap-length)); }
 }
 
 /* --- Corner Border Effect --- */
 .dynamic-border.border-corners {
-  border: var(--dynamic-border-width) solid transparent;
-  position: relative;
-  box-shadow: none;
-  --corner-length: 20px; /* Length of corner lines */
+border: var(--dynamic-border-width) solid transparent;
+position: relative;
+box-shadow: none;
+--corner-length: 20px; /* Length of corner lines */
 }
 
 .dynamic-border.border-corners::before,
 .dynamic-border.border-corners::after {
-  content: '';
-  position: absolute;
-  width: var(--corner-length);
-  height: var(--corner-length);
-  border-color: var(--dynamic-border-color);
-  border-style: solid;
-  border-width: 0;
+content: '';
+position: absolute;
+width: var(--corner-length);
+height: var(--corner-length);
+border-color: var(--dynamic-border-color);
+border-style: solid;
+border-width: 0;
 }
 
 .dynamic-border.border-corners::before { /* Top-left */
-  top: calc(-1 * var(--dynamic-border-width));
-  left: calc(-1 * var(--dynamic-border-width));
-  border-top-width: var(--dynamic-border-width);
-  border-left-width: var(--dynamic-border-width);
+top: calc(-1 * var(--dynamic-border-width));
+left: calc(-1 * var(--dynamic-border-width));
+border-top-width: var(--dynamic-border-width);
+border-left-width: var(--dynamic-border-width);
 }
 
 .dynamic-border.border-corners::after { /* Bottom-right */
-  bottom: calc(-1 * var(--dynamic-border-width));
-  right: calc(-1 * var(--dynamic-border-width));
-  border-bottom-width: var(--dynamic-border-width);
-  border-right-width: var(--dynamic-border-width);
+bottom: calc(-1 * var(--dynamic-border-width));
+right: calc(-1 * var(--dynamic-border-width));
+border-bottom-width: var(--dynamic-border-width);
+border-right-width: var(--dynamic-border-width);
 }
 /* Note: To get all 4 corners, you'd need more pseudo-elements or a different technique */
 
 /* ============================================================ */
-/* == 7. Text Animations                                    == */
+/* == 7. Text Animations                                     == */
 /* ============================================================ */
 
 /* Keyframes (Includes previous ones + new) */
@@ -464,10 +470,6 @@
 @keyframes zoomInOut { 0%, 100% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1); opacity: 1; } }
 
 /* Animation Class Definitions */
-/* Base animation properties (duration, iteration count) should be set on the element or via a shared class */
-/* Assuming --current-animation-duration is defined elsewhere, e.g., 2s */
-:root { --current-animation-duration: 2s; } /* Example */
-
 .anim-none { animation: none !important; }
 .anim-pulse { animation-name: pulse; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-duration: var(--current-animation-duration); }
 .anim-bounce { animation-name: bounce; animation-iteration-count: infinite; animation-duration: var(--current-animation-duration); } /* Timing in keyframes */
@@ -477,17 +479,17 @@
 .anim-wave { animation-name: wave; animation-timing-function: ease-in-out; animation-direction: alternate; animation-iteration-count: infinite; animation-duration: var(--current-animation-duration); }
 .anim-glitch { position: relative; animation: none; }
 .anim-glitch::before, .anim-glitch::after {
-  content: attr(data-text);
-  position: absolute;
-  inset: 0;
-  background: inherit; /* Inherit background for text clipping */
-  -webkit-background-clip: text;
-          background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent; /* Ensure text color is transparent */
-  pointer-events: none;
-  animation-timing-function: steps(3, end);
-  animation-iteration-count: infinite;
+content: attr(data-text);
+position: absolute;
+inset: 0;
+background: inherit; /* Inherit background for text clipping */
+-webkit-background-clip: text;
+        background-clip: text;
+color: transparent;
+-webkit-text-fill-color: transparent; /* Ensure text color is transparent */
+pointer-events: none;
+animation-timing-function: steps(3, end);
+animation-iteration-count: infinite;
 }
 .anim-glitch::before { animation-name: glitch-1; animation-duration: calc(var(--current-animation-duration) * 0.8); animation-delay: -0.1s; }
 .anim-glitch::after { animation-name: glitch-2; animation-duration: calc(var(--current-animation-duration) * 1.1); animation-delay: 0.1s; }
@@ -497,214 +499,195 @@
 
 /* These require specific HTML structure or styles on the element */
 .anim-typing {
-  animation: typing calc(var(--current-animation-duration) * 2) steps(30, end) infinite alternate,
-             caretBlink .75s step-end infinite;
-  white-space: nowrap;
-  overflow: hidden;
-  border-right: .15em solid var(--primary-color, currentColor); /* Caret - using primary or current color */
-  width: fit-content; /* Or set width explicitly */
-  display: inline-block; /* Or block */
+animation: typing calc(var(--current-animation-duration) * 2) steps(30, end) infinite alternate,
+           caretBlink .75s step-end infinite;
+white-space: nowrap;
+overflow: hidden;
+border-right: .15em solid var(--primary-color, currentColor); /* Caret - using primary or current color */
+width: fit-content; /* Or set width explicitly */
+display: inline-block; /* Or block */
 }
 .anim-reveal { animation: textRevealClip var(--current-animation-duration) ease-in-out infinite alternate; animation-iteration-count: infinite; }
 .anim-blur { animation: blurInOut calc(var(--current-animation-duration) * 1.5) ease-in-out infinite alternate; animation-iteration-count: infinite; }
 .anim-zoom { animation: zoomInOut calc(var(--current-animation-duration) * 1.5) ease-in-out infinite alternate; animation-iteration-count: infinite; }
 
-/* Apply gradient flow animation if text is gradient AND has other animation */
-/* This part is complex and might require JS for robust handling of combined animations */
-/* Simple approach: Add gradient flow as a separate animation layer */
-@keyframes gradientTextFlow {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
-}
-
-.logo-text.dynamic-gradient-text {
-    /* Assumes gradient is applied elsewhere */
-    background-size: 200% 200%; /* Required for flow effect */
-}
-
 /* Combine base animation with gradient flow */
-.logo-text.dynamic-gradient-text.anim-pulse { animation: pulse var(--current-animation-duration) ease-in-out infinite, gradientTextFlow 8s linear infinite alternate; }
-.logo-text.dynamic-gradient-text.anim-bounce { animation: bounce var(--current-animation-duration) infinite, gradientTextFlow 8s linear infinite alternate; }
-.logo-text.dynamic-gradient-text.anim-shake { animation: shake calc(var(--current-animation-duration) * 0.4) infinite, gradientTextFlow 8s linear infinite alternate; }
-.logo-text.dynamic-gradient-text.anim-float { animation: float calc(var(--current-animation-duration) * 1.8) ease-in-out infinite alternate, gradientTextFlow 8s linear infinite alternate; }
-.logo-text.dynamic-gradient-text.anim-rotate { animation: rotate calc(var(--current-animation-duration) * 3) linear infinite, gradientTextFlow 8s linear infinite alternate; }
-.logo-text.dynamic-gradient-text.anim-wave { animation: wave var(--current-animation-duration) ease-in-out infinite alternate, gradientTextFlow 8s linear infinite alternate; }
-/* Note: Glitch might conflict visually. Apply gradient flow only if needed. */
-/* .logo-text.dynamic-gradient-text.anim-glitch { ... } */
-.logo-text.dynamic-gradient-text.anim-fade { animation: fadeInOut var(--current-animation-duration) ease-in-out infinite alternate, gradientTextFlow 8s linear infinite alternate; }
-.logo-text.dynamic-gradient-text.anim-rotate3d { animation: subtleRotate3D calc(var(--current-animation-duration) * 2.5) ease-in-out infinite alternate, gradientTextFlow 8s linear infinite alternate; }
-.logo-text.dynamic-gradient-text.anim-flicker { animation: flicker calc(var(--current-animation-duration) * 1.5) steps(1, end) infinite, gradientTextFlow 8s linear infinite alternate; }
-/* Reveal, Blur, Zoom might also conflict or need specific timing adjustments */
+.logo-text.dynamic-gradient-text {
+  /* Assumes gradient is applied elsewhere */
+  background-size: 200% 200%; /* Required for flow effect */
+}
+
+/* Only apply gradient flow if NOT using certain animations that might conflict */
+.logo-text.dynamic-gradient-text:not(.anim-glitch):not(.anim-typing):not(.anim-reveal):not(.anim-blur):not(.anim-zoom) {
+  animation-name: inherit, gradientTextFlow; /* Inherit base anim, add flow */
+  animation-duration: inherit, 8s;
+  animation-timing-function: inherit, linear;
+  animation-iteration-count: inherit, infinite;
+  animation-direction: inherit, alternate;
+}
+/* Reset for specific conflicting animations if needed */
+.logo-text.dynamic-gradient-text.anim-glitch,
+.logo-text.dynamic-gradient-text.anim-typing,
+.logo-text.dynamic-gradient-text.anim-reveal,
+.logo-text.dynamic-gradient-text.anim-blur,
+.logo-text.dynamic-gradient-text.anim-zoom {
+  /* Re-declare only the base animation 
+    animation: /* Define base animation properties again here */
+   /* Example for glitch */
+   /* animation: none; */ /* Glitch uses pseudo-elements */
+}
 
 /* ============================================================ */
-/* == 8. Background Patterns & Effects                      == */
+/* == 8. Background Patterns & Effects                       == */
 /* ============================================================ */
 
-.preview-container {
-  transition: background var(--transition-duration-base, 0.3s) ease-out; /* Added fallback */
+/* Reset styles for preview container */
+#previewContainer {
+  transition: background var(--transition-duration-base, 0.3s) ease-out, opacity var(--transition-duration-base, 0.3s) ease-out;
   position: relative;
   overflow: hidden; /* Often needed for pseudo-element overlays */
-  /* Define necessary background variables if not global */
-  --dynamic-bg-color: #f0f0f0; /* Example */
-  --dynamic-bg-gradient: linear-gradient(to right, #eee, #ddd); /* Example */
-  --surface-sunken-opaque: #e0e0e0; /* Example */
-  --border-subtle: rgba(0,0,0,0.1); /* Example */
-  --bg-base: #ffffff; /* Example */
-  --border-default: rgba(0,0,0,0.2); /* Example */
-  --surface-sunken: #e8e8e8; /* Example */
+  background-image: none; /* Start with no image */
+  background-color: transparent; /* Start transparent to allow JS setting */
 }
 
-/* Apply background color/gradient via these classes (or JS) */
-.bg-transparent { background: transparent !important; }
-.bg-solid { background-color: var(--dynamic-bg-color); background-image: none; }
-.bg-gradient { background-image: var(--dynamic-bg-gradient); background-size: 100% 100%; background-color: transparent; }
-.bg-gradient-animated {
-  background-image: var(--dynamic-bg-gradient);
-  background-size: 300% 300%;
-  animation: gradientBG 12s ease infinite alternate;
+/* Apply background color/gradient/patterns via these classes applied to #previewContainer */
+#previewContainer.bg-transparent { background: transparent !important; }
+#previewContainer.bg-solid {
+  /* background-color is set inline by JS */
+  background-image: none;
+}
+#previewContainer.bg-gradient {
+  /* background-image is set inline by JS */
+  background-size: 100% 100%;
+  background-color: transparent; /* Ensure color doesn't obscure gradient */
+}
+
+/* Animated gradient uses specific class */
+#previewContainer.bg-gradient-animated-css {
+  /* background-image is set inline by JS */
+  background-size: 300% 300%; /* Adjust as needed */
+  animation: bgAnimateGradient var(--bg-animation-duration, 15s) ease infinite;
   background-color: transparent;
 }
 
-@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+/* Keyframes defined in variables.css or here */
+@keyframes bgAnimateGradient {
+0% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+100% { background-position: 0% 50%; }
 }
 
-/* --- Static Patterns --- */
-.bg-grid { background-color: var(--surface-sunken-opaque); background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 30px 30px; }
-.bg-dots-sm { background-color: var(--bg-base); background-image: radial-gradient(var(--border-default) 1px, transparent 1px); background-size: 15px 15px; }
-.bg-dots-lg { background-color: var(--bg-base); background-image: radial-gradient(var(--border-default) 2px, transparent 2px); background-size: 30px 30px; }
-.bg-checkerboard { background-color: var(--surface-sunken); background-image: linear-gradient(45deg, var(--border-subtle) 25%, transparent 25%), linear-gradient(-45deg, var(--border-subtle) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--border-subtle) 75%), linear-gradient(-45deg, transparent 75%, var(--border-subtle) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
-.bg-lines-diag { background-color: var(--bg-base); background-image: repeating-linear-gradient(45deg, var(--border-subtle), var(--border-subtle) 1px, transparent 1px, transparent 10px); }
-.bg-lines-vert { background-color: var(--bg-base); background-image: repeating-linear-gradient(to right, var(--border-subtle), var(--border-subtle) 1px, transparent 1px, transparent 10px); }
-.bg-carbon { background-color: #222; background-image: linear-gradient(45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent), linear-gradient(-45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent); background-size: 10px 10px; }
-.bg-brushed-metal { background: linear-gradient(to bottom, #aaa, #eee, #aaa), linear-gradient(to right, rgba(0,0,0,0.1) 0px, rgba(255,255,255,0.1) 1px, rgba(0,0,0,0.1) 2px); background-size: 100% 100%, 100% 2px; }
+/* --- Static Patterns - Target #previewContainer --- */
+#previewContainer.bg-grid { background-color: var(--surface-sunken-opaque); background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 30px 30px; }
+#previewContainer.bg-dots-sm { background-color: var(--bg-base); background-image: radial-gradient(var(--border-default) 1px, transparent 1px); background-size: 15px 15px; }
+#previewContainer.bg-dots-lg { background-color: var(--bg-base); background-image: radial-gradient(var(--border-default) 2px, transparent 2px); background-size: 30px 30px; }
+#previewContainer.bg-checkerboard { background-color: var(--surface-sunken); background-image: linear-gradient(45deg, var(--border-subtle) 25%, transparent 25%), linear-gradient(-45deg, var(--border-subtle) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--border-subtle) 75%), linear-gradient(-45deg, transparent 75%, var(--border-subtle) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
+#previewContainer.bg-lines-diag { background-color: var(--bg-base); background-image: repeating-linear-gradient(45deg, var(--border-subtle), var(--border-subtle) 1px, transparent 1px, transparent 10px); }
+#previewContainer.bg-lines-vert { background-color: var(--bg-base); background-image: repeating-linear-gradient(to right, var(--border-subtle), var(--border-subtle) 1px, transparent 1px, transparent 10px); }
+#previewContainer.bg-carbon { background-color: #222; background-image: linear-gradient(45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent), linear-gradient(-45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent); background-size: 10px 10px; }
+#previewContainer.bg-brushed-metal { background: linear-gradient(to bottom, #aaa, #eee, #aaa), linear-gradient(to right, rgba(0,0,0,0.1) 0px, rgba(255,255,255,0.1) 1px, rgba(0,0,0,0.1) 2px); background-size: 100% 100%, 100% 2px; }
 
-/* --- Pattern Overlays (using ::before on .preview-container) --- */
-/* Ensure .preview-container has position: relative */
-.preview-container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0; /* Adjust if needed relative to content */
-  opacity: 1; /* Control opacity per pattern */
-  background-color: transparent; /* Ensure no base color */
-  background-image: none; /* Reset */
+
+/* --- Pattern Overlays (using ::before on #previewContainer) --- */
+#previewContainer::before {
+content: '';
+position: absolute;
+inset: 0;
+pointer-events: none;
+z-index: 0; /* Below text */
+opacity: 1;
+background-color: transparent;
+background-image: none; /* Reset */
 }
 
-/* Apply pattern classes to the .preview-container itself */
-.bg-noise::before {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
-  opacity: 0.6;
+/* Apply pattern overlay classes to #previewContainer */
+#previewContainer.bg-noise::before {
+background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+opacity: 0.6;
 }
-body.light-mode .bg-noise::before { opacity: 0.4; }
+body.light-mode #previewContainer.bg-noise::before { opacity: 0.4; }
 
-.bg-scanlines::before {
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px);
-  opacity: 0.5;
+#previewContainer.bg-scanlines::before {
+background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px);
+opacity: 0.5;
 }
-body.light-mode .bg-scanlines::before {
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px);
-  opacity: 0.7;
-}
-
-.bg-circuit::before {
-  /* Static placeholder colors; JS would need to construct this URL dynamically for variable colors */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23888888' stop-opacity='.2'/%3E%3Cstop offset='100%25' stop-color='%23cccccc' stop-opacity='.2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)'/%3E%3Cpath d='M0 50 H20 V20 H40 V50 H60 V80 H80 V50 H100 M50 0 V20 M80 20 V0 M20 80 V100 M50 80 V100 M80 80 V100' stroke='rgba(255,255,255,0.1)' stroke-width='1' fill='none'/%3E%3Ccircle cx='20' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='20' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
-  background-size: 100px 100px;
-  opacity: 0.5;
+body.light-mode #previewContainer.bg-scanlines::before {
+background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px);
+opacity: 0.7;
 }
 
-body.light-mode .bg-circuit::before { opacity: 0.2; /* Lighter on light mode */ }
+#previewContainer.bg-circuit::before {
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23888888' stop-opacity='.2'/%3E%3Cstop offset='100%25' stop-color='%23cccccc' stop-opacity='.2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)'/%3E%3Cpath d='M0 50 H20 V20 H40 V50 H60 V80 H80 V50 H100 M50 0 V20 M80 20 V0 M20 80 V100 M50 80 V100 M80 80 V100' stroke='rgba(255,255,255,0.1)' stroke-width='1' fill='none'/%3E%3Ccircle cx='20' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='20' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
+background-size: 100px 100px;
+opacity: 0.5;
+}
+body.light-mode #previewContainer.bg-circuit::before { opacity: 0.2; }
 
-/* --- Animated Backgrounds --- */
-.bg-stars { background-color: var(--bg-deep); background-image: radial-gradient(circle at center, rgba(255,255,255,0.8) 0px, transparent 1px), radial-gradient(circle at center, rgba(255,255,255,0.5) 0px, transparent 2px), radial-gradient(circle at center, rgba(255,255,255,0.3) 0px, transparent 3px); background-size: 60px 60px, 110px 110px, 180px 180px; background-position: 0 0, 30px 30px, 70px 80px; animation: starsTwinkle 30s linear infinite alternate; }
+
+/* --- Animated Backgrounds - Target #previewContainer --- */
+#previewContainer.bg-stars { background-color: var(--bg-deep, #05060a); background-image: radial-gradient(circle at center, rgba(255,255,255,0.8) 0px, transparent 1px), radial-gradient(circle at center, rgba(255,255,255,0.5) 0px, transparent 2px), radial-gradient(circle at center, rgba(255,255,255,0.3) 0px, transparent 3px); background-size: 60px 60px, 110px 110px, 180px 180px; background-position: 0 0, 30px 30px, 70px 80px; animation: starsTwinkle 30s linear infinite alternate; }
 @keyframes starsTwinkle { 0% { background-position: 0 0, 30px 30px, 70px 80px; } 100% { background-position: -50px 20px, 10px 80px, 120px 20px; } }
 
-.bg-synthwave { background: linear-gradient(to bottom, #1e1035 0%, #4a2a70 60%, #f03d90 100%); }
-.bg-synthwave::before { /* Grid lines */ content: ""; position: absolute; inset: 0; top: 50%; background-image: linear-gradient(to bottom, rgba(var(--accent-color-rgb), 0.5) 1px, transparent 1px); background-size: 100% 30px; transform: perspective(150px) rotateX(65deg); transform-origin: center top; animation: synthGridScroll 8s linear infinite; z-index: 0; }
+#previewContainer.bg-synthwave { background: linear-gradient(to bottom, #1e1035 0%, #4a2a70 60%, #f03d90 100%); }
+#previewContainer.bg-synthwave::before { /* Grid lines */ content: ""; position: absolute; inset: 0; top: 50%; background-image: linear-gradient(to bottom, rgba(var(--accent-color-rgb), 0.5) 1px, transparent 1px); background-size: 100% 30px; transform: perspective(150px) rotateX(65deg); transform-origin: center top; animation: synthGridScroll 8s linear infinite; z-index: 0; }
 @keyframes synthGridScroll { from { background-position: 0 0; } to { background-position: 0 -60px; } }
-.bg-synthwave::after { /* Sun */ content: ''; position: absolute; bottom: 65%; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, #fada7a 10%, #f03d90 60%, transparent 70%); filter: blur(10px); opacity: 0.7; z-index: 0; }
+#previewContainer.bg-synthwave::after { /* Sun */ content: ''; position: absolute; bottom: 65%; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, #fada7a 10%, #f03d90 60%, transparent 70%); filter: blur(10px); opacity: 0.7; z-index: 0; }
 
-/* Matrix Background - Multi-Column CSS Attempt */
-.bg-matrix { background-color: #000; filter: saturate(1.5) brightness(1.1); } /* Enhance green */
-.bg-matrix .matrix-columns { display: flex; position: absolute; inset: 0; z-index: 0; }
-.bg-matrix .matrix-column {
-    writing-mode: vertical-rl; /* Vertical text */
-    text-orientation: upright;
-    white-space: nowrap; /* Prevent wrapping */
-    user-select: none;
-    font-size: 14px; /* Adjust size */
-    line-height: 1.1;
-    color: rgba(0, 255, 0, 0.8); /* Matrix green */
-    text-shadow: 0 0 5px rgba(0, 255, 0, 0.7), 0 0 10px rgba(50, 255, 50, 0.5);
-    flex: 1; /* Distribute space */
-    overflow: hidden; /* Hide text outside column */
-    position: relative; /* For pseudo-element */
-    animation: matrixScroll var(--scroll-speed, 10s) linear infinite;
+/* Matrix Background - Applied to #previewContainer */
+#previewContainer.bg-matrix { background-color: #000; filter: saturate(1.5) brightness(1.1); }
+/* NOTE: .matrix-columns and .matrix-column need to be children of #previewContainer */
+#previewContainer.bg-matrix .matrix-columns { display: flex; position: absolute; inset: 0; z-index: 0; }
+#previewContainer.bg-matrix .matrix-column {
+  writing-mode: vertical-rl; text-orientation: upright; white-space: nowrap;
+  user-select: none; font-size: 14px; line-height: 1.1;
+  color: rgba(0, 255, 0, 0.8);
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.7), 0 0 10px rgba(50, 255, 50, 0.5);
+  flex: 1; overflow: hidden; position: relative;
+  animation: matrixScroll var(--scroll-speed, 10s) linear infinite;
 }
-/* Stagger animation speeds and delays via JS or inline styles */
-@keyframes matrixScroll {
-    0% { transform: translateY(-100%); } /* Start off-screen top */
-    100% { transform: translateY(100%); } /* End off-screen bottom */
-}
-/* Highlight effect for leading characters (difficult in pure CSS) */
-/* Could add a ::before pseudo-element with brighter color and shorter height? */
-/* This setup requires JS to generate the columns and random text content */
-/* Placeholder text - JS should replace this */
-.matrix-column::before {
-    content: '01101011010010111010101100101001010110100101011010101101010110101011010010101010110101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101`;
+@keyframes matrixScroll { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+#previewContainer.bg-matrix .matrix-column::before { /* Placeholder content */
+  content: '0110101101001011101010110010100101011010010101101010110101011010101101001010101011010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101';
 }
 
-/* css/effects.css (Continued from matrix-column::before) */
 
-/* Note: A truly good Matrix effect requires Canvas or more advanced techniques. */
-/* This CSS version is limited and relies heavily on JS setup for content/timing. */
-
-
-/* --- NEW Backgrounds --- */
-.bg-nebula {
-  background-color: #0a0b10; /* Deep space */
-  background-image:
-      /* Swirl 1 */
-      radial-gradient(ellipse at 30% 70%, rgba(var(--primary-color-rgb), 0.4) 0%, transparent 60%),
-      /* Swirl 2 */
-      radial-gradient(ellipse at 70% 30%, rgba(var(--secondary-color-rgb), 0.4) 0%, transparent 50%),
-      /* Swirl 3 */
-      radial-gradient(ellipse at 50% 50%, rgba(var(--accent-color-rgb), 0.3) 0%, transparent 70%),
-      /* Tiny Stars (duplicate from .bg-stars) */
-      radial-gradient(circle at center, rgba(255,255,255,0.6) 0px, transparent 1px);
-  background-size: 150% 150%, 120% 120%, 180% 180%, 80px 80px;
-  background-position: -20% 0%, 120% 80%, 50% 50%, 10px 10px;
-  animation: nebulaDrift 60s linear infinite alternate;
+/* --- NEW Backgrounds - Target #previewContainer --- */
+#previewContainer.bg-nebula {
+background-color: #0a0b10;
+background-image:
+    radial-gradient(ellipse at 30% 70%, rgba(var(--primary-color-rgb), 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 30%, rgba(var(--secondary-color-rgb), 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(var(--accent-color-rgb), 0.3) 0%, transparent 70%),
+    radial-gradient(circle at center, rgba(255,255,255,0.6) 0px, transparent 1px);
+background-size: 150% 150%, 120% 120%, 180% 180%, 80px 80px;
+background-position: -20% 0%, 120% 80%, 50% 50%, 10px 10px;
+animation: nebulaDrift 60s linear infinite alternate;
 }
 @keyframes nebulaDrift {
-  0% { background-position: -20% 0%, 120% 80%, 50% 50%, 10px 10px; }
-  100% { background-position: 20% 100%, 0% 0%, 50% 50%, -40px 50px; }
+0% { background-position: -20% 0%, 120% 80%, 50% 50%, 10px 10px; }
+100% { background-position: 20% 100%, 0% 0%, 50% 50%, -40px 50px; }
 }
 
-.bg-geometric-cubes {
-  background-color: var(--bg-base);
-  --cube-size: 50px;
-  /* Use HSL for easier alpha adjustment */
-  --cube-color-1: hsla(from var(--primary-color) h s l / 0.1);
-  --cube-color-2: hsla(from var(--secondary-color) h s l / 0.1);
-  --cube-color-3: hsla(from var(--accent-color) h s l / 0.1);
-  background-image:
-      linear-gradient(30deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
-      linear-gradient(150deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
-      linear-gradient(30deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
-      linear-gradient(150deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
-      linear-gradient(60deg, var(--cube-color-2) 25%, transparent 25.5%, transparent 75%, var(--cube-color-2) 75%, var(--cube-color-2)),
-      linear-gradient(60deg, var(--cube-color-3) 25%, transparent 25.5%, transparent 75%, var(--cube-color-3) 75%, var(--cube-color-3));
-  background-size: calc(var(--cube-size) * 1.732) var(--cube-size); /* sqrt(3)*size, size */
-  background-position: 0 0, 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5);
+#previewContainer.bg-geometric-cubes {
+background-color: var(--bg-base);
+--cube-size: 50px;
+--cube-color-1: hsla(from var(--primary-color) h s l / 0.1);
+--cube-color-2: hsla(from var(--secondary-color) h s l / 0.1);
+--cube-color-3: hsla(from var(--accent-color) h s l / 0.1);
+background-image:
+    linear-gradient(30deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
+    linear-gradient(150deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
+    linear-gradient(30deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
+    linear-gradient(150deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
+    linear-gradient(60deg, var(--cube-color-2) 25%, transparent 25.5%, transparent 75%, var(--cube-color-2) 75%, var(--cube-color-2)),
+    linear-gradient(60deg, var(--cube-color-3) 25%, transparent 25.5%, transparent 75%, var(--cube-color-3) 75%, var(--cube-color-3));
+background-size: calc(var(--cube-size) * 1.732) var(--cube-size);
+background-position: 0 0, 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5);
 }
-body.light-mode .bg-geometric-cubes {
-   --cube-color-1: hsla(from var(--primary-color) h s l / 0.05);
-   --cube-color-2: hsla(from var(--secondary-color) h s l / 0.05);
-   --cube-color-3: hsla(from var(--accent-color) h s l / 0.05);
+body.light-mode #previewContainer.bg-geometric-cubes {
+ --cube-color-1: hsla(from var(--primary-color) h s l / 0.05);
+ --cube-color-2: hsla(from var(--secondary-color) h s l / 0.05);
+ --cube-color-3: hsla(from var(--accent-color) h s l / 0.05);
 }
 
 
@@ -723,13 +706,13 @@ left: -75%;
 width: 50%; /* Width of shine */
 height: 200%; /* Height to cover element diagonally */
 background: linear-gradient(
-  to right,
-  rgba(255, 255, 255, 0) 0%,
-  rgba(255, 255, 255, 0.3) 50%, /* Shine color/intensity */
-  rgba(255, 255, 255, 0) 100%
+to right,
+rgba(255, 255, 255, 0) 0%,
+rgba(255, 255, 255, 0.3) 50%, /* Shine color/intensity */
+rgba(255, 255, 255, 0) 100%
 );
 transform: rotate(25deg); /* Angle the shine */
-transition: left var(--transition-duration-slow) ease-out; /* Animate left position */
+transition: left var(--transition-slow) ease-out; /* Animate left position */
 pointer-events: none; /* Allow interaction with element below */
 z-index: 1; /* Ensure it's above base background but potentially below text */
 }
@@ -741,63 +724,62 @@ left: 125%; /* Move shine across and off the element */
 
 /* ====== UTILITIES & HELPERS ====== */
 .force-hardware-acceleration { /* May improve animation performance, use sparingly */
-  transform: translateZ(0);
+transform: translateZ(0);
 }
 
 
 /* ========================================================================== */
-/* ==                 RESPONSIVE & ACCESSIBILITY ADJUSTMENTS               == */
+/* ==                   RESPONSIVE & ACCESSIBILITY ADJUSTMENTS             == */
 /* ========================================================================== */
 
 /* --- Mobile Optimizations --- */
-/* Reduce effect intensity and animation speed on smaller screens */
 @media (max-width: 768px) {
 
-  :root {
-      /* Slow down animations slightly */
-      --current-animation-duration: calc(var(--animation-duration-base) * 1.3);
-  }
+:root {
+    /* Slow down animations slightly */
+    --current-animation-duration: calc(var(--animation-duration-base, 2s) * 1.3);
+}
 
-  /* Text Glows - Reduce blur/spread */
-  .text-glow-soft { text-shadow: 0 0 6px rgba(var(--dynamic-border-color-rgb), 0.6), 0 0 10px rgba(var(--dynamic-border-color-rgb), 0.3); }
-  .text-glow-medium { text-shadow: 0 0 4px rgba(var(--dynamic-border-color-rgb), 0.8), 0 0 12px rgba(var(--dynamic-border-color-rgb), 0.5); }
-  .text-glow-neon {
-      text-shadow:
-          0 0 3px var(--dynamic-border-color),
-          0 0 8px var(--dynamic-border-color),
-          0 0 15px rgba(var(--primary-color-rgb), 0.6);
-  }
-  .text-effect-fire { /* Simpler fire */
-      text-shadow: 0 0 3px #fff, 0 -3px 3px #ff3, 1px -7px 6px #f80;
-  }
-  .text-glow-retro { /* Reduce offset */
-      text-shadow: 2px 2px 0px var(--secondary-color), 4px 4px 0px var(--primary-color);
-  }
+/* Text Glows - Reduce blur/spread */
+.text-glow-soft { text-shadow: 0 0 6px rgba(var(--dynamic-border-color-rgb), 0.6), 0 0 10px rgba(var(--dynamic-border-color-rgb), 0.3); }
+.text-glow-medium { text-shadow: 0 0 4px rgba(var(--dynamic-border-color-rgb), 0.8), 0 0 12px rgba(var(--dynamic-border-color-rgb), 0.5); }
+.text-glow-neon-primary, .text-glow-neon-accent, .text-glow-neon-dual, .text-glow-neon-intense {
+    text-shadow:
+        0 0 3px var(--dynamic-border-color),
+        0 0 8px var(--dynamic-border-color),
+        0 0 15px rgba(var(--primary-color-rgb), 0.6); /* Simpler neon */
+}
+ .text-glow-fire { /* Simpler fire */
+     text-shadow: 0 0 4px #fff, 0 0 8px #ff0, 0 0 15px #f90;
+ }
+.text-shadow-multi-layer-retro { /* Reduce offset */
+    text-shadow: 2px 2px 0px var(--secondary-color), 4px 4px 0px var(--primary-color);
+}
 
-  /* Border Effects - Reduce intensity */
-  .dynamic-border.border-glow-soft { box-shadow: 0 0 6px rgba(var(--dynamic-border-color-rgb), 0.4), 0 0 12px rgba(var(--dynamic-border-color-rgb), 0.2); }
-  .dynamic-border.border-glow-strong {
-      box-shadow: 0 0 5px rgba(var(--dynamic-border-color-rgb), 0.6),
-                  0 0 10px rgba(var(--dynamic-border-color-rgb), 0.4),
-                  inset 0 0 3px rgba(var(--dynamic-border-color-rgb), 0.15);
-  }
-  .dynamic-border.border-neon-animated::before { filter: blur(5px); opacity: 0.7; }
-  .dynamic-border.border-neon-animated::after { filter: blur(15px); opacity: 0.4; }
+/* Border Effects - Reduce intensity */
+.dynamic-border.border-glow-soft { box-shadow: 0 0 6px rgba(var(--dynamic-border-color-rgb), 0.4), 0 0 12px rgba(var(--dynamic-border-color-rgb), 0.2); }
+.dynamic-border.border-glow-strong {
+    box-shadow: 0 0 5px rgba(var(--dynamic-border-color-rgb), 0.6),
+                0 0 10px rgba(var(--dynamic-border-color-rgb), 0.4),
+                inset 0 0 3px rgba(var(--dynamic-border-color-rgb), 0.15);
+}
+.dynamic-border.border-neon-animated::before { filter: blur(5px); opacity: 0.7; }
+.dynamic-border.border-neon-animated::after { filter: blur(15px); opacity: 0.4; }
 
-  /* Backgrounds - Simplify or reduce intensity */
-  .bg-synthwave::before { opacity: 0.3; background-size: 100% 40px; } /* Wider lines */
-  .bg-synthwave::after { width: 150px; height: 150px; filter: blur(15px); opacity: 0.6; } /* Smaller sun */
-  .bg-stars { background-size: 80px 80px, 150px 150px; background-position: 0 0, 40px 40px; } /* Fewer star layers */
-  .bg-nebula { background-size: 120% 120%, 100% 100%, 150% 150%, 100px 100px; opacity: 0.8; } /* Slightly simpler nebula */
-  .bg-matrix .matrix-column { font-size: clamp(8px, 1.2vw, 12px); } /* Smaller matrix text */
-  .bg-noise::before { opacity: 0.4; }
-  body.light-mode .bg-noise::before { opacity: 0.3; }
+/* Backgrounds - Simplify or reduce intensity */
+#previewContainer.bg-synthwave::before { opacity: 0.3; background-size: 100% 40px; } /* Wider lines */
+#previewContainer.bg-synthwave::after { width: 150px; height: 150px; filter: blur(15px); opacity: 0.6; } /* Smaller sun */
+#previewContainer.bg-stars { background-size: 80px 80px, 150px 150px; background-position: 0 0, 40px 40px; } /* Fewer star layers */
+#previewContainer.bg-nebula { background-size: 120% 120%, 100% 100%, 150% 150%, 100px 100px; opacity: 0.8; } /* Slightly simpler nebula */
+#previewContainer.bg-matrix .matrix-column { font-size: clamp(8px, 1.2vw, 12px); } /* Smaller matrix text */
+#previewContainer.bg-noise::before { opacity: 0.4; }
+body.light-mode #previewContainer.bg-noise::before { opacity: 0.3; }
 
-  /* Animations - Ensure already slowed by --current-animation-duration change */
-  /* Further simplify glitch if needed */
-   .anim-glitch::before, .anim-glitch::after {
-      animation-timing-function: steps(2, end); /* Less jumpy */
-   }
+/* Animations - Ensure already slowed by --current-animation-duration change */
+/* Further simplify glitch if needed */
+ .anim-glitch::before, .anim-glitch::after {
+    animation-timing-function: steps(2, end); /* Less jumpy */
+ }
 }
 
 
@@ -806,13 +788,13 @@ left: 125%; /* Move shine across and off the element */
 *,
 *::before,
 *::after {
-  animation-delay: -1ms !important;
-  animation-duration: 1ms !important;
-  animation-iteration-count: 1 !important;
-  background-attachment: initial !important;
-  scroll-behavior: auto !important;
-  transition-duration: 0s !important;
-  transition-delay: 0s !important;
+animation-delay: -1ms !important;
+animation-duration: 1ms !important;
+animation-iteration-count: 1 !important;
+background-attachment: initial !important;
+scroll-behavior: auto !important;
+transition-duration: 0s !important;
+transition-delay: 0s !important;
 }
 
 /* Specifically disable animations defined in this file */
@@ -823,43 +805,47 @@ left: 125%; /* Move shine across and off the element */
 .dynamic-border.border-neon-animated::after,
 .dynamic-border.border-gradient-animated::before,
 .dynamic-border.border-dashed-animated,
-.bg-gradient-animated,
-.bg-stars,
-.bg-synthwave::before,
-.bg-matrix .matrix-column,
-.bg-nebula {
-  animation: none !important;
+#previewContainer.bg-gradient-animated-css, /* Target preview container */
+#previewContainer.bg-stars,
+#previewContainer.bg-synthwave::before,
+#previewContainer.bg-matrix .matrix-column,
+#previewContainer.bg-nebula {
+animation: none !important;
 }
 
 /* Remove hover transforms that rely on motion */
 .hover-reveal::after {
-    transition: none !important;
-    left: -75%; /* Keep hidden */
+  transition: none !important;
+  left: -75%; /* Keep hidden */
 }
 }
 
 /* --- High Contrast Preference --- */
 @media (prefers-contrast: high) {
-  /* Remove subtle glows and shadows */
-  [class*="text-glow-"],
-  [class*="border-glow-"],
-  .dynamic-border.border-neon-animated::before,
-  .dynamic-border.border-neon-animated::after {
-      text-shadow: none !important;
-      box-shadow: none !important;
-      filter: none !important;
-      animation: none !important; /* Disable pulsing effects */
-      opacity: 1 !important; /* Ensure visibility if opacity was used */
-  }
-   /* Ensure borders are solid and clearly visible */
-  .dynamic-border.border-glow-soft,
-  .dynamic-border.border-glow-strong,
-  .dynamic-border.border-glow-pulse,
-  .dynamic-border.border-neon-animated {
-      border: var(--dynamic-border-width) solid var(--dynamic-border-color);
-  }
-  /* Consider making patterned backgrounds simpler or solid */
-  .bg-nebula, .bg-geometric-cubes, .bg-synthwave {
-      background-image: none; /* Remove complex gradients */
-  }
+/* Remove subtle glows and shadows */
+[class*="text-glow-"],
+[class*="border-glow-"],
+.dynamic-border.border-neon-animated::before,
+.dynamic-border.border-neon-animated::after {
+    text-shadow: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    animation: none !important; /* Disable pulsing effects */
+    opacity: 1 !important; /* Ensure visibility if opacity was used */
+}
+ /* Ensure borders are solid and clearly visible */
+.dynamic-border.border-glow-soft,
+.dynamic-border.border-glow-strong,
+.dynamic-border.border-glow-pulse,
+.dynamic-border.border-neon-animated {
+    border: var(--dynamic-border-width) solid var(--dynamic-border-color) !important; /* Ensure solid border */
+}
+/* Consider making patterned backgrounds simpler or solid */
+#previewContainer.bg-nebula,
+#previewContainer.bg-geometric-cubes,
+#previewContainer.bg-synthwave {
+    background-image: none !important; /* Remove complex gradients/patterns */
+}
+#previewContainer.bg-synthwave::before, /* Hide overlays */
+#previewContainer.bg-synthwave::after { display: none !important; }
 }

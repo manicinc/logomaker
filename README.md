@@ -1,24 +1,73 @@
-# Logomaker - An experiment in human-computer interaction
+# Logomaker - Portable, Offline-First Logo Generator
 
-Logomaker is a free, open-source logo generator packed with fonts, effects, and export options, designed with **extreme portability** and **offline-first** use in mind.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Online-brightgreen)](https://manicinc.github.io/logomaker/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/manicinc)
 
-Logomaker was built by [Manic](https://manic.agency), a dev shop catered towards creative and thoughtfully-designed software. As an experiment to test the capabilities of generative AI's coding abilities, Logomaker was built solely with prompts given to LLMS, mainly GPT-4, Claude 3 (Opus/Sonnet, and Gemini Pro, with minimal handcoding done besides modifying the files and testing / guiding the LLMs.
+Logomaker is a free, open-source logo generator packed with fonts and effects, designed with **extreme portability** and **offline-first** use at its core. Create dynamic logos anytime, anywhere – even without an internet connection!
 
-Likewise, no visual design / mockups were involved in creating the software, just guiding the LLM with specific prompts and iterating.
-
-![Logomaker Preview](./preview.png)
-
-**Live Demo**: <https://manicinc.github.io/logomaker/> (Free & Always Available!)
-
-*(**Note on Demo Performance:** The GitHub Pages demo might load slowly initially. See "Why the Base64 Fonts?" below.)*
+Built by [Manic](https://manic.agency), a creative development shop. *(Logomaker also served as an experiment in Human+AI collaborative coding - see 'Development Insights' below).*
 
 ---
 
-## ✨ Features at a Glance
+![Logomaker Preview](./preview.png)
+
+---
+
+## 🚀 Get Started
+
+### Use Online (Quickest Preview)
+
+➡️ **[Try the Live Demo: manicinc.github.io/logomaker/](https://manicinc.github.io/logomaker/)**
+
+* **Important:** The online demo embeds all fonts for offline compatibility, causing a **very slow initial load (~90MB)**. Please be patient! See the note below ("A Note on Demo Performance") for details.*
+
+### Run Locally (Recommended for Best Performance)
+
+This method provides the optimal experience by loading fonts efficiently as needed.
+
+1.  **Install Git LFS:** If you haven't already, install from [git-lfs.com](https://git-lfs.com).
+2.  **Clone Repo & Pull LFS Files:**
+    ```bash
+    # Enable LFS for your user account (only need to do this once per system)
+    git lfs install
+    # Clone the repository
+    git clone [https://github.com/manicinc/logomaker.git](https://github.com/manicinc/logomaker.git)
+    cd logomaker
+    # Download the large font files managed by LFS
+    git lfs pull
+    ```
+3.  **(Optional) Generate `fonts.json`:** Only needed if you add/change fonts in the `/fonts` directory. Requires Node.js.
+    ```bash
+    node generate-fonts-json.js
+    ```
+4.  **Run a Local Web Server:** From within the `logomaker` directory:
+    ```bash
+    # Example using Python 3
+    python -m http.server 8000
+    # Or use VS Code Live Server, `npx serve`, or any other simple web server.
+    ```
+5.  **Open in Browser:** Navigate to `http://localhost:8000` (or your server's specific address).
+
+### Run Locally (Single File, Offline Use)
+
+This uses the embedded fonts for maximum portability (works without a server), but like the online demo, it will load slower initially than the local web server method.
+
+1.  **Clone Repo & Pull LFS Files:** (Follow steps 1 & 2 from the 'Recommended' method above).
+2.  **Generate Inline Font Data:** Requires Node.js. This command embeds the font data into `inline-fonts-data.js`.
+    ```bash
+    node generate-fonts-json.js --base64
+    ```
+3.  **Open HTML File:** Simply open the `index.html` file directly in your browser (e.g., using `File -> Open File`, or by double-clicking it). No server needed!
+4.  **(Optional) Ultimate Single File:** For peak portability, you can copy the *entire generated content* of `inline-fonts-data.js` and paste it directly inside `index.html`, replacing the placeholder line `let _INLINE_FONTS_DATA = [];`. Now `index.html` truly contains everything.
+
+---
+
+## ✨ Features
 
 Logomaker empowers you to create dynamic logos with:
 
-* **🔤 Extensive Font Library:** Choose from ~400 embedded fonts (ensuring offline use) or load dynamically when run locally. Features adjustable size, weight, letter spacing, and case transforms. Includes font license display where available.
+* **🔤 Extensive Font Library:** Choose from ~400 fonts (available offline via embedding or loaded dynamically when run locally). Features adjustable size, weight, letter spacing, and case transforms. Includes font license display where available.
 * **🌈 Vibrant Gradients:** Apply stunning gradients with up to 3 colors, select from diverse presets (like Cyberpunk, Sunset, Fire), or craft your own custom blend with full angle control.
 * **✨ Dazzling Effects:** Elevate your text with glows (soft, neon), hard shadows, outlines, retro effects, emboss, and inset styles. Color is fully customizable.
 * **🔲 Flexible Borders:** Frame your logo with various border styles including solid, dashed, dotted, double, pixelated, and even glowing borders.
@@ -30,169 +79,61 @@ Logomaker empowers you to create dynamic logos with:
     * **PNG:** Export a high-quality, pixel-perfect raster image with optional transparency. Ideal for immediate use.
     * **Frames (ZIP):** Export your animation as a sequence of PNG frames, packaged with an HTML preview file and info text, ready for use in video editors or GIF creators.
 * **⚙️ Advanced Control:** Fine-tune export dimensions, PNG quality, animation frame count, and preview display size. Access the generated CSS.
-* **🔗 Shareable URLs:** Generate unique links that capture your exact logo configuration to easily share your designs. Includes QR code generation (requires external library).
+* **🔗 Shareable URLs:** Generate unique links that capture your exact logo configuration to easily share your designs. Includes QR code generation option (requires external library).
 * **🚀 Ultra-Portable:** Designed to run entirely client-side. Works offline! Can be bundled into a single HTML file (see Getting Started).
 * **🌓 Light/Dark Themes:** Adapts to your system preference or toggle manually.
 
 ---
 
-## 🤖 Human+AI Collaboration: An Experiment
+## 🤔 A Note on Demo Performance & Embedded Fonts
 
-Logomaker stands as a fascinating artifact of modern development workflows. It's an **experimental project** born from Manic Agency's exploration into **Human+AI collaborative coding**.
+The Logomaker online demo uses embedded Base64 fonts, resulting in a **very slow initial load time (~90MB)**. This approach was chosen based on these priorities:
 
-* **~90%** of the code structure, boilerplate logic, initial function implementations, and even debugging assistance was provided by Large Language Models (LLMs).
-* Key AI collaborators included models from the **GPT-4, Claude 3 (Opus/Sonnet), and Gemini Pro** families (versions as of early 2025; models evolve rapidly!).
-* Crucially, the project was **directed, architected, refined, and rigorously debugged by human developers** at Manic Agency. The AI served as an incredibly powerful pair-programmer and accelerator, but human oversight was essential for coherence, bug fixing, feature integration, and achieving the final vision.
+1.  **Core Goal: Offline Single-File Portability:** Logomaker is designed to run as a **single HTML file directly from your computer** (`file:///...`), completely offline. Browser security restrictions block loading external font files in this mode, making **embedding the only way** to ensure all fonts are available for this primary use case.
 
-This project demonstrates the potential for rapid development while also underscoring the current need for human expertise in design, testing, and integration when working with AI code generation.
+2.  **Simplified Demo Maintenance:** To keep things manageable, the **GitHub Pages demo uses the *same* embedded-font version** that enables offline use. This ensures all fonts work reliably online and **avoids the overhead of creating and maintaining a separate, specially optimized build/deployment process** specifically for the demo (which would ideally load fonts differently).
 
----
+**The Necessary Trade-Off:**
 
-## 🤔 Why the Base64 Fonts & Performance Note?
+* Embedding ~400 fonts results in a **large application size (~90MB)**, causing the **significant initial loading delay** you'll experience on the GitHub Pages demo. We prioritize offline capability and simplified maintenance over the demo's startup speed. Please be patient when first loading it online.
 
-The online demo embeds ~400 fonts directly into the application using Base64 encoding within `inline-fonts-data.js`.
+**✅ Recommendation for Best Performance:**
 
-**Why?**
-
-1.  **Ultimate Portability:** This allows Logomaker to run as a single HTML file, completely offline, with zero external dependencies or need for a web server. Share the HTML file, and it just works. This aligns with Manic Agency's [PortaPack](https://github.com/manicinc/portapack) philosophy.
-2.  **GitHub Pages Limitation:** GitHub Pages sometimes struggles with serving font files correctly, especially when stored using Git LFS. Embedding bypasses this.
-
-**The Trade-off:**
-
-* **Initial Load Time:** Loading hundreds of embedded fonts makes the *first* page load (especially on the GitHub Pages demo) significantly slower than loading standard font files from a server.
-* **File Size:** The `inline-fonts-data.js` file or a fully bundled HTML file becomes large (~90MB).
-
-**Recommendation:** For the best performance, run Logomaker locally using the "Web Server with External Font Data" method described below. For maximum portability and offline use, use the self-contained version with `inline-fonts-data.js` or the fully bundled HTML.
+* For actual day-to-day use and significantly faster loading, we **strongly recommend running Logomaker locally using a simple web server** (see "Getting Started - Run Locally (Recommended for Best Performance)"). This standard method loads fonts much more efficiently from the `/fonts` directory only when needed.
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Technical Insights
 
-### Use Online (Easiest)
+### Architecture
 
-➡️ **Visit <https://manicinc.github.io/logomaker/>**
+For a deeper dive into how Logomaker is structured internally, the components interact, and the rendering/export process works, please see the [**architecture.md**](./architecture.md) document.
 
-*(Be patient on the first load due to embedded fonts!)*
+### Font System
 
-### Run Locally (Recommended for Performance)
+Fonts are managed via JSON data, either loaded from `fonts.json` (when using a local server) or from the embedded `_INLINE_FONTS_DATA` JavaScript variable (in offline/demo mode). This data structure defines display names, font families, variants (including weight, style, file path or Base64 data URL), available formats, and license file paths.
 
-**Option 1: Web Server (Fastest Load, Needs Server)**
+* **Font Format & Conversion:** WOFF2 is the preferred format for web compatibility due to its compression and wide support. If you add new fonts in other formats (like OTF/TTF), conversion is recommended. A utility script (`convert-fonts.sh`, requires `fonttools` and `brotli`) is provided to assist with batch conversion. For problematic fonts, online tools like the Font Squirrel Webfont Generator can also be helpful. Ensure converted fonts are placed in the `/fonts` directory relative to `index.html`.
 
-1.  **Clone Repo & LFS:**
-    ```bash
-    # Install Git LFS: [https://git-lfs.com](https://git-lfs.com)
-    git lfs install
-    git clone [https://github.com/manicinc/logomaker.git](https://github.com/manicinc/logomaker.git)
-    cd logomaker
-    git lfs pull
-    ```
-2.  **Generate `fonts.json`:** (Lists fonts found in the `fonts/` directory)
-    ```bash
-    node generate-fonts-json.js
-    ```
-    *(Requires Node.js installed)*
-3.  **Run Local Server:**
-    ```bash
-    # Example using Python 3
-    python -m http.server 8000
-    # Or use VS Code Live Server, etc.
-    ```
-4.  **Open:** <http://localhost:8000> (or your server's address) in your browser.
+### Development Process: An AI Collaboration Experiment
 
-**Option 2: Self-Contained (Offline Use, Slower Load)**
+Logomaker also served as an internal experiment by Manic Agency to explore the capabilities and workflows of Human+AI collaborative coding (using models like GPT-4, Claude 3, Gemini Pro, circa early 2025).
 
-1.  **Clone Repo & LFS:** (As above)
-    ```bash
-    git lfs install
-    git clone [https://github.com/manicinc/logomaker.git](https://github.com/manicinc/logomaker.git)
-    cd logomaker
-    git lfs pull
-    ```
-2.  **Generate Inline Font Data:**
-    ```bash
-    # Creates fonts.json AND embeds fonts into inline-fonts-data.js
-    node generate-fonts-json.js --base64
-    ```
-3.  **Run:** Simply open the `index.html` file directly in your browser (File -> Open File). It will automatically detect and use `inline-fonts-data.js`. No server needed!
+* **AI Contribution:** LLMs were prompted to generate approximately 90% of the initial code structure, boilerplate logic, function implementations, and even provided debugging assistance throughout the process.
+* **Human Direction:** Human developers provided the architectural vision, directed the AI through specific prompts, iteratively refined the output, performed rigorous testing and debugging, integrated disparate components, and ultimately ensured the final product was cohesive, functional, and met the design goals.
 
-**(Optional) Ultimate Single File:** Copy the entire content of the generated `inline-fonts-data.js` and paste it inside `index.html` where `let _INLINE_FONTS_DATA = [...]` is defined (currently empty array). Now `index.html` contains *everything*.
+This project demonstrates the potential for AI to accelerate development while simultaneously underscoring the essential role of human expertise in design, architecture, critical testing, and integration needed to deliver a polished, reliable application.
 
 ---
 
 ## ⚠️ Known Limitations
 
-* **CSS → SVG Fidelity:** While we strive for accuracy, some complex CSS features may render differently or be simplified in SVG/PNG exports:
-    * **Effects:** Multi-layer `text-shadow` or advanced CSS `filter` functions are approximated.
-    * **Borders:** Styles like `double`, `groove`, `ridge`, `inset`, `outset`, and `border-image` (`border-pixel`) do not have direct SVG equivalents and may render as solid or be omitted.
-    * **Backgrounds:** CSS background patterns (`bg-grid`, `bg-noise`, etc.) are not exported as SVG `<pattern>` elements; only the base background color/gradient is rendered.
-* **Animation Export Performance:** Generating a high number of frames (e.g., >30) for the ZIP export can be resource-intensive (CPU/memory) and slow directly within the browser.
-* **QR Code:** The Share URL modal requires an external QR code generation library (like `qrcode.min.js` from `davidshimjs.github.io/qrcodejs/`) to be included separately if you want the QR code image to appear.
-
----
-
-
-## Font System 🔤
-
-### Font Structure
-Fonts are defined in either fonts.json or the INLINE_FONTS_DATA variable with the following structure:
-```json
-{
-  "displayName": "Univers LT Std",
-  "familyName": "UniversLTStd",
-  "variants": [
-    {
-      "name": "UniversLTStd-Regular",
-      "weight": 400,
-      "style": "normal",
-      "file": "fonts/UniversLTStd/UniversLTStd-Regular.woff2",
-      "format": "woff2",
-      "fileSize": 25720
-    },
-    {
-      "name": "UniversLTStd-Bold",
-      "weight": 700,
-      "style": "normal",
-      "file": "fonts/UniversLTStd/UniversLTStd-Bold.woff2",
-      "format": "woff2",
-      "fileSize": 28456
-    }
-  ],
-  "formats": ["woff2"],
-  "licenseFile": "fonts/UniversLTStd/LICENSE.txt",
-  "hasDefaultFont": true,
-  "fontCount": 2,
-  "totalSize": 54176
-}
-```
-
-For Base64-encoded fonts, the `file` value will be a data URL instead of a file path:
-```json
-"file": "data:font/woff2;base64,d09GMgABAAAAAAm..."
-```
-
-### Converting OTF fonts to WOFF2 🔄
-
-Web browsers have better support for WOFF2 font format. If you encounter font decoding errors (like "OTS parsing error: invalid sfntVersion"), convert your OTF fonts to WOFF2:
-
-1. Install the required tools:
-```bash
-pip install fonttools brotli
-```
-
-2. Run this script to convert all OTF fonts in your directory:
-```bash
-./convert-fonts.sh
-```
-
-3. For problematic fonts, try the Font Squirrel Webfont Generator: https://www.fontsquirrel.com/tools/webfont-generator
-
-4. Move / name your new fonts folder to `/fonts` where the `index.html` file is or where the scripts are if you're bundling it to one file.
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+* **CSS → SVG/PNG Fidelity:** Rendering complex CSS effects to raster (PNG) or vector (SVG) formats has limitations. Some features may be simplified or approximated:
+    * **Effects:** Multi-layer `text-shadow` or advanced CSS `filter` functions are often approximated.
+    * **Borders:** CSS styles like `double`, `groove`, `ridge`, `inset`, `outset`, and `border-image` (used for `border-pixel`) lack direct SVG equivalents and may render as solid or be omitted.
+    * **Background Patterns:** CSS background patterns (`bg-grid`, `bg-noise`, etc.) are not currently exported as SVG `<pattern>` elements; only the underlying background color or gradient is rendered in SVG/PNG.
+* **Animation Export Performance:** Generating a high number of frames (e.g., >30-50) for the ZIP export can be resource-intensive (CPU/memory) and may run slowly directly within the browser.
+* **QR Code Generation:** Displaying the QR code image in the Share URL modal requires manually including an external QR code generation library (like `qrcode.min.js` from `davidshimjs.github.io/qrcodejs/`) in the HTML.
 
 ---
 
@@ -205,3 +146,9 @@ If Logomaker sparks joy or helps your project, consider supporting its developme
 **Connect with Manic Agency:**
 
 [![Website](https://img.shields.io/badge/Website-manic.agency-blue?style=flat-square&logo=firefox-browser)](https://manic.agency) | [![Email](https://img.shields.io/badge/Email-team%40manic.agency-red?style=flat-square&logo=gmail)](mailto:team@manic.agency) | [![GitHub](https://img.shields.io/badge/GitHub-manicinc-black?style=flat-square&logo=github)](https://github.com/manicinc) | [![Twitter](https://img.shields.io/badge/X%20(Twitter)-@manicagency-blue?style=flat-square&logo=x)](https://x.com/manicagency) | [![Twitter Follow](https://img.shields.io/twitter/follow/manicagency?style=social)](https://twitter.com/manicagency)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.

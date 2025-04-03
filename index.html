@@ -73,10 +73,12 @@
              <div class="info-content active" id="performance-info" role="tabpanel" aria-labelledby="info-tab-performance">
                  <h3>On Logomaker Performance</h3>
                  <ul>
-                     <li>Initial load via GitHub Pages can feel slow... why?</li>
+                     <p> <strong>Important: </strong> The online demo embeds all fonts for offline compatibility, causing a <strong>very heavy</strong> initial load (~90MB)</p>
                      <li>We embed ~400 fonts directly (Base64) for ultimate portability & offline use!</li>
-                     <li>This uses GitHub LFS, which isn't the speediest for Pages delivery on first load.</li>
-                     <li>✨ **The Payoff:** Works offline! Grab the standalone HTML via <a href="https://github.com/manicinc/portapack" target="_blank" rel="noopener noreferrer">PortaPack</a> or the source below.</li>
+                     <li>This project codebase allows everything to be bundled up in one portable HTML file.</li>
+                     <li>The tradeoff is that initial load for every user will be heavy since we're not caching or lazy loading anything.</li>
+                     <li>The payoff is being able to deliver a standalone file that is a full logo generator, with an advanced font management system..</li>
+                     <li>while being able to serve the site free on GitHub Pages, without managing two code repositories.</li>
                      <li>Source Code / Download Standalone HTML: <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">Logomaker on GitHub</a></li>
                  </ul>
              </div>
