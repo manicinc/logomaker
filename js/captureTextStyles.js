@@ -333,37 +333,66 @@ function extractBackgroundType(element) {
   return 'bg-solid'; // Default
 }
 
-// Extract colors from gradient
+// Extract colors from gradient - FIXED FUNCTION
 function extractGradientColors(element) {
-  const computedStyle = window.getComputedStyle(element);
-  let backgroundImage = computedStyle.backgroundImage;
-  
-  if (!backgroundImage || !backgroundImage.includes('gradient')) {
-      return [];
+    const computedStyle = window.getComputedStyle(element);
+    let backgroundImage = computedStyle.backgroundImage;
+    
+    if (!backgroundImage || !backgroundImage.includes('gradient')) {
+        return [];
+    }
+    
+    // More robust color extraction regex for all color formats
+    const colorRegex = /#[0-9a-f]{3,8}|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)/gi;
+    const colors = backgroundImage.match(colorRegex) || [];
+    
+    // If we couldn't extract with regex or have weird results, try CSS variables
+    if (colors.length === 0 || colors.some(c => c.includes('var('))) {
+        // Check root CSS variables for gradient colors
+        const rootStyle = getComputedStyle(document.documentElement);
+        const gradientColors = [];
+        
+        // Try to get colors from settings manager first
+        const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
+        if (currentSettings.textColorMode === 'gradient') {
+            if (currentSettings.gradientPreset === 'custom') {
+                // Use custom colors from settings
+                gradientColors.push(currentSettings.color1 || '#FF1493');
+                gradientColors.push(currentSettings.color2 || '#8A2BE2');
+                if (currentSettings.useColor3) {
+                    gradientColors.push(currentSettings.color3 || '#FF4500');
+                }
+            } else {
+                // Try to get colors from CSS variable
+                const presetVar = `--${currentSettings.gradientPreset}`;
+                const presetValue = rootStyle.getPropertyValue(presetVar).trim();
+                
+                // Extract colors from the preset variable
+                const presetColors = presetValue.match(colorRegex) || [];
+                if (presetColors.length > 0) {
+                    return presetColors.map(c => c.trim());
+                }
+            }
+        }
+        
+        // Fallback to generic gradient colors if needed
+        if (gradientColors.length === 0) {
+            for (let i = 1; i <= 3; i++) {
+                const colorVar = rootStyle.getPropertyValue(`--gradient-color-${i}`).trim();
+                if (colorVar) gradientColors.push(colorVar);
+            }
+        }
+        
+        if (gradientColors.length > 0) {
+            return gradientColors;
+        }
+        
+        // Final fallback
+        return ['#FF1493', '#8A2BE2'];
+    }
+    
+    return colors.map(color => color.trim());
   }
-  
-  // More robust color extraction regex for all color formats
-  const colorRegex = /#[0-9a-f]{3,8}|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)/gi;
-  const colors = backgroundImage.match(colorRegex) || [];
-  
-  // If we couldn't extract with regex or have weird results, try CSS variables
-  if (colors.length === 0 || colors.some(c => c.includes('var('))) {
-      // Check root CSS variables for gradient colors
-      const rootStyle = getComputedStyle(document.documentElement);
-      const gradientColors = [];
-      
-      for (let i = 1; i <= 3; i++) {
-          const colorVar = rootStyle.getPropertyValue(`--gradient-color-${i}`).trim();
-          if (colorVar) gradientColors.push(colorVar);
-      }
-      
-      if (gradientColors.length > 0) {
-          return gradientColors;
-      }
-  }
-  
-  return colors.map(color => color.trim());
-}
 
 // Extract gradient angle
 function extractGradientAngle(backgroundImage) {
