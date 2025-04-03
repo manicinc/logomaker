@@ -52,18 +52,6 @@ function getStrokeDasharray(borderStyle, borderWidth) {
 }
 
 /**
- * Helper: Extract color stops from a CSS linear-gradient string.
- * @param {string} gradientString - The CSS gradient string.
- * @returns {Array<string>} An array of extracted color strings (hex, rgba).
- */
-function extractGradientColors(gradientString) {
-    if (!gradientString || typeof gradientString !== 'string') return [];
-    // Regex to find hex codes (#rgb, #rrggbb, #rrggbbaa) or rgb/rgba values
-    const colorRegex = /#[0-9a-f]{3,8}|rgba?\([\d.\s%,\/]+\)/gi;
-    return gradientString.match(colorRegex) || [];
-}
-
-/**
  * Helper: Attempts to retrieve the base64 encoded font data for the selected font/weight/style.
  * @param {string} familyName - The target font family name.
  * @param {string|number} targetWeight - The target font weight.
@@ -192,241 +180,274 @@ function getEffectDetails(effectClass, textShadowCss, effectColor) {
 }
 
 
-
-/**
- * Captures comprehensive style information with detailed logging.
- * @param {HTMLElement} [container=document.getElementById('previewContainer')] - The container element.
- * @returns {object|null} An object containing captured styles, or null if critical elements are missing.
- */
-export function captureAdvancedStyles(container = null) {
-  console.log('[CaptureStyles Debug] ------------- Starting Style Capture -------------');
-  container = container || document.getElementById('previewContainer');
-  if (!container) { console.error('🚨 [CaptureStyles Debug] CONTAINER NOT FOUND!'); return null; }
-
-  const logoText = container.querySelector('.logo-text');
-  const borderElement = container.querySelector('.logo-container.dynamic-border') || container.querySelector('.logo-container') || logoText;
-  const previewContainerElement = document.getElementById('previewContainer');
-
-  if (!logoText) { console.error('🚨 [CaptureStyles Debug] LOGO TEXT ELEMENT (.logo-text) NOT FOUND!'); return null; }
-  if (!borderElement) { console.warn('[CaptureStyles Debug] Border target element (.logo-container or .logo-text) not found.'); }
-  if (!previewContainerElement) { console.error('🚨 [CaptureStyles Debug] PREVIEW CONTAINER (#previewContainer) NOT FOUND!'); return null; }
-  console.log('[CaptureStyles Debug] Found elements:', { logoText, borderElement, previewContainerElement });
-
-
-  // --- Get Computed Styles & Settings ---
-  let computedLogo, computedBorder, computedContainer, rootComputedStyle, settings;
-  try {
-      computedLogo = window.getComputedStyle(logoText);
-      computedBorder = borderElement ? window.getComputedStyle(borderElement) : null;
-      computedContainer = window.getComputedStyle(previewContainerElement);
-      rootComputedStyle = window.getComputedStyle(document.documentElement);
-      settings = window.SettingsManager?.getCurrentSettings?.() || {};
-      console.log('[CaptureStyles Debug] Successfully retrieved computed styles and settings.');
-      // Log a few key computed styles immediately
-      console.log(`[CaptureStyles Debug] Raw Computed Logo: font-family='${computedLogo.fontFamily}', color='${computedLogo.color}', animation-name='${computedLogo.animationName}', text-shadow='${computedLogo.textShadow}'`);
-      console.log(`[CaptureStyles Debug] Raw Computed Container BG Color: '${computedContainer.backgroundColor}', BG Image: '${computedContainer.backgroundImage}'`);
-      console.log('[CaptureStyles Debug] SettingsManager state:', JSON.stringify(settings));
-  } catch (e) {
-      console.error("🚨 [CaptureStyles Debug] Error getting computed styles or settings:", e);
+function captureAdvancedStyles() {
+  console.log("[Style Capture] Starting advanced style capture...");
+  
+  // Find the necessary DOM elements
+  const logoContainer = document.querySelector('.logo-container');
+  const logoText = document.querySelector('.logo-text');
+  
+  if (!logoContainer || !logoText) {
+      console.error("[Style Capture] Failed to find logo elements in DOM");
       return null;
   }
-
-  // --- Prepare Styles Object ---
+  
+  // Get computed styles
+  const containerStyle = window.getComputedStyle(logoContainer);
+  const textStyle = window.getComputedStyle(logoText);
+  
+  // Get current settings
+  const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
+  
+  // Create result object
   const styles = {
-      source: 'captureAdvancedStyles_v11_Debug',
-      timestamp: Date.now()
+      exportConfig: {
+          width: parseInt(document.getElementById('exportWidth')?.value || currentSettings.exportWidth || '800'),
+          height: parseInt(document.getElementById('exportHeight')?.value || currentSettings.exportHeight || '400'),
+          transparent: document.getElementById('exportTransparent')?.checked || currentSettings.exportTransparent || false
+      },
+      textContent: {
+          finalText: logoText.textContent || currentSettings.logoText || 'Logo'
+      },
+      font: {
+          family: textStyle.fontFamily || 'sans-serif',
+          size: textStyle.fontSize || '100px',
+          weight: textStyle.fontWeight || '400',
+          style: textStyle.fontStyle || 'normal',
+          letterSpacing: textStyle.letterSpacing || 'normal'
+      },
+      color: {
+          mode: 'solid' // Default, will check for gradient below
+      }
   };
-
-  // --- Text Content & Transformation ---
-  try {
-      styles.textContent = {
-          raw: logoText.textContent,
-          transformCSS: computedLogo.textTransform,
-          finalText: getTransformedTextContent(logoText, computedLogo.textTransform)
+  
+  // Handle text alignment
+  const textAlign = textStyle.textAlign.trim();
+  if (textAlign) {
+      // Map CSS text-align to SVG text-anchor
+      if (textAlign === 'left') styles.textAnchor = 'start';
+      else if (textAlign === 'right') styles.textAnchor = 'end';
+      else styles.textAnchor = 'middle'; // Default/center
+      
+      styles.textAlign = textAlign;
+  }
+  
+  // Background styles
+  styles.background = {
+      type: extractBackgroundType(logoContainer),
+      color: containerStyle.backgroundColor || 'transparent',
+      opacity: containerStyle.opacity || '1'
+  };
+  
+  // Check for gradient background
+  if (containerStyle.backgroundImage && containerStyle.backgroundImage.includes('gradient')) {
+      styles.background.gradient = {
+          colors: extractGradientColors(logoContainer),
+          direction: extractGradientAngle(containerStyle.backgroundImage)
       };
-      console.log('[CaptureStyles Debug] Text Content:', styles.textContent);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing textContent:', e); }
-
-  // --- Font ---
-  try {
-      const rawFontFamily = computedLogo.fontFamily;
-      const primaryFontFamily = getPrimaryFontFamily(rawFontFamily);
-      const fontWeight = computedLogo.fontWeight;
-      const fontStyle = computedLogo.fontStyle;
-      styles.font = {
-          family: primaryFontFamily,
-          size: computedLogo.fontSize,
-          weight: fontWeight,
-          style: fontStyle,
-          letterSpacing: computedLogo.letterSpacing === 'normal' ? '0px' : computedLogo.letterSpacing,
-          embedData: null // Default to null
+  }
+  
+  // Text Fill Style (Solid vs Gradient)
+  if (textStyle.backgroundClip === 'text' || textStyle.webkitBackgroundClip === 'text') {
+      styles.color.mode = 'gradient';
+      styles.color.gradient = {
+          colors: extractGradientColors(logoText),
+          direction: extractGradientAngle(textStyle.backgroundImage)
       };
-      console.log(`[CaptureStyles Debug] Font Info: Computed Family='${rawFontFamily}', Primary='${primaryFontFamily}', Weight='${fontWeight}', Size='${styles.font.size}'`);
-      styles.font.embedData = getFontEmbedData(primaryFontFamily, fontWeight, fontStyle);
-      console.log('[CaptureStyles Debug] Font Embed Data:', styles.font.embedData ? 'Found' : 'Not Found/Embeddable');
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing font:', e); }
-
-  // --- Text Alignment & Decoration ---
-  try {
-      styles.textAnchor = computedLogo.textAlign === 'left' ? 'start' : (computedLogo.textAlign === 'right' ? 'end' : 'middle');
-      styles.dominantBaseline = 'middle';
-      styles.textDecoration = computedLogo.textDecorationLine === 'none' ? null : computedLogo.textDecoration;
-      console.log(`[CaptureStyles Debug] Text Align: Anchor='${styles.textAnchor}', Baseline='${styles.dominantBaseline}', Deco='${styles.textDecoration}'`);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing text alignment/decoration:', e); }
-
-  // --- Color / Fill ---
-  try {
-      const isGradientModeSetting = settings.textColorMode === 'gradient';
-      // Check computed styles for gradient clues (less reliable than setting)
-      const computedColor = computedLogo.color;
-      const computedBGImage = computedLogo.backgroundImage;
-      const isColorTransparent = computedColor === 'transparent' || computedColor === 'rgba(0, 0, 0, 0)';
-      const hasComputedGradient = computedBGImage && computedBGImage.startsWith('linear-gradient');
-
-      // Prioritize setting, but log computed values
-      console.log(`[CaptureStyles Debug] Color Info: SettingMode='${settings.textColorMode}', ComputedColor='${computedColor}', ComputedBGImage='${computedBGImage}', IsComputedColorTransparent=${isColorTransparent}`);
-
-      styles.color = {
-          mode: isGradientModeSetting ? 'gradient' : 'solid',
-          value: computedColor, // Store computed color regardless of mode
-          gradient: {
-              preset: settings.gradientPreset,
-              isCustom: settings.gradientPreset === 'custom',
-              colors: [
-                  settings.color1 || '#FF1493',
-                  settings.color2 || '#8A2BE2',
-                  ...(settings.useColor3 ? [settings.color3 || '#FF4500'] : [])
-              ],
-              direction: settings.animationDirection || '45',
-              computedBackgroundImage: hasComputedGradient ? computedBGImage : null
-          }
-      };
-      console.log('[CaptureStyles Debug] Final Color Object:', styles.color);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing color:', e); }
-
-
-  // --- Effects (Shadow/Glow) ---
-  try {
-      const effectClass = Array.from(logoText.classList).find(c => c.startsWith('text-glow-') && c !== 'text-glow-none');
-      const textShadowCss = computedLogo.textShadow;
-      const effectColor = rootComputedStyle.getPropertyValue('--dynamic-border-color').trim() || settings.borderColorPicker || '#ffffff';
-      console.log(`[CaptureStyles Debug] Effects Info: Class='${effectClass}', ComputedShadow='${textShadowCss}', EffectColor='${effectColor}'`);
-      styles.effects = getEffectDetails(effectClass, textShadowCss, effectColor) || { type: 'none' };
-      styles.effects.rawTextShadow = textShadowCss; // Keep raw value
-      console.log('[CaptureStyles Debug] Final Effects Object:', styles.effects);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing effects:', e); }
-
-
-  // --- Border ---
-  try {
-      const borderClass = computedBorder ? Array.from(borderElement.classList).find(c => c.startsWith('border-') && c !== 'border-none') : null;
-      const borderStyle = computedBorder?.borderTopStyle;
-      const borderWidth = computedBorder?.borderTopWidth;
-      const borderColor = rootComputedStyle.getPropertyValue('--dynamic-border-color').trim() || settings.borderColorPicker || '#ffffff'; // Use same color as effects
-
-      console.log(`[CaptureStyles Debug] Border Info: Target='${borderElement?.tagName}', Class='${borderClass}', ComputedStyle='${borderStyle}', ComputedWidth='${borderWidth}', Color='${borderColor}'`);
-
+  } else {
+      styles.color.value = textStyle.color;
+  }
+  
+  // Border/Stroke styles
+  if (textStyle.textStroke || textStyle.webkitTextStroke || textStyle.textStrokeWidth) {
       styles.border = {
-          appliedTo: borderElement?.tagName || 'N/A',
-          class: borderClass || 'border-none',
-          style: (borderStyle && borderStyle !== 'none') ? borderStyle : 'none',
-          width: (borderStyle && borderStyle !== 'none') ? borderWidth : '0px',
-          color: borderColor,
-          dasharray: null
+          style: 'solid', // Default if any stroke exists
+          color: textStyle.textStrokeColor || textStyle.webkitTextStrokeColor || textStyle.color,
+          width: textStyle.textStrokeWidth || textStyle.webkitTextStrokeWidth || '1px'
       };
-      if (styles.border.style !== 'none') {
-          styles.border.dasharray = getStrokeDasharray(styles.border.style, styles.border.width);
+  } else if (containerStyle.borderStyle && containerStyle.borderStyle !== 'none') {
+      styles.border = {
+          style: containerStyle.borderStyle,
+          color: containerStyle.borderColor || '#000',
+          width: containerStyle.borderWidth || '1px'
+      };
+      
+      // Check for dashed/dotted border to set dash array
+      if (containerStyle.borderStyle === 'dashed') {
+          styles.border.dasharray = '6, 4'; // Default dash pattern
+      } else if (containerStyle.borderStyle === 'dotted') {
+          styles.border.dasharray = '2, 2'; // Default dot pattern
       }
-      console.log('[CaptureStyles Debug] Final Border Object:', styles.border);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing border:', e); }
-
-
-  // --- Transform ---
-  try {
-      const transformCss = computedLogo.transform;
+  }
+  
+  // Transform (matrix, rotate, etc.)
+  if (textStyle.transform && textStyle.transform !== 'none') {
       styles.transform = {
-          cssValue: transformCss !== 'none' ? transformCss : null,
-          rotationSetting: settings.rotation || '0'
+          cssValue: textStyle.transform 
       };
-      console.log(`[CaptureStyles Debug] Transform Info: Computed='${transformCss}', RotationSetting='${settings.rotation}'`);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing transform:', e); }
-
-
-  // --- Animation ---
-  try {
-      const animClass = Array.from(logoText.classList).find(c => c.startsWith('anim-') && c !== 'anim-none');
-      const computedName = computedLogo.animationName;
-      const computedDuration = computedLogo.animationDuration;
-      const computedTiming = computedLogo.animationTimingFunction;
-      const computedIteration = computedLogo.animationIterationCount;
-      const effectiveAnimName = animClass ? animClass.replace('anim-', '') : (computedName !== 'none' ? computedName : null);
-      let durationMs = 2000; // Default
-       try {
-           if (computedDuration.endsWith('ms')) { durationMs = parseFloat(computedDuration); }
-           else if (computedDuration.endsWith('s')) { durationMs = parseFloat(computedDuration) * 1000; }
-       } catch(e){}
-
-      console.log(`[CaptureStyles Debug] Animation Info: Class='${animClass}', ComputedName='${computedName}', Duration='${computedDuration}', Timing='${computedTiming}', Iteration='${computedIteration}'`);
-
+  }
+  
+  // Animation
+  const activeAnimation = document.getElementById('textAnimation')?.value || 'anim-none';
+  if (activeAnimation && activeAnimation !== 'anim-none') {
+      const animationName = activeAnimation.replace('anim-', '');
+      const animDuration = getRootCSSVariable('--animation-duration') || '2s';
+      
       styles.animation = {
-          class: animClass || null,
-          name: effectiveAnimName,
-          duration: computedDuration || '2s',
-          timingFunction: computedTiming || 'linear',
-          iterationCount: computedIteration || 'infinite',
-          durationMs: durationMs,
-          activeKeyframes: null // Default null, try to get below
+          class: activeAnimation,
+          type: animationName,
+          duration: animDuration,
+          timingFunction: 'ease', // Default, could be extracted from CSS
+          iterationCount: 'infinite',
+          activeKeyframes: extractKeyframesCSS(animationName)
       };
-      if (effectiveAnimName && typeof window.getActiveAnimationKeyframes === 'function') {
-          styles.animation.activeKeyframes = window.getActiveAnimationKeyframes(effectiveAnimName);
-          console.log(`[CaptureStyles Debug] Animation Keyframes for '${effectiveAnimName}': ${styles.animation.activeKeyframes ? 'Found' : 'NOT Found/Fallback Used'}`);
-      } else if (effectiveAnimName) {
-           console.warn('[CaptureStyles Debug] getActiveAnimationKeyframes function not found on window.');
-      }
-      console.log('[CaptureStyles Debug] Final Animation Object:', styles.animation);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing animation:', e); }
-
-
-  // --- Background ---
-  try {
-      const bgClass = Array.from(previewContainerElement.classList).find(cls => cls.startsWith('bg-')) || 'bg-solid';
-      const bgColor = computedContainer.backgroundColor;
-      const bgImage = computedContainer.backgroundImage;
-      const bgOpacity = computedContainer.opacity;
-      console.log(`[CaptureStyles Debug] Background Info: Class='${bgClass}', ComputedColor='${bgColor}', ComputedImage='${bgImage}', Opacity='${bgOpacity}'`);
-      styles.background = {
-          type: bgClass,
-          color: bgColor,
-          image: bgImage !== 'none' ? bgImage : null,
-          opacity: bgOpacity || '1',
-          // Include gradient settings for reconstruction if needed
-          gradient: {
-               preset: settings.backgroundGradientPreset,
-               isCustom: settings.backgroundGradientPreset === 'custom',
-               colors: [settings.bgColor1 || '#3a1c71', settings.bgColor2 || '#ffaf7b'],
-               direction: settings.bgGradientDirection || '90'
-          }
-      };
-       console.log('[CaptureStyles Debug] Final Background Object:', styles.background);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing background:', e); }
-
-
-  // --- Export Configuration ---
-  try {
-      styles.exportConfig = {
-          width: parseInt(settings.exportWidth) || 800,
-          height: parseInt(settings.exportHeight) || 400,
-          quality: parseInt(settings.exportQuality) || 95,
-          transparent: !!settings.exportTransparent,
-          frames: parseInt(settings.exportFrames) || 15,
-          frameRate: parseInt(settings.exportFrameRate) || 10,
-      };
-      console.log('[CaptureStyles Debug] Final Export Config:', styles.exportConfig);
-  } catch (e) { console.error('[CaptureStyles Debug] Error capturing export config:', e); }
-
-
-  console.log('[CaptureStyles Debug] ------------- Finished Style Capture ------------- FINAL OBJECT:', styles);
+      
+      // Convert duration to milliseconds for calculations
+      styles.animation.durationMs = parseAnimationDuration(animDuration);
+  }
+  
+  console.log("[Style Capture] Style capture complete:", styles);
   return styles;
+}
+
+/**
+* Helper Functions
+*/
+
+// Extract background type (solid, gradient, pattern)
+function extractBackgroundType(element) {
+  // Get the type from the class list if using class-based styling
+  const classList = Array.from(element.classList);
+  for (const cls of classList) {
+      if (cls.startsWith('bg-')) return cls;
+  }
+  
+  // Check background image
+  const computedStyle = window.getComputedStyle(element);
+  if (computedStyle.backgroundImage && computedStyle.backgroundImage !== 'none') {
+      if (computedStyle.backgroundImage.includes('gradient')) {
+          return 'bg-gradient';
+      }
+      return 'bg-pattern'; // Generic pattern type
+  }
+  
+  return 'bg-solid'; // Default
+}
+
+// Extract colors from gradient
+function extractGradientColors(element) {
+  const computedStyle = window.getComputedStyle(element);
+  let backgroundImage = computedStyle.backgroundImage;
+  
+  if (!backgroundImage || !backgroundImage.includes('gradient')) {
+      return [];
+  }
+  
+  // More robust color extraction regex for all color formats
+  const colorRegex = /#[0-9a-f]{3,8}|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)/gi;
+  const colors = backgroundImage.match(colorRegex) || [];
+  
+  // If we couldn't extract with regex or have weird results, try CSS variables
+  if (colors.length === 0 || colors.some(c => c.includes('var('))) {
+      // Check root CSS variables for gradient colors
+      const rootStyle = getComputedStyle(document.documentElement);
+      const gradientColors = [];
+      
+      for (let i = 1; i <= 3; i++) {
+          const colorVar = rootStyle.getPropertyValue(`--gradient-color-${i}`).trim();
+          if (colorVar) gradientColors.push(colorVar);
+      }
+      
+      if (gradientColors.length > 0) {
+          return gradientColors;
+      }
+  }
+  
+  return colors.map(color => color.trim());
+}
+
+// Extract gradient angle
+function extractGradientAngle(backgroundImage) {
+  if (!backgroundImage || !backgroundImage.includes('gradient')) {
+      return '90deg'; // Default horizontal
+  }
+  
+  // Extract angle from linear-gradient string
+  const angleRegex = /linear-gradient\(\s*([^,]+)/;
+  const match = backgroundImage.match(angleRegex);
+  
+  if (match && match[1]) {
+      const angle = match[1].trim();
+      // If it's a named direction (to top, to bottom, etc.) convert to degrees
+      if (angle.startsWith('to ')) {
+          switch (angle) {
+              case 'to right': return '90deg';
+              case 'to bottom': return '180deg';
+              case 'to left': return '270deg';
+              case 'to top': return '0deg';
+              case 'to top right': return '45deg';
+              case 'to bottom right': return '135deg';
+              case 'to bottom left': return '225deg';
+              case 'to top left': return '315deg';
+              default: return '90deg';
+          }
+      }
+      
+      // If it's already in degrees, just return it
+      if (angle.includes('deg')) {
+          return angle;
+      }
+  }
+  
+  return '90deg'; // Default
+}
+
+// Get CSS variable from root element
+function getRootCSSVariable(varName) {
+  const rootStyle = getComputedStyle(document.documentElement);
+  return rootStyle.getPropertyValue(varName).trim();
+}
+
+// Extract keyframes CSS for an animation
+function extractKeyframesCSS(animationName) {
+  // Check for animation name or variant (some animations use -1, -2 suffixes)
+  for (let i = 0; i < document.styleSheets.length; i++) {
+      try {
+          const sheet = document.styleSheets[i];
+          const rules = sheet.cssRules || sheet.rules;
+          
+          for (let j = 0; j < rules.length; j++) {
+              const rule = rules[j];
+              if (rule.type === CSSRule.KEYFRAMES_RULE) {
+                  // Check for exact name or name-1 naming pattern
+                  if (rule.name === animationName || 
+                      rule.name === `${animationName}-1`) {
+                      return rule.cssText;
+                  }
+              }
+          }
+      } catch (e) {
+          // Security errors happen when accessing cross-origin stylesheets
+          console.warn(`[Style Capture] Error accessing stylesheet ${i}:`, e);
+      }
+  }
+  
+  return null;
+}
+
+// Parse animation duration into milliseconds
+function parseAnimationDuration(duration) {
+  if (!duration) return 0;
+  
+  // Convert to milliseconds
+  if (duration.endsWith('ms')) {
+      return parseFloat(duration);
+  } else if (duration.endsWith('s')) {
+      return parseFloat(duration) * 1000;
+  }
+  
+  // Default if no unit
+  return parseFloat(duration) || 0;
 }
 
 // Deprecate or remove older capture functions if captureAdvancedStyles is sufficient
@@ -436,4 +457,4 @@ export function getFinalTextStyles(container) {
 }
 
 // Main export
-// export { captureAdvancedStyles };
+export { captureAdvancedStyles };

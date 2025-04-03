@@ -151,9 +151,10 @@ function createBackgroundRect(styles, bgGradientId) {
     const bgColor = normalizeColor(styles.background.color || '#000000');
     const bgOpacity = styles.background.opacity || '1';
 
+    // Check if background is a gradient type
     if (bgType === 'bg-solid' && bgColor !== 'rgba(0,0,0,0)') {
         bgFill = bgColor;
-    } else if (bgType.includes('gradient') && bgGradientId) {
+    } else if ((bgType.includes('gradient') || styles.background.gradient) && bgGradientId) {
         bgFill = `url(#${bgGradientId})`;
     } else if (bgType !== 'bg-transparent' && bgColor !== 'rgba(0,0,0,0)') {
         // For patterns, render the base background color
@@ -168,7 +169,6 @@ function createBackgroundRect(styles, bgGradientId) {
     return `<rect width="100%" height="100%" fill="${escapeSVGAttribute(bgFill)}" opacity="${escapeSVGAttribute(bgOpacity)}"/>`;
 }
 
-
 /** Generate embedded CSS including font face and animations. */
 async function generateEmbeddedCSS(styles, animationMetadata) {
     let css = `/* Embedded CSS - Logomaker Core v2.2 */\n`;
@@ -182,38 +182,63 @@ async function generateEmbeddedCSS(styles, animationMetadata) {
         cssAdded = true; console.log(`[Core CSS] Embedded @font-face for ${styles.font.family}`);
     } else if (styles.font?.family) { console.warn(`[Core CSS] Font ${styles.font.family} specified, but no embed data found.`); }
 
-    // --- Animation Keyframes & Class ---
-    const anim = styles.animation;
-    if (anim?.class && anim.class !== 'anim-none') {
-        const animName = anim.class.replace('anim-', '');
-        let keyframesCss = anim.activeKeyframes; // Use captured keyframes first
-        if (!keyframesCss && typeof window.getActiveAnimationKeyframes === 'function') {
-            console.log(`[Core CSS] Trying getActiveAnimationKeyframes for '${animName}'`);
-            keyframesCss = window.getActiveAnimationKeyframes(animName);
+  // --- Animation Keyframes & Class ---
+  const anim = styles.animation;
+  if (anim?.class && anim.class !== 'anim-none') {
+      const animName = anim.class.replace('anim-', '');
+      let keyframesCss = anim.activeKeyframes; // Use captured keyframes first
+      
+      if (!keyframesCss && typeof window.getActiveAnimationKeyframes === 'function') {
+          console.log(`[Core CSS] Trying getActiveAnimationKeyframes for '${animName}'`);
+          keyframesCss = window.getActiveAnimationKeyframes(animName);
+      }
+
+   // Fallback to searching for keyframes in document
+   if (!keyframesCss) {
+    for (let i = 0; i < document.styleSheets.length; i++) {
+        try {
+            const sheet = document.styleSheets[i];
+            const rules = sheet.cssRules || sheet.rules;
+            for (let j = 0; j < rules.length; j++) {
+                const rule = rules[j];
+                if (rule.type === CSSRule.KEYFRAMES_RULE && 
+                    (rule.name === animName || rule.name === `${animName}-1`)) {
+                    keyframesCss = rule.cssText;
+                    console.log(`[Core CSS] Found keyframes rule for ${rule.name}`);
+                    break;
+                }
+            }
+            if (keyframesCss) break;
+        } catch (e) {
+            console.warn(`[Core CSS] Error accessing stylesheet ${i}:`, e);
         }
-
-        if (keyframesCss) {
-            css += `/* Animation: ${animName} */\n${keyframesCss}\n\n`; cssAdded = true; console.log(`[Core CSS] Embedded @keyframes for ${animName}`);
-            css += `.${anim.class} {\n`;
-            const duration = anim.duration || '2s';
-            // Base animation properties
-            css += `  animation: ${animName} ${duration} ${anim.timingFunction || 'linear'} ${anim.iterationCount || 'infinite'};\n`;
-             // Apply animation play state and delay based on metadata (for frame rendering)
-             if (animationMetadata?.progress !== undefined && anim?.durationMs) {
-                 const delayMs = - (animationMetadata.progress * anim.durationMs);
-                 // IMPORTANT: Need to apply this as INLINE style on the element,
-                 // or ensure this CSS overrides default play state if possible.
-                 // Adding it here might not work as intended for pausing/seeking via CSS alone.
-                 // Let's rely on the inline style added in generateSVGTextElement.
-                 console.log(`[Core CSS] Note: Animation progress (${animationMetadata.progress}) handled via inline style on text element.`);
-             }
-
-            if (styles.color?.mode === 'gradient') { css += `  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; }
-            css += `}\n\n`; cssAdded = true; console.log(`[Core CSS] Added animation class rule for ${anim.class}`);
-        } else { console.warn(`[Core CSS] Failed to find or generate keyframes for animation: ${animName}`); }
-    } else { console.log('[Core CSS] No active animation detected for CSS embedding.'); }
-
-    return cssAdded ? css.trim() : null;
+    }
+    }
+    if (keyframesCss) {
+        css += `/* Animation: ${animName} */\n${keyframesCss}\n\n`; 
+        cssAdded = true; 
+        console.log(`[Core CSS] Embedded @keyframes for ${animName}`);
+        
+        // Add animation class with appropriate properties
+        css += `.${anim.class} {\n`;
+        // Use a reasonable duration if original is 0s (which wouldn't animate)
+        const duration = anim.duration && anim.duration !== '0s' ? anim.duration : '2s';
+        
+        // Base animation properties
+        css += `  animation: ${animName} ${duration} ${anim.timingFunction || 'linear'} ${anim.iterationCount || 'infinite'};\n`;
+        
+        if (styles.color?.mode === 'gradient') { 
+            css += `  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; 
+        }
+        css += `}\n\n`; 
+        cssAdded = true; 
+        console.log(`[Core CSS] Added animation class rule for ${anim.class}`);
+    } else { 
+        console.warn(`[Core CSS] Failed to find or generate keyframes for animation: ${animName}`); 
+    }
+    } else { 
+    console.log('[Core CSS] No active animation detected for CSS embedding.'); 
+    }
 }
 
 /** Generate SVG Text element */
