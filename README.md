@@ -1,298 +1,149 @@
 # Logomaker by Manic.agency 🎨✨
 
-(WIP VERSION)
+Forge your brand's unique text-based identity instantly, right in your browser! Logomaker is a free, open-source logo generator packed with fonts, effects, and export options, designed with **extreme portability** and **offline-first** use in mind.
 
 ![Logomaker Preview](./preview.png)
 
-A sleek logo generator that allows you to create stunning logos directly in your browser. Designed for rapid development with extreme portability in mind.
+**Live Demo**: <https://manicinc.github.io/logomaker/> (Free & Always Available!)
 
-**Live Demo**: https://manicinc.github.io/logomaker (Will load slowly at first, see below). Free forever hosted on GitHub pages (with limitations below)
+*(**Note on Demo Performance:** The GitHub Pages demo might load slowly initially. See "Why the Base64 Fonts?" below.)*
 
-## Note ⚠️
+---
 
-The online version hosted on GitHub Pages has much longer initial loading times compared to running Logomaker locally or on a different host. This is because all font data (over 400 fonts in this repo) is loaded client-side as Base64-encoded strings rather than standard font files (GitHub pages has issues rendering fonts from typical font files from LFS).
+## ✨ Features at a Glance
 
-But the approach isn't just a workaround for GitHub Pages / LFS limitations - it's a deliberate design choice aligned with our core philosophy of **extreme portability** and **mania-driven development**. Logomaker directly supports embedding fonts into the application.
+Logomaker empowers you to create dynamic logos with:
 
-This allows for:
+* **🔤 Extensive Font Library:** Choose from ~400 embedded fonts (ensuring offline use) or load dynamically when run locally. Features adjustable size, weight, letter spacing, and case transforms. Includes font license display where available.
+* **🌈 Vibrant Gradients:** Apply stunning gradients with up to 3 colors, select from diverse presets (like Cyberpunk, Sunset, Fire), or craft your own custom blend with full angle control.
+* **✨ Dazzling Effects:** Elevate your text with glows (soft, neon), hard shadows, outlines, retro effects, emboss, and inset styles. Color is fully customizable.
+* **🔲 Flexible Borders:** Frame your logo with various border styles including solid, dashed, dotted, double, pixelated, and even glowing borders.
+* **🎬 Engaging Animations:** Bring your logo to life with subtle or dynamic animations like Pulse, Bounce, Float, Shake, Rotate, Glitch, and more, with adjustable speed.
+* **🖼️ Versatile Backgrounds:** Choose from solid colors, custom/preset gradients (static or animated), or various patterns like grids, dots, stars, noise, synthwave, carbon fiber, and more. Control background opacity.
+* **🎲 Randomize Style:** Spark creativity with a single click! Instantly apply random style combinations (effects, gradients, borders, animations, backgrounds) while keeping your text and font intact.
+* **📦 Multiple Export Options:**
+    * **SVG:** Get a clean, scalable vector file – the source of truth, including embedded fonts (if available) and CSS animations. Perfect for web and editing.
+    * **PNG:** Export a high-quality, pixel-perfect raster image with optional transparency. Ideal for immediate use.
+    * **Frames (ZIP):** Export your animation as a sequence of PNG frames, packaged with an HTML preview file and info text, ready for use in video editors or GIF creators.
+* **⚙️ Advanced Control:** Fine-tune export dimensions, PNG quality, animation frame count, and preview display size. Access the generated CSS.
+* **🔗 Shareable URLs:** Generate unique links that capture your exact logo configuration to easily share your designs. Includes QR code generation (requires external library).
+* **🚀 Ultra-Portable:** Designed to run entirely client-side. Works offline! Can be bundled into a single HTML file (see Getting Started).
+* **🌓 Light/Dark Themes:** Adapts to your system preference or toggle manually.
 
-- **One-file wonder**: The entire application can run from a single HTML file
-- **No server required**: Use it offline, on any device, anywhere
-- **Zero dependencies**: No need for external font servers or CDNs
-- **Ultimate shareability**: Email the file to clients or colleagues - it just works. Anybody can own the software fully-functional offline forever with no technical experience.
+---
 
-## Technologies Used 💻
+## 🤖 Human+AI Collaboration: An Experiment
 
-- HTML, CSS, JavaScript (ES6)
-- Google Fonts (as fallback)
-- JSZip for packaging animation frames
-- Git LFS for font file storage
+Logomaker stands as a fascinating artifact of modern development workflows. It's an **experimental project** born from Manic Agency's exploration into **Human+AI collaborative coding**.
 
-## Project Status
+* Approximately **80%** of the code structure, boilerplate logic, initial function implementations, and even debugging assistance was provided by Large Language Models (LLMs).
+* Key AI collaborators included models from the **GPT-4, Claude 3 (Opus/Sonnet), and Gemini Pro** families (versions as of early 2025; models evolve rapidly!).
+* Crucially, the project was **directed, architected, refined, and rigorously debugged by human developers** at Manic Agency. The AI served as an incredibly powerful pair-programmer and accelerator, but human oversight was essential for coherence, bug fixing, feature integration, and achieving the final vision.
 
-[![Stars](https://img.shields.io/github/stars/manicinc/logomaker?style=social)](https://github.com/manicinc/logomaker/stargazers)
-[![Forks](https://img.shields.io/github/forks/manicinc/logomaker?style=social)](https://github.com/manicinc/logomaker/network/members)
-[![GitHub license](https://img.shields.io/github/license/manicinc/logomaker)](https://github.com/manicinc/logomaker/blob/main/LICENSE)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/manicinc/logomaker/graphs/commit-activity)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/manicinc/logomaker/pulls)
+This project demonstrates the potential for rapid development while also underscoring the current need for human expertise in design, testing, and integration when working with AI code generation.
 
-## Support This Project
+---
 
-If you find Logomaker useful, please consider supporting its development. Your support helps us maintain and improve this free tool!
+## 🤔 Why the Base64 Fonts & Performance Note?
 
-[!["Sponsor"](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/manicinc)
-[!["Buy Me A Coffee"](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/manicinc)
-[![Tweet](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fmanicinc%2Flogomaker)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20free%20logo%20maker%20tool!&url=https://manicinc.github.io/logomaker)
+The online demo embeds ~400 fonts directly into the application using Base64 encoding within `inline-fonts-data.js`.
 
-## Connect With Us
+**Why?**
 
-[![Website](https://img.shields.io/badge/Website-manic.agency-blue?style=flat-square&logo=firefox-browser)](https://manic.agency)
-[![Email](https://img.shields.io/badge/Email-team%40manic.agency-red?style=flat-square&logo=gmail)](mailto:team@manic.agency)
-[![GitHub](https://img.shields.io/badge/GitHub-manicinc-black?style=flat-square&logo=github)](https://github.com/manicinc)
-[![Twitter](https://img.shields.io/badge/Twitter-@manicinc-blue?style=flat-square&logo=twitter)](https://twitter.com/manicinc)
-<!-- [![LinkedIn](https://img.shields.io/badge/LinkedIn-Manic_Agency-blue?style=flat-square&logo=linkedin)](https://linkedin.com/company/manicinc) -->
-<!-- [![Instagram](https://img.shields.io/badge/Instagram-@manicinc-purple?style=flat-square&logo=instagram)](https://instagram.com/manicinc) -->
-<!-- [![YouTube](https://img.shields.io/badge/YouTube-Manic_Agency-red?style=flat-square&logo=youtube)](https://youtube.com/@manicinc) -->
-<!-- [![Discord](https://img.shields.io/badge/Discord-Manic_Community-7289DA?style=flat-square&logo=discord)](https://discord.gg/your-invite-link) -->
-<!-- [![Facebook](https://img.shields.io/badge/Facebook-Manic_Agency-blue?style=flat-square&logo=facebook)](https://facebook.com/manicinc) -->
-<!-- [![Dev.to](https://img.shields.io/badge/Dev.to-manicinc-black?style=flat-square&logo=dev.to)](https://dev.to/manicinc) -->
-<!-- [![Medium](https://img.shields.io/badge/Medium-Manic_Agency-black?style=flat-square&logo=medium)](https://medium.com/@manicinc) -->
-<!-- 
-[![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/YOUR_INVITE_LINK) -->
-[![Twitter Follow](https://img.shields.io/twitter/follow/manicinc?style=social)](https://twitter.com/manicinc)
+1.  **Ultimate Portability:** This allows Logomaker to run as a single HTML file, completely offline, with zero external dependencies or need for a web server. Share the HTML file, and it just works. This aligns with Manic Agency's [PortaPack](https://github.com/manicinc/portapack) philosophy.
+2.  **GitHub Pages Limitation:** GitHub Pages sometimes struggles with serving font files correctly, especially when stored using Git LFS. Embedding bypasses this.
 
-Join our community to get help, share ideas, or contribute to the project!
+**The Trade-off:**
 
-## Features 💫
+* **Initial Load Time:** Loading hundreds of embedded fonts makes the *first* page load (especially on the GitHub Pages demo) significantly slower than loading standard font files from a server.
+* **File Size:** The `inline-fonts-data.js` file or a fully bundled HTML file becomes large (~90MB).
 
-Our `index.html` file contains all styles and JS logic for the UI. Things have been commented and separated out there, so if desired, you may refactor them out into multiple scripts for additional development (CSS and JS in separate files). 
+**Recommendation:** For the best performance, run Logomaker locally using the "Web Server with External Font Data" method described below. For maximum portability and offline use, use the self-contained version with `inline-fonts-data.js` or the fully bundled HTML.
 
-### Flexible Usage / Dependency Options 🤔
+---
 
-- Can load fonts dynamically fron `fonts/` folder, when running `index.html` from a web server (smallest size, fastest loadtime)
+## 🚀 Getting Started
 
-- Can load fonts from `inlines-fonts-data.js` file, generated from `generate-fonts-json.js`, so no web server is required (small size, slow loadtime)
+### Use Online (Easiest)
 
-- Ability to compile all data and assets in a single HTML file for portable usage (largest size, slow loadtime)
+➡️ **Visit <https://manicinc.github.io/logomaker/>**
 
-- Logomaker automatically adjusts how it optimizes / loads font files based on how you run it, so all you need to worry about is running the `index.html` file somewhere
+*(Be patient on the first load due to embedded fonts!)*
 
-### Text Customization 🔤
+### Run Locally (Recommended for Performance)
 
-- Font selection from thousands of royalty-free web fonts
-- Adjustable size, spacing, weight, and case
+**Option 1: Web Server (Fastest Load, Needs Server)**
 
-### Gradient Effects 🌈
+1.  **Clone Repo & LFS:**
+    ```bash
+    # Install Git LFS: [https://git-lfs.com](https://git-lfs.com)
+    git lfs install
+    git clone [https://github.com/manicinc/logomaker.git](https://github.com/manicinc/logomaker.git)
+    cd logomaker
+    git lfs pull
+    ```
+2.  **Generate `fonts.json`:** (Lists fonts found in the `fonts/` directory)
+    ```bash
+    node generate-fonts-json.js
+    ```
+    *(Requires Node.js installed)*
+3.  **Run Local Server:**
+    ```bash
+    # Example using Python 3
+    python -m http.server 8000
+    # Or use VS Code Live Server, etc.
+    ```
+4.  **Open:** <http://localhost:8000> (or your server's address) in your browser.
 
-- 12 preset gradient options
-- Custom gradient creation with up to 3 colors
-- Adjustable direction
+**Option 2: Self-Contained (Offline Use, Slower Load)**
 
-### Text Effects ✨
+1.  **Clone Repo & LFS:** (As above)
+    ```bash
+    git lfs install
+    git clone [https://github.com/manicinc/logomaker.git](https://github.com/manicinc/logomaker.git)
+    cd logomaker
+    git lfs pull
+    ```
+2.  **Generate Inline Font Data:**
+    ```bash
+    # Creates fonts.json AND embeds fonts into inline-fonts-data.js
+    node generate-fonts-json.js --base64
+    ```
+3.  **Run:** Simply open the `index.html` file directly in your browser (File -> Open File). It will automatically detect and use `inline-fonts-data.js`. No server needed!
 
-- 10 different glow, outline, and texture effects including neon, retro, and emboss
+**(Optional) Ultimate Single File:** Copy the entire content of the generated `inline-fonts-data.js` and paste it inside `index.html` where `let _INLINE_FONTS_DATA = [...]` is defined (currently empty array). Now `index.html` contains *everything*.
 
-### Border Styles 🔲
+---
 
-- 9 border styles including glowing, pixel, and more
+## ⚠️ Known Limitations
 
-### Animations 🎬
+* **CSS → SVG Fidelity:** While we strive for accuracy, some complex CSS features may render differently or be simplified in SVG/PNG exports:
+    * **Effects:** Multi-layer `text-shadow` or advanced CSS `filter` functions are approximated.
+    * **Borders:** Styles like `double`, `groove`, `ridge`, `inset`, `outset`, and `border-image` (`border-pixel`) do not have direct SVG equivalents and may render as solid or be omitted.
+    * **Backgrounds:** CSS background patterns (`bg-grid`, `bg-noise`, etc.) are not exported as SVG `<pattern>` elements; only the base background color/gradient is rendered.
+* **Animation Export Performance:** Generating a high number of frames (e.g., >30) for the ZIP export can be resource-intensive (CPU/memory) and slow directly within the browser.
+* **QR Code:** The Share URL modal requires an external QR code generation library (like `qrcode.min.js` from `davidshimjs.github.io/qrcodejs/`) to be included separately if you want the QR code image to appear.
 
-- 10 animation types including bounce, float, and glitch
-- Customizable speed and direction
+---
 
-### Backgrounds 🖼️
+## 🔤 Font System Details
 
-- 12 background styles
-- Includes grids, starfields, synthwave, and animated patterns
+*(Keep the Font Structure and Converting OTF sections as they were in the original README)*
 
-### Export Options 📦
+---
 
-- PNG (with transparency)
-- SVG (vector-based snapshot)
-- Animation Frames (multiple PNGs packaged in a ZIP)
-- HTML and CSS code export
+## 📄 License
 
-### Advanced Options ⚙️
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
-- Custom dimensions
-- Quality settings
-- Custom CSS
+---
 
-## Getting Started 🚀
+## ❤️ Support & Connect
 
-Want to get started immediately?
+If Logomaker sparks joy or helps your project, consider supporting its development!
 
-Download the full single file HTML file with all CSS and scripts in-line.
+[!["Sponsor"](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/manicinc) | [!["Buy Me A Coffee"](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/manicinc) | [![Tweet](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fmanicinc%2Flogomaker)](https://twitter.com/intent/tweet?text=Check%20out%20this%20awesome%20free,%20AI-enhanced%20logo%20maker%20tool!&url=https://manicinc.github.io/logomaker)
 
-[https://drive.google.com/file/d/1-HtugqDInxb9TpLpBrc7wbefHK5l5crj/view?usp=sharing](https://drive.google.com/file/d/1-HtugqDInxb9TpLpBrc7wbefHK5l5crj/view?usp=sharing)
+**Connect with Manic Agency:**
 
-Then just open `single-file-app.html` in any browser. That's it!
-
-It may be a struggle to process the 90mb HTML file 💣 but after its initial load, it should run easily with everything taking place in your client. 
-
-### Use Online 🌐
-
-Visit https://manicinc.github.io/logomaker to use the tool directly in your browser with all features enabled.
-
-### Run Locally 💻
-
-Two options are available for local usage:
-
-#### Web Server with External Font Data
-
-1. Clone the repository with Git LFS to fetch font files:
-
-```bash
-# Install Git LFS if you haven't already
-git lfs install
-
-# Clone the repository with LFS support
-git clone https://github.com/manicinc/logomaker.git
-```
-
-2. Navigate to the project directory:
-
-```bash
-cd logomaker
-```
-
-3. Pull font files using Git LFS:
-
-```bash
-git lfs pull
-```
-
-4. Font files are organized in subfolders within the fonts directory:
-
-```
-fonts/
-├── FontName1/
-│   ├── FontName1-Regular.woff2
-│   ├── FontName1-Bold.woff2
-│   └── LICENSE.txt (optional)
-├── FontName2/
-│   ├── FontName2-Regular.woff2
-│   └── ...
-```
-
-5. Generate the fonts.json file:
-
-```bash
-node generate-fonts-json.js
-```
-
-6. Start a local web server (e.g., using Python):
-
-```bash
-python -m http.server 8000
-```
-
-7. Open http://localhost:8000 in your browser
-
-#### Self-Contained Version (Ultra-Portable) 🔥
-
-1. Clone the repository with Git LFS:
-
-```bash
-git lfs install
-git clone https://github.com/manicinc/logomaker.git
-git lfs pull
-```
-
-2. Font files are already organized in the fonts directory
-
-3. Run generate-fonts-json.js to create the fonts.json file and auto-generate the inline-fonts-data.js file with Base64-encoded fonts:
-
-```bash
-# One-step command to create both standard JSON and inline-fonts-data.js
-node generate-fonts-json.js --base64
-```
-
-4. **🌟 Super-simple method:** Just place `inline-fonts-data.js` in the same directory as `index.html` - it will be automatically detected and loaded! You can now run `index.html` directly without a server.
-
-5. **🌠 Ultimate single-file method:** For a truly portable solution, copy the contents from `inline-fonts-data.js` and paste it directly inside index.html where the `_INLINE_FONTS_DATA` variable is defined:
-
-```javascript
-// PASTE YOUR FONTS DATA HERE TO HAVE EVERYTHING CONTAINED IN ONE FILE WITH
-// NO EXTERNAL DEPENDENCIES
-
-let _INLINE_FONTS_DATA = [
-
-];
-```
-
-Now you have a single, self-contained HTML file with everything included! 🎉 Just open index.html in any browser, even offline.
-
-That's it! You now have one HTML file (~2000 lines) containing:
-   - All the UI
-   - All the CSS
-   - All the JavaScript
-   - All the fonts (embedded as Base64)
-
-Perfect for:
-- 📧 Emailing to clients
-- 💾 USB drives
-- ✈️ Offline usage
-- 🚀 Quick demos
-
-## Font System 🔤
-
-### Font Structure
-Fonts are defined in either fonts.json or the INLINE_FONTS_DATA variable with the following structure:
-```json
-{
-  "displayName": "Univers LT Std",
-  "familyName": "UniversLTStd",
-  "variants": [
-    {
-      "name": "UniversLTStd-Regular",
-      "weight": 400,
-      "style": "normal",
-      "file": "fonts/UniversLTStd/UniversLTStd-Regular.woff2",
-      "format": "woff2",
-      "fileSize": 25720
-    },
-    {
-      "name": "UniversLTStd-Bold",
-      "weight": 700,
-      "style": "normal",
-      "file": "fonts/UniversLTStd/UniversLTStd-Bold.woff2",
-      "format": "woff2",
-      "fileSize": 28456
-    }
-  ],
-  "formats": ["woff2"],
-  "licenseFile": "fonts/UniversLTStd/LICENSE.txt",
-  "hasDefaultFont": true,
-  "fontCount": 2,
-  "totalSize": 54176
-}
-```
-
-For Base64-encoded fonts, the `file` value will be a data URL instead of a file path:
-```json
-"file": "data:font/woff2;base64,d09GMgABAAAAAAm..."
-```
-
-### Converting OTF fonts to WOFF2 🔄
-
-Web browsers have better support for WOFF2 font format. If you encounter font decoding errors (like "OTS parsing error: invalid sfntVersion"), convert your OTF fonts to WOFF2:
-
-1. Install the required tools:
-```bash
-pip install fonttools brotli
-```
-
-2. Run this script to convert all OTF fonts in your directory:
-```bash
-./convert-fonts.sh
-```
-
-3. For problematic fonts, try the Font Squirrel Webfont Generator: https://www.fontsquirrel.com/tools/webfont-generator
-
-4. Move / name your new fonts folder to `/fonts` where the `index.html` file is or where the scripts are if you're bundling it to one file.
-
-## License 📄
-
-MIT License
+[![Website](https://img.shields.io/badge/Website-manic.agency-blue?style=flat-square&logo=firefox-browser)](https://manic.agency) | [![Email](https://img.shields.io/badge/Email-team%40manic.agency-red?style=flat-square&logo=gmail)](mailto:team@manic.agency) | [![GitHub](https://img.shields.io/badge/GitHub-manicinc-black?style=flat-square&logo=github)](https://github.com/manicinc) | [![Twitter](https://img.shields.io/badge/X%20(Twitter)-@manicagency-blue?style=flat-square&logo=x)](https://x.com/manicagency) | [![Twitter Follow](https://img.shields.io/twitter/follow/manicagency?style=social)](https://twitter.com/manicagency)

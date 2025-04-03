@@ -1,17 +1,18 @@
 /**
- * settingsManager.js (Version 11 - Inject Font Style)
+ * settingsManager.js (Version 13 - Add getDefaults, Reset Logging)
  * ====================================================
  * Manages UI state, applies styles, handles settings persistence,
  * and dynamically injects @font-face rules for selected fonts.
  */
-import { initializeFonts } from './fontManager.js';
+import { initializeFonts } from './fontManager.js'; // Keep this import
+
 // Define default settings used for initialization and reset
 const DEFAULT_SETTINGS = {
     logoText: 'Manic',
-    fontFamily: 'Orbitron', // Default font - Should match an available font name
+    fontFamily: 'Orbitron',
     fontSize: '100',
     letterSpacing: '0.03',
-    textCase: 'none', // Default to 'none' matching the HTML option
+    textCase: 'none',
     fontWeight: '700',
     textColorMode: 'gradient',
     solidColorPicker: '#ffffff',
@@ -27,15 +28,15 @@ const DEFAULT_SETTINGS = {
     rotation: '0',
     textAnimation: 'anim-none',
     animationSpeed: '1',
-    animationDirection: '45', // Controls text gradient direction
+    animationDirection: '45', // Text gradient direction
     backgroundType: 'bg-solid',
     backgroundColor: '#000000',
     bgOpacity: '1',
-    backgroundGradientPreset: 'primary-gradient',
+    backgroundGradientPreset: 'bg-primary-gradient',
     bgColor1: '#3a1c71',
     bgColor2: '#ffaf7b',
     bgGradientDirection: '90',
-    previewSize: 'preview-size-medium', // Ensure value matches class prefix logic
+    previewSize: 'preview-size-medium',
     exportWidth: '800',
     exportHeight: '400',
     exportQuality: '95',
@@ -49,15 +50,50 @@ const SettingsManager = {
     _listeners: [],
     _isInitialized: false,
 
+    // --- NEW: Getter for Defaults ---
+    getDefaults() {
+         console.log("[SM] getDefaults() called.");
+         try {
+             if (typeof structuredClone === 'function') {
+                 return structuredClone(DEFAULT_SETTINGS);
+             }
+             return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+         } catch (e) {
+             console.error("[SM] Error deep copying default settings:", e);
+             return { ...DEFAULT_SETTINGS }; // Fallback to shallow copy
+         }
+    },
+
+    // --- NEW: Getter for Current Settings ---
+    getCurrentSettings() {
+        console.log("[SM] getCurrentSettings() called.");
+        // Return a deep copy to prevent accidental mutation from outside
+        try {
+            // Use structuredClone if available (modern browsers)
+            if (typeof structuredClone === 'function') {
+                return structuredClone(this._currentSettings);
+            }
+            // Fallback to JSON parse/stringify (slightly less performant)
+            return JSON.parse(JSON.stringify(this._currentSettings));
+        } catch (e) {
+            console.error("[SM] Error deep copying current settings:", e);
+            // Fallback to shallow copy if deep copy fails (less safe)
+            return { ...this._currentSettings };
+        }
+    },
+
+
     async init() {
         if (this._isInitialized) { console.warn("[SM] Already initialized."); return; }
         console.log('[SM] Initialize...');
-        if (typeof showAlert === 'undefined') { window.showAlert = (msg, type='log')=>console[type](msg); }
-        if (typeof notifyResetSuccess === 'undefined') { window.notifyResetSuccess = (type) => showAlert('Settings Reset!', 'success'); }
+        if (typeof showAlert === 'undefined') { window.showAlert = (msg, type='log')=>console[type](`[Alert] ${msg}`); }
+        if (typeof notifyResetSuccess === 'undefined') { window.notifyResetSuccess = (type) => showAlert(`Settings Reset (${type})!`, 'success'); }
+        if (typeof window.updateSizeIndicator === 'undefined') { window.updateSizeIndicator = () => console.warn("updateSizeIndicator missing"); }
+
 
         try {
             console.log('[SM] Waiting for Font Manager...');
-            const fontsReady = await initializeFonts(); // Wait for fonts
+            const fontsReady = await initializeFonts();
             if (!fontsReady) { console.error('[SM] Font Manager failed. Proceeding cautiously.'); }
             else { console.log('[SM] Font Manager ready.'); }
 
@@ -65,29 +101,28 @@ const SettingsManager = {
             this._setupEventListeners();
 
             console.log('[SM] Applying initial/loaded settings...');
-            await this.applySettings(this._currentSettings, true, true); // Await initial apply settings
-            this._initializeUIComponents();
+            await this.applySettings(this._currentSettings, true, true); // Apply and force UI sync
 
-            this._isInitialized = true;
-            console.log('[SM] Initialization complete.');
+            // Removed redundant second call to applySettings
+            this._initializeUIComponentsState();
+
+            // --- ADD THIS LOG ---
+            console.log('[SM] Reached END of init function successfully.');
+            this._isInitialized = true; // Ensure this is set
+            console.log('[SM] Initialization complete. Initial Settings:', JSON.stringify(this._currentSettings));
 
         } catch (error) {
-            console.error("[SM] Initialization failed:", error);
-            if(typeof showAlert === 'function') showAlert(`Settings Manager init failed: ${error.message || 'Unknown error'}`, 'error');
+             console.error("[SM] Initialization failed:", error);
+             showAlert(`Settings Manager init failed: ${error.message || 'Unknown error'}`, 'error');
         }
     },
-    /**
-     * Bind event listeners to UI controls.
-     */
+
     _setupEventListeners() {
-        console.log('[SettingsManager] Setup event listeners...');
-        if (!document.getElementById('logoText')) {
-            console.error("[SettingsManager] Cannot find core controls. Aborting listener setup.");
-            return;
-        }
-        // Bind all listeners using helper methods
+        console.log('[SM] Setting up event listeners...');
+        if (!document.getElementById('logoText')) { console.error("[SM] Cannot find #logoText. Aborting listener setup."); return; }
+        // Bind all listeners
         this._bindInputListener('logoText', 'textContent');
-        this._bindSelectListener('fontFamily'); // Will call _injectFontStyle
+        this._bindSelectListener('fontFamily');
         this._bindNumberInputListener('fontSize', 'fontSize', 'px');
         this._bindRangeInputListener('letterSpacing', 'letterSpacing', 'em');
         this._bindSelectListener('textCase');
@@ -99,7 +134,7 @@ const SettingsManager = {
         this._bindColorInputListener('color2');
         this._bindColorInputListener('color3');
         this._bindCheckboxListener('useColor3');
-        this._bindRangeInputListener('animationDirection'); // Text gradient direction
+        this._bindRangeInputListener('animationDirection');
         this._bindSelectListener('textShadow');
         this._bindColorInputListener('borderColorPicker');
         this._bindSelectListener('borderStyle');
@@ -121,588 +156,411 @@ const SettingsManager = {
         this._bindCheckboxListener('exportTransparent');
         this._bindNumberInputListener('exportFrames');
         this._bindRangeInputListener('exportFrameRate');
-        console.log('[SettingsManager] Event listeners setup done.');
+        console.log('[SM] Event listeners setup done.');
     },
 
-    // --- Binder Functions ---
-
+    // --- Binder Functions (with logging from previous updates) ---
     _bindInputListener(inputId, settingKeyOrTargetProp) {
-        const input = document.getElementById(inputId); if (!input) return;
+        const input = document.getElementById(inputId); if (!input) { console.warn(`[SM] Input element #${inputId} not found.`); return; }
         input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            this._currentSettings[inputId] = value;
-            if (settingKeyOrTargetProp === 'textContent') {
-                const logoEl = document.querySelector('.logo-text');
-                if (logoEl) {
-                    logoEl.textContent = value;
-                    logoEl.setAttribute('data-text', value);
-                }
-                this._updateSizeIndicator();
-            }
-            this._triggerSettingsUpdate();
-        });
-    },
-
-    _bindSelectListener(selectId) {
-        const select = document.getElementById(selectId); if (!select) { console.warn(`Select element #${selectId} not found.`); return;}
-        select.addEventListener('change', (e) => {
-            const value = e.target.value;
-            // console.log(`[SettingsManager] Select Change: #${selectId} = ${value}`); // Keep for debugging if needed
-            this._currentSettings[selectId] = value;
-            const logoElement = document.querySelector('.logo-text');
-            const previewContainer = document.getElementById('previewContainer'); // Needed for previewSize
-            const dynamicBorderElement = document.querySelector('.dynamic-border'); // Needed for borderStyle
-
-            if (!logoElement) return;
-
-            // Apply specific style changes or class updates
-            switch(selectId) {
-                case 'fontFamily':
-                    logoElement.style.fontFamily = `"${value}", sans-serif`; // Apply style first
-                    console.log(`[SettingsManager] Applied Style: logoElement.style.fontFamily = "${value}"`);
-                    this._injectFontStyle(value); // Inject the @font-face rule
-                    this._updateFontPreview(value); // Update small preview span
-                    // Optional: Log computed style after a tick to verify application
-                    // setTimeout(() => console.log(`[SettingsManager] Computed Style After Apply: ${getComputedStyle(logoElement).fontFamily}`), 0);
-                    break;
-                case 'textCase': logoElement.style.textTransform = value; break;
-                case 'fontWeight': logoElement.style.fontWeight = value; break;
-                case 'textAlign': logoElement.style.textAlign = value; break; // Applied to logo-text
-                case 'textColorMode': this._handleColorModeChange(value); break;
-                case 'gradientPreset': this._handleGradientPresetChange(value); break;
-                case 'textShadow': this._applyClassFromSelect('.logo-text', value, 'text-glow-'); break;
-                case 'borderStyle': this._applyClassFromSelect('.dynamic-border', value, 'border-'); break;
-                case 'textAnimation': this._applyClassFromSelect('.logo-text', value, 'anim-'); break;
-                case 'backgroundType': this._handleBackgroundTypeChange(value); break;
-                case 'previewSize': this._applyClassFromSelect('#previewContainer', value, 'preview-size-'); break;
-                case 'backgroundGradientPreset': this._handleBackgroundGradientChange(value); break;
-                default: console.warn(`Unhandled select change: #${selectId}`);
-            }
-            this._triggerSettingsUpdate(); // Save and notify listeners
-        });
-    },
-
-     _bindNumberInputListener(inputId, styleProperty = null, unit = '') {
-         const input = document.getElementById(inputId); if (!input) return;
-         input.addEventListener('input', (e) => {
              const value = e.target.value;
+             console.log(`[SM] Input Change: #${inputId} = '${value}'`);
              this._currentSettings[inputId] = value;
-             if (styleProperty === 'fontSize') {
+             if (settingKeyOrTargetProp === 'textContent') {
                  const logoEl = document.querySelector('.logo-text');
-                 if (logoEl) logoEl.style.fontSize = `${value}${unit}`;
-                 this._updateSizeIndicator(); // Font size affects dimensions
+                 if (logoEl) { logoEl.textContent = value; logoEl.setAttribute('data-text', value); console.log(`[SM] Updated .logo-text content`); }
+                 this._updateSizeIndicator();
              }
-             // Other number inputs (like export dimensions) don't directly affect live preview style
              this._triggerSettingsUpdate();
+        });
+    },
+    _bindSelectListener(selectId) {
+        const select = document.getElementById(selectId); if (!select) { console.warn(`[SM] Select element #${selectId} not found.`); return; }
+        select.addEventListener('change', (e) => {
+             const value = e.target.value;
+             console.log(`[SM] Select Change: #${selectId} = '${value}'`);
+             this._currentSettings[selectId] = value;
+             const logoElement = document.querySelector('.logo-text');
+             const logoContainer = document.querySelector('.logo-container');
+             const previewContainer = document.getElementById('previewContainer');
+             if (!logoElement || !previewContainer || !logoContainer) { console.error("[SM] Critical preview elements missing!"); return; }
+             switch(selectId) {
+                 case 'fontFamily':
+                      logoElement.style.fontFamily = `"${value}", sans-serif`;
+                      this._injectFontStyle(value); this._updateFontPreview(value); console.log(`[SM] Applied font-family: ${value}`); break;
+                 case 'textCase': logoElement.style.textTransform = value; console.log(`[SM] Applied text-transform: ${value}`); break;
+                 case 'fontWeight': logoElement.style.fontWeight = value; console.log(`[SM] Applied font-weight: ${value}`); break;
+                 case 'textAlign': logoElement.style.textAlign = value; console.log(`[SM] Applied text-align: ${value}`); break;
+                 case 'textColorMode': this._handleColorModeChange(value); break;
+                 case 'gradientPreset': this._handleGradientPresetChange(value); break;
+                 case 'textShadow':
+                      console.log(`[SM] Applying text effect class: ${value} to .logo-text`);
+                      this._applyClassFromSelect('.logo-text', value, 'text-glow-');
+                      console.log('[SM] .logo-text classes after shadow apply:', logoElement.classList); break;
+                 case 'borderStyle':
+                      console.log(`[SM] Applying border style class: ${value} to .logo-container`);
+                      logoContainer.classList.toggle('dynamic-border', value !== 'border-none');
+                      this._applyClassFromSelect(logoContainer, value, 'border-');
+                      console.log('[SM] logo-container classes after border apply:', logoContainer.classList); break;
+                 case 'textAnimation':
+                      console.log(`[SM] Applying animation class: ${value} to .logo-text`);
+                      this._applyClassFromSelect('.logo-text', value, 'anim-');
+                      console.log('[SM] .logo-text classes after anim apply:', logoElement.classList);
+                      this._applyAnimationSpeed(this._currentSettings.animationSpeed); break;
+                 case 'backgroundType': this._handleBackgroundTypeChange(value); break;
+                 case 'previewSize':
+                      console.log(`[SM] Applying preview size class: ${value} to #previewContainer`);
+                      this._applyClassFromSelect('#previewContainer', value, 'preview-size-');
+                      console.log('[SM] #previewContainer classes after size apply:', previewContainer.classList);
+                      this._updateSizeIndicator(); break;
+                 case 'backgroundGradientPreset': this._handleBackgroundGradientChange(value); break;
+                 default: console.warn(`[SM] Unhandled select change: #${selectId}`);
+             }
+             this._triggerSettingsUpdate();
+        });
+    },
+    _bindNumberInputListener(inputId, styleProperty = null, unit = '') {
+         const input = document.getElementById(inputId); if (!input) { console.warn(`[SM] Number input #${inputId} not found.`); return; }
+         input.addEventListener('input', (e) => {
+              const value = e.target.value;
+              console.log(`[SM] Number Input Change: #${inputId} = ${value}`);
+              this._currentSettings[inputId] = value;
+              if (styleProperty === 'fontSize') {
+                  const logoEl = document.querySelector('.logo-text');
+                  if (logoEl) logoEl.style.fontSize = `${value}${unit}`;
+                   console.log(`[SM] Applied font-size: ${value}${unit}`);
+                  this._updateSizeIndicator();
+              } else if (inputId.startsWith('export')) { console.log(`[SM] Export setting updated: ${inputId} = ${value}`); }
+              this._triggerSettingsUpdate();
          });
-     },
-
+    },
     _bindRangeInputListener(inputId, styleProperty = null, unit = '') {
-        const input = document.getElementById(inputId); if (!input) return;
+        const input = document.getElementById(inputId); if (!input) { console.warn(`[SM] Range input #${inputId} not found.`); return; }
         const display = input.parentElement?.querySelector('.range-value-display');
-
-        const updateDisplay = (value) => {
-            if(display) { display.textContent = value + unit; }
-        };
-
+        const updateDisplay = (val) => { if(display) { display.textContent = val + (unit === 'x' ? unit : (unit ? unit : '')); } };
         input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            this._currentSettings[inputId] = value;
-            updateDisplay(value);
-            const logoElement = document.querySelector('.logo-text');
-            const previewContainer = document.getElementById('previewContainer');
-
-            switch (inputId) {
-                case 'letterSpacing': if (logoElement) logoElement.style.letterSpacing = `${value}em`; break;
-                case 'rotation': if (logoElement) logoElement.style.transform = `rotate(${value}deg)`; break;
-                case 'animationSpeed': const duration = 2 / parseFloat(value || 1); document.documentElement.style.setProperty('--animation-duration', `${Math.max(0.1, duration)}s`); break;
-                case 'animationDirection': document.documentElement.style.setProperty('--gradient-direction', `${value}deg`); if (this._currentSettings.textColorMode === 'gradient') { this._applyGradientToLogo(); } break;
-                case 'bgOpacity': if (previewContainer) previewContainer.style.opacity = value; break;
-                case 'bgGradientDirection': document.documentElement.style.setProperty('--bg-gradient-direction', `${value}deg`); if (this._currentSettings.backgroundType?.includes('gradient')) { this._applyBackgroundGradient(); } break;
-                case 'exportFrameRate': /* Display only - handled by GIF Exporter UI */ break;
-                case 'exportQuality': /* No live update needed */ break;
-                default: console.warn(`Unhandled range: #${inputId}`);
-            }
-            this._triggerSettingsUpdate();
-        });
-         // Initialize display on load (should be handled by applySettings)
-         // updateDisplay(input.value);
-    },
-
-     _bindCheckboxListener(checkboxId) {
-         const checkbox = document.getElementById(checkboxId); if (!checkbox) return;
-         checkbox.addEventListener('change', (e) => {
-             const isChecked = e.target.checked;
-             this._currentSettings[checkboxId] = isChecked;
-             if (checkboxId === 'useColor3') {
-                 const color3Control = document.getElementById('color3Control');
-                 if (color3Control) color3Control.classList.toggle('hidden', !isChecked);
-                 this._applyGradientToLogo(); // Re-apply gradient if color count changes
+             const value = e.target.value; this._currentSettings[inputId] = value; updateDisplay(value);
+             const logoElement = document.querySelector('.logo-text'); const previewContainer = document.getElementById('previewContainer');
+             switch (inputId) {
+                 case 'letterSpacing': if (logoElement) logoElement.style.letterSpacing = `${value}em`; console.log(`[SM] Applied letter-spacing: ${value}em`); break;
+                 case 'rotation': if (logoElement) logoElement.style.transform = `rotate(${value}deg)`; console.log(`[SM] Applied rotation: ${value}deg`); break;
+                 case 'animationSpeed': this._applyAnimationSpeed(value); break;
+                 case 'animationDirection': document.documentElement.style.setProperty('--gradient-direction', `${value}deg`); if (this._currentSettings.textColorMode === 'gradient') { this._applyGradientToLogo(); } console.log(`[SM] Applied text gradient direction: ${value}deg`); break;
+                 case 'bgOpacity': if (previewContainer) previewContainer.style.opacity = value; console.log(`[SM] Applied background opacity: ${value}`); break;
+                 case 'bgGradientDirection': document.documentElement.style.setProperty('--bg-gradient-direction', `${value}deg`); if (this._currentSettings.backgroundType?.includes('gradient')) { this._applyBackgroundGradient(); } console.log(`[SM] Applied background gradient direction: ${value}deg`); break;
+                 case 'exportFrameRate': console.log(`[SM] Export Frame Rate (Preview) set to: ${value} FPS`); break;
+                 case 'exportQuality': console.log(`[SM] Export Quality set to: ${value}%`); break;
+                 default: console.warn(`[SM] Unhandled range input: #${inputId}`);
              }
-             // exportTransparent has no direct live effect
              this._triggerSettingsUpdate();
+        });
+    },
+    _bindCheckboxListener(checkboxId) {
+         const checkbox = document.getElementById(checkboxId); if (!checkbox) { console.warn(`[SM] Checkbox #${checkboxId} not found.`); return; }
+         checkbox.addEventListener('change', (e) => {
+              const isChecked = e.target.checked; console.log(`[SM] Checkbox Change: #${checkboxId} = ${isChecked}`); this._currentSettings[checkboxId] = isChecked;
+              if (checkboxId === 'useColor3') {
+                  const color3Control = document.getElementById('color3Control'); if (color3Control) color3Control.classList.toggle('hidden', !isChecked);
+                  this._applyGradientToLogo(); console.log(`[SM] Toggled Use Color 3: ${isChecked}`);
+              } else if (checkboxId === 'exportTransparent') { console.log(`[SM] Export Transparent toggled: ${isChecked}`); }
+              this._triggerSettingsUpdate();
          });
-     },
-
+    },
     _bindColorInputListener(inputId) {
-        const input = document.getElementById(inputId); if (!input) return;
-        // Use 'input' for live updates as the user drags the color picker
+        const input = document.getElementById(inputId); if (!input) { console.warn(`[SM] Color input #${inputId} not found.`); return; }
         input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            this._currentSettings[inputId] = value;
-            switch (inputId) {
-                case 'solidColorPicker': if (this._currentSettings.textColorMode === 'solid') { const el = document.querySelector('.logo-text'); if (el) el.style.color = value; } break;
-                case 'color1': case 'color2': case 'color3': if (this._currentSettings.textColorMode === 'gradient') { this._applyGradientToLogo(); } break;
-                case 'borderColorPicker': document.documentElement.style.setProperty('--dynamic-border-color', value); break;
-                case 'backgroundColor': const pc = document.getElementById('previewContainer'); if (pc && this._currentSettings.backgroundType === 'bg-solid') { pc.style.backgroundColor = value; } break;
-                case 'bgColor1': case 'bgColor2': if (this._currentSettings.backgroundType?.includes('gradient')) { this._applyBackgroundGradient(); } break;
-            }
-            this._triggerSettingsUpdate();
+             const value = e.target.value; this._currentSettings[inputId] = value;
+             switch (inputId) {
+                 case 'solidColorPicker': if (this._currentSettings.textColorMode === 'solid') { const el = document.querySelector('.logo-text'); if (el) el.style.color = value; console.log(`[SM] Applied solid text color: ${value}`); } break;
+                 case 'color1': case 'color2': case 'color3': if (this._currentSettings.textColorMode === 'gradient') { this._applyGradientToLogo(); console.log(`[SM] Custom text gradient color changed (${inputId})`); } break;
+                 case 'borderColorPicker': document.documentElement.style.setProperty('--dynamic-border-color', value); console.log(`[SM] Set --dynamic-border-color CSS variable to: ${value}`); break;
+                 case 'backgroundColor': const pc = document.getElementById('previewContainer'); if (pc && this._currentSettings.backgroundType === 'bg-solid') { pc.style.backgroundColor = value; console.log(`[SM] Applied solid background color: ${value}`); } break;
+                 case 'bgColor1': case 'bgColor2': if (this._currentSettings.backgroundType?.includes('gradient')) { this._applyBackgroundGradient(); console.log(`[SM] Custom background gradient color changed (${inputId})`); } break;
+             }
+             this._triggerSettingsUpdate();
         });
     },
 
-    // --- Specific Handlers ---
-
+    // --- Specific Handlers (with robustness checks from previous updates) ---
     _handleColorModeChange(mode) {
-        const solidGroup = document.getElementById('solidColorPickerGroup');
-        const presetSelect = document.getElementById('gradientPreset');
-        const customGroup = document.getElementById('customGradientControls');
-        const logoEl = document.querySelector('.logo-text');
-        const presetGroup = presetSelect?.parentElement; // The control-group containing the preset select
-
-        if (!solidGroup || !presetGroup || !customGroup || !logoEl) { console.warn("Missing elements for color mode change."); return; }
+        console.log(`[SM] Handling Color Mode Change to: ${mode}`);
+        const solidGroup = document.getElementById('solidColorPickerGroup'); const presetSelect = document.getElementById('gradientPreset');
+        const customGroup = document.getElementById('customGradientControls'); const logoEl = document.querySelector('.logo-text');
+        const presetGroup = presetSelect ? presetSelect.closest('.control-group') : null;
+        if (!solidGroup || !presetSelect || !presetGroup || !customGroup || !logoEl) {
+             console.error("[SM Error] Missing critical elements for color mode change UI update:"); /* Log specifics */ return; }
+        console.log("[SM] Color mode change required elements found.");
         const isSolid = mode === 'solid';
-
-        solidGroup.classList.toggle('hidden', !isSolid);
-        presetGroup.classList.toggle('hidden', isSolid);
+        solidGroup.classList.toggle('hidden', !isSolid); presetGroup.classList.toggle('hidden', isSolid);
         customGroup.classList.toggle('hidden', isSolid || presetSelect.value !== 'custom');
-
         if (isSolid) {
-            const solidColor = document.getElementById('solidColorPicker')?.value || '#ffffff';
-            logoEl.style.backgroundImage = 'none'; // Remove gradient
-            logoEl.style.backgroundClip = 'initial'; // Reset clipping
-            logoEl.style.webkitBackgroundClip = 'initial';
-            logoEl.style.color = solidColor; // Apply solid color
-            logoEl.style.webkitTextFillColor = 'initial'; // Reset fill color override
-        } else { // Mode is 'gradient'
-            this._applyGradientToLogo(); // Apply gradient styles
-        }
+             const solidColor = document.getElementById('solidColorPicker')?.value || '#ffffff'; console.log(`[SM] Applying solid text color: ${solidColor}`);
+             logoEl.style.backgroundImage = 'none'; logoEl.style.backgroundClip = 'initial'; logoEl.style.webkitBackgroundClip = 'initial';
+             logoEl.style.color = solidColor; logoEl.style.webkitTextFillColor = 'initial';
+        } else { console.log('[SM] Applying gradient text color...'); this._applyGradientToLogo(); }
     },
-
     _handleGradientPresetChange(preset) {
-        const customControls = document.getElementById('customGradientControls');
-        if (customControls) customControls.classList.toggle('hidden', preset !== 'custom');
-        this._applyGradientToLogo(); // Re-apply gradient based on new preset
+        console.log(`[SM] Handling Gradient Preset Change: ${preset}`);
+        const customControls = document.getElementById('customGradientControls'); if (customControls) customControls.classList.toggle('hidden', preset !== 'custom');
+        this._applyGradientToLogo();
     },
-
     _applyGradientToLogo() {
-        const logoEl = document.querySelector('.logo-text');
-        const presetSelect = document.getElementById('gradientPreset');
-        const directionInput = document.getElementById('animationDirection'); // Text gradient direction
-        if (!logoEl || !presetSelect || !directionInput || this._currentSettings.textColorMode !== 'gradient') return;
-
-        let gradient = '';
-        const direction = directionInput.value || '45';
-        const preset = presetSelect.value;
-
+        const logoEl = document.querySelector('.logo-text'); const presetSelect = document.getElementById('gradientPreset');
+        const directionInput = document.getElementById('animationDirection');
+        if (!logoEl || !presetSelect || !directionInput) { console.warn("[SM ApplyGradient] Missing required elements."); return; }
+        if (this._currentSettings.textColorMode !== 'gradient') { console.warn("[SM ApplyGradient] Mode is not gradient."); /* Reset styles if needed */ return; }
+        let gradient = ''; const direction = directionInput.value || '45'; const preset = presetSelect.value;
+        console.log(`[SM ApplyGradient] Applying text gradient. Preset: ${preset}, Direction: ${direction}deg`);
         if (preset === 'custom') {
-            const c1 = document.getElementById('color1')?.value || '#FF1493';
-            const c2 = document.getElementById('color2')?.value || '#8A2BE2';
-            const useC3 = document.getElementById('useColor3')?.checked;
-            const c3 = document.getElementById('color3')?.value || '#FF4500';
-            gradient = useC3 ? `linear-gradient(${direction}deg, ${c1}, ${c2}, ${c3})` : `linear-gradient(${direction}deg, ${c1}, ${c2})`;
+             const c1 = document.getElementById('color1')?.value || '#FF1493'; const c2 = document.getElementById('color2')?.value || '#8A2BE2';
+             const useC3 = document.getElementById('useColor3')?.checked; const c3 = document.getElementById('color3')?.value || '#FF4500';
+             gradient = useC3 ? `linear-gradient(${direction}deg, ${c1}, ${c2}, ${c3})` : `linear-gradient(${direction}deg, ${c1}, ${c2})`;
+             console.log(`[SM ApplyGradient] Custom colors: ${c1}, ${c2}` + (useC3 ? `, ${c3}` : ''));
         } else {
-            // Get the gradient definition from CSS variable
-            const presetVar = getComputedStyle(document.documentElement).getPropertyValue(`--${preset}`).trim();
-            // Reconstruct with current direction
-            if (presetVar?.startsWith('linear-gradient')) {
-                gradient = presetVar.replace(/linear-gradient\(([^,]+),/, `linear-gradient(${direction}deg,`);
-            } else {
-                gradient = `linear-gradient(${direction}deg, #FF1493, #8A2BE2)`; // Fallback if var is invalid
-            }
+             const presetVarName = `--${preset}`; const presetVarValue = getComputedStyle(document.documentElement).getPropertyValue(presetVarName).trim();
+             console.log(`[SM ApplyGradient] Preset var read: ${presetVarName} = '${presetVarValue}'`);
+             if (presetVarValue && presetVarValue.startsWith('linear-gradient')) { gradient = presetVarValue.replace(/linear-gradient\(([^,]+),/, `linear-gradient(${direction}deg,`); }
+             else { console.warn(`[SM ApplyGradient] Preset var '${presetVarName}' invalid. Fallback.`); gradient = `linear-gradient(${direction}deg, #FF1493, #8A2BE2)`; }
         }
-        // Apply styles for gradient text
-        logoEl.style.backgroundImage = gradient;
-        logoEl.style.webkitBackgroundClip = 'text';
-        logoEl.style.backgroundClip = 'text';
-        logoEl.style.color = 'transparent'; // Hide base color
-        logoEl.style.webkitTextFillColor = 'transparent'; // Override for webkit
+        logoEl.style.backgroundImage = gradient; logoEl.style.webkitBackgroundClip = 'text'; logoEl.style.backgroundClip = 'text';
+        logoEl.style.color = 'transparent'; logoEl.style.webkitTextFillColor = 'transparent';
+        console.log('[SM ApplyGradient] Text gradient styles applied.');
     },
-
     _handleBackgroundTypeChange(type) {
-        const previewContainer = document.getElementById('previewContainer');
-        const bgColorControl = document.getElementById('backgroundColorControl');
-        const bgGradientControls = document.getElementById('backgroundGradientControls');
-        const customBgGradientControls = document.getElementById('customBackgroundGradient');
+        console.log(`[SM] Handling Background Type Change: ${type}`);
+        const previewContainer = document.getElementById('previewContainer'); const bgColorControl = document.getElementById('backgroundColorControl');
+        const bgGradientControls = document.getElementById('backgroundGradientControls'); const customBgGradientControls = document.getElementById('customBackgroundGradient');
         const bgPresetSelect = document.getElementById('backgroundGradientPreset');
-        if (!previewContainer || !bgColorControl || !bgGradientControls || !customBgGradientControls || !bgPresetSelect) { console.warn("Missing elements for background type change."); return; }
-
-        const isSolid = type === 'bg-solid';
-        const isGradient = type === 'bg-gradient' || type === 'bg-gradient-animated';
-
-        // Toggle control visibility
-        bgColorControl.classList.toggle('hidden', !isSolid);
-        bgGradientControls.classList.toggle('hidden', !isGradient);
-        // Show custom BG gradient controls only if gradient type is selected AND 'custom' preset is chosen
+        if (!previewContainer || !bgColorControl || !bgGradientControls || !customBgGradientControls || !bgPresetSelect) { console.warn("[SM] Missing elements for background type change."); return; }
+        const isSolid = type === 'bg-solid'; const isGradient = type === 'bg-gradient' || type === 'bg-gradient-animated';
+        bgColorControl.classList.toggle('hidden', !isSolid); bgGradientControls.classList.toggle('hidden', !isGradient);
         customBgGradientControls.classList.toggle('hidden', !isGradient || bgPresetSelect.value !== 'custom');
-
-        // Apply styles and classes
         const classList = previewContainer.classList;
-        // Remove previous background classes
-        for (let i = classList.length - 1; i >= 0; i--) { if (classList[i].startsWith('bg-')) classList.remove(classList[i]); }
-
-        // Clear inline styles first
-        previewContainer.style.backgroundColor = '';
-        previewContainer.style.backgroundImage = '';
-        previewContainer.classList.remove('bg-gradient-animated-css'); // Remove animation class specifically
-
+        const bgClasses = Array.from(classList).filter(cls => cls.startsWith('bg-'));
+        if (bgClasses.length > 0) { console.log(`[SM] Removing old background classes: ${bgClasses.join(', ')}`); classList.remove(...bgClasses); }
+        previewContainer.style.backgroundColor = ''; previewContainer.style.backgroundImage = ''; previewContainer.style.opacity = this._currentSettings.bgOpacity || '1';
+        previewContainer.classList.remove('bg-gradient-animated-css');
         if (isSolid) {
-            classList.add('bg-solid');
-            previewContainer.style.backgroundColor = document.getElementById('backgroundColor')?.value || '#000000';
+             classList.add('bg-solid'); previewContainer.style.backgroundColor = document.getElementById('backgroundColor')?.value || '#000000';
+             console.log(`[SM] Applied bg-solid, color: ${previewContainer.style.backgroundColor}`);
         } else if (isGradient) {
-            // Add the appropriate base class (needed if patterns rely on it?)
-            // classList.add('bg-gradient'); // Or maybe no base class is needed, just the style
-            this._applyBackgroundGradient(); // Apply the gradient via style.backgroundImage
-            if (type === 'bg-gradient-animated') {
-                previewContainer.classList.add('bg-gradient-animated-css'); // Add class for CSS animation
-            }
-        } else if (type && type !== 'bg-transparent') { // For patterns like bg-grid, bg-stars etc.
-            classList.add(type); // Add the specific class (e.g., 'bg-grid')
-        } else { // bg-transparent
-            // No class needed, ensure background is transparent
-            previewContainer.style.backgroundColor = 'transparent';
-        }
-        // console.log(`[SettingsManager] Background type set to: ${type}`);
+             classList.add(type); this._applyBackgroundGradient();
+             if (type === 'bg-gradient-animated') { previewContainer.classList.add('bg-gradient-animated-css'); console.log('[SM] Applied animated gradient styles.'); }
+             else { console.log('[SM] Applied static gradient styles.'); }
+        } else if (type && type !== 'bg-transparent') {
+             console.log(`[SM] Applying background pattern class: ${type}`); classList.add(type);
+        } else { classList.add('bg-transparent'); previewContainer.style.backgroundColor = 'transparent'; previewContainer.style.backgroundImage = 'none'; console.log('[SM] Applied transparent background.'); }
+        console.log(`[SM] Final preview container classes: ${previewContainer.classList}`);
     },
-
     _handleBackgroundGradientChange(presetValue) {
-        const customBgGroup = document.getElementById('customBackgroundGradient');
-        if (customBgGroup) customBgGroup.classList.toggle('hidden', presetValue !== 'custom');
-        this._applyBackgroundGradient(); // Re-apply gradient when preset changes
+        console.log(`[SM] Handling Background Gradient Preset Change: ${presetValue}`);
+        const customBgGroup = document.getElementById('customBackgroundGradient'); if (customBgGroup) customBgGroup.classList.toggle('hidden', presetValue !== 'custom');
+        this._applyBackgroundGradient();
     },
-
     _applyBackgroundGradient() {
-        const previewContainer = document.getElementById('previewContainer');
-        const presetSelect = document.getElementById('backgroundGradientPreset');
+        const previewContainer = document.getElementById('previewContainer'); const presetSelect = document.getElementById('backgroundGradientPreset');
         const directionInput = document.getElementById('bgGradientDirection');
-        if (!previewContainer || !presetSelect || !directionInput) return;
-        const currentBgType = this._currentSettings.backgroundType;
-        // Only apply if a gradient type is selected
-        if (currentBgType !== 'bg-gradient' && currentBgType !== 'bg-gradient-animated') return;
-
-        let gradient = '';
-        const direction = directionInput.value || '90';
-        const preset = presetSelect.value;
-
+        if (!previewContainer || !presetSelect || !directionInput) { console.warn("[SM ApplyBgGradient] Missing elements."); return; }
+        const currentBgType = this._currentSettings.backgroundType; if (currentBgType !== 'bg-gradient' && currentBgType !== 'bg-gradient-animated') return;
+        let gradient = ''; const direction = directionInput.value || '90'; const preset = presetSelect.value;
+        console.log(`[SM ApplyBgGradient] Applying background gradient. Preset: ${preset}, Direction: ${direction}deg`);
         if (preset === 'custom') {
-            const c1 = document.getElementById('bgColor1')?.value || '#3a1c71';
-            const c2 = document.getElementById('bgColor2')?.value || '#ffaf7b';
-            gradient = `linear-gradient(${direction}deg, ${c1}, ${c2})`;
+             const c1 = document.getElementById('bgColor1')?.value || '#3a1c71'; const c2 = document.getElementById('bgColor2')?.value || '#ffaf7b';
+             gradient = `linear-gradient(${direction}deg, ${c1}, ${c2})`;
         } else {
-            const rootStyle = getComputedStyle(document.documentElement);
-            const presetVar = rootStyle.getPropertyValue(`--${preset}`).trim();
-             if (presetVar?.startsWith('linear-gradient')) {
-                 // Reconstruct with current direction
-                 gradient = presetVar.replace(/linear-gradient\(([^,]+),/, `linear-gradient(${direction}deg,`);
-             } else { gradient = `linear-gradient(${direction}deg, #3a1c71, #ffaf7b)`; } // Fallback
+             const rootStyle = getComputedStyle(document.documentElement); const presetVarName = `--${preset}`; // Assuming var name matches value
+             const presetVarValue = rootStyle.getPropertyValue(presetVarName).trim();
+             if (presetVarValue?.startsWith('linear-gradient')) { gradient = presetVarValue.replace(/linear-gradient\(([^,]+),/, `linear-gradient(${direction}deg,`); }
+             else { gradient = `linear-gradient(${direction}deg, #3a1c71, #ffaf7b)`; console.warn(`[SM ApplyBgGradient] Invalid/missing var ${presetVarName}, using fallback.`);}
         }
-        previewContainer.style.backgroundImage = gradient; // Apply directly
+        previewContainer.style.backgroundImage = gradient; console.log(`[SM ApplyBgGradient] Set background image to: ${gradient}`);
     },
-
-    _applyClassFromSelect(targetSelector, className, classPrefix = null) {
-        const targetElement = document.querySelector(targetSelector); if (!targetElement) return;
-        if (classPrefix) {
-             // Remove existing classes with the same prefix more robustly
-             const classesToRemove = Array.from(targetElement.classList).filter(cls => cls.startsWith(classPrefix));
-             if(classesToRemove.length > 0) targetElement.classList.remove(...classesToRemove);
+    _applyAnimationSpeed(speedValue) {
+         const speed = parseFloat(speedValue || 1); const baseDuration = 2;
+         const duration = baseDuration / Math.max(0.1, speed);
+         document.documentElement.style.setProperty('--animation-duration', `${duration.toFixed(2)}s`);
+         console.log(`[SM] Applied animation speed multiplier: ${speed}x (duration: ${duration.toFixed(2)}s)`);
+    },
+    _applyClassFromSelect(targetSelectorOrElement, className, classPrefix = null) {
+         const targetElement = (typeof targetSelectorOrElement === 'string') ? document.querySelector(targetSelectorOrElement) : targetSelectorOrElement;
+         if (!targetElement) { console.warn(`[SM ApplyClass] Target not found:`, targetSelectorOrElement); return; }
+         if (classPrefix) {
+              const classesToRemove = Array.from(targetElement.classList).filter(cls => cls.startsWith(classPrefix));
+              if(classesToRemove.length > 0) { targetElement.classList.remove(...classesToRemove); /* console.log(`[SM ApplyClass] Removed prefix '${classPrefix}' from`, targetElement); */ }
          }
-        // Add the new class if it's not a "none" class or empty
-        if (className && (!classPrefix || !className.endsWith('-none'))) {
-            targetElement.classList.add(className);
-        }
+         if (className && (!classPrefix || !className.endsWith('-none'))) {
+              targetElement.classList.add(className); console.log(`[SM ApplyClass] Added class '${className}' to`, targetElement);
+         } else if (className && className.endsWith('-none')) { /* console.log(`[SM ApplyClass] '${className}' is none class, not adding.`); */ }
     },
-
-    /** Injects @font-face */
     async _injectFontStyle(fontFamilyName, isInitial = false) {
-        // console.log(`[SM] Injecting font: ${fontFamilyName} (Initial: ${isInitial})`); // Verbose log
-        let dynamicStyleElement = document.getElementById('dynamic-font-style'); let attempt = 0; const maxAttempts = 5, retryDelay = 50; // Faster retry
-        while (!dynamicStyleElement && isInitial && attempt < maxAttempts) { attempt++; console.warn(`[SM] #dynamic-font-style attempt ${attempt}...`); await new Promise(r => setTimeout(r, retryDelay)); dynamicStyleElement = document.getElementById('dynamic-font-style'); }
-        if (!dynamicStyleElement) { console.error("[SM] #dynamic-font-style missing!"); if(!window._dynFontAlertShown && typeof showAlert==='function'){showAlert('Font system init error.','error'); window._dynFontAlertShown=true;} return; }
-        const fontDataGlobal = window._INLINE_FONTS_DATA; if (!Array.isArray(fontDataGlobal) || !fontFamilyName) { dynamicStyleElement.textContent='/* Font data invalid */'; return; }
-        const targetL = fontFamilyName.toLowerCase(); const family = fontDataGlobal.find(f=>f.familyName?.toLowerCase()===targetL||f.displayName?.toLowerCase()===targetL); if (!family?.variants?.length) { dynamicStyleElement.textContent=`/* Font ${fontFamilyName} not found */`; return; }
-        let bestMatch=family.variants.find(v=>v.file?.startsWith('data:')&&String(v.weight||400)===String(this._currentSettings.fontWeight||400)&&(v.style||'normal')==='normal'); if (!bestMatch) bestMatch = family.variants.find(v => v.file?.startsWith('data:') && String(v.weight||400)==='400' && (v.style||'normal')==='normal'); if (!bestMatch) bestMatch = family.variants.find(v => v.file?.startsWith('data:'));
-        if (bestMatch) { let rule=`/* Font: ${family.displayName} */\n@font-face{font-family:"${family.familyName}";src:url(${bestMatch.file}) format("${bestMatch.format||'woff2'}");font-weight:${bestMatch.weight||400};font-style:${bestMatch.style||'normal'};}`; dynamicStyleElement.textContent=rule; void document.body.offsetHeight; /* Force reflow */ console.log(`[SM] Injected ${family.familyName}`); }
-        else { dynamicStyleElement.textContent=`/* No Base64 for ${fontFamilyName} */`; console.warn(`[SM] No Base64 for ${fontFamilyName}.`); }
+         // ... (keep implementation from v11) ...
+         let dynamicStyleElement = document.getElementById('dynamic-font-style'); let attempt = 0; const maxAttempts = 5, retryDelay = 50;
+         while (!dynamicStyleElement && isInitial && attempt < maxAttempts) { attempt++; console.warn(`[SM] #dynamic-font-style attempt ${attempt}...`); await new Promise(r => setTimeout(r, retryDelay)); dynamicStyleElement = document.getElementById('dynamic-font-style'); }
+         if (!dynamicStyleElement) { console.error("[SM] #dynamic-font-style missing!"); if(!window._dynFontAlertShown && typeof showAlert==='function'){showAlert('Font system init error.','error'); window._dynFontAlertShown=true;} return; }
+         const fontDataGlobal = window._INLINE_FONTS_DATA; if (!Array.isArray(fontDataGlobal) || !fontFamilyName) { dynamicStyleElement.textContent='/* Font data invalid */'; return; }
+         const targetL = fontFamilyName.toLowerCase(); const family = fontDataGlobal.find(f=>f.familyName?.toLowerCase()===targetL||f.displayName?.toLowerCase()===targetL); if (!family?.variants?.length) { dynamicStyleElement.textContent=`/* Font ${fontFamilyName} not found */`; return; }
+         // Find best match logic (keep existing priority: exact -> weight -> normal -> any)
+         const targetWeight = this._currentSettings?.fontWeight || '400'; const targetStyle = 'normal'; // Assume normal for now
+         let bestMatch = family.variants.find(v => v.file?.startsWith('data:') && String(v.weight||400) === String(targetWeight) && (v.style||'normal') === targetStyle)
+                      || family.variants.find(v => v.file?.startsWith('data:') && String(v.weight||400) === String(targetWeight))
+                      || family.variants.find(v => v.file?.startsWith('data:') && String(v.weight||400) === '400' && (v.style||'normal') === 'normal')
+                      || family.variants.find(v => v.file?.startsWith('data:'));
+         if (bestMatch) { let rule=`/* Font: ${family.displayName} */\n@font-face{font-family:"${family.familyName}";src:url(${bestMatch.file}) format("${bestMatch.format||'woff2'}");font-weight:${bestMatch.weight||400};font-style:${bestMatch.style||'normal'};font-display:swap;}`; dynamicStyleElement.textContent=rule; void document.body.offsetHeight; console.log(`[SM] Injected ${family.familyName} (weight ${bestMatch.weight || 400})`); }
+         else { dynamicStyleElement.textContent=`/* No Base64 for ${fontFamilyName} */`; console.warn(`[SM] No Base64 variant found for ${fontFamilyName}.`); }
     },
 
     // --- Core Methods ---
     _triggerSettingsUpdate() {
-        this.saveCurrentSettings(); // Save on every change
+        this.saveCurrentSettings();
         this._listeners.forEach(listener => listener(this._currentSettings));
         this._updateSizeIndicator();
         this._updateCSSCode();
     },
-
     _updateSizeIndicator() {
-        const logoEl = document.querySelector('.logo-text');
-        const widthIndicator = document.getElementById('logoWidth');
-        const heightIndicator = document.getElementById('logoHeight');
-        if (!logoEl || !widthIndicator || !heightIndicator) return;
-        // Delay slightly to allow browser layout engine to catch up after style changes
-        setTimeout(() => {
-            const rect = logoEl.getBoundingClientRect();
-            widthIndicator.textContent = Math.round(rect.width);
-            heightIndicator.textContent = Math.round(rect.height);
-        }, 60); // ~1 frame delay might be enough
+        requestAnimationFrame(() => { // Use rAF for potentially better timing
+             const logoEl = document.querySelector('.logo-text'); const widthIndicator = document.getElementById('logoWidth'); const heightIndicator = document.getElementById('logoHeight');
+             if (!logoEl || !widthIndicator || !heightIndicator) return;
+             try { const rect = logoEl.getBoundingClientRect(); if (rect.width > 0 && rect.height > 0) { widthIndicator.textContent = Math.round(rect.width); heightIndicator.textContent = Math.round(rect.height); } } catch (e) { console.error("[SM] Error updating size indicator:", e); }
+        });
     },
-
     _updateCSSCode() {
         const cssCodeArea = document.getElementById('cssCode');
-        if(cssCodeArea) {
-            cssCodeArea.value = this._generateCSSCode();
-        }
+        if(cssCodeArea) { cssCodeArea.value = this._generateCSSCode(); }
     },
-
     _generateCSSCode() {
-        // console.log("[SettingsManager] Generating CSS Code..."); // Keep for debugging
-        const logoElement = document.querySelector('.logo-text');
-        const previewContainer = document.getElementById('previewContainer');
-        const borderElement = document.querySelector('.dynamic-border');
-        if (!logoElement || !previewContainer || !borderElement) return '// Error: Missing required elements for CSS generation';
-
+        console.log("[SM] Generating CSS Code...");
+        const logoElement = document.querySelector('.logo-text'); const previewContainer = document.getElementById('previewContainer');
+        const borderElement = document.querySelector('.logo-container.dynamic-border') || document.querySelector('.logo-container'); // Target container for border
+        let errorMsg = '';
+        if (!logoElement) errorMsg += '.logo-text missing. '; if (!previewContainer) errorMsg += '#previewContainer missing. '; if (!borderElement) console.warn("[SM CSS Gen] Border target .logo-container missing.");
+        if (!logoElement || !previewContainer) { console.error(`[SM CSS Gen Error] ${errorMsg}`); return `// Error: Missing elements. ${errorMsg}`; }
+        console.log("[SM CSS Gen] Elements found.");
         try {
-            const logoStyle = window.getComputedStyle(logoElement);
-            const containerStyle = window.getComputedStyle(previewContainer);
-            const borderComputedStyle = window.getComputedStyle(borderElement);
-            const rootStyle = window.getComputedStyle(document.documentElement);
-            const cssVars = ['--primary-gradient','--cyberpunk-gradient','--sunset-gradient','--ocean-gradient','--animation-duration','--gradient-direction','--dynamic-border-color', '--bg-gradient-direction'];
-
-            let css = `:root {\n`;
-            cssVars.forEach(varName => { const value = rootStyle.getPropertyValue(varName).trim(); if (value) css += `  ${varName}: ${value};\n`; });
-            css += `}\n\n`;
-
-            // Container Styles
-            css += `.logo-container { /* Basic container styles */\n  display:flex; justify-content:center; align-items:center; width:100%; min-height:300px;\n`;
-            const bgTypeSetting = this._currentSettings.backgroundType || 'bg-solid';
-            if (bgTypeSetting === 'bg-solid') {
-                css += `  background-color: ${this._currentSettings.backgroundColor || '#000000'};\n`;
-            } else if (bgTypeSetting.includes('gradient')) {
-                 const appliedBgImage = previewContainer.style.backgroundImage; // Use inline style if set
-                 if (appliedBgImage && appliedBgImage !== 'none') { css += `  background-image: ${appliedBgImage};\n`; }
-                 else if (containerStyle.backgroundImage !== 'none') { css += `  background-image: ${containerStyle.backgroundImage};\n`; } // Fallback to computed
-            } else if (bgTypeSetting !== 'bg-transparent') {
-                 css += `  /* Background applied via CSS class: ${bgTypeSetting} */\n`;
-                 css += `  background-color: ${containerStyle.backgroundColor}; /* May need adjustment based on class */\n`;
-            } else { css += `  background-color: transparent;\n`; }
-            if (containerStyle.opacity !== '1') css += `  opacity: ${containerStyle.opacity};\n`;
-            css += `}\n\n`;
-
-            // Logo Text Styles - use computed styles primarily for visual accuracy
-            css += `.logo-text {\n`;
-            const primaryFontFamily = logoStyle.fontFamily.split(',')[0].trim().replace(/['"]/g, '');
-            css += `  font-family: "${primaryFontFamily}", sans-serif;\n`;
-            css += `  font-size: ${logoStyle.fontSize};\n`;
-            css += `  font-weight: ${logoStyle.fontWeight};\n`;
-            if(logoStyle.letterSpacing !== 'normal') css += `  letter-spacing: ${logoStyle.letterSpacing};\n`;
-            if(logoStyle.textTransform !== 'none') css += `  text-transform: ${logoStyle.textTransform};\n`; // Use computed for final state
-            css += `  text-align: ${logoStyle.textAlign};\n`;
-             // Color/Gradient Handling - Check current setting mode
-            if (this._currentSettings.textColorMode === 'gradient') {
-                const currentGradient = logoElement.style.backgroundImage || logoStyle.backgroundImage; // Prioritize inline style
-                if (currentGradient && currentGradient !== 'none') { css += `  background-image: ${currentGradient};\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; }
-                else { css += `  color: #FFFFFF; /* Fallback if gradient fails */\n`; }
-            } else { css += `  color: ${logoStyle.color};\n`; } // Use computed color for solid
-
-            if (logoStyle.textShadow && logoStyle.textShadow !== 'none') css += `  text-shadow: ${logoStyle.textShadow};\n`;
-
-            // Border - Check computed style of the border element
-             const borderStyleValue = borderComputedStyle.borderTopStyle; // Check one side
-             if (borderStyleValue && borderStyleValue !== 'none') {
-                 css += `  border-style: ${borderStyleValue};\n`;
-                 css += `  border-width: ${borderComputedStyle.borderTopWidth};\n`;
-                 // Use var() function for dynamic color referencing the CSS variable
-                 css += `  border-color: var(--dynamic-border-color, ${this._currentSettings.borderColorPicker || '#fff'});\n`;
+             const logoStyle = window.getComputedStyle(logoElement); const containerStyle = window.getComputedStyle(previewContainer);
+             const borderComputedStyle = window.getComputedStyle(borderElement); const rootStyle = window.getComputedStyle(document.documentElement);
+             const cssVars = ['--animation-duration', '--gradient-direction', '--dynamic-border-color', '--bg-gradient-direction']; // Key variables to include
+             let css = `:root {\n`; cssVars.forEach(v => { const val = rootStyle.getPropertyValue(v).trim(); if (val) css += `  ${v}: ${val};\n`; }); css += `}\n\n`;
+             // Container
+             css += `.logo-container { /* Basic container - adjust as needed */\n  display: flex; justify-content: center; align-items: center; width: 100%; min-height: 150px;\n`;
+             const bgTypeSetting = this._currentSettings.backgroundType || 'bg-solid';
+             if (bgTypeSetting === 'bg-solid') { css += `  background-color: ${this._currentSettings.backgroundColor || '#000000'};\n`; }
+             else if (bgTypeSetting.includes('gradient')) { const grad = previewContainer.style.backgroundImage || containerStyle.backgroundImage; if (grad && grad !== 'none') css += `  background-image: ${grad};\n`; }
+             else if (bgTypeSetting !== 'bg-transparent') { css += `  /* Background applied via class: ${bgTypeSetting} */\n  /* Base color was: ${containerStyle.backgroundColor} */\n`; }
+             else { css += `  background-color: transparent;\n`; }
+             if (containerStyle.opacity !== '1') css += `  opacity: ${containerStyle.opacity};\n`;
+             // Add border style if applied to container
+              const borderStyleValue = borderComputedStyle.borderTopStyle;
+              if (borderStyleValue && borderStyleValue !== 'none' && borderElement.classList.contains('dynamic-border')) {
+                  css += `  border-style: ${borderStyleValue};\n`; css += `  border-width: ${borderComputedStyle.borderTopWidth};\n`; css += `  border-color: var(--dynamic-border-color, ${this._currentSettings.borderColorPicker || '#fff'});\n`;
+                  if (borderComputedStyle.borderRadius !== '0px') css += ` border-radius: ${borderComputedStyle.borderRadius};\n`; // Include border-radius if set
+              }
+             css += `}\n\n`;
+             // Logo Text
+             css += `.logo-text {\n`; const primaryFont = logoStyle.fontFamily.split(',')[0].trim().replace(/['"]/g, ''); css += `  font-family: "${primaryFont}", sans-serif;\n`;
+             css += `  font-size: ${logoStyle.fontSize};\n`; css += `  font-weight: ${logoStyle.fontWeight};\n`;
+             if(logoStyle.letterSpacing !== 'normal') css += `  letter-spacing: ${logoStyle.letterSpacing};\n`; if(logoStyle.textTransform !== 'none') css += `  text-transform: ${logoStyle.textTransform};\n`;
+             css += `  text-align: ${logoStyle.textAlign};\n`;
+             if (this._currentSettings.textColorMode === 'gradient') { const grad = logoElement.style.backgroundImage || logoStyle.backgroundImage; if (grad && grad !== 'none') css += `  background-image: ${grad};\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; else css += `  color: #FFFFFF; /* Fallback */\n`; }
+             else { css += `  color: ${logoStyle.color};\n`; }
+             if (logoStyle.textShadow && logoStyle.textShadow !== 'none') css += `  text-shadow: ${logoStyle.textShadow};\n`;
+              // Note: Border applied to container above, not text directly unless effect requires it
+             if (logoStyle.transform && logoStyle.transform !== 'none') css += `  transform: ${logoStyle.transform};\n`;
+             if (logoStyle.animationName && logoStyle.animationName !== 'none') { css += `  animation: ${logoStyle.animationName} var(--animation-duration) ${logoStyle.animationTimingFunction} ${logoStyle.animationIterationCount};\n`; }
+             css += `}\n\n`;
+             // Include keyframes if animation active?
+             const animClass = Array.from(logoElement.classList).find(c => c.startsWith('anim-') && c !== 'anim-none');
+             if (animClass && typeof window.getActiveAnimationKeyframes === 'function') {
+                 const keyframes = window.getActiveAnimationKeyframes(animClass.replace('anim-',''));
+                 if(keyframes) css += `${keyframes}\n\n`;
              }
-
-            if (logoStyle.transform && logoStyle.transform !== 'none') css += `  transform: ${logoStyle.transform};\n`;
-            // Animation - check computed style
-            if (logoStyle.animationName && logoStyle.animationName !== 'none') {
-                css += `  animation-name: ${logoStyle.animationName};\n`;
-                css += `  animation-duration: ${logoStyle.animationDuration};\n`;
-                css += `  animation-timing-function: ${logoStyle.animationTimingFunction};\n`;
-                css += `  animation-iteration-count: ${logoStyle.animationIterationCount};\n`;
-            }
-            css += `}\n\n`;
-            // TODO: Include actual @keyframes definitions based on computed animationName if needed
-
-            return css;
-       } catch (e) { console.error("Error generating CSS:", e); return `/* Error generating CSS: ${e.message} */`; }
-   },
-
-    _initializeUIComponents() {
-        this._setupResetButton();
-        this._updateFontPreview(this._currentSettings.fontFamily);
-        this._updateRangeValueDisplays(); // Update displays for all ranges
+              console.log("[SM] CSS Generation successful."); return css;
+        } catch (e) { console.error("Error generating CSS:", e); return `/* Error generating CSS: ${e.message} */`; }
     },
-
+    _initializeUIComponentsState() {
+        console.log('[SM] Initializing UI component states...');
+        this._handleColorModeChange(this._currentSettings.textColorMode);
+        this._handleGradientPresetChange(this._currentSettings.gradientPreset);
+        this._handleBackgroundTypeChange(this._currentSettings.backgroundType);
+        this._handleBackgroundGradientChange(this._currentSettings.backgroundGradientPreset);
+        this._updateFontPreview(this._currentSettings.fontFamily);
+        this._updateRangeValueDisplays();
+        this._setupResetButton(); // Ensure reset button listener is attached
+        console.log('[SM] UI component states initialized.');
+    },
     _updateFontPreview(font) {
         const previewSpan = document.getElementById("fontPreview");
-        if(previewSpan && font) {
-            // Use the actual font family name for the preview span style
-             previewSpan.style.fontFamily = `"${font}", sans-serif`;
-        }
+        if(previewSpan && font) { previewSpan.style.fontFamily = `"${font}", sans-serif`; }
     },
-
-    _setupResetButton() {
-        const resetBtn = document.getElementById('resetBtn'); if (!resetBtn) return;
-        const resetConfirmModal = document.getElementById('resetConfirmModal');
-        const resetModalCancel = document.getElementById('resetModalCancel');
-        const resetModalConfirm = document.getElementById('resetModalConfirm');
-        if (!resetConfirmModal || !resetModalCancel || !resetModalConfirm) return;
-
-        resetBtn.addEventListener('click', () => { resetConfirmModal.classList.add('active'); });
-        resetModalCancel.addEventListener('click', () => { resetConfirmModal.classList.remove('active'); });
-        resetModalConfirm.addEventListener('click', () => {
-            const resetType = document.querySelector('input[name="reset-type"]:checked')?.value || 'all';
-            this.resetSettings(resetType); // Call internal reset method
-            resetConfirmModal.classList.remove('active');
-        });
-        resetConfirmModal.addEventListener('click', e => { if (e.target === resetConfirmModal) resetConfirmModal.classList.remove('active'); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && resetConfirmModal.classList.contains('active')) resetConfirmModal.classList.remove('active'); });
+    _setupResetButton() { // Added logging
+         const resetBtn = document.getElementById('resetBtn'); if (!resetBtn || resetBtn.dataset.listenerAttached) return;
+         const resetConfirmModal = document.getElementById('resetConfirmModal'); const resetModalCancel = document.getElementById('resetModalCancel'); const resetModalConfirm = document.getElementById('resetModalConfirm');
+         if (!resetConfirmModal || !resetModalCancel || !resetModalConfirm) { console.warn('[SM] Reset modal elements missing.'); return; }
+         resetBtn.addEventListener('click', () => { console.log('[SM] Reset button clicked -> showing modal.'); resetConfirmModal.style.display = 'flex'; resetConfirmModal.classList.add('active'); });
+         resetModalCancel.addEventListener('click', () => { console.log('[SM] Reset modal cancelled.'); resetConfirmModal.style.display = 'none'; resetConfirmModal.classList.remove('active'); });
+         resetModalConfirm.addEventListener('click', () => { const resetType = document.querySelector('input[name="reset-type"]:checked')?.value || 'all'; console.log(`[SM] Reset modal confirmed. Type: ${resetType}`); this.resetSettings(resetType); resetConfirmModal.style.display = 'none'; resetConfirmModal.classList.remove('active'); });
+         resetConfirmModal.addEventListener('click', e => { if (e.target === resetConfirmModal) { console.log('[SM] Reset modal closed via overlay.'); resetConfirmModal.style.display = 'none'; resetConfirmModal.classList.remove('active'); }});
+         document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && resetConfirmModal.classList.contains('active')) { console.log('[SM] Reset modal closed via Escape.'); resetConfirmModal.style.display = 'none'; resetConfirmModal.classList.remove('active'); }});
+         resetBtn.dataset.listenerAttached = 'true'; console.log('[SM] Reset button listeners attached.');
     },
-
-    resetSettings(resetType = 'all') {
-        console.log(`[SettingsManager] Resetting: ${resetType}`);
-        const defaults = { ...DEFAULT_SETTINGS };
-        let settingsToApply;
-
-        // Define keys for easier management
-        const textKeys = ['logoText', 'fontFamily', 'fontSize', 'letterSpacing', 'textCase', 'fontWeight'];
-        const styleKeys = ['textColorMode', 'solidColorPicker', 'gradientPreset', 'color1', 'color2', 'useColor3', 'color3', 'textShadow', 'borderColorPicker', 'borderStyle', 'textAlign', 'rotation']; // Style only
-        const animationKeys = ['textAnimation', 'animationSpeed', 'animationDirection']; // Animation only (Note: animationDirection controls text gradient)
-        const backgroundKeys = ['backgroundType', 'backgroundColor', 'bgOpacity', 'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection']; // Background only
-        const advancedKeys = ['previewSize', 'exportWidth', 'exportHeight', 'exportQuality', 'exportTransparent', 'exportFrames', 'exportFrameRate']; // Advanced only
-
-        if (resetType === 'all') {
-            settingsToApply = { ...defaults };
-        } else {
-            // Start with current settings and overwrite specific groups
-            settingsToApply = { ...this._currentSettings };
-            if (resetType === 'text') {
-                textKeys.forEach(key => settingsToApply[key] = defaults[key]);
-            } else if (resetType === 'style') {
-                styleKeys.forEach(key => settingsToApply[key] = defaults[key]);
-                 // Also reset relevant parts of animation/background that affect visual style directly
-                 animationKeys.forEach(key => settingsToApply[key] = defaults[key]);
-                 backgroundKeys.forEach(key => settingsToApply[key] = defaults[key]);
-            }
-             // Add cases for resetting animation, background, advanced if needed
-        }
-
-        this.applySettings(settingsToApply, true); // Apply and force UI update
-        // Use the globally defined notification function
-        notifyResetSuccess(resetType); // Assumes notifyResetSuccess is globally available
+    resetSettings(resetType = 'all') { // Added logging
+         console.log(`[SM] Resetting settings (type: ${resetType}). Applying defaults...`);
+         const defaults = this.getDefaults(); let settingsToApply;
+         const textKeys = ['logoText', 'fontFamily', 'fontSize', 'letterSpacing', 'textCase', 'fontWeight'];
+         const styleKeys = ['textColorMode', 'solidColorPicker', 'gradientPreset', 'color1', 'color2', 'useColor3', 'color3', 'textShadow', 'borderColorPicker', 'borderStyle', 'textAlign', 'rotation', 'animationDirection'];
+         const backgroundKeys = ['backgroundType', 'backgroundColor', 'bgOpacity', 'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection'];
+         if (resetType === 'all') { settingsToApply = { ...defaults }; }
+         else { settingsToApply = { ...this._currentSettings }; if (resetType === 'text') { textKeys.forEach(key => { if(defaults.hasOwnProperty(key)) settingsToApply[key] = defaults[key]; }); } else if (resetType === 'style') { styleKeys.forEach(key => { if(defaults.hasOwnProperty(key)) settingsToApply[key] = defaults[key]; }); backgroundKeys.forEach(key => { if(defaults.hasOwnProperty(key)) settingsToApply[key] = defaults[key]; }); } }
+         this.applySettings(settingsToApply, true).then(() => { console.log('[SM] Settings reset applied successfully.'); if(typeof notifyResetSuccess === 'function') notifyResetSuccess(resetType); }).catch(err => { console.error("[SM] Error applying reset settings:", err); if(typeof showAlert === 'function') showAlert("Failed to apply reset settings.", "error"); });
     },
-
-    /** Apply settings object to UI */
-    async applySettings(settings, forceUIUpdate = false, isInitialLoad = false) { // Make async for await
-        console.log(`[SM] Applying settings (forceUI: ${forceUIUpdate}, initial: ${isInitialLoad})`);
-        const settingsToApply = typeof settings === 'object' && settings !== null ? settings : this._currentSettings;
-        this._currentSettings = { ...DEFAULT_SETTINGS, ...settingsToApply };
-
-        // Update control values
-        Object.entries(this._currentSettings).forEach(([key, value]) => {
-            const element = document.getElementById(key); if (!element) return;
-            try { const cV=(element.type==='checkbox')?element.checked:element.value; const nV=(element.type==='checkbox')?!!value:String(value??''); if(forceUIUpdate||isInitialLoad){ if(String(cV)!==nV||isInitialLoad){ if(element.type==='checkbox'){element.checked=nV;}else{element.value=nV;} if(forceUIUpdate&&!isInitialLoad){ const eT=(element.nodeName==='SELECT'||element.type==='checkbox'||element.type==='color')?'change':'input'; element.dispatchEvent(new Event(eT,{bubbles:true}));}}}}
-            catch (e) { console.warn(`[SM] Error applying UI for ${key}:`, e); }
-        });
-
-        // Explicitly set initial visual state IF initial load
-        if (isInitialLoad) {
-            console.log('[SM] Setting initial visual states...');
-            const logoEl = document.querySelector('.logo-text');
-            const fontSelect = document.getElementById('fontFamily');
-            if(logoEl && this._currentSettings.logoText !== undefined) { logoEl.textContent = this._currentSettings.logoText; logoEl.setAttribute('data-text', this._currentSettings.logoText); console.log(`[SM] Initial text set.`);}
-            if(fontSelect && this._currentSettings.fontFamily) {
-                // *** Add small delay/rAF before setting dropdown value ***
-                await new Promise(resolve => requestAnimationFrame(resolve)); // Wait one frame
-                // await new Promise(resolve => setTimeout(resolve, 10)); // Alternative: tiny timeout
-
-                if (fontSelect.querySelector(`option[value="${this._currentSettings.fontFamily}"]`)) { fontSelect.value = this._currentSettings.fontFamily; console.log(`[SM] Initial font DDL set: ${fontSelect.value}`); this._updateFontPreview(fontSelect.value); }
-                else { if(fontSelect.options.length>0){ fontSelect.selectedIndex=0; this._currentSettings.fontFamily = fontSelect.value; console.warn(`[SM] Initial font fallback: ${fontSelect.value}`); this._updateFontPreview(fontSelect.value); } else {console.error("[SM] Font DDL empty!");}}
-            }
-            // Trigger handlers manually
-            this._handleColorModeChange(this._currentSettings.textColorMode); this._handleGradientPresetChange(this._currentSettings.gradientPreset); this._handleBackgroundTypeChange(this._currentSettings.backgroundType); this._handleBackgroundGradientChange(this._currentSettings.backgroundGradientPreset); this._applyClassFromSelect('.logo-text', this._currentSettings.textShadow, 'text-glow-'); this._applyClassFromSelect('.dynamic-border', this._currentSettings.borderStyle, 'border-'); this._applyClassFromSelect('.logo-text', this._currentSettings.textAnimation, 'anim-'); this._applyClassFromSelect('#previewContainer', this._currentSettings.previewSize, 'preview-size-');
-            // Apply initial styles
-            if(logoEl) { logoEl.style.fontSize=`${this._currentSettings.fontSize}px`; logoEl.style.letterSpacing=`${this._currentSettings.letterSpacing}em`; logoEl.style.textTransform=this._currentSettings.textCase; logoEl.style.fontWeight=this._currentSettings.fontWeight; logoEl.style.textAlign=this._currentSettings.textAlign; logoEl.style.transform=`rotate(${this._currentSettings.rotation}deg)`; }
-            document.documentElement.style.setProperty('--dynamic-border-color', this._currentSettings.borderColorPicker); const speed=parseFloat(this._currentSettings.animationSpeed||1); document.documentElement.style.setProperty('--animation-duration',`${Math.max(.1,2/speed)}s`); document.documentElement.style.setProperty('--gradient-direction',`${this._currentSettings.animationDirection}deg`); const pC=document.getElementById('previewContainer'); if(pC) pC.style.opacity=this._currentSettings.bgOpacity;
-            // Inject initial font style
-            await this._injectFontStyle(this._currentSettings.fontFamily, true); // isInitial=true
-            // Update range displays
-            this._updateRangeValueDisplays();
-        }
-        this._triggerSettingsUpdate();
+    async applySettings(settings, forceUIUpdate = false, isInitialLoad = false) {
+        // ... (keep implementation from v12, ensure logging is present) ...
+         console.log(`[SM] Applying settings (forceUI: ${forceUIUpdate}, initial: ${isInitialLoad})`);
+         const settingsToApply = typeof settings === 'object' && settings !== null ? settings : this._currentSettings;
+         this._currentSettings = { ...DEFAULT_SETTINGS, ...settingsToApply };
+         console.log('[SM] Applying Settings Object:', JSON.stringify(this._currentSettings));
+         Object.entries(this._currentSettings).forEach(([key, value]) => {
+              const element = document.getElementById(key); if (!element) return;
+              try { const cV=(element.type==='checkbox')?element.checked:element.value; const nV=(element.type==='checkbox')?!!value:String(value??''); if(forceUIUpdate||isInitialLoad||String(cV)!==nV){ if(element.type==='checkbox'){element.checked=nV;}else{element.value=nV;} if(forceUIUpdate&&!isInitialLoad){ const eT=(element.nodeName==='SELECT'||element.type==='checkbox'||element.type==='color')?'change':'input'; element.dispatchEvent(new Event(eT,{bubbles:true}));}}} catch (e) { console.warn(`[SM Apply UI] Error applying UI for ${key}:`, e); }
+         });
+         if (isInitialLoad || forceUIUpdate) { // Only force style application if needed
+             console.log('[SM Apply Styles] Applying visual styles from settings...');
+             const logoEl = document.querySelector('.logo-text'); const logoContainer = document.querySelector('.logo-container'); const previewContainer = document.getElementById('previewContainer');
+             if (!logoEl || !previewContainer || !logoContainer) { console.error("[SM Apply Styles] Critical elements missing!"); return; }
+             logoEl.textContent = this._currentSettings.logoText; logoEl.setAttribute('data-text', this._currentSettings.logoText);
+             logoEl.style.fontFamily = `"${this._currentSettings.fontFamily}", sans-serif`; logoEl.style.fontSize = `${this._currentSettings.fontSize}px`;
+             logoEl.style.letterSpacing = `${this._currentSettings.letterSpacing}em`; logoEl.style.textTransform = this._currentSettings.textCase;
+             logoEl.style.fontWeight = this._currentSettings.fontWeight; logoEl.style.textAlign = this._currentSettings.textAlign; logoEl.style.transform = `rotate(${this._currentSettings.rotation}deg)`;
+             this._handleColorModeChange(this._currentSettings.textColorMode);
+             this._applyClassFromSelect(logoEl, this._currentSettings.textShadow, 'text-glow-');
+             logoContainer.classList.toggle('dynamic-border', this._currentSettings.borderStyle !== 'border-none');
+             this._applyClassFromSelect(logoContainer, this._currentSettings.borderStyle, 'border-');
+             document.documentElement.style.setProperty('--dynamic-border-color', this._currentSettings.borderColorPicker);
+             this._applyClassFromSelect(logoEl, this._currentSettings.textAnimation, 'anim-');
+             this._applyAnimationSpeed(this._currentSettings.animationSpeed);
+             this._handleBackgroundTypeChange(this._currentSettings.backgroundType);
+             previewContainer.style.opacity = this._currentSettings.bgOpacity;
+             this._applyClassFromSelect(previewContainer, this._currentSettings.previewSize, 'preview-size-');
+             await this._injectFontStyle(this._currentSettings.fontFamily, isInitialLoad);
+             this._updateRangeValueDisplays();
+             console.log('[SM Apply Styles] Visual styles applied.');
+         }
+         this._triggerSettingsUpdate(); // Always save, update CSS text area, notify listeners
+         console.log('[SM] applySettings complete.');
     },
-
-
     _updateRangeValueDisplays() {
-        const rangeConfigs = [
-            { id: 'letterSpacing', unit: 'em'},
-            { id: 'rotation', unit: 'deg'},
-            { id: 'animationSpeed', unit: 'x'},
-            { id: 'animationDirection', unit: 'deg'},
-            { id: 'bgOpacity', unit: ''},
-            { id: 'exportQuality', unit: '%'},
-            { id: 'exportFrameRate', unit: ' FPS'},
-            { id: 'bgGradientDirection', unit: 'deg'}
-        ];
-        rangeConfigs.forEach(config => {
-            const input = document.getElementById(config.id);
-            const display = input?.parentElement?.querySelector('.range-value-display');
-            if(input && display) {
-                 display.textContent = input.value + config.unit;
-            }
-        });
+        const rangeConfigs = [ { id: 'letterSpacing', unit: 'em'}, { id: 'rotation', unit: 'deg'}, { id: 'animationSpeed', unit: 'x'}, { id: 'animationDirection', unit: 'deg'}, { id: 'bgOpacity', unit: ''}, { id: 'exportQuality', unit: '%'}, { id: 'exportFrameRate', unit: ' FPS'}, { id: 'bgGradientDirection', unit: 'deg'} ];
+        rangeConfigs.forEach(config => { const input = document.getElementById(config.id); const display = input?.parentElement?.querySelector('.range-value-display'); if(input && display) { display.textContent = input.value + config.unit; } });
     },
-
     loadSavedSettings() {
-        try {
-            const saved = localStorage.getItem('logomakerSettings');
-            if (saved) {
-                const loadedSettings = JSON.parse(saved);
-                // Validate loaded settings against defaults? Optional.
-                this._currentSettings = { ...DEFAULT_SETTINGS, ...loadedSettings }; // Ensure all keys exist
-                console.log('[SettingsManager] Loaded settings from localStorage.');
-            } else {
-                this._currentSettings = { ...DEFAULT_SETTINGS };
-                console.log('[SettingsManager] No saved settings found, using defaults.');
-            }
-        } catch (err) {
-            console.error('[SettingsManager] Error loading settings:', err);
-            this._currentSettings = { ...DEFAULT_SETTINGS }; // Fallback to defaults on error
-        }
+        try { const saved = localStorage.getItem('logomakerSettings'); if (saved) { const loaded = JSON.parse(saved); this._currentSettings = { ...DEFAULT_SETTINGS, ...loaded }; console.log('[SM] Loaded settings from localStorage.'); } else { this._currentSettings = { ...DEFAULT_SETTINGS }; console.log('[SM] No saved settings found, using defaults.'); } }
+        catch (err) { console.error('[SM] Error loading settings:', err); this._currentSettings = { ...DEFAULT_SETTINGS }; }
     },
     saveCurrentSettings() {
-        try {
-            localStorage.setItem('logomakerSettings', JSON.stringify(this._currentSettings));
-            // console.log('[SettingsManager] Settings saved.'); // Reduce console noise
-        } catch (err) {
-            console.error('[SettingsManager] Error saving settings:', err);
-             showAlert('Failed to save settings to local storage.', 'error');
-        }
+        try { localStorage.setItem('logomakerSettings', JSON.stringify(this._currentSettings)); /* console.log('[SM] Settings saved.'); */ }
+        catch (err) { console.error('[SM] Error saving settings:', err); showAlert('Failed to save settings.', 'error'); }
     },
-
-    // --- Listener Management & Public Access ---
     addSettingsChangeListener(listener) { if (typeof listener === 'function' && !this._listeners.includes(listener)) this._listeners.push(listener); },
     removeSettingsChangeListener(listener) { const i = this._listeners.indexOf(listener); if (i !== -1) this._listeners.splice(i, 1); },
-    getCurrentSettings() { return { ...this._currentSettings }; } // Return a copy
 };
-
-// --- Initialization ---
-// Initialization is now triggered externally by main.js: SettingsManager.init()
-
-// --- Global Exposure & Export ---
-window.SettingsManager = SettingsManager; // Expose globally for easier access from other scripts/console
-export default SettingsManager;
-
-console.log("[SettingsManager] Module loaded, ready for initialization.");
+window.SettingsManager = SettingsManager; export default SettingsManager;
+console.log("[SettingsManager] Module loaded (v13).");
