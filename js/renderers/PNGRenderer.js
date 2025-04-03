@@ -6,8 +6,7 @@
  */
 
 // Import core functions from RendererCore
-import { generateConsistentPreview } from './RendererCore.js'; // Correct import
-import { generateSVGBlob } from './RendererCore.js';
+import { generateConsistentPreview, generateSVGBlob, convertSVGtoPNG } from './RendererCore.js'; // Import all required functions
 
 // --- Module Scope Variables ---
 let pngExportUI = null; // Reference to the modal DOM element
