@@ -1,7 +1,6 @@
 /**
  * captureTextStyles.js
  * Captures computed styles and relevant settings from the preview container.
- * Focuses on captureAdvancedStyles with added logging to diagnose discrepancies.
  */
 
 console.log("[CaptureStyles v11] Module loaded. Extensive logging enabled.");

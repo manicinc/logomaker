@@ -1,8 +1,7 @@
 /**
- * svgAnimationInfo.js (Version 2 - Simplified Extraction)
+ * svgAnimationInfo.js
  * =====================================================
  * Utility to extract computed animation details from the logo element.
- * Focuses on details needed for CSS embedding in SVG, not generating SMIL.
  */
 
 console.log("[SVGAnimInfo v2] Module loaded.");
@@ -27,36 +26,58 @@ export function extractSVGAnimationDetails() {
         const animationTimingFunction = computedStyle.animationTimingFunction;
         const animationIterationCount = computedStyle.animationIterationCount;
 
-        // Find the specific 'anim-*' class responsible (more reliable than just computedName)
+        // Find animation class
         const animClass = Array.from(logoText.classList).find(cls => cls.startsWith('anim-') && cls !== 'anim-none');
-
-        // Use the class name if found, otherwise fallback to computed name if it's not 'none'
-        const effectiveAnimName = animClass ? animClass.replace('anim-', '') : (animationName !== 'none' ? animationName : null);
-
-        if (!effectiveAnimName || effectiveAnimName === 'none') {
-            console.log("[SVGAnimInfo] No active animation found (name='none' or no 'anim-*' class).");
-            return null; // No relevant animation is active
+        if (!animClass && animationName === 'none') {
+            console.log("[SVGAnimInfo] No active animation found.");
+            return null;
         }
 
-        // Convert duration string (e.g., "2s") to milliseconds
-        let durationMs = 2000; // Default
-        if (animationDuration) {
+        // Determine animation name
+        let effectiveAnimName;
+        if (animClass) {
+            effectiveAnimName = animClass.replace('anim-', '');
+        } else if (animationName && animationName !== 'none') {
+            effectiveAnimName = animationName;
+        } else {
+            return null;
+        }
+
+        // FIXED: Ensure non-zero duration
+        let durationMs = 0;
+        let durationStr = '2s'; // Default
+
+        if (animationDuration && animationDuration !== 'none' && animationDuration !== '0s') {
+            durationStr = animationDuration;
             try {
                 if (animationDuration.endsWith('ms')) {
                     durationMs = parseFloat(animationDuration);
                 } else if (animationDuration.endsWith('s')) {
                     durationMs = parseFloat(animationDuration) * 1000;
                 }
-            } catch (e) { console.warn(`[SVGAnimInfo] Could not parse animation duration: ${animationDuration}`); }
+            } catch (e) { 
+                console.warn(`[SVGAnimInfo] Could not parse animation duration: ${animationDuration}`); 
+            }
+        } else {
+            // Default for missing or zero duration
+            durationStr = '2s';
+            durationMs = 2000;
+            console.log("[SVGAnimInfo] Using default 2s duration due to missing or zero duration");
+        }
+
+        // Ensure non-zero iteration count
+        let iterCount = animationIterationCount || 'infinite';
+        if (iterCount === '0') {
+            iterCount = 'infinite';
         }
 
         const details = {
-            class: animClass || null, // The specific class like 'anim-pulse'
-            name: effectiveAnimName, // The keyframe name like 'pulse'
-            duration: animationDuration || '2s', // CSS duration string
-            timingFunction: animationTimingFunction || 'linear',
-            iterationCount: animationIterationCount || 'infinite',
-            durationMs: durationMs // Duration in milliseconds
+            class: animClass || `anim-${effectiveAnimName}`,
+            name: effectiveAnimName,
+            duration: durationStr,
+            timingFunction: animationTimingFunction || 'ease',
+            iterationCount: iterCount,
+            durationMs: durationMs
         };
 
         console.log("[SVGAnimInfo] Animation details extracted:", details);

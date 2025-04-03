@@ -1,6 +1,10 @@
-# Logomaker by Manic.agency 🎨✨
+# Logomaker - An experiment in human-computer interaction
 
-Forge your brand's unique text-based identity instantly, right in your browser! Logomaker is a free, open-source logo generator packed with fonts, effects, and export options, designed with **extreme portability** and **offline-first** use in mind.
+Logomaker is a free, open-source logo generator packed with fonts, effects, and export options, designed with **extreme portability** and **offline-first** use in mind.
+
+Logomaker was built by [Manic](https://manic.agency), a dev shop catered towards creative and thoughtfully-designed software. As an experiment to test the capabilities of generative AI's coding abilities, Logomaker was built solely with prompts given to LLMS, mainly GPT-4, Claude 3 (Opus/Sonnet, and Gemini Pro, with minimal handcoding done besides modifying the files and testing / guiding the LLMs.
+
+Likewise, no visual design / mockups were involved in creating the software, just guiding the LLM with specific prompts and iterating.
 
 ![Logomaker Preview](./preview.png)
 
@@ -36,7 +40,7 @@ Logomaker empowers you to create dynamic logos with:
 
 Logomaker stands as a fascinating artifact of modern development workflows. It's an **experimental project** born from Manic Agency's exploration into **Human+AI collaborative coding**.
 
-* Approximately **80%** of the code structure, boilerplate logic, initial function implementations, and even debugging assistance was provided by Large Language Models (LLMs).
+* **~90%** of the code structure, boilerplate logic, initial function implementations, and even debugging assistance was provided by Large Language Models (LLMs).
 * Key AI collaborators included models from the **GPT-4, Claude 3 (Opus/Sonnet), and Gemini Pro** families (versions as of early 2025; models evolve rapidly!).
 * Crucially, the project was **directed, architected, refined, and rigorously debugged by human developers** at Manic Agency. The AI served as an incredibly powerful pair-programmer and accelerator, but human oversight was essential for coherence, bug fixing, feature integration, and achieving the final vision.
 
@@ -126,9 +130,63 @@ The online demo embeds ~400 fonts directly into the application using Base64 enc
 
 ---
 
-## 🔤 Font System Details
 
-*(Keep the Font Structure and Converting OTF sections as they were in the original README)*
+## Font System 🔤
+
+### Font Structure
+Fonts are defined in either fonts.json or the INLINE_FONTS_DATA variable with the following structure:
+```json
+{
+  "displayName": "Univers LT Std",
+  "familyName": "UniversLTStd",
+  "variants": [
+    {
+      "name": "UniversLTStd-Regular",
+      "weight": 400,
+      "style": "normal",
+      "file": "fonts/UniversLTStd/UniversLTStd-Regular.woff2",
+      "format": "woff2",
+      "fileSize": 25720
+    },
+    {
+      "name": "UniversLTStd-Bold",
+      "weight": 700,
+      "style": "normal",
+      "file": "fonts/UniversLTStd/UniversLTStd-Bold.woff2",
+      "format": "woff2",
+      "fileSize": 28456
+    }
+  ],
+  "formats": ["woff2"],
+  "licenseFile": "fonts/UniversLTStd/LICENSE.txt",
+  "hasDefaultFont": true,
+  "fontCount": 2,
+  "totalSize": 54176
+}
+```
+
+For Base64-encoded fonts, the `file` value will be a data URL instead of a file path:
+```json
+"file": "data:font/woff2;base64,d09GMgABAAAAAAm..."
+```
+
+### Converting OTF fonts to WOFF2 🔄
+
+Web browsers have better support for WOFF2 font format. If you encounter font decoding errors (like "OTS parsing error: invalid sfntVersion"), convert your OTF fonts to WOFF2:
+
+1. Install the required tools:
+```bash
+pip install fonttools brotli
+```
+
+2. Run this script to convert all OTF fonts in your directory:
+```bash
+./convert-fonts.sh
+```
+
+3. For problematic fonts, try the Font Squirrel Webfont Generator: https://www.fontsquirrel.com/tools/webfont-generator
+
+4. Move / name your new fonts folder to `/fonts` where the `index.html` file is or where the scripts are if you're bundling it to one file.
 
 ---
 

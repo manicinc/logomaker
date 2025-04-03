@@ -1,9 +1,7 @@
 /**
- * exportHandler.js (Version 6 - Refactored for Module Imports)
- * ========================================================
+ * exportHandler.js
  * Provides functions called by main UI button event listeners.
  * Delegates export actions to renderer UI functions. Handles copy actions.
- * - Refactored to use direct module imports for SettingsManager and Utils.
  */
 
 // Import the UI-triggering functions from renderers
