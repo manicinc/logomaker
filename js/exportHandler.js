@@ -1,164 +1,120 @@
 /**
- * exportHandler.js (Version 4 - Refined Dependencies)
+ * exportHandler.js (Version 6 - Refactored for Module Imports)
  * ========================================================
- * Provides functions that perform the actual export and copy actions.
- * These functions are intended to be imported and used as event handlers
- * by the main application initializer (main.js).
- *
- * Dependencies:
- * - PNGRenderer.js::exportPNGWithUI
- * - SVGRenderer.js::exportSVGWithUI
- * - GIFRenderer.js::exportGIFWithUI
- * - SettingsManager (global or imported) for saving and CSS generation.
- * - Utils.downloadBlob, Utils.getLogoFilenameBase (global or imported from utils.js)
- * - Global notification functions (showAlert, showToast, notifyExportSuccess, etc.)
+ * Provides functions called by main UI button event listeners.
+ * Delegates export actions to renderer UI functions. Handles copy actions.
+ * - Refactored to use direct module imports for SettingsManager and Utils.
  */
 
+// Import the UI-triggering functions from renderers
 import { exportPNGWithUI } from './renderers/PNGRenderer.js';
 import { exportSVGWithUI } from './renderers/SVGRenderer.js';
 import { exportGIFWithUI } from './renderers/GIFRenderer.js';
-// Assuming SettingsManager is available globally via window.SettingsManager
-// Assuming Utils are available globally via window.Utils
-// Assuming notification functions (showAlert, showToast, notify*) are global
 
-console.log('[ExportHandler] 🎬 Script loaded, using export*WithUI functions.');
+// --- Direct Module Imports ---
+import SettingsManager from './settingsManager.js'; // Import directly
+// Assuming getLogoFilenameBase is exported from utils.js
+// If Utils itself is exported as default: import Utils from './utils/utils.js'; and use Utils.getLogoFilenameBase
+import { getLogoFilenameBase } from './utils/utils.js'; // Adjust path if needed
 
-// --- Helper Functions ---
+// Assume showAlert, showToast are global or managed elsewhere
 
-/** Show/hide the main page loading indicator. */
-function showLoadingIndicator(show = true) {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    if (loadingIndicator) {
-        loadingIndicator.style.display = show ? 'flex' : 'none';
-    } else {
-        console.warn("[ExportHandler] Main loading indicator '#loadingIndicator' not found.");
-    }
-}
+console.log('[ExportHandler v6] Script loaded. Using module imports.');
+
+// --- Helper Functions (Now using imported modules) ---
 
 /** Show a notification using global functions or console fallback. */
-function showExportNotification(message, type = 'success', options = {}) {
-    // Prefer showToast for success/info, showModal for errors/warnings
-    let notifyFunc = console.log; // Fallback
-    if (type === 'success' || type === 'info') {
-        notifyFunc = typeof showToast === 'function' ? showToast : (msg, t) => console.info(msg);
-    } else { // error or warning
-        notifyFunc = typeof showModal === 'function' ? showModal : (msg, t) => console.error(msg);
-    }
-
-    if (typeof notifyFunc === 'function') {
-        if (typeof message === 'object') { // If options object is passed directly
-             notifyFunc(message);
-        } else { // If message string is passed
-             notifyFunc({ message: message, type: type, ...options });
-        }
-    } else {
-         console.error(`[ExportHandler] Notification function not found for type: ${type}`);
-         console.log(`[Notification Fallback] ${type}: ${message}`);
-    }
+function showCopyNotification(message, type = 'success') {
+    const notifyFunc = (type === 'success' && typeof showToast === 'function') ? showToast : (typeof showAlert === 'function' ? showAlert : console.log);
+    try {
+        if(typeof message === 'object' && message !== null) { notifyFunc(message); }
+        else { notifyFunc({ message: String(message), type: type }); }
+    } catch (e) { console.error("Notification failed:", e); console.log(`[${type}] ${message}`); }
 }
 
-/** Save current settings using SettingsManager. */
+/** Save current settings using imported SettingsManager. */
 function saveCurrentSettings() {
-    if (window.SettingsManager && typeof window.SettingsManager.saveCurrentSettings === 'function') {
+    // Use imported SettingsManager directly
+    if (SettingsManager && typeof SettingsManager.saveCurrentSettings === 'function') {
         try {
-            window.SettingsManager.saveCurrentSettings();
-            // console.log('[ExportHandler] Settings saved via SettingsManager.'); // Optional: Reduce noise
+            console.log('[ExportHandler] Saving current settings...');
+            SettingsManager.saveCurrentSettings(); // Call method on imported object
         } catch (e) {
             console.error('[ExportHandler] Error saving settings via SettingsManager:', e);
         }
     } else {
-        console.warn('[ExportHandler] SettingsManager or saveCurrentSettings function not found.');
+        console.error('[ExportHandler] Imported SettingsManager or saveCurrentSettings method not found!'); // Changed to error
     }
 }
 
-/** Get sanitized filename base using Utils. */
-function getLogoFilenameBase() {
-    if (window.Utils && typeof window.Utils.getLogoFilenameBase === 'function') {
-        try {
-            return window.Utils.getLogoFilenameBase();
-        } catch (e) {
-            console.error('[ExportHandler] Error calling Utils.getLogoFilenameBase:', e);
-            return 'logo'; // Fallback
-        }
-    } else {
-        console.warn('[ExportHandler] Utils.getLogoFilenameBase not found, using default.');
-        // Basic fallback implementation
-        const logoEl = document.querySelector('.logo-text');
-        const logoText = logoEl ? logoEl.textContent.trim() : 'logo';
-        return logoText.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 30) || 'logo';
-    }
-}
+// getLogoFilenameBase is now imported directly, no need for a wrapper here
 
-/** Generate CSS code, preferring SettingsManager. */
+/** Generate CSS code via imported SettingsManager. */
 function generateCSSCode() {
-    console.log("[ExportHandler] Generating CSS Code...");
-    if (window.SettingsManager && typeof window.SettingsManager._generateCSSCode === 'function') {
+    console.log("[ExportHandler] Getting CSS Code via SettingsManager...");
+    // Use imported SettingsManager directly
+    if (SettingsManager && typeof SettingsManager._generateCSSCode === 'function') {
          try {
-             const css = window.SettingsManager._generateCSSCode();
-             // console.log("[ExportHandler] Generated CSS via SettingsManager:\n", css); // Debug
+             // Call internal update/generate methods on the imported object
+             if (typeof SettingsManager._updateCSSCode === 'function') { SettingsManager._updateCSSCode(); }
+             const css = SettingsManager._generateCSSCode();
+             console.log("[ExportHandler] CSS code retrieved.");
              return css;
          } catch(e) {
-             console.error("Error calling SettingsManager._generateCSSCode:", e);
-             // Fall through to basic fallback
+             console.error("Error calling SettingsManager CSS generation:", e);
+             return `/* Error generating CSS via SettingsManager: ${e.message} */`;
          }
-    }
-
-    // Basic Fallback (Less accurate)
-    console.warn("[ExportHandler] Falling back to basic CSS generation.");
-    try {
-        const logoEl = document.querySelector('.logo-text');
-        const container = document.getElementById('previewContainer');
-        if (!logoEl || !container) throw new Error("Missing elements for fallback CSS gen.");
-        const logoStyle = getComputedStyle(logoEl);
-        const containerStyle = getComputedStyle(container);
-
-        let css = `:root {\n`;
-        // Attempt to grab a few common vars
-        const rootStyle = getComputedStyle(document.documentElement);
-        const vars = ['--animation-duration', '--gradient-direction', '--dynamic-border-color'];
-        vars.forEach(v => css += `  ${v}: ${rootStyle.getPropertyValue(v).trim()};\n`);
-        css += `}\n\n`;
-
-        css += `.logo-container { display:flex; justify-content:center; align-items:center; background-color:${containerStyle.backgroundColor||'#000'}; background-image:${containerStyle.backgroundImage||'none'}; opacity: ${containerStyle.opacity || '1'}; }\n\n`;
-        css += `.logo-text {\n`;
-        css += `  font-family: ${logoStyle.fontFamily.split(',')[0].trim()};\n`;
-        css += `  font-size: ${logoStyle.fontSize};\n`;
-        css += `  font-weight: ${logoStyle.fontWeight};\n`;
-        if (logoStyle.letterSpacing !== 'normal') css += `  letter-spacing: ${logoStyle.letterSpacing};\n`;
-        if (logoStyle.textTransform !== 'none') css += `  text-transform: ${logoStyle.textTransform};\n`;
-        if (logoStyle.textAlign !== 'start') css += `  text-align: ${logoStyle.textAlign};\n`; // Usually default is start
-        if (logoStyle.color && logoStyle.color !== 'rgba(0, 0, 0, 0)' && logoStyle.color !== 'transparent') css += `  color: ${logoStyle.color};\n`;
-        if (logoStyle.backgroundImage && logoStyle.backgroundImage !== 'none') { css += `  background-image: ${logoStyle.backgroundImage};\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; }
-        if (logoStyle.textShadow && logoStyle.textShadow !== 'none') css += `  text-shadow: ${logoStyle.textShadow};\n`;
-        // Simple border attempt
-        const borderElement = document.querySelector('.dynamic-border') || logoEl;
-        const borderStyle = getComputedStyle(borderElement);
-        if (borderStyle.borderTopWidth !== '0px') css += `  border: ${borderStyle.borderTopWidth} ${borderStyle.borderTopStyle} ${borderStyle.borderTopColor};\n`;
-        if (logoStyle.transform && logoStyle.transform !== 'none') css += `  transform: ${logoStyle.transform};\n`;
-        if (logoStyle.animationName && logoStyle.animationName !== 'none') css += `  animation: ${logoStyle.animationName} ${logoStyle.animationDuration} ${logoStyle.animationTimingFunction} ${logoStyle.animationIterationCount};\n`;
-        css += `}\n`;
-        console.log("[ExportHandler] Generated CSS (fallback):\n", css);
-        return css;
-    } catch (err) {
-        console.error("Error generating CSS code (fallback):", err);
-        return `/* Error generating CSS: ${err.message} */`;
+    } else {
+         console.error("[ExportHandler] Cannot generate CSS: SettingsManager or _generateCSSCode method not found!");
+         return '/* Error: SettingsManager CSS generation function missing. */';
     }
 }
 
-/** Copy text to clipboard. */
-function copyToClipboard(text) {
+// --- Export Handler Functions (Delegation & Copy - No changes needed here) ---
+
+/** Handles PNG Export button click - Delegates to PNGRenderer UI */
+export async function handlePNGExport() {
+    console.log('[ExportHandler] handlePNGExport: Delegating to exportPNGWithUI...');
+    saveCurrentSettings(); // Save before opening modal
+    try { await exportPNGWithUI(); }
+    catch (err) { console.error("[ExportHandler] Error initiating PNG export UI:", err); /* ... alert ... */ }
+}
+
+/** Handles SVG Export button click - Delegates to SVGRenderer UI */
+export async function handleSVGExport() {
+    console.log('[ExportHandler] handleSVGExport: Delegating to exportSVGWithUI...');
+    saveCurrentSettings();
+    try { await exportSVGWithUI(); }
+    catch (err) { console.error("[ExportHandler] Error initiating SVG export UI:", err); /* ... alert ... */ }
+}
+
+/** Handles Animation Export button click - Delegates to GIFRenderer UI */
+export async function handleGIFExport() {
+    console.log('[ExportHandler] handleGIFExport: Delegating to exportGIFWithUI...');
+    saveCurrentSettings();
+    try { await exportGIFWithUI(); }
+    catch (err) { console.error("[ExportHandler] Error initiating Animation export UI:", err); /* ... alert ... */ }
+}
+
+/** Copy text to clipboard using modern API with fallback. */
+async function copyToClipboard(text) {
     if (!navigator.clipboard) {
-        console.warn('[Copy] Clipboard API not available, using fallback.');
+        console.warn('[Copy] Clipboard API not available, using fallback (execCommand).');
         const textarea = document.createElement('textarea');
         textarea.value = text;
-        textarea.style.position = 'fixed'; textarea.style.opacity = '0';
+        textarea.style.position = 'fixed'; textarea.style.opacity = '0'; // Make invisible
         document.body.appendChild(textarea);
         textarea.select();
         try {
-            document.execCommand('copy');
+            const successful = document.execCommand('copy');
             document.body.removeChild(textarea);
-            console.log('[Copy] Copied using execCommand.');
-            return Promise.resolve();
+            if (successful) {
+                console.log('[Copy] Copied using execCommand.');
+                return Promise.resolve();
+            } else {
+                 console.error('[Copy] execCommand failed.');
+                 return Promise.reject(new Error('Could not copy text using fallback.'));
+            }
         } catch (err) {
             document.body.removeChild(textarea);
             console.error('[Copy] Fallback copy failed:', err);
@@ -166,124 +122,93 @@ function copyToClipboard(text) {
         }
     }
     // Use modern Clipboard API
-    return navigator.clipboard.writeText(text).then(() => {
+    try {
+        await navigator.clipboard.writeText(text);
         console.log('[Copy] Copied using Clipboard API.');
-    }).catch(err => {
+    } catch (err) {
         console.error('[Copy] Clipboard API copy failed:', err);
         throw new Error('Could not copy text via Clipboard API.'); // Re-throw
-    });
-}
-
-/** Centralized error handler */
-function handleExportError(exportType, err) {
-    console.error(`[ExportHandler] ❌ ${exportType} export/UI failed:`, err);
-    // Avoid showing notification for simple cancellations or known modal closure issues
-    const knownNonErrors = ['Export cancelled', 'Modal closed', 'UI initialization failed', 'cancelled by user'];
-    if (err && err.message && !knownNonErrors.some(msg => err.message.toLowerCase().includes(msg.toLowerCase()))) {
-        // Use more prominent notification (Modal) for actual errors
-        showExportNotification({ message: `${exportType} Failed: ${err.message || 'Unknown error'}`, type: 'error'});
-    } else if (err && err.message && (err.message.toLowerCase().includes('export cancelled') || err.message.toLowerCase().includes('cancelled by user'))) {
-        // Use less intrusive notification (Toast) for cancellations
-        showExportNotification({ message: `${exportType} Export Cancelled.`, type: 'info' });
-    }
-    showLoadingIndicator(false); // Ensure main loading indicator is hidden
-}
-
-
-// --- Export Handler Functions ---
-
-async function handlePNGExport() {
-    console.log('[ExportHandler] 🖼️ PNG export triggered');
-    saveCurrentSettings(); // Save settings before opening modal
-    try {
-        await exportPNGWithUI(); // Call the UI function from PNGRenderer
-    } catch (err) {
-        handleExportError('PNG Export', err); // Use centralized error handler
     }
 }
 
-async function handleSVGExport() {
-    console.log('[ExportHandler] 🧩 SVG export triggered');
-    saveCurrentSettings();
-    try {
-        await exportSVGWithUI(); // Call the UI function from SVGRenderer
-    } catch (err) {
-        handleExportError('SVG Export', err);
-    }
-}
 
-async function handleGIFExport() {
-    console.log('[ExportHandler] 🎞️ Animation export triggered');
-    saveCurrentSettings();
-    try {
-        await exportGIFWithUI(); // Call the UI function from GIFRenderer
-    } catch (err) {
-        handleExportError('Animation Export', err);
-    }
-}
+// --- Export Handler Functions (Delegation & Copy) ---
 
-function handleHTMLCopy() {
-    console.log('[ExportHandler] 📋 HTML copy triggered');
+/** Handles Copy HTML button click */
+export function handleHTMLCopy() {
+    console.log('[ExportHandler] handleHTMLCopy triggered');
     saveCurrentSettings(); // Ensure settings are saved for CSS generation
     try {
-        const logoText = document.querySelector('.logo-text')?.textContent || getLogoFilenameBase();
-        // Explicitly update CSS code display before copying (if function exists)
-        if (typeof window.SettingsManager?._updateCSSCode === 'function') {
-             window.SettingsManager._updateCSSCode();
-        }
-        const cssCode = document.getElementById('cssCode')?.value || generateCSSCode(); // Get potentially updated code
+        // Use more reliable source for logo text if possible
+        const logoText = window.SettingsManager?.getCurrentSettings?.().logoText || getLogoFilenameBase();
+        const cssCode = generateCSSCode(); // Get CSS via SettingsManager
 
+        if (cssCode.startsWith('/* Error')) {
+             throw new Error("Could not generate CSS for HTML copy.");
+        }
+
+        // Simple HTML structure embedding the generated CSS
         const htmlCode = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${logoText} Logo</title>
+  <title>${escapeXML(logoText)} Logo</title>
   <style>
-/* --- Styles for Logo --- */
+/* --- Styles for Logo (Generated by Logomaker) --- */
 ${cssCode}
-/* --- Make sure @keyframes are included if needed --- */
-/* --- End Styles --- */
+/* --- Ensure @font-face and @keyframes are included if needed --- */
+/* Add necessary keyframes manually if not included in generated CSS */
+body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; } /* Basic centering */
   </style>
 </head>
 <body>
   <div class="logo-container">
-    <div class="logo-text">${logoText}</div>
+    <div class="logo-text">${escapeXML(logoText)}</div>
   </div>
 </body>
 </html>`;
 
         copyToClipboard(htmlCode)
-            .then(() => showExportNotification('HTML code copied to clipboard! ✅', 'success'))
-            .catch(err => showExportNotification(`HTML Copy Failed: ${err.message}`, 'error'));
+            .then(() => showCopyNotification('Basic HTML structure copied! ✅', 'success'))
+            .catch(err => showCopyNotification(`HTML Copy Failed: ${err.message}`, 'error'));
     } catch (err) {
-        handleExportError('HTML Copy', err);
+        console.error('[ExportHandler] Error during HTML copy:', err);
+        showCopyNotification(`HTML Copy Failed: ${err.message}`, 'error');
     }
 }
 
-function handleCSSCopy() {
-    console.log('[ExportHandler] 🎨 CSS copy triggered');
-    saveCurrentSettings();
+/** Handles Copy CSS button click */
+export function handleCSSCopy() {
+    console.log('[ExportHandler] handleCSSCopy triggered');
+    saveCurrentSettings(); // Ensure settings are saved
     try {
-        // Explicitly update CSS code display before copying
-         if (typeof window.SettingsManager?._updateCSSCode === 'function') {
-             window.SettingsManager._updateCSSCode();
+        const cssCode = generateCSSCode(); // Get potentially updated code via SettingsManager
+
+        if (cssCode.startsWith('/* Error')) {
+             throw new Error("Could not generate CSS for copying.");
         }
-        const cssCode = document.getElementById('cssCode')?.value || generateCSSCode(); // Get potentially updated code
 
         copyToClipboard(cssCode)
-            .then(() => showExportNotification('CSS code copied to clipboard! ✅', 'success'))
-            .catch(err => showExportNotification(`CSS Copy Failed: ${err.message}`, 'error'));
+            .then(() => showCopyNotification('CSS code copied! ✅', 'success'))
+            .catch(err => showCopyNotification(`CSS Copy Failed: ${err.message}`, 'error'));
     } catch (err) {
-        handleExportError('CSS Copy', err);
+        console.error('[ExportHandler] Error during CSS copy:', err);
+        showCopyNotification(`CSS Copy Failed: ${err.message}`, 'error');
     }
 }
 
-// Export ONLY the handler functions
-export {
-    handlePNGExport,
-    handleSVGExport,
-    handleGIFExport,
-    handleHTMLCopy,
-    handleCSSCopy
-};
+/** Escapes minimal characters for HTML text content */
+function escapeXML(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Export ONLY the handler functions needed by main.js
+// export { // No need to re-export if imported directly in main.js
+//     handlePNGExport,
+//     handleSVGExport,
+//     handleGIFExport,
+//     handleHTMLCopy,
+//     handleCSSCopy
+// };

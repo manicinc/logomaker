@@ -1,326 +1,324 @@
 /* css/layout.css */
+/* REVAMPED - v1.0 */
 /* Main page structure: Container, Header, Footer, Preview, Controls Wrapper */
 
 .container {
-    max-width: var(--container-width-desktop);
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-    padding: 0 var(--space-sm); /* Padding for smaller screens */
-  }
-  
-  /* --- Header --- */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    padding: var(--space-sm) 0 var(--space-md) 0;
-    border-bottom: 1px solid var(--border-color);
-    gap: var(--space-md);
-  }
-  
-  .logo-brand {
-      text-align: center; /* Center on mobile when wrapped */
-      flex-grow: 1;
-  }
-  
-  .logo-brand h1 {
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-bold);
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    display: inline-block;
-    margin-bottom: 0;
-    font-family: 'Audiowide', var(--font-family-logo); /* Specify fallback */
-    user-select: none; /* Prevent text selection */
-  }
-  
-  .logo-brand h1 span {
-    font-size: var(--font-size-sm);
-    opacity: 0.8;
-    font-weight: var(--font-weight-normal);
-    color: var(--text-color); /* Make it visible */
-    background: none; /* Remove gradient */
-    -webkit-background-clip: initial;
-    background-clip: initial;
-    margin-left: var(--space-xs);
-    display: inline;
-  }
-  
-  .brand-links {
-    text-align: center; /* Center on mobile when wrapped */
-    flex-shrink: 0; /* Prevent shrinking */
-  }
-  
-  .brand-links a {
-    font-size: var(--font-size-sm);
-    opacity: 0.7;
-    display: inline-flex; /* Align icon */
-    align-items: center;
-    gap: var(--space-xs);
-  }
-  .brand-links a:hover {
-    opacity: 1;
-  }
-  .brand-links svg { /* Style external link icon */
-      width: 1em;
-      height: 1em;
-      opacity: 0.7;
-  }
-  
-/* Controls Wrapper */
+  max-width: var(--container-width-desktop);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: 0 var(--space-md); /* Horizontal padding */
+  margin: 0 auto; /* Center container */
+  flex-grow: 1; /* Allow container to grow if body is flex */
+}
+
+/* --- Header --- */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  padding: var(--space-sm) 0 var(--space-md) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-md);
+}
+
+.logo-brand {
+  text-align: left; /* Align left by default */
+  flex-grow: 1;
+}
+
+.logo-brand h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-black); /* Use black weight if available */
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  margin-bottom: 0;
+  font-family: var(--font-family-logo);
+  user-select: none; /* Prevent text selection */
+  line-height: 1.1; /* Adjust line height for logo font */
+}
+
+.logo-brand h1 span {
+  font-family: var(--font-family-base); /* Use base font */
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  font-weight: var(--font-weight-normal);
+  color: var(--text-color-muted); /* Use muted color */
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  margin-left: var(--space-xs);
+  display: inline; /* Keep inline */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.brand-links {
+  text-align: right; /* Align right by default */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.brand-links a {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+  color: var(--text-color-muted); /* Muted color */
+  display: inline-flex; /* Align icon */
+  align-items: center;
+  gap: var(--space-xs);
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+.brand-links a:hover {
+  opacity: 1;
+  color: var(--accent-color);
+  text-decoration: none;
+}
+.brand-links svg { /* Style external link icon */
+  width: 0.9em;
+  height: 0.9em;
+  opacity: 0.7;
+}
+
+/* --- Controls Wrapper --- */
 .controls-wrapper {
-    display: flex;
-    flex-direction: column;
-    background-color: var(--panel-bg);
-    border-radius: var(--border-radius-md);
-    overflow: hidden; /* Needed for border-radius on children */
-    width: 100%;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--box-shadow-md);
-  }
-  
-  /* Controls Container - Fix width issues */
-  .controls-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: var(--space-lg) var(--space-md);
-    width: 100%; /* Ensure full width */
-  }
-  
-  /* Control Groups should fill their space */
-  .control-group {
-    display: flex; 
-    flex-direction: column; 
-    gap: var(--space-sm); 
-    position: relative;
-    width: 100%; /* Ensure full width */
-  }
-  
-  /* Tabs Navigation */
-  .tabs {
-    display: flex;
-    background-color: rgba(0, 0, 0, 0.3);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    position: relative;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border-color);
-    width: 100%; /* Ensure full width */
-  }
-  
-  /* Tab Content Area */
-  .tab-content {
-    display: none;
-    padding: var(--space-lg) var(--space-md);
-    animation: fadeIn 0.5s ease;
-    width: 100%; /* Ensure full width */
-  }
-  
-  /* Active Tab Content */
-  .tab-content.active { 
-    display: block;
-    width: 100%; /* Ensure full width */
-  }
-  
-  /* Fix for Custom Controls Sections */
-  #customGradientControls, 
-  #customBackgroundGradient,
-  #backgroundGradientControls {
-    width: 100%; /* Ensure full width */
-  }
-  
-  /* SVG Animation Info Box */
-  .svg-animation-info {
-    width: 100%; /* Ensure full width */
-    box-sizing: border-box;
-  }
-  
-  /* Fixes for Mobile View */
-  @media (max-width: 768px) {
-    .controls-container {
-      grid-template-columns: 1fr; /* Single column */
-      gap: var(--space-md);
-    }
-    
-    .control-group {
-      width: 100%;
-    }
-  }
-  
-  /* Improved Responsive Design */
-  @media (max-width: 992px) {
-    .controls-container {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
-  }
-  
-  /* --- Preview Area --- */
-  .preview-container {
-    position: relative;
-    min-height: 300px;
-    padding: var(--space-lg);
-    overflow: hidden;
-    border-radius: var(--border-radius-md);
-    background-color: #000; /* Default solid */
-    transition: background-color var(--transition-base), opacity var(--transition-base), min-height var(--transition-base); /* Added min-height */
-    box-shadow: var(--box-shadow-sm);
-    box-sizing: border-box;
-    border: 1px solid var(--border-color);
-  }
-  
-  /* Fix: Added Rule for Hiding Preview */
-  #previewContainer.hidden {
-    display: none;
-    /* Optionally animate height:
-    min-height: 0 !important;
-    height: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    border-width: 0 !important;
-    overflow: hidden;
-    opacity: 0;
-    */
-  }
-  
-  /* Background overlay for patterns/gradients */
-  #previewContainer::before {
-    content: "";
-    position: absolute; inset: 0;
-    background: inherit; /* Inherits the background set by classes */
-    z-index: 0;
-    border-radius: inherit;
-    pointer-events: none; /* Allow interaction with logo */
-  }
-  
-  /* Logo Container within Preview */
-  .logo-container {
-    position: relative;
-    display: flex;
-    align-items: center; /* Vertically center */
-    justify-content: center; /* Default horizontal align (overridden by JS) */
-    width: 100%;
-    height: 100%;
-    z-index: 2; /* Above ::before */
-    min-height: 200px; /* Ensure minimum space for logo */
-  }
-  
-  /* Actual Logo Text Element */
-  .logo-text {
-    font-family: var(--font-family-logo), sans-serif; /* Use variable */
-    font-size: clamp(48px, 8vw, 120px); /* Adjusted clamp */
-    font-weight: var(--font-weight-bold);
-    letter-spacing: 0em; /* Default, controlled by JS */
-    text-align: center; /* Default, controlled by JS */
-    background-image: var(--primary-gradient); /* Default gradient */
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    position: relative;
-    display: inline-block;
-    z-index: 2; /* Above bg overlay */
-    margin: 0; padding: var(--space-sm); /* Small padding allows border space */
-    overflow-wrap: break-word;
-    word-break: break-word;
-    max-width: 100%;
-    transform-origin: center center;
-    transition: all var(--transition-fast); /* Smooth transitions */
-    will-change: transform, opacity; /* Performance hint */
-    cursor: default; /* Default cursor */
-    user-select: none; /* Prevent accidental selection */
-  }
-  
-  /* Size indicator */
-  .size-indicator {
-    position: absolute;
-    bottom: var(--space-sm);
-    right: var(--space-sm);
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--border-radius-sm);
-    font-size: var(--font-size-xs);
-    pointer-events: none;
-    z-index: 100;
-    user-select: none;
-    backdrop-filter: blur(2px);
-  }
-  
-  /* --- Footer --- */
-  footer {
-    border-top: 1px solid var(--border-color);
-    padding: var(--space-lg) 0 var(--space-md) 0;
-    margin-top: var(--space-lg);
-  }
-  
-  .footer-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap; /* Allow wrapping */
-    gap: var(--space-md);
-    padding: 0 var(--space-sm); /* Padding for smaller screens */
-  }
-  
-  .manic-logo a {
-    display: flex; /* Make flex for easier alignment */
-    align-items: baseline; /* Align text nicely */
-    gap: var(--space-xs);
-    text-decoration: none;
-    transition: transform var(--transition-fast);
-  }
-  .manic-logo a:hover {
-    transform: scale(1.03);
-  }
-  
-  .logo-text-animated { /* Specific style for footer logo */
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    background-size: 200% auto;
-    animation: gradientMove 3s infinite alternate;
-    font-family: 'Audiowide', var(--font-family-logo);
-  }
-  
-  .logo-agency {
-    font-size: var(--font-size-sm);
-    color: var(--text-color);
-    opacity: 0.7;
-  }
-  
-  .footer-links {
-    display: flex;
-    gap: var(--space-md);
-    align-items: center;
-    flex-wrap: wrap; /* Allow wrapping */
-    justify-content: center; /* Center links if they wrap */
-  }
-  
-  .footer-links a {
-    color: var(--text-color);
-    font-size: var(--font-size-sm);
-    opacity: 0.8;
-  }
-  
-  .footer-links a:hover {
-    opacity: 1;
-    color: var(--accent-color); /* Add hover color */
-  }
-  
-  .copyright {
-    text-align: center;
-    font-size: var(--font-size-xs);
-    opacity: 0.6;
-    margin-top: var(--space-lg);
-  }
+  display: flex;
+  flex-direction: column;
+  background-color: var(--panel-bg);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  width: 100%;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--box-shadow-md);
+  /* >> Add/Ensure this line << */
+  position: relative; /* Needed for absolute positioning of info button on mobile */
+}
+
+/* Tab Content Area */
+.tab-content {
+  display: none; /* Handled by JS */
+  padding: var(--space-lg);
+  animation: fadeIn 0.3s ease forwards; /* Use forwards to keep state */
+  width: 100%;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Active Tab Content */
+.tab-content.active {
+  display: block;
+}
+
+/* Controls Container Grid */
+.controls-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjust min size */
+  gap: var(--space-lg) var(--space-lg); /* Consistent gap */
+  width: 100%;
+}
+
+/* Nested Controls */
+.nested-controls {
+  padding: var(--space-md);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-sm);
+  border: 1px dashed var(--border-color);
+  margin-top: var(--space-sm);
+}
+.nested-controls .control-group {
+    gap: var(--space-xs); /* Reduce gap inside nested */
+}
+
+/* Specific Full-Width Sections */
+#customGradientControls,
+#backgroundGradientControls,
+#fontLicenseContainer {
+  grid-column: 1 / -1; /* Span full width */
+}
+
+/* --- Preview Area --- */
+.preview-container {
+  position: relative;
+  display: flex; /* Use flex for centering */
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  overflow: hidden;
+  border-radius: var(--border-radius-md);
+  background-color: var(--dynamic-bg-color); /* Default solid */
+  transition: background-color var(--transition-base), opacity var(--transition-base), min-height var(--transition-base), border-color var(--transition-base);
+  box-shadow: var(--box-shadow-inset);
+  border: 1px solid var(--border-color);
+  min-height: 300px; /* Default medium size */
+  width: 100%;
+  max-width: 100%; /* Ensure it doesn't overflow */
+}
+
+/* Preview container background overlay */
+.preview-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: inherit; /* Inherits the background set by BG classes */
+  background-size: cover; /* Ensure pattern/gradient covers */
+  background-position: center;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none; /* Allow interaction with logo */
+  opacity: var(--bg-opacity, 1); /* Use CSS variable for opacity */
+  transition: opacity var(--transition-base);
+}
+
+/* Logo Container (Direct child for alignment) */
+.logo-container {
+  position: relative;
+  display: flex; /* Use flex here as well */
+  align-items: center; /* Vertical center */
+  justify-content: center; /* Horizontal center (can be overridden) */
+  width: 100%;
+  height: 100%;
+  z-index: 2; /* Above background overlay */
+  overflow: hidden; /* Prevent logo overflow if absolutely necessary */
+}
+
+/* Actual Logo Text Element */
+.logo-text {
+  font-family: var(--font-family-logo); /* Set default */
+  font-size: clamp(48px, 12vw, 150px); /* More aggressive clamp */
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.03em; /* Default */
+  text-align: center; /* Default */
+  background-image: var(--primary-gradient); /* Default gradient */
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  display: inline-block; /* Crucial for text effects/sizing */
+  padding: var(--space-sm); /* Padding around text */
+  margin: 0;
+  max-width: 100%; /* Prevent overflow */
+  transform-origin: center center;
+  transition: all var(--transition-base); /* Smooth transitions */
+  will-change: transform, opacity, color, text-shadow, border; /* Optimize animations */
+  cursor: default;
+  user-select: none;
+  line-height: 1.1; /* Avoid excessive line height */
+  overflow-wrap: break-word;
+  word-break: break-word; /* Ensure long text breaks */
+  /* Reset potential border from previous implementation */
+  border: var(--dynamic-border-width, 2px) solid transparent;
+  box-shadow: none; /* Reset potential box shadow */
+}
+
+/* Size indicator */
+.size-indicator {
+  position: absolute;
+  bottom: var(--space-sm);
+  right: var(--space-sm);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--text-color-strong);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-code); /* Monospace for numbers */
+  pointer-events: none;
+  z-index: 10;
+  user-select: none;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Preview container size classes */
+.preview-size-small { min-height: 200px; }
+.preview-size-medium { min-height: 300px; }
+.preview-size-large { min-height: 450px; }
+.preview-size-x-large { min-height: 600px; }
+
+
+/* --- Footer --- */
+footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: var(--space-lg) 0 var(--space-md) 0;
+  margin-top: var(--space-xl);
+  width: 100%; /* Ensure footer spans width within container */
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; /* Allow wrapping */
+  gap: var(--space-lg);
+  padding: 0 var(--space-sm); /* Match container padding */
+}
+
+.manic-logo a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+.manic-logo a:hover {
+  opacity: 0.85;
+  text-decoration: none;
+}
+
+.logo-text-animated { /* Specific style for footer logo */
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-black);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  animation: gradientMove 4s infinite alternate ease-in-out;
+  font-family: var(--font-family-logo);
+}
+
+@keyframes gradientMove {
+  from { background-position: 0% center; }
+  to { background-position: 100% center; }
+}
+
+.logo-agency {
+  font-size: var(--font-size-xs);
+  color: var(--text-color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end; /* Align links to the right */
+}
+
+.footer-links a {
+  color: var(--text-color-muted);
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+.footer-links a:hover {
+  color: var(--accent-color);
+  opacity: 1;
+}
+
+.copyright {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-color-muted);
+  opacity: 0.7;
+  margin-top: var(--space-lg);
+}
