@@ -80,22 +80,49 @@ function extractColorsFromGradient(gradientStr) {
     return gradientString.match(colorRegex) || [];
 }
 
-/** Create SVG text gradient definition */
 function createGradientDef(styles, gradientId) {
     if (styles.color?.mode !== 'gradient' || !gradientId) return '';
     console.log(`[Core] Creating text gradient definition #${gradientId}. Style data:`, styles.color.gradient);
+    
     const gradientInfo = styles.color.gradient || {};
-    // Use captured gradient colors directly if available
+    
+    // FIXED: Better color extraction
     const colors = gradientInfo.colors || [];
-    let c1 = colors[0] || styles.gradientColors?.c1 || '#FF1493'; // Fallback chain
-    let c2 = colors[1] || styles.gradientColors?.c2 || '#8A2BE2';
-    let c3 = colors[2] || styles.gradientColors?.c3 || '#FF4500';
-    const useC3 = styles.gradientColors?.useC3 || (colors.length > 2); // Infer useC3 if 3+ colors captured
+    let c1, c2, c3;
+    
+    // Try several fallback sources for colors
+    if (colors.length >= 1) {
+        c1 = colors[0];
+    } else if (styles.gradientColors?.c1) {
+        c1 = styles.gradientColors.c1;
+    } else {
+        c1 = '#FF1493'; // Default pink
+    }
+    
+    if (colors.length >= 2) {
+        c2 = colors[1];
+    } else if (styles.gradientColors?.c2) {
+        c2 = styles.gradientColors.c2;
+    } else {
+        c2 = '#8A2BE2'; // Default purple
+    }
+    
+    if (colors.length >= 3) {
+        c3 = colors[2];
+    } else if (styles.gradientColors?.c3) {
+        c3 = styles.gradientColors.c3;
+    } else {
+        c3 = '#FF4500'; // Default orange-red
+    }
+    
+    const useC3 = colors.length > 2 || styles.gradientColors?.useC3;
 
+    // Get gradient direction with fallback
     const dir = parseFloat(gradientInfo.direction || styles.gradientDirection || '45');
-    // Convert CSS angle (0=up, 90=right) to SVG angle (0=right)
+    
+    // Convert CSS angle to SVG angle
     const angleRad = (dir - 90) * Math.PI / 180;
-    const x1 = (0.5 - Math.cos(angleRad) * 0.5).toFixed(4); // Calculate vector start/end points (0-1 range)
+    const x1 = (0.5 - Math.cos(angleRad) * 0.5).toFixed(4);
     const y1 = (0.5 - Math.sin(angleRad) * 0.5).toFixed(4);
     const x2 = (0.5 + Math.cos(angleRad) * 0.5).toFixed(4);
     const y2 = (0.5 + Math.sin(angleRad) * 0.5).toFixed(4);
@@ -113,7 +140,7 @@ function createGradientDef(styles, gradientId) {
 <stop offset="100%" stop-color="${normalizeColor(c2)}"/>`;
          console.log(`[Core] Text Gradient Stops (2 colors): ${c1}, ${c2}`);
     }
-    // Use objectBoundingBox for easier scaling if gradient applied to text element directly
+    
     return `<linearGradient id="${gradientId}" gradientUnits="objectBoundingBox" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops}
     </linearGradient>`;
 }
@@ -141,7 +168,6 @@ function createBackgroundGradientDef(styles, settings, id) {
 }
 
 
-/** Create SVG background rectangle */
 function createBackgroundRect(styles, bgGradientId) {
     if (!styles?.background) return ''; // Need background info
     console.log(`[Core] Creating background rect. Type: ${styles.background.type}, Color: ${styles.background.color}, Opacity: ${styles.background.opacity}, GradientID: ${bgGradientId}`);
@@ -149,25 +175,35 @@ function createBackgroundRect(styles, bgGradientId) {
     let bgFill = 'none';
     const bgType = styles.background.type || 'bg-solid';
     const bgColor = normalizeColor(styles.background.color || '#000000');
-    const bgOpacity = styles.background.opacity || '1';
+    const bgOpacity = parseFloat(styles.background.opacity || '1');
 
-    // Check if background is a gradient type
-    if (bgType === 'bg-solid' && bgColor !== 'rgba(0,0,0,0)') {
-        bgFill = bgColor;
-    } else if ((bgType.includes('gradient') || styles.background.gradient) && bgGradientId) {
-        bgFill = `url(#${bgGradientId})`;
-    } else if (bgType !== 'bg-transparent' && bgColor !== 'rgba(0,0,0,0)') {
-        // For patterns, render the base background color
-        bgFill = bgColor;
-        console.log(`[Core] Background is pattern type (${bgType}), using computed base color: ${bgColor}`);
-    } else {
+    // FIXED: Improved background type handling
+    if (bgType === 'bg-transparent' || bgOpacity === 0) {
         console.log(`[Core] Background is transparent, skipping rect generation.`);
         return ''; // Explicitly return empty for transparent
     }
+    else if (bgType === 'bg-solid' && bgColor !== 'rgba(0,0,0,0)') {
+        bgFill = bgColor;
+    } 
+    else if (bgType.includes('gradient') && bgGradientId) {
+        bgFill = `url(#${bgGradientId})`;
+    } 
+    else if (styles.background.gradient && bgGradientId) {
+        // Handle case where type might not indicate gradient but gradient data exists
+        bgFill = `url(#${bgGradientId})`;
+    }
+    else if (bgType !== 'bg-transparent' && bgColor !== 'rgba(0,0,0,0)') {
+        // For patterns, render the base background color
+        bgFill = bgColor;
+        console.log(`[Core] Background is pattern type (${bgType}), using computed base color: ${bgColor}`);
+    }
 
-    console.log(`[Core] Generating background rect: fill="${bgFill}" opacity="${bgOpacity}"`);
-    return `<rect width="100%" height="100%" fill="${escapeSVGAttribute(bgFill)}" opacity="${escapeSVGAttribute(bgOpacity)}"/>`;
+    const finalOpacity = isNaN(bgOpacity) ? 1 : bgOpacity;
+
+    console.log(`[Core] Generating background rect: fill="${bgFill}" opacity="${finalOpacity}"`);
+    return `<rect width="100%" height="100%" fill="${escapeSVGAttribute(bgFill)}" opacity="${escapeSVGAttribute(finalOpacity)}"/>`;
 }
+
 
 /** Generate embedded CSS including font face and animations. */
 async function generateEmbeddedCSS(styles, animationMetadata) {
@@ -179,91 +215,161 @@ async function generateEmbeddedCSS(styles, animationMetadata) {
     if (styles.font?.family && styles.font?.embedData) {
         const embed = styles.font.embedData;
         css += `@font-face {\n  font-family: "${styles.font.family}";\n  src: url("${embed.file}") format("${embed.format || 'woff2'}");\n  font-weight: ${embed.weight || 400};\n  font-style: ${embed.style || 'normal'};\n}\n\n`;
-        cssAdded = true; console.log(`[Core CSS] Embedded @font-face for ${styles.font.family}`);
-    } else if (styles.font?.family) { console.warn(`[Core CSS] Font ${styles.font.family} specified, but no embed data found.`); }
+        cssAdded = true; 
+        console.log(`[Core CSS] Embedded @font-face for ${styles.font.family}`);
+    } else if (styles.font?.family) { 
+        console.warn(`[Core CSS] Font ${styles.font.family} specified, but no embed data found.`); 
+    }
 
-  // --- Animation Keyframes & Class ---
-  const anim = styles.animation;
-  if (anim?.class && anim.class !== 'anim-none') {
-      const animName = anim.class.replace('anim-', '');
-      let keyframesCss = anim.activeKeyframes; // Use captured keyframes first
-      
-      if (!keyframesCss && typeof window.getActiveAnimationKeyframes === 'function') {
-          console.log(`[Core CSS] Trying getActiveAnimationKeyframes for '${animName}'`);
-          keyframesCss = window.getActiveAnimationKeyframes(animName);
-      }
-
-   // Fallback to searching for keyframes in document
-   if (!keyframesCss) {
-    for (let i = 0; i < document.styleSheets.length; i++) {
-        try {
-            const sheet = document.styleSheets[i];
-            const rules = sheet.cssRules || sheet.rules;
-            for (let j = 0; j < rules.length; j++) {
-                const rule = rules[j];
-                if (rule.type === CSSRule.KEYFRAMES_RULE && 
-                    (rule.name === animName || rule.name === `${animName}-1`)) {
-                    keyframesCss = rule.cssText;
-                    console.log(`[Core CSS] Found keyframes rule for ${rule.name}`);
-                    break;
-                }
+    // --- Animation Keyframes & Class ---
+    const anim = styles.animation;
+    if (anim?.class && anim.class !== 'anim-none') {
+        const animName = anim.class.replace('anim-', '');
+        let keyframesCss = anim.activeKeyframes; // Use captured keyframes first
+        
+        // FIXED: Try to get keyframes from function or use fallbacks
+        if (!keyframesCss && typeof window.getActiveAnimationKeyframes === 'function') {
+            console.log(`[Core CSS] Trying getActiveAnimationKeyframes for '${animName}'`);
+            keyframesCss = window.getActiveAnimationKeyframes(animName);
+        }
+        
+        // If still no keyframes, use hardcoded fallbacks
+        if (!keyframesCss) {
+            const fallbackKeyframes = {
+                'bounce': "@keyframes bounce { \n  0%, 100% { transform: translateY(0px); animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1); }\n  50% { transform: translateY(-15px); animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1); }\n}",
+                'glitch': "@keyframes glitch{0%,100%{clip-path:inset(45% 0 45% 0);transform:translate(-2px,1px) scale(1.01)}25%{clip-path:inset(10% 0 70% 0);transform:translate(2px,-1px) scale(.99)}50%{clip-path:inset(75% 0 15% 0);transform:translate(-2px,-1px) scale(1.02)}75%{clip-path:inset(30% 0 60% 0);transform:translate(2px,1px) scale(.98)}}",
+                'pulse': "@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.9}}",
+                'float': "@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}",
+                'rotate': "@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}",
+                'fade': "@keyframes fade{0%,100%{opacity:.2}50%{opacity:1}}",
+                'flicker': "@keyframes flicker{0%,100%{opacity:1}50%{opacity:.5}}",
+                'shake': "@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px)}20%,40%,60%,80%{transform:translateX(4px)}}",
+                'wave': "@keyframes wave{0%,100%{transform:skew(0deg,0deg)}50%{transform:skew(4deg,2deg)}}"
+            };
+            keyframesCss = fallbackKeyframes[animName];
+            
+            if (keyframesCss) {
+                console.log(`[Core CSS] Using fallback keyframes for ${animName}`);
             }
-            if (keyframesCss) break;
-        } catch (e) {
-            console.warn(`[Core CSS] Error accessing stylesheet ${i}:`, e);
         }
-    }
-    }
-    if (keyframesCss) {
-        css += `/* Animation: ${animName} */\n${keyframesCss}\n\n`; 
-        cssAdded = true; 
-        console.log(`[Core CSS] Embedded @keyframes for ${animName}`);
-        
-        // Add animation class with appropriate properties
-        css += `.${anim.class} {\n`;
-        // Use a reasonable duration if original is 0s (which wouldn't animate)
-        const duration = anim.duration && anim.duration !== '0s' ? anim.duration : '2s';
-        
-        // Base animation properties
-        css += `  animation: ${animName} ${duration} ${anim.timingFunction || 'linear'} ${anim.iterationCount || 'infinite'};\n`;
-        
-        if (styles.color?.mode === 'gradient') { 
-            css += `  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; 
+
+        if (keyframesCss) {
+            css += `/* Animation: ${animName} */\n${keyframesCss}\n\n`; 
+            cssAdded = true; 
+            console.log(`[Core CSS] Embedded @keyframes for ${animName}`);
+            
+            css += `.${anim.class} {\n`;
+            
+            // CRITICAL FIX: Force reasonable duration if original is 0s
+            const duration = (anim.duration && anim.duration !== '0s') ? anim.duration : '2s';
+            console.log(`[Core CSS] Using animation duration: ${duration} (original: ${anim.duration})`);
+            
+            // Base animation properties
+            css += `  animation: ${animName} ${duration} ${anim.timingFunction || 'ease'} ${anim.iterationCount || 'infinite'};\n`;
+            
+            if (styles.color?.mode === 'gradient') { 
+                css += `  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; 
+            }
+            
+            css += `}\n\n`; 
+            cssAdded = true; 
+            console.log(`[Core CSS] Added animation class rule for ${anim.class}`);
+        } else { 
+            console.warn(`[Core CSS] Failed to find or generate keyframes for animation: ${animName}`); 
         }
-        css += `}\n\n`; 
-        cssAdded = true; 
-        console.log(`[Core CSS] Added animation class rule for ${anim.class}`);
     } else { 
-        console.warn(`[Core CSS] Failed to find or generate keyframes for animation: ${animName}`); 
+        console.log('[Core CSS] No active animation detected for CSS embedding.'); 
     }
-    } else { 
-    console.log('[Core CSS] No active animation detected for CSS embedding.'); 
-    }
+
+    return cssAdded ? css.trim() : null;
 }
 
-/** Generate SVG Text element */
-function generateSVGTextElement(textContent, styles, gradientId, filterId, animationMetadata) {
-     console.log("[Core Text] Generating SVG text element. Text:", textContent);
-     if (!styles || !styles.font) { console.error("[Core Text] Missing critical style info."); return ''; }
-     const font = styles.font; const color = styles.color; const border = styles.border; const effects = styles.effects; const anim = styles.animation; const transform = styles.transform;
-     let textElement = `<text x="50%" y="50%" text-anchor="${styles.textAnchor || 'middle'}" dominant-baseline="${styles.dominantBaseline || 'middle'}" `;
-     textElement += `font-family="${font.family ? escapeSVGAttribute(font.family) : 'sans-serif'}" font-size="${font.size || '60px'}" `;
-     if (font.weight) textElement += `font-weight="${font.weight}" `;
-     if (font.style && font.style !== 'normal') textElement += `font-style="${font.style}" `;
-     if (font.letterSpacing && font.letterSpacing !== 'normal' && font.letterSpacing !== '0px') textElement += `letter-spacing="${font.letterSpacing}" `;
-     if (color?.mode === 'gradient' && gradientId) { textElement += `fill="url(#${gradientId})" `; console.log(`[Core Text] Applied gradient fill: url(#${gradientId})`);}
-     else { const fillColor = normalizeColor(color?.value || '#ffffff'); textElement += `fill="${fillColor}" `; console.log(`[Core Text] Applied solid fill: ${fillColor}`);}
-     if (border?.style && border.style !== 'none' && border.style !== 'hidden') { const strokeColor = normalizeColor(border.color || '#ffffff'); const strokeWidth = parseFloat(border.width) || 1; textElement += `stroke="${strokeColor}" stroke-width="${strokeWidth}" `; if (border.dasharray) textElement += `stroke-dasharray="${border.dasharray}" `; console.log(`[Core Text] Applied stroke: Color=${strokeColor}, Width=${strokeWidth}, Dash=${border.dasharray || 'none'}`);}
-     else { console.log(`[Core Text] No border/stroke applied.`); }
-     if (filterId) { textElement += `filter="url(#${filterId})" `; console.log(`[Core Text] Applied filter: url(#${filterId})`);}
-     if (transform?.cssValue && transform.cssValue !== 'none') { textElement += `transform="${escapeSVGAttribute(transform.cssValue)}" `; console.log(`[Core Text] Applied transform: ${transform.cssValue}`);}
-     let animationStyleOverride = ''; const animClass = anim?.class;
-     if (animClass && animClass !== 'anim-none') { textElement += `class="${animClass}" `; console.log(`[Core Text] Applied animation class: ${animClass}`); if (animationMetadata?.progress !== undefined && anim?.durationMs) { const delayMs = - (animationMetadata.progress * anim.durationMs); animationStyleOverride = `animation-delay: ${delayMs.toFixed(0)}ms !important; animation-play-state: paused !important;`; console.log(`[Core Text] Applied animation override for progress ${animationMetadata.progress.toFixed(2)} (delay: ${delayMs}ms)`);}}
-     if (animationStyleOverride) { textElement += `style="${escapeSVGAttribute(animationStyleOverride)}" `; }
-     const escapedText = escapeXML(textContent || 'Logo'); textElement += `>${escapedText}</text>`;
-     return textElement;
+/** Generate SVG Text element */function generateSVGTextElement(textContent, styles, gradientId, filterId, animationMetadata) {
+    console.log("[Core Text] Generating SVG text element. Text:", textContent);
+    if (!styles || !styles.font) { console.error("[Core Text] Missing critical style info."); return ''; }
+    
+    const font = styles.font; 
+    const color = styles.color; 
+    const border = styles.border; 
+    const effects = styles.effects; 
+    const anim = styles.animation; 
+    const transform = styles.transform;
+    
+    // FIXED: Better text alignment handling
+    let textAnchor = 'middle'; // Default center alignment
+    if (styles.textAnchor) {
+        textAnchor = styles.textAnchor;
+    } else if (styles.textAlign === 'left') {
+        textAnchor = 'start';
+    } else if (styles.textAlign === 'right') {
+        textAnchor = 'end';
+    }
+    
+    let textElement = `<text x="50%" y="50%" text-anchor="${textAnchor}" dominant-baseline="${styles.dominantBaseline || 'middle'}" `;
+    textElement += `font-family="${font.family ? escapeSVGAttribute(font.family) : 'sans-serif'}" font-size="${font.size || '60px'}" `;
+    
+    if (font.weight) textElement += `font-weight="${font.weight}" `;
+    if (font.style && font.style !== 'normal') textElement += `font-style="${font.style}" `;
+    if (font.letterSpacing && font.letterSpacing !== 'normal' && font.letterSpacing !== '0px') 
+        textElement += `letter-spacing="${font.letterSpacing}" `;
+    
+    if (color?.mode === 'gradient' && gradientId) { 
+        textElement += `fill="url(#${gradientId})" `; 
+        console.log(`[Core Text] Applied gradient fill: url(#${gradientId})`);
+    } else { 
+        const fillColor = normalizeColor(color?.value || '#ffffff'); 
+        textElement += `fill="${fillColor}" `; 
+        console.log(`[Core Text] Applied solid fill: ${fillColor}`);
+    }
+    
+    if (border?.style && border.style !== 'none' && border.style !== 'hidden') { 
+        const strokeColor = normalizeColor(border.color || '#ffffff'); 
+        const strokeWidth = parseFloat(border.width) || 1; 
+        textElement += `stroke="${strokeColor}" stroke-width="${strokeWidth}" `; 
+        if (border.dasharray) textElement += `stroke-dasharray="${border.dasharray}" `; 
+        console.log(`[Core Text] Applied stroke: Color=${strokeColor}, Width=${strokeWidth}, Dash=${border.dasharray || 'none'}`);
+    } else { 
+        console.log(`[Core Text] No border/stroke applied.`); 
+    }
+    
+    if (filterId) { 
+        textElement += `filter="url(#${filterId})" `; 
+        console.log(`[Core Text] Applied filter: url(#${filterId})`);
+    }
+    
+    if (transform?.cssValue && transform.cssValue !== 'none') { 
+        textElement += `transform="${escapeSVGAttribute(transform.cssValue)}" `; 
+        console.log(`[Core Text] Applied transform: ${transform.cssValue}`);
+    }
+    
+    let animationStyleOverride = ''; 
+    const animClass = anim?.class;
+    if (animClass && animClass !== 'anim-none') { 
+        textElement += `class="${animClass}" `; 
+        console.log(`[Core Text] Applied animation class: ${animClass}`); 
+        
+        // Fix animation with zero duration
+        const needsDurationFix = anim.duration === '0s' || !anim.durationMs || anim.durationMs === 0;
+        if (needsDurationFix) {
+            // Force animation to run with reasonable duration
+            animationStyleOverride = `animation-duration: 2s !important; animation-iteration-count: infinite !important; animation-play-state: running !important;`;
+            console.log(`[Core Text] Fixed animation with zero duration to be 2s infinite running`);
+        } else if (animationMetadata?.progress !== undefined) {
+            // For frame export with specific progress
+            const delayMs = -(animationMetadata.progress * anim.durationMs);
+            animationStyleOverride = `animation-delay: ${delayMs.toFixed(0)}ms !important; animation-play-state: paused !important;`;
+            console.log(`[Core Text] Applied animation frame override for progress ${animationMetadata.progress.toFixed(2)}`);
+        }
+    }
+    
+    if (animationStyleOverride) { 
+        textElement += `style="${escapeSVGAttribute(animationStyleOverride)}" `; 
+    }
+    
+    const escapedText = escapeXML(textContent || 'Logo'); 
+    textElement += `>${escapedText}</text>`;
+    return textElement;
 }
-
 
 // --- Public Exported Functions ---
 
