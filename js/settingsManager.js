@@ -218,6 +218,8 @@ const SettingsManager = {
         });
     },
 
+    // Inside SettingsManager
+
     _bindSelectListener(selectId) {
         const select = document.getElementById(selectId); if (!select) { console.warn(`[SM] Select element #${selectId} not found.`); return; }
         select.addEventListener('change', (e) => {
@@ -239,6 +241,21 @@ const SettingsManager = {
             switch (selectId) {
                 case 'fontFamily':
                     logoElement.style.fontFamily = `"${value}", sans-serif`; // Apply style directly
+                    // <<< DEBUG LOG ADDED >>>
+                    const appliedFontFamily = logoElement.style.fontFamily;
+                    setTimeout(() => {
+                        const currentLogoElement = document.querySelector('.logo-text');
+                        if (currentLogoElement) {
+                            const computedFontFamily = window.getComputedStyle(currentLogoElement).fontFamily;
+                            console.log(`[SM DEBUG] Font Family - Applied: "${appliedFontFamily}", Computed: "${computedFontFamily}"`);
+                            if (computedFontFamily.toLowerCase().indexOf(value.toLowerCase()) === -1) {
+                                console.warn(`[SM DEBUG Warning] Computed font does not seem to match applied font "${value}"!`);
+                            }
+                        } else {
+                            console.warn("[SM DEBUG] logo-text not found in font family setTimeout check.");
+                        }
+                    }, 50); // Slightly longer delay for font computation
+                    // <<< END DEBUG LOG >>>
                     this._injectFontStyle(value); // Inject/update @font-face rule
                     this._updateFontPreview(value); // Update small preview span
                     console.log(`[SM] Applied font-family: ${value} and triggered font injection.`);
@@ -268,16 +285,39 @@ const SettingsManager = {
                     console.log('[SM] .logo-text classes after shadow apply:', logoElement.classList);
                     break;
                 case 'borderStyle':
-                     if (logoContainer) {
+                    if (logoContainer) {
+                        console.log(`[SM Border Apply Debug] Targeting element:`, logoContainer); // Verify target
                         console.log(`[SM] Applying border style class: ${value} to .logo-container`);
                         // Add/remove the base class that enables the border variables/styling
                         logoContainer.classList.toggle('dynamic-border', value !== 'border-none');
                         // Apply the specific style class (e.g., border-dashed)
                         this._applyClassFromSelect(logoContainer, value, 'border-'); // Use element ref
                         console.log('[SM] logo-container classes after border apply:', logoContainer.classList);
-                     } else {
-                         console.warn(`[SM] Cannot apply borderStyle '${value}', .logo-container missing.`);
-                     }
+
+                        // <<< DEBUG LOG ADDED >>>
+                        setTimeout(() => {
+                            const currentLogoContainer = document.querySelector('.logo-container');
+                            if (currentLogoContainer) {
+                                const computedBorderStyle = window.getComputedStyle(currentLogoContainer).borderTopStyle; // Check one side
+                                const computedBorderWidth = window.getComputedStyle(currentLogoContainer).borderTopWidth;
+                                const computedBorderColor = window.getComputedStyle(currentLogoContainer).borderTopColor;
+                                console.log(`[SM DEBUG] Computed Border right after class change (${value}): Style=${computedBorderStyle}, Width=${computedBorderWidth}, Color=${computedBorderColor}`);
+                                if (value !== 'border-none' && computedBorderWidth === '0px') {
+                                    console.error(`[SM DEBUG Error] Border width is 0px after applying class ${value}! Check CSS.`);
+                                }
+                                // Check if color is transparent/default black if border color picker hasn't been touched
+                                const expectedColor = document.documentElement.style.getPropertyValue('--dynamic-border-color') || getComputedStyle(document.documentElement).getPropertyValue('--dynamic-border-color').trim();
+                                // Note: computedBorderColor will be rgba usually, expectedColor might be hex
+                                console.log(`[SM DEBUG] Border color check: Expected ~${expectedColor}, Computed ${computedBorderColor}`);
+                            } else {
+                                console.warn("[SM DEBUG] logo-container not found in borderStyle setTimeout check.");
+                            }
+                        }, 0);
+                        // <<< END DEBUG LOG >>>
+
+                    } else {
+                        console.error(`[SM Border Apply Debug] .logo-container NOT found!`);
+                    }
                     break;
                 case 'textAnimation':
                     console.log(`[SM] Applying animation class: ${value} to .logo-text`);
@@ -295,7 +335,7 @@ const SettingsManager = {
                         console.log('[SM] #previewContainer classes after size apply:', previewContainer.classList);
                         this._updateSizeIndicator(); // Size change might affect layout
                     } else {
-                         console.warn(`[SM] Cannot apply previewSize '${value}', #previewContainer missing.`);
+                        console.warn(`[SM] Cannot apply previewSize '${value}', #previewContainer missing.`);
                     }
                     break;
                 case 'backgroundGradientPreset':
@@ -424,7 +464,7 @@ const SettingsManager = {
         });
     },
 
-    _bindColorInputListener(inputId) {
+  _bindColorInputListener(inputId) {
         const input = document.getElementById(inputId); if (!input) { console.warn(`[SM] Color input #${inputId} not found.`); return; }
         // Use 'input' event for live updates as the user drags the color picker
         input.addEventListener('input', (e) => {
@@ -434,41 +474,51 @@ const SettingsManager = {
 
             switch (inputId) {
                 case 'solidColorPicker':
-                     // Apply only if text color mode is currently 'solid'
                     if (this._currentSettings.textColorMode === 'solid') {
                          const el = document.querySelector('.logo-text');
                          if (el) el.style.color = value;
-                         // console.log(`[SM] Applied solid text color: ${value}`); // Log on change?
                     }
                      break;
                 case 'color1':
                 case 'color2':
                 case 'color3':
-                     // Apply only if text color mode is 'gradient' and preset is 'custom'
                     if (this._currentSettings.textColorMode === 'gradient' && this._currentSettings.gradientPreset === 'custom') {
                          this._applyGradientToLogo();
-                         // console.log(`[SM] Custom text gradient color changed (${inputId})`); // Log on change?
                     }
                      break;
                 case 'borderColorPicker':
                     // Directly update the CSS variable used by the border styles
                     document.documentElement.style.setProperty('--dynamic-border-color', value);
-                    // console.log(`[SM] Set --dynamic-border-color CSS variable to: ${value}`); // Log on change?
+                     // <<< DEBUG LOG ADDED >>>
+                    const currentVarValue = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-border-color').trim();
+                    console.log(`[SM DEBUG] Set --dynamic-border-color to: ${value}. Current computed value: ${currentVarValue}`);
+                    // Basic check, might need normalization for robust comparison (hex vs rgb)
+                    if (currentVarValue.toLowerCase() !== value.toLowerCase()) {
+                         // Note: This might log spuriously if browser delays CSS var update slightly
+                         // console.warn(`[SM DEBUG Warning] CSS variable --dynamic-border-color did not update immediately.`);
+                    }
+                     // Also check the computed border color of the element itself
+                     setTimeout(() => {
+                         const logoContainer = document.querySelector('.logo-container');
+                         if (logoContainer && logoContainer.classList.contains('dynamic-border')) {
+                            const computedBorderColor = window.getComputedStyle(logoContainer).borderTopColor; // Check one side
+                            console.log(`[SM DEBUG] Computed logoContainer borderColor after var set: ${computedBorderColor}`);
+                         } else {
+                             console.warn("[SM DEBUG] logo-container not found or dynamic-border class missing in borderColorPicker setTimeout check.");
+                         }
+                     }, 0);
+                    // <<< END DEBUG LOG >>>
                     break;
                 case 'backgroundColor':
-                     // Apply only if background type is currently 'solid'
                     const pc = document.getElementById('previewContainer');
                      if (pc && this._currentSettings.backgroundType === 'bg-solid') {
                          pc.style.backgroundColor = value;
-                         // console.log(`[SM] Applied solid background color: ${value}`); // Log on change?
                     }
                      break;
                 case 'bgColor1':
                 case 'bgColor2':
-                     // Apply only if background type is 'gradient' and preset is 'custom'
                     if (this._currentSettings.backgroundType?.includes('gradient') && this._currentSettings.backgroundGradientPreset === 'custom') {
                          this._applyBackgroundGradient();
-                         // console.log(`[SM] Custom background gradient color changed (${inputId})`); // Log on change?
                     }
                      break;
             }
@@ -477,9 +527,19 @@ const SettingsManager = {
          // Add a 'change' listener if you want a log event *after* the user finishes picking
          input.addEventListener('change', (e) => {
              console.log(`[SM] Color Change (final): #${inputId} = ${e.target.value}`);
+             // Trigger another round of debug checks on final change if needed
+             if (inputId === 'borderColorPicker') {
+                 const value = e.target.value;
+                 const currentVarValue = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-border-color').trim();
+                 console.log(`[SM DEBUG Final] --dynamic-border-color is: ${currentVarValue} (set to ${value})`);
+                 const logoContainer = document.querySelector('.logo-container');
+                 if (logoContainer && logoContainer.classList.contains('dynamic-border')) {
+                    const computedBorderColor = window.getComputedStyle(logoContainer).borderTopColor;
+                    console.log(`[SM DEBUG Final] Computed logoContainer borderColor: ${computedBorderColor}`);
+                 }
+             }
          });
     },
-
     // --- Specific Handlers (with v13 Robustness Checks & Logging) ---
 
     _handleColorModeChange(mode) {
@@ -659,14 +719,134 @@ const SettingsManager = {
         console.log(`[SM] Final preview container classes: ${Array.from(previewContainer.classList).join(' ')}`);
     },
 
-    _handleBackgroundGradientChange(presetValue) {
-        console.log(`[SM] Handling Background Gradient Preset Change: ${presetValue}`);
-        const customBgGroup = document.getElementById('customBackgroundGradient');
-        if (customBgGroup) customBgGroup.classList.toggle('hidden', presetValue !== 'custom');
-        // Re-apply gradient only if a gradient background type is currently selected
-        if (this._currentSettings.backgroundType?.includes('gradient')) {
-             this._applyBackgroundGradient();
+// Inside SettingsManager
+
+_handleBackgroundTypeChange(type) {
+    console.log(`[SM] Handling Background Type Change: ${type}`);
+    const previewContainer = document.getElementById('previewContainer');
+    const bgColorControl = document.getElementById('backgroundColorControl');
+    const bgGradientControls = document.getElementById('backgroundGradientControls'); // Contains preset + custom
+    const customBgGradientControls = document.getElementById('customBackgroundGradient'); // Specific custom color inputs
+    const bgPresetSelect = document.getElementById('backgroundGradientPreset');
+
+    // Validate elements
+    if (!previewContainer || !bgColorControl || !bgGradientControls || !customBgGradientControls || !bgPresetSelect) {
+        console.error("[SM] Missing critical elements for background type change UI update.");
+        return;
+    }
+
+    const isSolid = type === 'bg-solid';
+    const isGradient = type === 'bg-gradient' || type === 'bg-gradient-animated';
+    const isPattern = !isSolid && !isGradient && type !== 'bg-transparent';
+
+    // --- Toggle Control Visibility ---
+    bgColorControl.classList.toggle('hidden', !isSolid);
+    bgGradientControls.classList.toggle('hidden', !isGradient);
+    // Show custom BG gradient controls ONLY if gradient type is selected AND 'custom' preset is chosen
+    customBgGradientControls.classList.toggle('hidden', !isGradient || bgPresetSelect.value !== 'custom');
+
+    // --- Apply Styles and Classes to Preview Container ---
+    const classList = previewContainer.classList;
+
+    // 1. Clear previous background-related inline styles and classes
+    previewContainer.style.backgroundColor = '';
+    previewContainer.style.backgroundImage = '';
+    // Keep opacity controlled separately by its own input:
+    // previewContainer.style.opacity = this._currentSettings.bgOpacity || '1';
+
+    const bgClassesToRemove = Array.from(classList).filter(cls => cls.startsWith('bg-'));
+    if (bgClassesToRemove.length > 0) {
+         console.log(`[SM] Removing old background classes: ${bgClassesToRemove.join(', ')}`);
+        classList.remove(...bgClassesToRemove);
+    }
+    // Specifically remove animation class if switching away from animated gradient
+    classList.remove('bg-gradient-animated-css');
+
+    // 2. Apply new styles/classes based on selected type
+    if (isSolid) {
+        classList.add('bg-solid'); // Add identifying class
+        const bgColorPicker = document.getElementById('backgroundColor');
+        const colorToApply = bgColorPicker ? bgColorPicker.value : (this._currentSettings.backgroundColor || '#000000');
+        previewContainer.style.backgroundColor = colorToApply;
+        console.log(`[SM] Applied bg-solid, color: ${previewContainer.style.backgroundColor}`);
+
+        // <<< DEBUG LOG ADDED >>>
+        setTimeout(() => {
+             const currentPreviewContainer = document.getElementById('previewContainer');
+             if (currentPreviewContainer) {
+                const computedBgColor = window.getComputedStyle(currentPreviewContainer).backgroundColor;
+                console.log(`[SM DEBUG] Computed BG Color right after set (solid): ${computedBgColor}`);
+                // Helper to compare colors (handles rgba vs hex etc.)
+                const areColorsEqual = (color1, color2) => {
+                    try {
+                        // This is a basic check, might need a library for robust comparison
+                        const tempDiv = document.createElement('div');
+                        tempDiv.style.color = color1;
+                        const norm1 = tempDiv.style.color; // Browser normalizes
+                        tempDiv.style.color = color2;
+                        const norm2 = tempDiv.style.color;
+                        return norm1 === norm2;
+                    } catch(e) { return color1 === color2; } // Fallback
+                }
+                if (!areColorsEqual(computedBgColor, colorToApply) && computedBgColor !== 'rgba(0, 0, 0, 0)' /* ignore transparent */) {
+                    console.warn(`[SM DEBUG Warning] BG Color mismatch! Applied ${colorToApply}, Computed ${computedBgColor}`);
+                }
+             } else {
+                 console.warn("[SM DEBUG] previewContainer not found in setTimeout check.");
+             }
+        }, 0);
+        // <<< END DEBUG LOG >>>
+
+    } else if (isGradient) {
+        // Add base class (e.g., 'bg-gradient' or 'bg-gradient-animated')
+        classList.add(type);
+        // Apply the gradient via inline style (handles presets and custom)
+        this._applyBackgroundGradient(); // This will set style.backgroundImage and includes its own debug log now
+
+        if (type === 'bg-gradient-animated') {
+            previewContainer.classList.add('bg-gradient-animated-css'); // Add class for CSS animation
+            console.log('[SM] Applied animated gradient styles/classes.');
+        } else {
+            console.log('[SM] Applied static gradient styles/classes.');
         }
+    } else if (isPattern) { // For patterns like bg-grid, bg-stars etc.
+         console.log(`[SM] Applying background pattern class: ${type}`);
+        classList.add(type); // Add the specific pattern class (e.g., 'bg-grid')
+         // <<< DEBUG LOG ADDED >>>
+         setTimeout(() => {
+             const currentPreviewContainer = document.getElementById('previewContainer');
+             if (currentPreviewContainer) {
+                 const computedBgImage = window.getComputedStyle(currentPreviewContainer).backgroundImage;
+                 const computedBgColor = window.getComputedStyle(currentPreviewContainer).backgroundColor;
+                 console.log(`[SM DEBUG] Computed BG right after pattern class add (${type}): Image=${computedBgImage.substring(0,100)}..., Color=${computedBgColor}`);
+                 // For patterns using CSS classes, you expect computedBgImage to reflect the class rule
+                 // For patterns using ::before, computedBgImage on the element itself might be 'none'
+             } else {
+                  console.warn("[SM DEBUG] previewContainer not found in setTimeout check.");
+             }
+         }, 0);
+         // <<< END DEBUG LOG >>>
+    } else { // bg-transparent
+        classList.add('bg-transparent');
+        previewContainer.style.backgroundColor = 'transparent'; // Ensure fully transparent
+        previewContainer.style.backgroundImage = 'none';
+        console.log('[SM] Applied transparent background.');
+         // <<< DEBUG LOG ADDED >>>
+         setTimeout(() => {
+             const currentPreviewContainer = document.getElementById('previewContainer');
+             if (currentPreviewContainer) {
+                 const computedBgColor = window.getComputedStyle(currentPreviewContainer).backgroundColor;
+                 console.log(`[SM DEBUG] Computed BG Color right after set (transparent): ${computedBgColor}`);
+                 if (computedBgColor !== 'transparent' && computedBgColor !== 'rgba(0, 0, 0, 0)') {
+                     console.warn(`[SM DEBUG Warning] Expected transparent BG color, but got ${computedBgColor}`);
+                 }
+             } else {
+                 console.warn("[SM DEBUG] previewContainer not found in setTimeout check.");
+             }
+         }, 0);
+         // <<< END DEBUG LOG >>>
+    }
+    console.log(`[SM] Final preview container classes: ${Array.from(previewContainer.classList).join(' ')}`);
     },
 
     _applyBackgroundGradient() {
@@ -675,15 +855,17 @@ const SettingsManager = {
         const directionInput = document.getElementById('bgGradientDirection');
 
         if (!previewContainer || !presetSelect || !directionInput) {
-             console.warn("[SM ApplyBgGradient] Missing required elements (previewContainer, presetSelect, directionInput).");
-             return;
+            console.warn("[SM ApplyBgGradient] Missing required elements (previewContainer, presetSelect, directionInput).");
+            return;
         }
 
         // Only proceed if a gradient background type is actually selected
         const currentBgType = this._currentSettings.backgroundType;
         if (currentBgType !== 'bg-gradient' && currentBgType !== 'bg-gradient-animated') {
-             console.log("[SM ApplyBgGradient] Skipped: Background type is not gradient.");
-             return;
+            console.log("[SM ApplyBgGradient] Skipped: Background type is not gradient.");
+            // Clear previous gradient if switching away? Maybe handled by _handleBackgroundTypeChange
+            // previewContainer.style.backgroundImage = 'none';
+            return;
         }
 
         let gradient = '';
@@ -710,8 +892,31 @@ const SettingsManager = {
                 gradient = `linear-gradient(${direction}deg, ${DEFAULT_SETTINGS.bgColor1}, ${DEFAULT_SETTINGS.bgColor2})`; // Fallback
             }
         }
-        previewContainer.style.backgroundImage = gradient; // Apply directly to the container
-        console.log(`[SM ApplyBgGradient] Set background image to: ${gradient}`);
+
+        // Apply the gradient via inline style
+        previewContainer.style.backgroundImage = gradient;
+        console.log(`[SM ApplyBgGradient] Set background image to: ${gradient.substring(0, 100)}...`); // Log truncated gradient
+
+        // <<< DEBUG LOG ADDED >>>
+        // Check computed style *after* setting it, using setTimeout to wait a tick
+        setTimeout(() => {
+            const currentPreviewContainer = document.getElementById('previewContainer'); // Re-get element in case it changed
+            if (currentPreviewContainer) {
+                const computedBg = window.getComputedStyle(currentPreviewContainer).backgroundImage;
+                console.log(`[SM DEBUG] Computed BG Image right after set (${this._currentSettings.backgroundType}): ${computedBg.substring(0,100)}...`);
+                // Compare computed style with what we tried to set (ignoring vendor prefixes if any)
+                // Note: computed style often resolves colors to rgb/rgba
+                if (computedBg === 'none' && gradient !== 'none' && gradient !== '') {
+                     console.error(`[SM DEBUG Error] BG Image failed to apply! Expected gradient, got none.`);
+                } else if (computedBg !== 'none' && gradient === 'none') {
+                     console.warn(`[SM DEBUG Warning] BG Image applied unexpectedly? Expected none, got ${computedBg.substring(0,100)}...`);
+                }
+                 // More complex comparison might be needed if computed format differs significantly
+            } else {
+                 console.warn("[SM DEBUG] previewContainer not found in setTimeout check.");
+            }
+        }, 0); // Timeout 0 pushes check to next event loop cycle
+        // <<< END DEBUG LOG >>>
     },
 
     // --- Animation Speed Helper ---
@@ -769,7 +974,6 @@ const SettingsManager = {
         let dynamicStyleElement = document.getElementById('dynamic-font-style');
         let attempt = 0; const maxAttempts = 5, retryDelay = 50; // Retry quickly if needed during init
 
-        // Retry finding the element if it's initial load and not immediately found
         while (!dynamicStyleElement && isInitial && attempt < maxAttempts) {
             attempt++;
             console.warn(`[SM] #dynamic-font-style not found, attempt ${attempt}...`);
@@ -779,7 +983,6 @@ const SettingsManager = {
 
         if (!dynamicStyleElement) {
             console.error("[SM] CRITICAL: #dynamic-font-style element missing after retries! Cannot inject font.");
-            // Show alert only once to avoid spamming
             if (!window._dynFontAlertShown && typeof showAlert === 'function') {
                 showAlert('Font system style element missing. Fonts may not load correctly.', 'error');
                 window._dynFontAlertShown = true; // Prevent repeated alerts
@@ -808,7 +1011,6 @@ const SettingsManager = {
         }
 
         // 4. Find the best matching variant with embedded Base64 data
-        // Priority: Exact weight/style -> Exact weight -> 400/normal -> Any variant
         const targetWeight = String(this._currentSettings?.fontWeight || '400');
         const targetStyle = 'normal'; // Currently only supporting 'normal' style injection
 
@@ -820,15 +1022,21 @@ const SettingsManager = {
 
         // 5. Construct and inject the @font-face rule
         if (bestMatch?.file) {
-            const format = bestMatch.format || 'woff2'; // Assume woff2 if format missing
+            const format = bestMatch.format || 'woff2';
             const weight = bestMatch.weight || 400;
             const style = bestMatch.style || 'normal';
-            // Add font-display: swap for better perceived performance
             const rule = `/* Font: ${family.displayName} (${weight} ${style}) */\n@font-face {\n  font-family: "${family.familyName}";\n  src: url(${bestMatch.file}) format("${format}");\n  font-weight: ${weight};\n  font-style: ${style};\n  font-display: swap;\n}`;
 
             dynamicStyleElement.textContent = rule;
-            // Force browser reflow/repaint to ensure the font is applied quickly (optional but can help)
-            void document.body.offsetHeight;
+            // <<< DEBUG LOG ADDED >>>
+            const injectedRule = dynamicStyleElement.textContent;
+            console.log(`[SM DEBUG] Injected @font-face rule (${family.familyName} - ${weight}/${style}): ${injectedRule.substring(0, 150)}...`);
+            // Check if the rule seems valid (basic check)
+            if (!injectedRule.includes('@font-face') || !injectedRule.includes('src: url(data:')) {
+                console.error(`[SM DEBUG Error] Injected font rule appears invalid!`);
+            }
+             // <<< END DEBUG LOG >>>
+            void document.body.offsetHeight; // Force reflow attempt
             console.log(`[SM] Injected @font-face for ${family.familyName} (weight ${weight}, style ${style})`);
         } else {
             console.warn(`[SM] No embeddable Base64 variant found for ${fontFamilyName} (Target weight: ${targetWeight}). Clearing style tag.`);
@@ -1102,6 +1310,25 @@ const SettingsManager = {
         // Ensure the reset button listeners are attached
         this._setupResetButton();
         console.log('[SM] UI component states initialized.');
+    },
+
+    _handleBackgroundGradientChange(presetValue) {
+        console.log(`[SM] Handling Background Gradient Preset Change: ${presetValue}`);
+        const customBgGroup = document.getElementById('customBackgroundGradient');
+        // Toggle visibility of custom color pickers based on whether 'custom' preset is selected
+        if (customBgGroup) {
+             customBgGroup.classList.toggle('hidden', presetValue !== 'custom');
+        } else {
+             console.warn("[SM] Custom background gradient controls (#customBackgroundGradient) not found.");
+        }
+        // Re-apply the background gradient only if a gradient type is currently active
+        // This ensures changing the preset updates the visual gradient
+        if (this._currentSettings.backgroundType?.includes('gradient')) {
+             console.log("[SM] Background is gradient type, re-applying gradient due to preset change...");
+             this._applyBackgroundGradient();
+        } else {
+             console.log("[SM] Background is not gradient type, skipping gradient re-application on preset change.");
+        }
     },
 
     /** Update the small font preview span */

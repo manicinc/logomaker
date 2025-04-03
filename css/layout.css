@@ -145,21 +145,26 @@ header {
 }
 
 /* --- Preview Area --- */
+/* In layout.css */
 .preview-container {
   position: relative;
-  display: flex; /* Use flex for centering */
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
   overflow: hidden;
   border-radius: var(--border-radius-md);
-  background-color: var(--dynamic-bg-color); /* Default solid */
-  transition: background-color var(--transition-base), opacity var(--transition-base), min-height var(--transition-base), border-color var(--transition-base);
+  /* CHANGE THIS: Use background shorthand or make transparent */
+  /* Option A: Use shorthand (allows image to show over color if needed) */
+  background: var(--dynamic-bg-color);
+  /* Option B: Make transparent (Recommended if image should fully replace color) */
+  /* background-color: transparent; */
+  transition: background var(--transition-base), opacity var(--transition-base), min-height var(--transition-base), border-color var(--transition-base);
   box-shadow: var(--box-shadow-inset);
   border: 1px solid var(--border-color);
-  min-height: 300px; /* Default medium size */
+  min-height: 300px;
   width: 100%;
-  max-width: 100%; /* Ensure it doesn't overflow */
+  max-width: 100%;
 }
 
 /* Preview container background overlay */
