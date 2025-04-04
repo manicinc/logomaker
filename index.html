@@ -671,6 +671,8 @@
   </div> 
   <!-- Always look for inline-fonts-data.js and attempt to load -->
   <script src="./inline-fonts-data.js" defer></script>
+  <!-- Our only online script but it's not required to execute exporting PNGs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script type="module" src="./js/utils/utils.js" defer></script>
   <script type="module" src="./js/utils/cssUtils.js" defer></script>
   <script type="module" src="./js/misc.js" defer></script>
@@ -678,14 +680,21 @@
   <script src="./js/numInputControls.js" defer></script>
   <script src="./js/resetConfirmation.js" defer></script>
   <script src="./js/mobile.js" defer></script>
-  <script src="./js/notificationsDropInAlerts.js" defer></script> <script type="module" src="./js/fontManager.js" defer></script>
+  <script src="./js/notificationsDropInAlerts.js" defer></script>
+  <script type="module" src="./js/fontManager.js" defer></script>
   <script type="module" src="./js/settingsManager.js" defer></script>
+ 
+  <script type="module" src="./js/renderers/RendererCore.js" defer></script>
   <script type="module" src="./js/captureTextStyles.js" defer></script>
-  <script type="module" src="./js/renderers/RendererCore.js" defer></script> <script type="module" src="./js/renderers/SVGRenderer.js" defer></script>
+  <script type="module" src="./js/renderers/SVGRenderer.js" defer></script>
    <script type="module" src="./js/renderers/PNGRenderer.js" defer></script>
-   <script type="module" src="./js/renderers/GIFRenderer.js" defer></script> <script type="module" src="./js/exportHandler.js" defer></script>
+   <script type="module" src="./js/renderers/GIFRenderer.js" defer></script>
+  <script type="module" src="./js/exportHandler.js" defer></script>
    <script type="module" src="./js/urlParamsHandler.js" defer></script>
   <script type="module" src="./js/main.js" defer></script>
+   <script>
+     // Your inline script if any
+   </script>
    <script>
     (function() {
       function initInfoNotice() {
