@@ -1,16 +1,3 @@
-/**
- * notificationsDropInAlerts.js - IMPROVED
- * Modern Notification System: Modals and Toasts.
- * 
- * FIXES & IMPROVEMENTS:
- * - Better contrast for text and backgrounds in both dark/light modes
- * - Improved mobile responsiveness
- * - More consistent styling with the design system
- * - Fixed positioning issues for toasts
- * - Better accessibility
- * - Cleaner code structure
- */
-
 // --- CSS Injection ---
 (function addNotificationStyles() {
   if (document.getElementById('logomaker-notification-styles')) return;
@@ -25,25 +12,27 @@
     transform: translateX(-50%) translateY(-120px); /* Start above */
     
     /* Inherit colors from CSS variables for theme compatibility */
-    background-color: var(--panel-bg-opaque);
-    color: var(--text-color);
+    background-color: var(--panel-bg-opaque, #333); /* Added fallback */
+    color: var(--text-color, #eee); /* Added fallback */
     
     padding: 12px 20px;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-md, 6px); /* Added fallback */
     display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: var(--box-shadow-md);
+    align-items: center; /* Base alignment */
+    gap: 12px; /* Base gap */
+    box-shadow: var(--box-shadow-md, 0 4px 12px rgba(0,0,0,0.15)); /* Added fallback */
     z-index: 1050;
     opacity: 0;
     transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1), opacity 0.4s ease;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color, #555); /* Added fallback */
     
     /* Improved responsive width */
     width: clamp(280px, 90%, 500px);
     
     font-size: 0.95rem;
     pointer-events: none;
+    box-sizing: border-box; /* Add globally */
+    overflow: hidden; /* Add globally */
   }
 
   .logo-toast.show {
@@ -53,317 +42,206 @@
   }
 
   /* Toast Status Styles with better contrast */
-  .logo-toast.success {
-    background: linear-gradient(45deg, #1c8a3c, #2eae50);
-    border-left: 4px solid #186e30;
-    color: white;
-  }
-  
-  .logo-toast.error {
-    background: linear-gradient(45deg, #c62828, #e53935);
-    border-left: 4px solid #9b1c1c;
-    color: white;
-  }
-  
-  .logo-toast.warning {
-    background: linear-gradient(45deg, #ef6c00, #fb8c00);
-    border-left: 4px solid #c85800;
-    color: #050505; /* Darker text for better contrast */
-  }
-  
-  .logo-toast.info {
-    background: linear-gradient(45deg, #0d47a1, #1565c0);
-    border-left: 4px solid #073777;
-    color: white;
-  }
+  .logo-toast.success { background: linear-gradient(45deg, #1c8a3c, #2eae50); border-left: 4px solid #186e30; color: white; }
+  .logo-toast.error { background: linear-gradient(45deg, #c62828, #e53935); border-left: 4px solid #9b1c1c; color: white; }
+  .logo-toast.warning { background: linear-gradient(45deg, #ef6c00, #fb8c00); border-left: 4px solid #c85800; color: #050505; }
+  .logo-toast.info { background: linear-gradient(45deg, #0d47a1, #1565c0); border-left: 4px solid #073777; color: white; }
 
   /* Improved icon styling */
   .toast-icon {
-    flex-shrink: 0;
+    flex: 0 0 20px; /* Explicit flex basis, no shrink */
     width: 20px;
     height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 0; /* Remove default margin, use gap */
   }
   
-  .toast-icon svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    fill: currentColor; /* Inherits color from parent (.logo-toast) */
-  }
-  
-  /* Fix warning icon color for better contrast */
-  .logo-toast.warning .toast-icon svg {
-    fill: #050505;
-  }
+  .toast-icon svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+  .logo-toast.warning .toast-icon svg { fill: #050505; } /* Warning icon color */
 
+  /* Content Area */
   .toast-content {
-    flex: 1;
-    display: flex;
+    flex: 1 1 auto; /* Allow grow/shrink */
+    display: flex; /* Use flex column for vertical layout */
     flex-direction: column;
     gap: 2px;
-    overflow: hidden;
+    overflow: hidden; /* Hide overflow */
+    min-width: 0; /* Allow shrinking */
   }
   
-  .toast-title {
-    font-weight: var(--font-weight-semibold);
-    margin-bottom: 3px;
-    color: inherit; /* Inherits color from parent (.logo-toast) */
-  }
+  .toast-title { font-weight: var(--font-weight-semibold); margin-bottom: 3px; color: inherit; }
+  .toast-message { opacity: 0.95; color: inherit; font-size: 0.9rem; line-height: 1.4; word-wrap: break-word; }
+  .toast-filename { font-size: 0.8em; opacity: 0.85; margin-top: 4px; word-break: break-all; color: inherit; line-height: 1.2;}
   
-  .toast-message {
-    opacity: 0.95;
-    color: inherit;
-    font-size: 0.9rem;
-  }
-  
-  .toast-filename {
-    font-size: 0.8em;
-    opacity: 0.85; /* Increased from 0.7 for better visibility */
-    margin-top: 4px;
-    word-break: break-all;
-    color: inherit;
-  }
-  
+  /* Close Button */
   .toast-close {
-    background: none;
-    border: none;
-    padding: 0 5px;
-    margin: -5px -10px -5px 5px;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
-    line-height: 1;
-    align-self: flex-start;
-    flex-shrink: 0;
-    color: inherit;
-  }
-  
-  .toast-close:hover {
-    opacity: 1;
-  }
-  
-  .toast-close svg {
-    width: 14px;
-    height: 14px;
-    display: block;
-    fill: currentColor;
-  }
-
-  /* --- Modal Notifications --- */
-  .notification-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Darker for better contrast */
-    display: flex;
+    flex: 0 0 auto; /* No grow/shrink */
+    background: none; border: none; padding: 5px; /* Adjusted padding */
+    margin: -5px -10px -5px 0px; /* Adjust negative margins, remove margin-left as gap handles it */
+    cursor: pointer; opacity: 0.8; transition: opacity 0.2s ease;
+    line-height: 1; align-self: flex-start; /* Align top */
+    display: flex; /* Center icon */
     align-items: center;
     justify-content: center;
-    z-index: 1040;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
-    padding: 20px; /* Add padding for smaller screens */
-    box-sizing: border-box;
   }
-  
-  .notification-modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.3s ease, visibility 0s linear 0s;
-  }
+  .toast-close:hover { opacity: 1; }
+  .toast-close svg { width: 16px; height: 16px; display: block; fill: currentColor; } /* Slightly bigger base icon */
 
-  /* Modal Dialog - now uses CSS variables for theme compatibility */
-  .notification-modal {
-    background-color: var(--panel-bg-opaque);
-    border-radius: var(--border-radius-md);
-    width: 90%;
-    max-width: 420px;
-    overflow: hidden;
-    box-shadow: var(--box-shadow-lg);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 40px);
-    transform: scale(0.95);
-    transition: transform 0.3s cubic-bezier(0.215, 0.610, 0.355, 1);
-  }
+  /* --- Modal Notifications --- (Keep as is for now) */
+  /* ... [Modal CSS unchanged] ... */
+  .notification-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1040; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s linear 0.3s; padding: 20px; box-sizing: border-box; }
+  .notification-modal-overlay.active { opacity: 1; visibility: visible; transition: opacity 0.3s ease, visibility 0s linear 0s; }
+  .notification-modal { background-color: var(--panel-bg-opaque); border-radius: var(--border-radius-md); width: 90%; max-width: 420px; overflow: hidden; box-shadow: var(--box-shadow-lg); border: 1px solid var(--border-color); color: var(--text-color); display: flex; flex-direction: column; max-height: calc(100vh - 40px); transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.215, 0.610, 0.355, 1); }
+  .notification-modal-overlay.active .notification-modal { transform: scale(1); }
+  .notification-header { padding: 15px 20px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 10px; font-weight: var(--font-weight-semibold); font-size: 1.1rem; flex-shrink: 0; position: relative; background-color: var(--panel-bg); color: var(--text-color); }
+  .notification-header.success { background: linear-gradient(45deg, #1c8a3c, #2eae50); color: white; border-bottom-color: rgba(0,0,0,0.2); }
+  .notification-header.error { background: linear-gradient(45deg, #c62828, #e53935); color: white; border-bottom-color: rgba(0,0,0,0.2); }
+  .notification-header.info { background: linear-gradient(45deg, #0d47a1, #1565c0); color: white; border-bottom-color: rgba(0,0,0,0.2); }
+  .notification-header.warning { background: linear-gradient(45deg, #ef6c00, #fb8c00); color: #050505; border-bottom-color: rgba(0,0,0,0.1); }
+  .notification-icon { width: 22px; height: 22px; flex-shrink: 0; }
+  .notification-icon svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+  .notification-header.warning .notification-icon svg { fill: #050505; }
+  .notification-title { flex: 1; margin: 0; }
+  .notification-body { padding: 20px; line-height: 1.5; flex-grow: 1; overflow-y: auto; background-color: var(--panel-bg-opaque); color: var(--text-color); }
+  .notification-message { margin: 0 0 15px; color: var(--text-color); }
+  .notification-message:last-child { margin-bottom: 0; }
+  .notification-message a { color: var(--accent-color); text-decoration: none; }
+  .notification-message a:hover { text-decoration: underline; opacity: 0.9; }
+  .notification-footer { padding: 10px 20px 15px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px; background-color: rgba(0, 0, 0, 0.1); flex-shrink: 0; }
+  .notification-btn { padding: 8px 20px; border-radius: var(--border-radius-sm); font-weight: var(--font-weight-medium); cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease, opacity 0.2s ease; border: none; background-color: var(--border-color); color: var(--text-color); min-width: 90px; text-align: center; }
+  .notification-btn:hover { background-color: var(--border-highlight); opacity: 0.9; }
+  .notification-btn:active { transform: scale(0.97); opacity: 0.8; }
+  .notification-btn.primary { background-color: var(--accent-color); color: var(--text-color-on-accent); }
+  .notification-btn.primary:hover { background-color: color-mix(in srgb, var(--accent-color) 85%, white 15%); }
+  .notification-header .close-modal-btn { background: none; border: none; padding: 5px; margin: -5px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s ease; line-height: 1; color: inherit; position: absolute; top: 12px; right: 15px; }
+  .notification-header .close-modal-btn:hover { opacity: 1; }
+  .notification-header .close-modal-btn svg { width: 18px; height: 18px; display: block; fill: currentColor; }
 
-  /* Modal entrance animation when overlay is active */
-  .notification-modal-overlay.active .notification-modal {
-    transform: scale(1);
-  }
+/* --- Mobile Optimizations --- */
+ @media (max-width: 767px) {
+   .logo-toast {
+     /* --- Container Styles --- */
+     display: flex !important; 
+     align-items: flex-start !important; /* Align items to the top */
+     width: calc(100% - 20px) !important; 
+     max-width: 100% !important;
+     padding: 12px 16px !important; 
+     top: 10px !important; 
+     left: 10px !important; 
+     transform: translateX(0) translateY(-100px) !important; 
+     right: auto !important; 
+     margin: 0 !important; 
+     height: auto !important; 
+     z-index: 1051 !important; 
+     gap: 0 !important; /* Remove base gap, use explicit margins */
+     /* Base colors (will be overridden by status) */
+     background-color: var(--panel-bg-opaque, #333) !important; 
+     color: var(--text-color, #eee) !important;
+     border-radius: var(--border-radius-md, 6px) !important;
+     border: 1px solid var(--border-color, #555) !important;
+     box-shadow: var(--box-shadow-md, 0 4px 12px rgba(0,0,0,0.15)) !important;
+     overflow: hidden !important; /* Keep */
+   }
+   
+   .logo-toast.show {
+     transform: translateX(0) translateY(0) !important; 
+     opacity: 1 !important; 
+     visibility: visible !important;
+   }
 
-  .notification-header {
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: var(--font-weight-semibold);
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    position: relative;
-    /* Default - inherits from variables */
-    background-color: var(--panel-bg);
-    color: var(--text-color);
-  }
+    /* --- Status Overrides (ensure !important) --- */
+    .logo-toast.success { background: linear-gradient(45deg, #1c8a3c, #2eae50) !important; border-left: 4px solid #186e30 !important; color: white !important; }
+    .logo-toast.error { background: linear-gradient(45deg, #c62828, #e53935) !important; border-left: 4px solid #9b1c1c !important; color: white !important; }
+    .logo-toast.warning { background: linear-gradient(45deg, #ef6c00, #fb8c00) !important; border-left: 4px solid #c85800 !important; color: #050505 !important; }
+    .logo-toast.info { background: linear-gradient(45deg, #0d47a1, #1565c0) !important; border-left: 4px solid #073777 !important; color: white !important; }
+   
+   /* --- Icon Styles --- */
+   .toast-icon {
+       flex: 0 0 20px !important; 
+       width: 20px !important; height: 20px !important;
+       margin-right: 12px !important; /* Explicit space */
+       margin-top: 2px !important; /* Align top */
+       display: flex !important; align-items: center !important; justify-content: center !important;
+   }
+   .toast-icon svg { display: block !important; width: 100% !important; height: 100% !important; fill: currentColor !important; }
+   .logo-toast.warning .toast-icon svg { fill: #050505 !important; }
 
-  /* Header Status Styles with improved contrast */
-  .notification-header.success { 
-    background: linear-gradient(45deg, #1c8a3c, #2eae50);
-    color: white;
-    border-bottom-color: rgba(0,0,0,0.2);
-  }
-  
-  .notification-header.error { 
-    background: linear-gradient(45deg, #c62828, #e53935);
-    color: white;
-    border-bottom-color: rgba(0,0,0,0.2);
-  }
-  
-  .notification-header.info { 
-    background: linear-gradient(45deg, #0d47a1, #1565c0);
-    color: white;
-    border-bottom-color: rgba(0,0,0,0.2);
-  }
-  
-  .notification-header.warning { 
-    background: linear-gradient(45deg, #ef6c00, #fb8c00);
-    color: #050505; /* Darker text for contrast */
-    border-bottom-color: rgba(0,0,0,0.1);
-  }
+   /* --- Content Area Styles --- */
+   .toast-content {
+       flex: 1 1 auto !important; 
+       min-width: 0 !important; /* Allow shrinking */
+       overflow: hidden !important; 
+       display: block !important;   
+       /* Removed debug background */
+   }
 
-  .notification-icon {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-  }
-  
-  .notification-icon svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    fill: currentColor; /* Inherits color from header */
-  }
+   /* --- Text Element Styles --- */
+   .toast-title {
+       display: block !important; font-weight: var(--font-weight-semibold, 600) !important;
+       margin-bottom: 4px !important; color: inherit !important; 
+       font-size: 1rem !important; line-height: 1.3 !important;
+       /* Removed debug background */
+   }
+   .toast-message {
+       display: block !important; font-size: 0.9rem !important; line-height: 1.4 !important;
+       color: inherit !important; /* Inherit text color correctly */
+       opacity: 0.95 !important; margin: 0 !important; 
+       height: auto !important; word-wrap: break-word !important;
+       /* Removed debug background and forced color */
+   }
+   .toast-filename {
+       display: block !important; font-size: 0.8em !important; opacity: 0.85 !important; 
+       margin-top: 5px !important; word-break: break-all !important; color: inherit !important;
+       line-height: 1.2 !important;
+       /* Removed debug background */
+   }
+   
+   /* --- Close Button Styles (Cleaned) --- */
+   .toast-close {
+       flex: 0 0 auto !important; 
+       margin-left: 12px !important; /* Explicit space */
+       padding: 5px !important; 
+       width: 32px !important; max-width: 32px !important; 
+       height: 32px !important; max-height: 32px !important;
+       box-sizing: border-box !important; 
+       align-self: flex-start !important; /* Align to top */
+       background: none !important; /* No background */
+       border: none !important; cursor: pointer !important;
+       opacity: 0.8 !important;
+       display: flex !important; align-items: center !important; justify-content: center !important;
+       line-height: 1 !important; 
+       overflow: hidden !important;
+       border-radius: 4px; /* Keep slight rounding */
+   }
+    .toast-close:hover { 
+        opacity: 1 !important; 
+        /* background: rgba(0,0,0,0.1) !important; /* Optional: subtle hover background */
+    }
 
-  /* Fix warning icon color */
-  .notification-header.warning .notification-icon svg {
-    fill: #050505;
-  }
+   .toast-close svg {
+       display: block !important; width: 16px !important; height: 16px !important;
+       /* Explicit fill for contrast */
+       fill: rgba(255, 255, 255, 0.9) !important; 
+   }
 
-  .notification-title {
-    flex: 1;
-    margin: 0;
-    /* Color inherited from header */
-  }
-
-  .notification-body {
-    padding: 20px;
-    line-height: 1.5;
-    flex-grow: 1;
-    overflow-y: auto;
-    background-color: var(--panel-bg-opaque);
-    color: var(--text-color);
-  }
-
-  .notification-message {
-    margin: 0 0 15px;
-    color: var(--text-color);
-  }
-  
-  .notification-message:last-child {
-    margin-bottom: 0;
-  }
-  
-  .notification-message a {
-    color: var(--accent-color);
-    text-decoration: none;
-  }
-  
-  .notification-message a:hover {
-    text-decoration: underline;
-    opacity: 0.9;
-  }
-
-  .notification-footer {
-    padding: 10px 20px 15px;
-    border-top: 1px solid var(--border-subtle);
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    background-color: rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-  }
-
-  .notification-btn {
-    padding: 8px 20px;
-    border-radius: var(--border-radius-sm);
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
-    border: none;
-    background-color: var(--border-color);
-    color: var(--text-color);
-    min-width: 90px;
-    text-align: center;
-  }
-  
-  .notification-btn:hover {
-    background-color: var(--border-highlight);
-    opacity: 0.9;
-  }
-  
-  .notification-btn:active {
-    transform: scale(0.97);
-    opacity: 0.8;
-  }
-  
-  /* Primary button with accent color for better visibility */
-  .notification-btn.primary {
-    background-color: var(--accent-color);
-    color: var(--text-color-on-accent);
-  }
-  
-  .notification-btn.primary:hover {
-    background-color: color-mix(in srgb, var(--accent-color) 85%, white 15%);
-  }
-
-  /* Close button in header */
-  .notification-header .close-modal-btn {
-    background: none;
-    border: none;
-    padding: 5px;
-    margin: -5px;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
-    line-height: 1;
-    color: inherit;
-    position: absolute;
-    top: 12px;
-    right: 15px;
-  }
-  
-  .notification-header .close-modal-btn:hover {
-    opacity: 1;
-  }
-  
-  .notification-header .close-modal-btn svg {
-    width: 18px;
-    height: 18px;
-    display: block;
-    fill: currentColor;
-  }
+   /* Force warning toast SVG color */
+   .logo-toast.warning .toast-close svg { fill: rgba(0, 0, 0, 0.7) !important; }
+   /* Fix for default toast on light themes if needed */
+   body.light-mode .logo-toast:not(.success):not(.error):not(.info):not(.warning) .toast-close svg { fill: rgba(0, 0, 0, 0.7) !important; }
+   /* Fix for default toast on dark themes */
+   body:not(.light-mode) .logo-toast:not(.success):not(.error):not(.info):not(.warning) .toast-close svg { fill: rgba(255, 255, 255, 0.9) !important; }
+   
+   /* --- END MOBILE FIX --- */
+   
+   /* Other mobile styles */
+    .notification-modal { width: 95% !important; /* ... etc ... */ }
   }
   `;
   document.head.appendChild(styleElement);
 })();
+
 
 // --- DOM Elements Initialization ---
 let notificationModalOverlay = null;

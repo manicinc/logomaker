@@ -1,8 +1,8 @@
 /**
- * SVGRenderer.js
+ * SVGRenderer.js (Version 2 - Enhanced Info)
  * ====================================================
  * Provides SVG export functionality using the centralized rendering pipeline
- * and manages the SVG export modal UI.
+ * and manages the SVG export modal UI. Includes notice about SVG limitations.
  */
 
 // Import core functions from RendererCore
@@ -28,17 +28,20 @@ let metadataInfoDiv = null; // Element to display metadata
 const MODAL_CSS = `
 /* Add specific styles for SVG exporter modal if needed */
 .svg-exporter-modal .exporter-preview-image {
-    background: repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 20px 20px;
+    /* Use checkerboard for transparency indication */
+    background: repeating-conic-gradient(var(--border-subtle, #ccc) 0% 25%, var(--panel-bg-opaque, #fff) 0% 50%) 50% / 20px 20px;
+    background-size: 20px 20px; /* Ensure size is set */
 }
 .svg-exporter-modal .svg-metadata-info {
     margin-top: 15px;
     padding: 10px;
-    background-color: rgba(0,0,0,0.1);
-    border-radius: 4px;
+    background-color: var(--input-bg, rgba(0,0,0,0.1)); /* Use theme variable */
+    border-radius: var(--border-radius-sm, 4px); /* Use theme variable */
     font-size: 0.8em;
-    max-height: 100px; /* Limit height */
+    max-height: 120px; /* Increased height */
     overflow-y: auto; /* Add scroll if needed */
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color, #ddd); /* Use theme variable */
+    color: var(--text-color-muted, #666); /* Use theme variable */
 }
 body.dark-mode .svg-exporter-modal .svg-metadata-info {
      background-color: rgba(255,255,255,0.05);
@@ -46,12 +49,15 @@ body.dark-mode .svg-exporter-modal .svg-metadata-info {
      color: #ccc;
 }
 .svg-exporter-modal .svg-metadata-info h4 {
-    margin: 0 0 5px 0;
-    font-size: 1.1em;
-    color: #333;
+    margin: 0 0 8px 0; /* Increased margin */
+    font-size: 1.0em; /* Slightly smaller */
+    color: var(--text-color-strong, #333); /* Use theme variable */
+    border-bottom: 1px solid var(--border-subtle); /* Add separator */
+    padding-bottom: 5px;
 }
 body.dark-mode .svg-exporter-modal .svg-metadata-info h4 {
      color: #eee;
+     border-bottom-color: #555;
 }
 .svg-exporter-modal .svg-metadata-info ul {
     list-style: none;
@@ -59,28 +65,49 @@ body.dark-mode .svg-exporter-modal .svg-metadata-info h4 {
     margin: 0;
 }
 .svg-exporter-modal .svg-metadata-info li {
-    margin-bottom: 3px;
+    margin-bottom: 4px; /* Consistent spacing */
+    word-break: break-word; /* Prevent overflow */
 }
+.svg-exporter-modal .svg-metadata-info code { /* Style code elements */
+    background-color: var(--code-bg, #eee);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.95em;
+    color: var(--text-color, #333);
+}
+body.dark-mode .svg-exporter-modal .svg-metadata-info code {
+    background-color: #11131c;
+    color: #ddd;
+}
+
 
 /* Ensure loading indicator styles are present */
 .svg-exporter-modal .exporter-preview-loading {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255, 255, 255, 0.8); display: flex; flex-direction: column;
-    justify-content: center; align-items: center; z-index: 5; color: #333;
+    background: var(--modal-backdrop-bg, rgba(255, 255, 255, 0.8)); /* Use theme variable */
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center; z-index: 5; color: var(--text-color, #333); /* Use theme variable */
     border-radius: inherit;
+    text-align: center;
 }
-body.dark-mode .svg-exporter-modal .exporter-preview-loading {
-    background: rgba(0, 0, 0, 0.8); color: #eee;
-}
+/* Dark mode handled by base styles */
 .svg-exporter-modal .exporter-preview-loading .spinner {
-    border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: #ff1493;
+    border: 4px solid rgba(var(--accent-color-rgb, 255, 20, 147), 0.2); /* Use theme variable */
+    border-left-color: var(--accent-color, #ff1493); /* Use theme variable */
     border-radius: 50%; width: 30px; height: 30px;
     animation: svg-spin 1s linear infinite; margin-bottom: 10px;
 }
-body.dark-mode .svg-exporter-modal .exporter-preview-loading .spinner {
-     border: 4px solid rgba(255, 255, 255, 0.2); border-left-color: #ff1493;
-}
 @keyframes svg-spin { to { transform: rotate(360deg); } }
+.svg-exporter-modal .svg-exporter-info-text {
+    font-size: 0.85em;
+    margin-top: 15px;
+    color: var(--text-color-muted, #666);
+    line-height: 1.4;
+    padding: 10px;
+    background: var(--input-bg, rgba(0,0,0,0.05)); /* Use theme variable */
+    border-radius: var(--border-radius-sm, 4px);
+    border: 1px dashed var(--border-color, #ccc); /* Use theme variable */
+}
 `;
 
 // --- HTML Structure ---
@@ -88,10 +115,10 @@ const MODAL_HTML = `
 <div id="${MODAL_ID}" class="modal-overlay svg-exporter-modal" role="dialog" aria-modal="true" aria-labelledby="${MODAL_ID}Title" style="display: none;">
   <div class="modal-content">
     <div class="modal-header">
-         <svg class="modal-header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-             <polyline points="16 18 22 12 16 6"></polyline>
-             <polyline points="8 6 2 12 8 18"></polyline>
-         </svg>
+        <svg class="modal-header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
         <h3 class="modal-title" id="${MODAL_ID}Title">Export as SVG</h3>
         <button id="${MODAL_ID}CloseBtn" class="modal-close-btn" aria-label="Close modal">&times;</button>
     </div>
@@ -101,8 +128,8 @@ const MODAL_HTML = `
                 <div class="spinner"></div>
                 <div class="progress-text">Generating preview...</div>
             </div>
-            <img id="${MODAL_ID}PreviewImage" class="exporter-preview-image" src="#" alt="SVG Preview" style="display: none; max-width: 100%; height: auto; border: 1px solid #ccc; min-height: 100px;">
-            <div id="${MODAL_ID}MetadataInfo" class="svg-metadata-info">
+            <img id="${MODAL_ID}PreviewImage" class="exporter-preview-image" src="#" alt="SVG Preview" style="display: none; max-width: 100%; height: auto; border: 1px solid var(--border-color, #ccc); min-height: 100px;">
+             <div id="${MODAL_ID}MetadataInfo" class="svg-metadata-info">
                  <h4>SVG Export Details</h4>
                  <ul><li>Loading details...</li></ul>
              </div>
@@ -111,21 +138,22 @@ const MODAL_HTML = `
             <div class="control-group">
                 <label for="${MODAL_ID}Width">Width (px)</label>
                 <div class="number-input-wrapper">
-                     <input type="number" id="${MODAL_ID}Width" value="800" min="50" max="8000" step="10">
+                    <input type="number" id="${MODAL_ID}Width" value="800" min="50" max="8000" step="10">
                 </div>
             </div>
             <div class="control-group">
                 <label for="${MODAL_ID}Height">Height (px)</label>
-                 <div class="number-input-wrapper">
+                <div class="number-input-wrapper">
                     <input type="number" id="${MODAL_ID}Height" value="400" min="50" max="8000" step="10">
-                 </div>
+                </div>
             </div>
             <label class="checkbox-label control-group" style="margin-top: 10px;">
                 <input type="checkbox" id="${MODAL_ID}Transparent">
                 <span>Transparent Background</span>
             </label>
-            <div class="svg-exporter-info-text" style="font-size: 0.85em; margin-top: 15px; color: #666; line-height: 1.4;">
-                <b>Note:</b> SVG is a vector format. It scales perfectly and includes text, styles, gradients, filters, and animations. Ideal for web use and editing.
+            <div class="svg-exporter-info-text">
+                <b>Note:</b> SVG is a vector format. It scales perfectly and includes text, styles, gradients, and basic filters. Ideal for web use and editing.<br>
+                <strong style="color: var(--warning-color, orange);">Limitation: Complex CSS effects (animated backgrounds, intricate borders like 'groove', some multi-layer shadows) may render differently or be omitted compared to the live web preview.</strong>
             </div>
         </div>
     </div>
@@ -142,11 +170,11 @@ const MODAL_HTML = `
 
 function injectStyles() {
     if (!document.getElementById(STYLE_ID) && MODAL_CSS) {
-         const styleElement = document.createElement('style');
-         styleElement.id = STYLE_ID;
-         styleElement.textContent = MODAL_CSS;
-         document.head.appendChild(styleElement);
-         console.log('[SVG UI] Styles Injected.');
+        const styleElement = document.createElement('style');
+        styleElement.id = STYLE_ID;
+        styleElement.textContent = MODAL_CSS;
+        document.head.appendChild(styleElement);
+        console.log('[SVG UI] Styles Injected.');
     }
 }
 
@@ -181,16 +209,30 @@ function openModal() {
     console.log("[SVG UI] Opening Modal...");
     syncExportSettings(); // Sync settings from main UI *before* showing
     modal.style.display = 'flex';
-    modal.classList.add('active');
+    requestAnimationFrame(() => { // Allow display change to paint before adding class
+        modal.classList.add('active');
+    });
     document.body.style.overflow = 'hidden';
     updatePreview(); // Generate initial preview and metadata
 }
 
 function closeModal() {
     if (!modal) return;
-    modal.style.display = 'none';
     modal.classList.remove('active');
-    document.body.style.overflow = '';
+    // Use transitionend event for smoother removal from DOM/display none
+    modal.addEventListener('transitionend', () => {
+        if (!modal.classList.contains('active')) { // Check if it's still meant to be hidden
+             modal.style.display = 'none';
+             document.body.style.overflow = '';
+        }
+    }, { once: true });
+    // Failsafe in case transitionend doesn't fire
+    setTimeout(() => {
+         if (!modal.classList.contains('active')) {
+             modal.style.display = 'none';
+             document.body.style.overflow = '';
+         }
+    }, 500); // Slightly longer than typical transition
     console.log("[SVG UI] Modal closed.");
 }
 
@@ -218,70 +260,105 @@ const updatePreview = debounce(() => {
         transparentBackground: transparentCheckbox?.checked || false
     };
 
-    // Update Preview Image
+    // --- Update Preview Image ---
     generateConsistentPreview(options, previewImage, loadingIndicator, 'svg')
         .then(result => {
-             console.log("[SVG UI] Preview generation successful.");
+            console.log("[SVG UI] Preview generation successful.");
+            // UI update (loading hide, image display) is handled within generateConsistentPreview
         })
         .catch(error => {
-             console.error('[SVG UI] Preview generation failed:', error);
-             if (typeof showAlert === 'function') showAlert(`Preview failed: ${error.message}`, 'warning');
+            console.error('[SVG UI] Preview generation failed:', error);
+            // Error state is handled within generateConsistentPreview
+            if (typeof showAlert === 'function') showAlert(`Preview failed: ${error.message}`, 'warning');
+            if(metadataInfoDiv) metadataInfoDiv.innerHTML = 'Preview Generation Failed.'; // Show error in metadata area too
+        })
+        .finally(() => {
+             // --- Always Update Metadata Display (even on failure) ---
+             updateMetadataInfo(); // Call the metadata update function
         });
 
-    // Update Metadata Display
-    updateMetadataInfo(); // Call the metadata update function
-
 }, 300);
+
 
 /** Update the metadata display area */
 function updateMetadataInfo() {
     if (!metadataInfoDiv) return;
     console.log("[SVG UI] Updating metadata info display...");
 
+    metadataInfoDiv.innerHTML = '<h4>SVG Export Details</h4><ul><li>Loading details...</li></ul>'; // Reset
+
     try {
-         // Use the *same* style capture function used for rendering
-         const styles = captureAdvancedStyles(); // Or getFinalTextStyles
-         const animationMetadata = extractSVGAnimationDetails();
-         if (!styles || !styles.font) { metadataInfoDiv.innerHTML = 'Error loading details.'; return; }
+        // Use the *same* style capture function used for rendering
+        const styles = captureAdvancedStyles();
+        const animationMetadata = extractSVGAnimationDetails(); // Use the same animation info
 
-         let infoHTML = '<h4>SVG Export Details</h4><ul>';
+        if (!styles) { throw new Error("Failed to capture styles."); }
+        if (!styles.font) { throw new Error("Font styles missing."); }
 
-         // Font info
-         infoHTML += `<li>Font: ${styles.font.family || 'N/A'} (${styles.font.weight || 'N/A'})</li>`;
+        let infoHTML = '<h4>SVG Export Details</h4><ul>';
 
-         // Color mode
-         if (styles.color?.mode === 'gradient') {
-              const c1 = styles.color.gradient?.colors?.[0] || 'Start';
-              const c2 = styles.color.gradient?.colors?.[1] || 'End';
-              infoHTML += `<li>Color: Gradient (${c1} → ${c2})</li>`;
-         } else {
-              infoHTML += `<li>Color: Solid (${styles.color?.value || '#FFFFFF'})</li>`;
+        // Font info
+        const fontName = styles.font.family?.split(',')[0].trim().replace(/['"]/g, '') || 'N/A';
+        infoHTML += `<li>Font: <code>${fontName}</code> (${styles.font.weight || 'N/A'})</li>`;
+
+        // Color mode
+        if (styles.color?.mode === 'gradient' && styles.color.gradient?.colors?.length) {
+             const c1 = styles.color.gradient.colors[0] || 'Start';
+             const c2 = styles.color.gradient.colors[1] || 'End';
+             const c3 = styles.color.gradient.colors[2];
+             infoHTML += `<li>Color: Gradient (<code>${c1}</code> → <code>${c2}${c3 ? ' → '+c3 : ''}</code>)</li>`;
+        } else {
+             infoHTML += `<li>Color: Solid (<code>${styles.color?.value || '#FFFFFF'}</code>)</li>`;
+        }
+
+        // Animation
+        const animType = animationMetadata?.type || styles?.animation?.type || 'None';
+        infoHTML += `<li>Animation: <code>${animType}</code>`;
+        if (animType !== 'None' && (animationMetadata?.duration || styles?.animation?.duration)) {
+             infoHTML += ` (${animationMetadata?.duration || styles?.animation?.duration})`;
+        }
+        infoHTML += `</li>`;
+
+        // Effects (Glow/Shadow)
+        // Check styles.textEffect (updated name from captureStyles)
+        if (styles.textEffect?.type && styles.textEffect.type !== 'none') {
+             let effectType = styles.textEffect.type === 'glow' ? 'Glow' : 'Shadow';
+             if (styles.textEffect.color) effectType += ` (<code>${styles.textEffect.color}</code>)`;
+             infoHTML += `<li>Text Effect: ${effectType}</li>`;
+        } else {
+            infoHTML += `<li>Text Effect: None</li>`;
+        }
+
+        // Border
+        if (styles.border?.style && styles.border.style !== 'none' && styles.border.style !== 'hidden') {
+             infoHTML += `<li>Border/Stroke: ${styles.border.style} (${styles.border.width || 'N/A'}, <code>${styles.border.color || 'N/A'}</code>)`;
+             if(styles.border.isGlow) infoHTML += ` + Glow`; // Indicate if glow filter is applied via border
+             infoHTML += `</li>`;
+        } else {
+             infoHTML += `<li>Border/Stroke: None</li>`;
+        }
+
+        // Background
+         const bgType = styles.background?.type || 'N/A';
+         const isTransparent = transparentCheckbox?.checked || false;
+         if (isTransparent) {
+            infoHTML += `<li>Background: Transparent</li>`;
+         } else if (bgType.includes('gradient')) {
+            infoHTML += `<li>Background: Gradient (ID: <code>svgBgGradient</code>)</li>`;
+         } else if (bgType !== 'bg-transparent' && bgType !== 'bg-solid' && bgType !== 'N/A') {
+             // If it's a pattern or other complex type
+             infoHTML += `<li>Background: ${bgType} (May differ in SVG)</li>`;
+         }
+         else {
+            infoHTML += `<li>Background: Solid (<code>${styles.background?.color || '#000000'}</code>)</li>`;
          }
 
-         // Animation
-         infoHTML += `<li>Animation: ${animationMetadata?.type || 'None'}`;
-         if (animationMetadata?.duration) infoHTML += ` (${animationMetadata.duration})`;
-         infoHTML += `</li>`;
-
-         // Effects (Glow/Shadow)
-         if (styles.effects?.filterId) {
-              let effectType = 'Effect';
-              if (styles.effects.glowInfo) effectType = `Glow (${styles.effects.glowInfo.color})`;
-              else if (styles.effects.shadowInfo) effectType = `Shadow (${styles.effects.shadowInfo.color})`;
-              infoHTML += `<li>Effect: ${effectType}</li>`;
-         }
-
-         // Border
-         if (styles.border?.style && styles.border.style !== 'none') {
-              infoHTML += `<li>Border: ${styles.border.style} (${styles.border.width || 'N/A'}, ${styles.border.color || 'N/A'})</li>`;
-         }
-
-         infoHTML += '</ul>';
-         metadataInfoDiv.innerHTML = infoHTML;
-         console.log("[SVG UI] Metadata info updated.");
+        infoHTML += '</ul>';
+        metadataInfoDiv.innerHTML = infoHTML;
+        console.log("[SVG UI] Metadata info updated.");
     } catch(e) {
         console.error("[SVG UI] Error updating metadata info:", e);
-        metadataInfoDiv.innerHTML = 'Error loading details.';
+        metadataInfoDiv.innerHTML = '<h4>SVG Export Details</h4><ul><li>Error loading details.</li></ul>';
     }
 }
 
@@ -302,26 +379,24 @@ async function handleExport() {
       width: parseInt(widthInput?.value) || 800,
       height: parseInt(heightInput?.value) || 400,
       transparentBackground: transparentCheckbox?.checked || false,
-      // Add enhanced style capture
-        //   capturedStyles: captureLogoStylesDirectly()
-        capturedStyles: captureAdvancedStyles(), // Use the same function as in preview
+      // Styles will be captured inside exportAsSVGCore -> generateSVGBlob
   };
   console.log("[SVG UI] Final export options:", options);
 
   try {
-      // Use the CORE export function with our enhanced styles
+      // Use the CORE export function
       const blob = await exportAsSVGCore(options);
       console.log(`[SVG UI] Final SVG generated. Size: ${(blob.size / 1024).toFixed(1)} KB`);
 
       // Trigger download
       let filename = 'logo.svg';
       if (typeof window.Utils?.getLogoFilenameBase === 'function') {
-           filename = window.Utils.getLogoFilenameBase() + '.svg';
+          filename = window.Utils.getLogoFilenameBase() + '.svg';
       } else { // Basic fallback
-           const logoText = document.querySelector('.logo-text')?.textContent || 'logo';
-           filename = logoText.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 30) + '.svg';
+          const logoText = document.querySelector('.logo-text')?.textContent || 'logo';
+          filename = logoText.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 30) + '.svg';
       }
-       console.log(`[SVG UI] Triggering download for: ${filename}`);
+        console.log(`[SVG UI] Triggering download for: ${filename}`);
 
       if (typeof window.Utils?.downloadBlob === 'function') {
           window.Utils.downloadBlob(blob, filename);
@@ -351,8 +426,7 @@ async function handleExport() {
 /** Basic fallback for downloading a blob */
 function triggerDownloadFallback(blob, filename) {
     console.warn("[SVG UI] Using fallback download method.");
-    // ... (Implementation is same as in PNGRenderer.js) ...
-     try {
+    try {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.style.display = "none"; a.href = url; a.download = filename;
@@ -403,8 +477,8 @@ function removeModalEventListeners() {
 /** Handle escape key press */
 function handleEscapeKey(event) {
      if (event.key === 'Escape' && modal?.classList.contains('active')) {
-        console.log("[SVG UI] Escape key pressed, closing modal.");
-        closeModal();
+         console.log("[SVG UI] Escape key pressed, closing modal.");
+         closeModal();
      }
 }
 
@@ -464,13 +538,13 @@ function initializeUI() {
 async function exportAsSVGCore(options = {}) {
     console.log('[SVG Core] exportAsSVGCore called with options:', options);
     try {
-         // Call the core generation function 
-         const blob = await generateSVGBlob(options);
-         console.log('[SVG Core] SVG Blob generated successfully.');
-         return blob;
+        // Call the core generation function
+        const blob = await generateSVGBlob(options); // generateSVGBlob handles style capture internally now
+        console.log('[SVG Core] SVG Blob generated successfully.');
+        return blob;
     } catch (error) {
-         console.error('[SVG Core] Failed to export as SVG:', error);
-         throw error; // Re-throw
+        console.error('[SVG Core] Failed to export as SVG:', error);
+        throw error; // Re-throw
     }
 }
 
