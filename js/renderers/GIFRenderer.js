@@ -283,26 +283,36 @@ function closeModal() {
     console.log("[GIF UI] Modal closed.");
 }
 
-
-function closeModal() {
-    if (!modal) return;
-    stopPreview(); // Stop animation loop
-    hideModalProgress();
-    modal.classList.remove('active');
-    modal.addEventListener('transitionend', () => {
-        if (!modal.classList.contains('active')) modal.style.display = 'none'; document.body.style.overflow = '';
-    }, { once: true });
-    setTimeout(() => { if (!modal.classList.contains('active')) { modal.style.display = 'none'; document.body.style.overflow = ''; }}, 500);
-    if (isExporting) cancelExport(); // Attempt to cancel if closing during export
-    console.log("[GIF UI] Modal closed.");
-}
-
 function resetCancelFlag() { exportCancelled = false; console.log('[GIF UI] Cancel flag reset.'); }
 function updateModalProgress(message) { if (loadingIndicator && progressText) { loadingIndicator.style.display = 'flex'; progressText.textContent = message; } }
 function hideModalProgress() { if (loadingIndicator) loadingIndicator.style.display = 'none'; }
-async function blobToDataURL(blob) { /* ... (same as before) ... */ }
-function debounce(func, wait) { /* ... (same as before) ... */ }
 
+/** Reset the cancellation flag */
+function resetCancelFlag() { exportCancelled = false; console.log('[GIF UI] Cancel flag reset.'); }
+/** Show the modal's loading overlay with a message */
+function updateModalProgress(message) { if (loadingIndicator && progressText) { loadingIndicator.style.display = 'flex'; progressText.textContent = message; } }
+/** Hide the modal's loading overlay */
+function hideModalProgress() { if (loadingIndicator) loadingIndicator.style.display = 'none'; }
+/** Convert a Blob to a Data URL string */
+async function blobToDataURL(blob) {
+    if (!(blob instanceof Blob)) return Promise.reject(new Error("Invalid input: Expected a Blob."));
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = (err) => reject(new Error(`FileReader error: ${err}`));
+        reader.readAsDataURL(blob);
+    });
+}
+
+/** Debounce function */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => { clearTimeout(timeout); func.apply(this, args); };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
 /** Generate frames specifically for the preview loop */
 async function generatePreviewFrames() {
