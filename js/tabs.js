@@ -4,7 +4,7 @@
 function setupTabNavigation() {
     const tabs = document.querySelectorAll('.tab');
     const tabContent = document.querySelectorAll('.tab-content');
-    
+    console.log("SET THOSE TABS UP BOY");
     // Skip if we already set this up or no tabs found
     if (!tabs.length) return;
     
@@ -13,7 +13,6 @@ function setupTabNavigation() {
       tab.addEventListener('click', function() {
         // Remove active class from all tabs
         tabs.forEach(t => t.classList.remove('active'));
-        
         // Add active class to clicked tab
         this.classList.add('active');
         

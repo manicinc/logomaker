@@ -77,19 +77,67 @@
   }
 
   /* Tab scrolling adjustments */
+ 
+
+  /* --- Tabs - Vertical Stack Layout --- */
   .tabs {
-      padding-left: var(--space-sm);
-      padding-right: 50px; /* Space for info button */
-      /* Fade out effect for scrollable tabs */
-       mask-image: linear-gradient(to right, black calc(100% - 60px), transparent 100%);
-       -webkit-mask-image: linear-gradient(to right, black calc(100% - 60px), transparent 100%);
-       position: relative; /* Ensure info button is positioned correctly */
+    display: block; /* Change from flex to block */
+    overflow-x: visible; /* Remove horizontal scroll */
+    border-bottom: 1px solid var(--border-color); /* Keep border below the whole block */
+    padding-right: 0; /* Remove padding needed for scrolling */
+    mask-image: none; /* Remove mask */
+    -webkit-mask-image: none;
   }
+
   .tab {
-      padding: 10px 16px;
-      font-size: calc(var(--font-size-xs) * 0.9); /* Even smaller tab text */
-      letter-spacing: 0.4px;
+    display: block; /* Make each tab a block element */
+    width: 100%; /* Tabs take full width */
+    text-align: left; /* Align text left */
+    padding: 12px var(--space-md); /* Adjust padding */
+    border-bottom: 1px solid var(--border-color); /* Separator line */
+    border-left: 3px solid transparent; /* Space for active indicator */
+    border-bottom-color: transparent; /* Remove bottom border indicator */
+    margin-bottom: 0; /* Remove margin */
+    flex-shrink: 1; /* Allow shrinking if somehow needed */
+    white-space: normal; /* Allow text wrapping if needed */
   }
+
+  .tab:last-child {
+    border-bottom: none; /* No separator after the last tab */
+  }
+
+  /* Remove padding added previously for scrolling mask */
+  .tab:first-child {
+      padding-left: var(--space-md);
+  }
+
+  /* Active state for vertical tabs */
+  .tab.active {
+    color: var(--accent-color);
+    border-left-color: var(--accent-color); /* Use left border as indicator */
+    background-color: var(--hover-bg-strong); /* Highlight background */
+    border-bottom-color: var(--border-color); /* Ensure bottom border shows if not last */
+  }
+    .tab.active:last-child {
+        border-bottom-color: transparent;
+    }
+
+  .tab:hover,
+  .tab:focus-visible {
+    border-bottom-color: var(--border-color); /* Keep bottom border on hover */
+    border-left-color: var(--border-highlight); /* Indicate hover on left */
+  }
+  .tab:last-child:hover, .tab:last-child:focus-visible {
+      border-bottom-color: transparent;
+  }
+  .tab.active:hover,
+  .tab.active:focus-visible {
+      border-left-color: var(--accent-color); /* Keep active color */
+  }
+  .tab.active::after {
+      opacity: 0 !important; /* Ensure no bottom line pseudo element */
+  }
+
    /* Show info button on mobile */
    .info-button {
        display: flex; /* Use display directly */
@@ -117,24 +165,31 @@
    }
    button, .button { width: 100%; } /* Full width buttons */
 
+  /* --- ADJUSTED Preview Container Styles --- */
   .preview-container {
-      padding: var(--space-md);
-      min-height: 200px; /* Adjust default height */
-      border-left: none;
-      border-right: none;
-      margin-left: calc(-1 * var(--space-xs)); /* Bleed to edge */
-      margin-right: calc(-1 * var(--space-xs));
-      border-radius: 0; /* Remove radius */
+    padding: var(--space-md);
+    /* Slightly reduce default min-height */
+    min-height: 180px;
+    border-left: none;
+    border-right: none;
+    margin-left: calc(-1 * var(--space-xs)); /* Bleed to edge */
+    margin-right: calc(-1 * var(--space-xs));
+    border-radius: 0; /* Remove radius */
   }
-   .preview-size-small { min-height: 150px; }
-   .preview-size-medium { min-height: 200px; }
-   .preview-size-large { min-height: 300px; }
-   .preview-size-x-large { min-height: 400px; }
+  /* Adjust specific size classes */
+  .preview-size-small { min-height: 140px; } /* Was 150px */
+  .preview-size-medium { min-height: 180px; } /* Was 200px - now matches default */
+  .preview-size-large { min-height: 280px; } /* Was 300px */
+  .preview-size-x-large { min-height: 360px; } /* Was 400px */
 
   .logo-text {
-      font-size: clamp(36px, 15vw, 90px); /* Adjust clamp for mobile */
-      padding: var(--space-xs);
+    /* Adjust clamp: lower min/max slightly, reduce vw scaling */
+    font-size: clamp(32px, 13vw, 85px); /* Was clamp(36px, 15vw, 90px) */
+    padding: var(--space-xs);
+    /* Add max-width just in case text content is extremely long */
+    max-width: calc(100% - var(--space-xs) * 2); /* Ensure padding isn't overcome */
   }
+
   .size-indicator {
       bottom: var(--space-xs);
       right: var(--space-xs);

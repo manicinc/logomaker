@@ -169,42 +169,42 @@ function fixExportSizeControls() {
 }
 
 /** Mobile Preview Mode Toggle */
-function setupPreviewToggle() {
-  const previewContainer = document.getElementById('previewContainer');
-  if (!previewContainer || previewContainer.querySelector('.preview-toggle-btn-mobile')) return; // Already added or no container
+// function setupPreviewToggle() {
+//   const previewContainer = document.getElementById('previewContainer');
+//   if (!previewContainer || previewContainer.querySelector('.preview-toggle-btn-mobile')) return; // Already added or no container
 
-  console.log("[Mobile] Setting up fullscreen preview toggle.");
-  const toggleBtn = document.createElement('button');
-  toggleBtn.className = 'preview-toggle-btn preview-toggle-btn-mobile'; // Specific class
-  toggleBtn.type = 'button';
-  toggleBtn.setAttribute('aria-label', 'Toggle fullscreen preview');
-  toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>`; // Expand icon
+//   console.log("[Mobile] Setting up fullscreen preview toggle.");
+//   const toggleBtn = document.createElement('button');
+//   toggleBtn.className = 'preview-toggle-btn preview-toggle-btn-mobile'; // Specific class
+//   toggleBtn.type = 'button';
+//   toggleBtn.setAttribute('aria-label', 'Toggle fullscreen preview');
+//   toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>`; // Expand icon
 
-  toggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent interfering with other clicks
-      const isFullscreen = document.body.classList.toggle('preview-fullscreen');
-      previewContainer.classList.toggle('fullscreen-preview', isFullscreen);
+//   toggleBtn.addEventListener('click', (e) => {
+//       e.stopPropagation(); // Prevent interfering with other clicks
+//       const isFullscreen = document.body.classList.toggle('preview-fullscreen');
+//       previewContainer.classList.toggle('fullscreen-preview', isFullscreen);
 
-      if (isFullscreen) {
-          toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>`; // Collapse icon
-          toggleBtn.setAttribute('aria-label', 'Exit fullscreen preview');
-          // Hide controls (using CSS primarily via the body class)
-      } else {
-          toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>`; // Expand icon
-          toggleBtn.setAttribute('aria-label', 'Toggle fullscreen preview');
-          // Show controls (handled by removing body class)
-      }
-      // Update size indicator after transition/layout change
-      setTimeout(() => {
-           if (typeof window.updateSizeIndicator === 'function') {
-               window.updateSizeIndicator();
-           }
-      }, 300);
-  });
+//       if (isFullscreen) {
+//           toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>`; // Collapse icon
+//           toggleBtn.setAttribute('aria-label', 'Exit fullscreen preview');
+//           // Hide controls (using CSS primarily via the body class)
+//       } else {
+//           toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>`; // Expand icon
+//           toggleBtn.setAttribute('aria-label', 'Toggle fullscreen preview');
+//           // Show controls (handled by removing body class)
+//       }
+//       // Update size indicator after transition/layout change
+//       setTimeout(() => {
+//            if (typeof window.updateSizeIndicator === 'function') {
+//                window.updateSizeIndicator();
+//            }
+//       }, 300);
+//   });
 
-  // Prepend inside the preview container so it's layered on top
-  previewContainer.insertBefore(toggleBtn, previewContainer.firstChild);
-}
+//   // Prepend inside the preview container so it's layered on top
+//   previewContainer.insertBefore(toggleBtn, previewContainer.firstChild);
+// }
 
 
 // --- Event Listeners ---

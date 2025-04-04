@@ -145,62 +145,144 @@ function createGradientDef(styles, gradientId) {
     </linearGradient>`;
 }
 
+/**
+ * Enhanced function to create SVG filter for glow effects on borders
+ * @param {object} border - Border information including glow properties
+ * @param {string} filterId - ID to use for filter
+ * @returns {string} SVG filter definition
+ */
+function createBorderGlowFilter(border, filterId) {
+    if (!border?.isGlow || !filterId) return '';
+    
+    const glowColor = normalizeColor(border.glowColor || border.color || '#ffffff');
+    
+    // Create a filter with feGaussianBlur for glow effect
+    return `<filter id="${filterId}" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+        <feFlood flood-color="${glowColor}" flood-opacity="0.8" result="color"/>
+        <feComposite in="color" in2="blur" operator="in" result="glow"/>
+        <feMerge>
+            <feMergeNode in="glow"/>
+            <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+    </filter>`;
+}
 
-/** Create SVG background gradient definition */
+/**
+ * Enhanced background gradient definition creation
+ * @param {object} styles - Captured styles
+ * @param {object} settings - Current settings for fallbacks
+ * @param {string} id - ID for gradient definition
+ * @returns {string} SVG gradient definition
+ */
 function createBackgroundGradientDef(styles, settings, id) {
-    if (!id || !styles?.background?.gradient) return '';
+    if (!id) return '';
     console.log('[Core] Creating background gradient definition.');
-    const bgGradientInfo = styles.background.gradient || {};
-    const rootStyles = window.getComputedStyle(document.documentElement);
-    // Use captured colors/direction first, fallback to settings/CSS vars
-    let colors = bgGradientInfo.colors || [];
-    let c1 = colors[0] || settings.bgColor1 || '#3a1c71';
-    let c2 = colors[1] || settings.bgColor2 || '#ffaf7b';
-    let direction = parseFloat(bgGradientInfo.direction || settings.bgGradientDirection || rootStyles.getPropertyValue('--bg-gradient-direction')?.trim() || '90');
-    console.log(`[Core] Background Gradient: c1=${c1}, c2=${c2}, direction=${direction}deg`);
-    // Calculate vector based on angle (same logic as text gradient)
-    const angleRad = (direction - 90) * Math.PI / 180;
+    
+    // Get gradient information from captured styles or settings
+    let colors = [];
+    let direction = '90';
+    
+    // First try to get from styles.background.gradient
+    if (styles?.background?.gradient) {
+        colors = styles.background.gradient.colors || [];
+        direction = styles.background.gradient.direction || '90deg';
+        if (direction.endsWith('deg')) {
+            direction = direction.slice(0, -3); // Remove 'deg' suffix
+        }
+    } 
+    // Fallback to settings
+    else if (settings) {
+        if (settings.backgroundType?.includes('gradient')) {
+            if (settings.backgroundGradientPreset === 'custom') {
+                colors = [settings.bgColor1, settings.bgColor2];
+            } else {
+                // Try to get preset colors from CSS variable
+                const rootStyle = window.getComputedStyle(document.documentElement);
+                const presetValue = rootStyle.getPropertyValue(`--${settings.backgroundGradientPreset}`).trim();
+                if (presetValue && presetValue.includes('gradient')) {
+                    // Extract colors using regex
+                    const colorRegex = /#[0-9a-f]{3,8}|rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)/gi;
+                    colors = presetValue.match(colorRegex) || [];
+                }
+            }
+            direction = settings.bgGradientDirection || '90';
+        }
+    }
+    
+    // If still no colors, use defaults
+    if (!colors || colors.length < 2) {
+        console.warn('[Core] Missing gradient colors, using defaults');
+        colors = ['#3a1c71', '#ffaf7b']; // Default background gradient
+    }
+    
+    // Ensure we have valid values
+    const c1 = normalizeColor(colors[0] || '#3a1c71');
+    const c2 = normalizeColor(colors[1] || '#ffaf7b');
+    const angle = parseInt(direction) || 90;
+    
+    console.log(`[Core] Background Gradient: c1=${c1}, c2=${c2}, direction=${angle}deg`);
+    
+    // Convert CSS angle to SVG coordinates
+    const angleRad = (angle - 90) * Math.PI / 180;
     const x1 = (0.5 - Math.cos(angleRad) * 0.5).toFixed(4);
     const y1 = (0.5 - Math.sin(angleRad) * 0.5).toFixed(4);
     const x2 = (0.5 + Math.cos(angleRad) * 0.5).toFixed(4);
     const y2 = (0.5 + Math.sin(angleRad) * 0.5).toFixed(4);
-    return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" gradientUnits="objectBoundingBox">\n<stop offset="0%" stop-color="${normalizeColor(c1)}"/>\n<stop offset="100%" stop-color="${normalizeColor(c2)}"/>\n</linearGradient>`;
+    
+    return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stop-color="${c1}"/>
+        <stop offset="100%" stop-color="${c2}"/>
+    </linearGradient>`;
 }
 
-
+/**
+ * Enhanced function for generating SVG background rectangle
+ * Handles gradients, patterns, and transparency better
+ * @param {object} styles - Captured styles 
+ * @param {string} bgGradientId - ID of gradient def if applicable
+ * @returns {string} SVG rect element or empty string
+ */
 function createBackgroundRect(styles, bgGradientId) {
     if (!styles?.background) return ''; // Need background info
     console.log(`[Core] Creating background rect. Type: ${styles.background.type}, Color: ${styles.background.color}, Opacity: ${styles.background.opacity}, GradientID: ${bgGradientId}`);
 
-    let bgFill = 'none';
+    // Get key properties
     const bgType = styles.background.type || 'bg-solid';
     const bgColor = normalizeColor(styles.background.color || '#000000');
     const bgOpacity = parseFloat(styles.background.opacity || '1');
-
-    // FIXED: Improved background type handling
+    
+    // Skip if fully transparent
     if (bgType === 'bg-transparent' || bgOpacity === 0) {
         console.log(`[Core] Background is transparent, skipping rect generation.`);
-        return ''; // Explicitly return empty for transparent
+        return ''; 
     }
-    else if (bgType === 'bg-solid' && bgColor !== 'rgba(0,0,0,0)') {
+    
+    // Determine fill based on type
+    let bgFill = 'none';
+    
+    if (bgType === 'bg-solid' && bgColor !== 'rgba(0,0,0,0)') {
         bgFill = bgColor;
     } 
-    else if (bgType.includes('gradient') && bgGradientId) {
-        bgFill = `url(#${bgGradientId})`;
-    } 
-    else if (styles.background.gradient && bgGradientId) {
-        // Handle case where type might not indicate gradient but gradient data exists
+    else if ((bgType.includes('gradient') || styles.background.gradient) && bgGradientId) {
         bgFill = `url(#${bgGradientId})`;
     }
-    else if (bgType !== 'bg-transparent' && bgColor !== 'rgba(0,0,0,0)') {
-        // For patterns, render the base background color
+    else if (bgType.match(/bg-(grid|dots|lines|carbon|noise|stars|synthwave)/)) {
+        // For pattern backgrounds, use the base color
+        bgFill = bgColor !== 'rgba(0,0,0,0)' ? bgColor : '#000000';
+        console.log(`[Core] Pattern background (${bgType}), using color: ${bgFill}`);
+        
+        // Optionally add a pattern reference here if we add SVG patterns later
+    }
+    else if (bgColor !== 'rgba(0,0,0,0)') {
+        // For any unhandled type with a color
         bgFill = bgColor;
-        console.log(`[Core] Background is pattern type (${bgType}), using computed base color: ${bgColor}`);
     }
 
+    // Generate the rect with opacity
     const finalOpacity = isNaN(bgOpacity) ? 1 : bgOpacity;
-
     console.log(`[Core] Generating background rect: fill="${bgFill}" opacity="${finalOpacity}"`);
+    
     return `<rect width="100%" height="100%" fill="${escapeSVGAttribute(bgFill)}" opacity="${escapeSVGAttribute(finalOpacity)}"/>`;
 }
 
@@ -322,103 +404,12 @@ if (fontFamily) {
     return css;
 }
 
-/** Generate SVG Text element */function generateSVGTextElement(textContent, styles, gradientId, filterId, animationMetadata) {
-    console.log("[Core Text] Generating SVG text element. Text:", textContent);
-    if (!styles || !styles.font) { console.error("[Core Text] Missing critical style info."); return ''; }
-    
-    const font = styles.font; 
-    const color = styles.color; 
-    const border = styles.border; 
-    const effects = styles.effects; 
-    const anim = styles.animation; 
-    const transform = styles.transform;
-    
-    // FIXED: Better text alignment handling
-    let textAnchor = 'middle'; // Default center alignment
-    if (styles.textAnchor) {
-        textAnchor = styles.textAnchor;
-    } else if (styles.textAlign === 'left') {
-        textAnchor = 'start';
-    } else if (styles.textAlign === 'right') {
-        textAnchor = 'end';
-    }
-    
-    let textElement = `<text x="50%" y="50%" text-anchor="${textAnchor}" dominant-baseline="${styles.dominantBaseline || 'middle'}" `;
-    textElement += `font-family="${font.family ? escapeSVGAttribute(font.family) : 'sans-serif'}" font-size="${font.size || '60px'}" `;
-    
-    if (font.weight) textElement += `font-weight="${font.weight}" `;
-    if (font.style && font.style !== 'normal') textElement += `font-style="${font.style}" `;
-    if (font.letterSpacing && font.letterSpacing !== 'normal' && font.letterSpacing !== '0px') 
-        textElement += `letter-spacing="${font.letterSpacing}" `;
-    
-    if (color?.mode === 'gradient' && gradientId) { 
-        textElement += `fill="url(#${gradientId})" `; 
-        console.log(`[Core Text] Applied gradient fill: url(#${gradientId})`);
-    } else { 
-        const fillColor = normalizeColor(color?.value || '#ffffff'); 
-        textElement += `fill="${fillColor}" `; 
-        console.log(`[Core Text] Applied solid fill: ${fillColor}`);
-    }
-    
-    if (border?.style && border.style !== 'none' && border.style !== 'hidden') { 
-        const strokeColor = normalizeColor(border.color || '#ffffff'); 
-        const strokeWidth = parseFloat(border.width) || 1; 
-        textElement += `stroke="${strokeColor}" stroke-width="${strokeWidth}" `; 
-        if (border.dasharray) textElement += `stroke-dasharray="${border.dasharray}" `; 
-        console.log(`[Core Text] Applied stroke: Color=${strokeColor}, Width=${strokeWidth}, Dash=${border.dasharray || 'none'}`);
-    } else { 
-        console.log(`[Core Text] No border/stroke applied.`); 
-    }
-    
-    if (filterId) { 
-        textElement += `filter="url(#${filterId})" `; 
-        console.log(`[Core Text] Applied filter: url(#${filterId})`);
-    }
-    
-    if (transform?.cssValue && transform.cssValue !== 'none') { 
-        textElement += `transform="${escapeSVGAttribute(transform.cssValue)}" `; 
-        console.log(`[Core Text] Applied transform: ${transform.cssValue}`);
-    }
-    
-    let animationStyleOverride = ''; 
-    const animClass = anim?.class;
-    if (animClass && animClass !== 'anim-none') { 
-        textElement += `class="${animClass}" `; 
-        console.log(`[Core Text] Applied animation class: ${animClass}`); 
-        
-        // Fix animation with zero duration
-        const needsDurationFix = anim.duration === '0s' || !anim.durationMs || anim.durationMs === 0;
-        if (needsDurationFix) {
-            // Force animation to run with reasonable duration
-            animationStyleOverride = `animation-duration: 2s !important; animation-iteration-count: infinite !important; animation-play-state: running !important;`;
-            console.log(`[Core Text] Fixed animation with zero duration to be 2s infinite running`);
-        } else if (animationMetadata?.progress !== undefined) {
-            // For frame export with specific progress
-            const delayMs = -(animationMetadata.progress * anim.durationMs);
-            animationStyleOverride = `animation-delay: ${delayMs.toFixed(0)}ms !important; animation-play-state: paused !important;`;
-            console.log(`[Core Text] Applied animation frame override for progress ${animationMetadata.progress.toFixed(2)}`);
-        }
-    }
-    
-    if (animationStyleOverride) { 
-        textElement += `style="${escapeSVGAttribute(animationStyleOverride)}" `; 
-    }
-    
-    const escapedText = escapeXML(textContent || 'Logo'); 
-    textElement += `>${escapedText}</text>`;
-    return textElement;
-}
-
-// --- Public Exported Functions ---
-
 /**
- * Centralized function to generate an SVG blob with all styles accurately captured.
- * @param {object} options - Export options { width, height, text, includeBackground, transparentBackground, animationMetadata }
- * @returns {Promise<Blob>} - SVG blob with embedded styles.
- * @throws {Error} If style capture or SVG generation fails.
+ * Update to generateSVGBlob function in RendererCore.js
+ * Incorporates the enhanced border and background handling
  */
-export async function generateSVGBlob(options = {}) { // Renamed to prevent conflict if used externally
-    console.log("[Core] generateSVGBlob called. Options received:", JSON.stringify(options)); // Log entry
+export async function generateSVGBlob(options = {}) {
+    console.log("[Core] generateSVGBlob called. Options received:", JSON.stringify(options));
 
     try {
         // --- 1. Capture Styles ---
@@ -427,7 +418,7 @@ export async function generateSVGBlob(options = {}) { // Renamed to prevent conf
             console.error('[Core] CRITICAL: Style capture failed!');
             throw new Error('Failed to capture styles for SVG generation');
         }
-        console.log("[Core] Styles Captured:", JSON.stringify(styles, null, 2));
+        console.log("[Core] Styles Captured:", JSON.stringify(styles));
 
         // --- 2. Determine Configuration ---
         const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
@@ -442,8 +433,8 @@ export async function generateSVGBlob(options = {}) { // Renamed to prevent conf
         const config = { ...defaults, ...options };
 
         if (!config.width || config.width <= 0 || !config.height || config.height <= 0) {
-             console.error(`[Core] Invalid SVG dimensions: ${config.width}x${config.height}. Falling back to 800x400.`);
-             config.width = 800; config.height = 400;
+            console.error(`[Core] Invalid SVG dimensions: ${config.width}x${config.height}. Falling back to 800x400.`);
+            config.width = 800; config.height = 400;
         }
         console.log("[Core] Final SVG Config:", JSON.stringify(config));
 
@@ -455,38 +446,58 @@ export async function generateSVGBlob(options = {}) { // Renamed to prevent conf
         svg += `<defs>\n`;
         let textGradientId = null;
         let backgroundGradientId = null;
-        let filterId = null;
+        let textFilterId = null;
+        let borderFilterId = null;
 
         // Text Gradient
         if (styles.color?.mode === 'gradient') {
             textGradientId = 'svgTextGradient';
             const gradientDef = createGradientDef(styles, textGradientId);
-            if (gradientDef) { svg += `  ${gradientDef}\n`; console.log("[Core] Added Text Gradient Definition."); }
+            if (gradientDef) { 
+                svg += `  ${gradientDef}\n`; 
+                console.log("[Core] Added Text Gradient Definition."); 
+            }
             else { textGradientId = null; }
         }
 
-        // Filter
-        // Use a consistent ID if an effect is present
+        // Text Effect Filter
         if (styles.effects?.type && styles.effects.type !== 'none') {
-             filterId = 'svgTextEffect'; // Use the ID captured/determined by getEffectDetails
-             const filterDef = createFilterDef(styles, filterId);
-             if (filterDef) { svg += `  ${filterDef}\n`; console.log(`[Core] Added Filter Definition (ID: ${filterId}).`); }
-             else { filterId = null; } // Reset if def failed
+            textFilterId = 'svgTextEffect';
+            const filterDef = createFilterDef(styles, textFilterId);
+            if (filterDef) { 
+                svg += `  ${filterDef}\n`; 
+                console.log(`[Core] Added Text Effect Filter (ID: ${textFilterId}).`); 
+            }
+            else { textFilterId = null; }
         }
-
+        
+        // Border Glow Filter - NEW
+        if (styles.border?.isGlow) {
+            borderFilterId = 'svgBorderGlow';
+            const borderGlowDef = createBorderGlowFilter(styles.border, borderFilterId);
+            if (borderGlowDef) {
+                svg += `  ${borderGlowDef}\n`;
+                console.log(`[Core] Added Border Glow Filter (ID: ${borderFilterId}).`);
+            }
+            else { borderFilterId = null; }
+        }
 
         // Background Gradient
         const effectiveBgType = styles.background?.type || 'bg-solid';
-        if (config.includeBackground && !config.transparentBackground && effectiveBgType.includes('gradient')) {
+        if (config.includeBackground && !config.transparentBackground && 
+            (effectiveBgType.includes('gradient') || styles.background?.gradient)) {
             backgroundGradientId = 'svgBgGradient';
             const bgGradientDef = createBackgroundGradientDef(styles, currentSettings, backgroundGradientId);
-            if (bgGradientDef) { svg += `  ${bgGradientDef}\n`; console.log("[Core] Added Background Gradient Definition."); }
+            if (bgGradientDef) { 
+                svg += `  ${bgGradientDef}\n`; 
+                console.log("[Core] Added Background Gradient Definition."); 
+            }
             else { backgroundGradientId = null; }
         }
         svg += `</defs>\n`;
 
         // --- 5. Embedded CSS (`<style>`) ---
-        const embeddedCSS = await generateEmbeddedCSS(styles, config.animationMetadata);
+        const embeddedCSS = generateEmbeddedCSS(styles, config.animationMetadata);
         if (embeddedCSS) {
             svg += `<style type="text/css"><![CDATA[\n${embeddedCSS}\n]]></style>\n`;
             console.log("[Core] Embedded CSS added.");
@@ -499,8 +510,19 @@ export async function generateSVGBlob(options = {}) { // Renamed to prevent conf
         } else { console.log("[Core] Skipping background rectangle (transparent or excluded)."); }
 
         // --- 7. Text Element (`<text>`) ---
-        const textElement = generateSVGTextElement(config.text, styles, textGradientId, filterId, config.animationMetadata);
-        if (textElement) { svg += textElement + "\n"; console.log("[Core] Text element generated."); }
+        const textElement = generateSVGTextElement(
+            config.text, 
+            styles, 
+            textGradientId, 
+            textFilterId, 
+            borderFilterId, // NEW: Pass border filter ID
+            config.animationMetadata
+        );
+        
+        if (textElement) { 
+            svg += textElement + "\n"; 
+            console.log("[Core] Text element generated."); 
+        }
         else { console.error("[Core] Failed to generate text element!"); }
 
         // --- 8. Close SVG ---
@@ -520,111 +542,128 @@ export async function generateSVGBlob(options = {}) { // Renamed to prevent conf
 }
 
 
-// /**
-//  * Creates the SVG text element with styling and animation.
-//  * @param {string} textContent - The final text to display.
-//  * @param {object} styles - The captured styles object from captureAdvancedStyles.
-//  * @param {string|null} gradientId - The ID of the text gradient definition, if any.
-//  * @param {string|null} filterId - The ID of the filter definition, if any.
-//  * @param {object|null} animationMetadata - Animation details (may include progress).
-//  * @returns {string} The generated SVG <text> element string.
-//  */
-// function generateSVGTextElement(textContent, styles, gradientId, filterId, animationMetadata) {
-//     console.log("[Core] Generating SVG text element. Text:", textContent);
-//     if (!styles || !styles.font) {
-//         console.error("[Core] Cannot generate text element: Missing critical style information (styles.font).");
-//         return '';
-//     }
+/**
+ * Creates the SVG text element with styling and animation.
+ * @param {string} textContent - The final text to display.
+ * @param {object} styles - The captured styles object from captureAdvancedStyles.
+ * @param {string|null} gradientId - The ID of the text gradient definition, if any.
+ * @param {string|null} filterId - The ID of the filter definition, if any.
+ * @param {string|null} borderFilterId - The ID of the border glow filter, if any.
+ * @param {object|null} animationMetadata - Animation details (may include progress).
+ * @returns {string} The generated SVG <text> element string.
+ */
+function generateSVGTextElement(textContent, styles, gradientId, filterId, borderFilterId, animationMetadata) {
+    console.log("[Core] Generating SVG text element. Text:", textContent);
+    if (!styles) {
+        console.error("[Core] Cannot generate text element: Missing styles object");
+        return '';
+    }
+    if (!styles.font) {
+        console.error("[Core] Cannot generate text element: Missing font styles");
+        return '';
+    }
 
-//     // Use captured styles directly
-//     const font = styles.font;
-//     const color = styles.color;
-//     const border = styles.border;
-//     const effects = styles.effects;
-//     const anim = styles.animation;
-//     const transform = styles.transform; // Use captured transform
+    // Use captured styles directly
+    const font = styles.font || {};
+    const color = styles.color || { mode: 'solid', value: '#ffffff' };
+    const border = styles.border || {};
+    const textEffect = styles.textEffect || {};  // Changed from styles.effects to textEffect
+    const anim = styles.animation || {};
+    const transform = styles.transform || {}; 
+    
+    // Text anchor (alignment) handling
+    const textAnchor = styles.textAnchor || 'middle';
+    
+    let textElement = `<text x="50%" y="50%" `;
+    textElement += `text-anchor="${textAnchor}" `;
+    textElement += `dominant-baseline="${styles.dominantBaseline || 'middle'}" `;
 
-//     let textElement = `<text x="50%" y="50%" `;
-//     textElement += `text-anchor="${styles.textAnchor || 'middle'}" `;
-//     textElement += `dominant-baseline="${styles.dominantBaseline || 'middle'}" `;
+    // Font attributes
+    textElement += `font-family="${font.family ? escapeSVGAttribute(font.family) : 'sans-serif'}" `;
+    textElement += `font-size="${font.size || '60px'}" `;
+    if (font.weight) textElement += `font-weight="${font.weight}" `;
+    if (font.style && font.style !== 'normal') textElement += `font-style="${font.style}" `;
+    if (font.letterSpacing && font.letterSpacing !== 'normal') textElement += `letter-spacing="${font.letterSpacing}" `;
+    
+    // Fill/Color
+    if (color.mode === 'gradient' && gradientId) {
+        textElement += `fill="url(#${gradientId})" `;
+        console.log(`[Core Text] Applied gradient fill: url(#${gradientId})`);
+    } else {
+        const fillColor = normalizeColor(color.value || '#ffffff');
+        textElement += `fill="${fillColor}" `;
+        console.log(`[Core Text] Applied solid fill: ${fillColor}`);
+    }
 
-//     // Font attributes
-//     textElement += `font-family="${font.family ? escapeSVGAttribute(font.family) : 'sans-serif'}" `;
-//     textElement += `font-size="${font.size || '60px'}" `;
-//     if (font.weight) textElement += `font-weight="${font.weight}" `;
-//     if (font.style && font.style !== 'normal') textElement += `font-style="${font.style}" `;
-//     if (font.letterSpacing && font.letterSpacing !== 'normal') textElement += `letter-spacing="${font.letterSpacing}" `;
-//     // text-transform is applied to textContent directly, not needed as SVG attribute
+    // Border/Stroke attributes from captured styles
+    if (border && border.style && border.style !== 'none' && border.style !== 'hidden') {
+        const strokeColor = normalizeColor(border.color || '#ffffff');
+        const strokeWidth = parseFloat(border.width) || 1; // Default to 1px if parsing fails
+        textElement += `stroke="${strokeColor}" `;
+        textElement += `stroke-width="${strokeWidth}" `;
+        
+        // Handle dash array for dashed/dotted borders
+        if (border.dasharray) {
+            textElement += `stroke-dasharray="${border.dasharray}" `;
+        }
+        
+        // Handle border-specific filters (like glow)
+        if (border.isGlow && borderFilterId) {
+            textElement += `filter="url(#${borderFilterId})" `;
+            console.log(`[Core Text] Applied border glow filter: url(#${borderFilterId})`);
+        }
+        
+        console.log(`[Core Text] Applied stroke: Color=${strokeColor}, Width=${strokeWidth}, Dash=${border.dasharray || 'none'}`);
+    } else {
+        console.log(`[Core Text] No border/stroke applied.`);
+    }
 
-//     // Fill/Color
-//     if (color?.mode === 'gradient' && gradientId) {
-//         textElement += `fill="url(#${gradientId})" `;
-//         console.log(`[Core Text] Applied gradient fill: url(#${gradientId})`);
-//     } else {
-//         const fillColor = normalizeColor(color?.value || '#ffffff');
-//         textElement += `fill="${fillColor}" `;
-//         console.log(`[Core Text] Applied solid fill: ${fillColor}`);
-//     }
+    // Apply text effects filter (shadow/glow) 
+    // Note: only apply if no border glow filter is active to avoid conflicts
+    if (filterId && !(border?.isGlow && borderFilterId)) {
+        textElement += `filter="url(#${filterId})" `;
+        console.log(`[Core Text] Applied text effect filter: url(#${filterId})`);
+    }
 
-//     // Border/Stroke attributes from captured styles
-//     if (border?.style && border.style !== 'none' && border.style !== 'hidden') {
-//         const strokeColor = normalizeColor(border.color || '#ffffff');
-//         const strokeWidth = parseFloat(border.width) || 1; // Default to 1px if parsing fails
-//         textElement += `stroke="${strokeColor}" `;
-//         textElement += `stroke-width="${strokeWidth}" `;
-//         if (border.dasharray) textElement += `stroke-dasharray="${border.dasharray}" `;
-//         console.log(`[Core Text] Applied stroke: Color=${strokeColor}, Width=${strokeWidth}, Dash=${border.dasharray || 'none'}`);
-//     } else {
-//          console.log(`[Core Text] No border/stroke applied.`);
-//     }
+    // Transform (Rotation, etc.)
+    if (transform.cssValue && transform.cssValue !== 'none') {
+        textElement += `transform="${escapeSVGAttribute(transform.cssValue)}" `;
+        console.log(`[Core Text] Applied transform: ${transform.cssValue}`);
+    }
 
+    // --- Animation ---
+    let animationStyleOverride = '';
+    const animClass = anim.class;
+    if (animClass && animClass !== 'anim-none') {
+        textElement += `class="${animClass}" `; // Apply class for embedded CSS animation
+        console.log(`[Core Text] Applied animation class: ${animClass}`);
 
-//     // Filter (Glow/Shadow)
-//     if (filterId) {
-//         textElement += `filter="url(#${filterId})" `;
-//         console.log(`[Core Text] Applied filter: url(#${filterId})`);
-//     }
+        // Handle animation progress for frame generation
+        if (animationMetadata?.progress !== undefined && anim.durationMs) {
+            const delayMs = -(animationMetadata.progress * anim.durationMs);
+            // Apply animation delay as an inline style override
+            animationStyleOverride = `animation-delay: ${delayMs.toFixed(0)}ms; animation-play-state: paused;`;
+            console.log(`[Core Text] Applied animation override for progress ${animationMetadata.progress.toFixed(2)} (delay: ${delayMs}ms)`);
+        }
+    }
 
-//     // Transform (Rotation, etc.) - Use captured transform directly
-//     if (transform?.cssValue && transform.cssValue !== 'none') {
-//         // Convert CSS transform matrix/rotate/etc. to SVG transform attribute if needed,
-//         // or assume it's directly applicable (like rotate(Ndeg)). For simplicity, apply directly.
-//         textElement += `transform="${escapeSVGAttribute(transform.cssValue)}" `;
-//          console.log(`[Core Text] Applied transform: ${transform.cssValue}`);
-//     }
+    // Apply inline style if needed (e.g., for animation override)
+    if (animationStyleOverride) {
+        textElement += `style="${escapeSVGAttribute(animationStyleOverride)}" `;
+    }
 
-//     // --- Animation ---
-//     let animationStyleOverride = '';
-//     const animClass = anim?.class;
-//     if (animClass && animClass !== 'anim-none') {
-//         textElement += `class="${animClass}" `; // Apply class for embedded CSS animation
-//          console.log(`[Core Text] Applied animation class: ${animClass}`);
+    // Apply final text content (transformed if needed)
+    const finalText = styles.textContent?.transformedText || textContent || 'Logo';
+    const escapedText = escapeXML(finalText);
+    
+    // Close opening tag and add escaped text content
+    textElement += `>`;
+    textElement += escapedText;
+    textElement += `</text>`;
 
-//         // Handle animation progress for frame generation
-//         if (animationMetadata?.progress !== undefined && anim?.durationMs) {
-//              const delayMs = - (animationMetadata.progress * anim.durationMs);
-//              // Apply animation delay as an inline style override
-//              animationStyleOverride = `animation-delay: ${delayMs.toFixed(0)}ms; animation-play-state: paused;`;
-//              console.log(`[Core Text] Applied animation override for progress ${animationMetadata.progress.toFixed(2)} (delay: ${delayMs}ms)`);
-//              // NOTE: This assumes the embedded CSS animation is infinite.
-//              // More complex animations might need different handling.
-//         }
-//     }
+    return textElement;
+}
 
-//     // Apply inline style if needed (e.g., for animation override)
-//     if (animationStyleOverride) {
-//         textElement += `style="${escapeSVGAttribute(animationStyleOverride)}" `;
-//     }
-
-
-//     // Close opening tag and add escaped text content
-//     const escapedText = escapeXML(textContent || 'Logo');
-//     textElement += `>`;
-//     textElement += escapedText;
-//     textElement += `</text>`;
-
-//     return textElement;
-// }
 
 /**
  * Create SVG filter definition based on captured styles.
@@ -672,6 +711,7 @@ function createFilterDef(styles, filterId) {
 //  * @param {string} id - The ID for the gradient definition.
 //  * @returns {string} The SVG <linearGradient> definition string or empty string.
 //  */
+
 // function createBackgroundGradientDef(styles, settings, id) {
 //     if (!id || !styles?.background) return '';
 //     console.log('[Core] Creating background gradient definition.');
