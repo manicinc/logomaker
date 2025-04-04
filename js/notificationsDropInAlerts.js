@@ -360,7 +360,6 @@
     display: block;
     fill: currentColor;
   }
-  }
   }
   `;
   document.head.appendChild(styleElement);
