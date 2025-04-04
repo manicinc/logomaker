@@ -1,9 +1,16 @@
 /**
- * notificationsDropInAlerts.js
+ * notificationsDropInAlerts.js - IMPROVED
  * Modern Notification System: Modals and Toasts.
+ * 
+ * FIXES & IMPROVEMENTS:
+ * - Better contrast for text and backgrounds in both dark/light modes
+ * - Improved mobile responsiveness
+ * - More consistent styling with the design system
+ * - Fixed positioning issues for toasts
+ * - Better accessibility
+ * - Cleaner code structure
  */
 
-// --- CSS Injection (Assuming styles from original prompt are correct) ---
 // --- CSS Injection ---
 (function addNotificationStyles() {
   if (document.getElementById('logomaker-notification-styles')) return;
@@ -11,332 +18,351 @@
   styleElement.id = 'logomaker-notification-styles';
   styleElement.textContent = `
   /* --- Toast Notifications --- */
-/* --- Base Variables (Ensure these are defined globally or adjust defaults) --- */
-:root {
-  --panel-bg: rgba(35, 35, 45, 0.95);
-  --panel-bg-darker: #1f1f2a;
-  --text-color: #f0f0f5; /* Default light text color */
-  --text-color-dark: #333333; /* For light backgrounds like warning */
-  --border-color: rgba(255, 255, 255, 0.1);
-  --success-bg: linear-gradient(45deg, #2e7d32, #43a047); /* From your snippet */
-  --error-bg: linear-gradient(45deg, #c62828, #e53935); /* From your snippet */
-  --info-bg: linear-gradient(45deg, #1565c0, #1e88e5); /* From your snippet */
-  --warning-bg: linear-gradient(45deg, #ef6c00, #fb8c00); /* From your snippet */
-  /* Add borders if desired for toasts */
-  --success-border: #2e7d32;
-  --error-border: #c62828;
-  --info-border: #1565c0;
-  --warning-border: #ef6c00;
-}
+  .logo-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120px); /* Start above */
+    
+    /* Inherit colors from CSS variables for theme compatibility */
+    background-color: var(--panel-bg-opaque);
+    color: var(--text-color);
+    
+    padding: 12px 20px;
+    border-radius: var(--border-radius-md);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--box-shadow-md);
+    z-index: 1050;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1), opacity 0.4s ease;
+    border: 1px solid var(--border-color);
+    
+    /* Improved responsive width */
+    width: clamp(280px, 90%, 500px);
+    
+    font-size: 0.95rem;
+    pointer-events: none;
+  }
 
-/* --- Toast Notifications --- */
-.logo-toast {
-  position: fixed;
-  /* Option 1: Bottom Positioning (Original) */
-  /* bottom: 20px; */
-  /* transform: translateX(-50%) translateY(120px); */ /* Start below */
+  .logo-toast.show {
+    transform: translateX(-50%) translateY(0); /* Animate into view */
+    opacity: 1;
+    pointer-events: auto;
+  }
 
-  /* Option 2: Top Positioning (Uncomment below, comment out Option 1) */
-  top: 20px;
-  transform: translateX(-50%) translateY(-120px); /* Start above */
+  /* Toast Status Styles with better contrast */
+  .logo-toast.success {
+    background: linear-gradient(45deg, #1c8a3c, #2eae50);
+    border-left: 4px solid #186e30;
+    color: white;
+  }
+  
+  .logo-toast.error {
+    background: linear-gradient(45deg, #c62828, #e53935);
+    border-left: 4px solid #9b1c1c;
+    color: white;
+  }
+  
+  .logo-toast.warning {
+    background: linear-gradient(45deg, #ef6c00, #fb8c00);
+    border-left: 4px solid #c85800;
+    color: #050505; /* Darker text for better contrast */
+  }
+  
+  .logo-toast.info {
+    background: linear-gradient(45deg, #0d47a1, #1565c0);
+    border-left: 4px solid #073777;
+    color: white;
+  }
 
-  left: 50%;
-  background-color: var(--panel-bg, rgba(35, 35, 45, 0.95));
-  color: var(--text-color, #f0f0f5); /* ** FIX: Base text color is light ** */
-  padding: 12px 20px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  z-index: 1050;
-  opacity: 0;
-  /* Adjust transform based on top/bottom choice */
-  transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1), opacity 0.4s ease;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  max-width: 90%;
-  min-width: 280px;
-  font-size: 0.95rem;
-  pointer-events: none;
-}
+  /* Improved icon styling */
+  .toast-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .toast-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: currentColor; /* Inherits color from parent (.logo-toast) */
+  }
+  
+  /* Fix warning icon color for better contrast */
+  .logo-toast.warning .toast-icon svg {
+    fill: #050505;
+  }
 
-.logo-toast.show {
-  /* Adjust transform based on top/bottom choice */
-  transform: translateX(-50%) translateY(0); /* Animate into view */
-  opacity: 1;
-  pointer-events: auto;
-}
+  .toast-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+  }
+  
+  .toast-title {
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 3px;
+    color: inherit; /* Inherits color from parent (.logo-toast) */
+  }
+  
+  .toast-message {
+    opacity: 0.95;
+    color: inherit;
+    font-size: 0.9rem;
+  }
+  
+  .toast-filename {
+    font-size: 0.8em;
+    opacity: 0.85; /* Increased from 0.7 for better visibility */
+    margin-top: 4px;
+    word-break: break-all;
+    color: inherit;
+  }
+  
+  .toast-close {
+    background: none;
+    border: none;
+    padding: 0 5px;
+    margin: -5px -10px -5px 5px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+    line-height: 1;
+    align-self: flex-start;
+    flex-shrink: 0;
+    color: inherit;
+  }
+  
+  .toast-close:hover {
+    opacity: 1;
+  }
+  
+  .toast-close svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+    fill: currentColor;
+  }
 
-/* Toast Status Styles (Filled In) */
-.logo-toast.success {
-  background: var(--success-bg, #28a745); /* Use gradient or solid color */
-  border-left: 4px solid var(--success-border, #1e7e34);
-  color: white; /* ** FIX: Ensure text is white ** */
-}
-.logo-toast.error {
-  background: var(--error-bg, #dc3545);
-  border-left: 4px solid var(--error-border, #bd2130);
-  color: white; /* ** FIX: Ensure text is white ** */
-}
-.logo-toast.warning {
-  background: var(--warning-bg, #ffc107);
-  border-left: 4px solid var(--warning-border, #d39e00);
-  color: var(--text-color-dark, #333); /* ** FIX: Use dark text for light bg ** */
-}
-.logo-toast.info {
-  background: var(--info-bg, #17a2b8);
-  border-left: 4px solid var(--info-border, #117a8b);
-  color: white; /* ** FIX: Ensure text is white ** */
-}
+  /* --- Modal Notifications --- */
+  .notification-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Darker for better contrast */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+    padding: 20px; /* Add padding for smaller screens */
+    box-sizing: border-box;
+  }
+  
+  .notification-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s linear 0s;
+  }
 
-.toast-icon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-}
-.toast-icon svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  fill: currentColor; /* Inherits color from parent (.logo-toast) */
-}
-/* Ensure warning icon has correct color if needed */
-.logo-toast.warning .toast-icon svg {
-  fill: var(--text-color-dark, #333);
-}
+  /* Modal Dialog - now uses CSS variables for theme compatibility */
+  .notification-modal {
+    background-color: var(--panel-bg-opaque);
+    border-radius: var(--border-radius-md);
+    width: 90%;
+    max-width: 420px;
+    overflow: hidden;
+    box-shadow: var(--box-shadow-lg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 40px);
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.215, 0.610, 0.355, 1);
+  }
 
+  /* Modal entrance animation when overlay is active */
+  .notification-modal-overlay.active .notification-modal {
+    transform: scale(1);
+  }
 
-.toast-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  overflow: hidden;
-}
-.toast-title {
-  font-weight: 600;
-  margin-bottom: 3px;
-  color: inherit; /* Inherits color from parent (.logo-toast) */
-}
-.toast-message {
-  opacity: 0.95;
-  /* ** FIX: Explicitly inherit color from parent (.logo-toast) ** */
-  /* This ensures status colors are applied correctly */
-  color: inherit;
-}
-.toast-filename {
-  font-size: 0.8em;
-  opacity: 0.7;
-  margin-top: 4px;
-  word-break: break-all;
-  color: inherit; /* Inherits color from parent (.logo-toast) */
-}
-.toast-close {
-  /* Basic close button styles */
-  background: none;
-  border: none;
-  padding: 0 5px;
-  margin: -5px -10px -5px 5px;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  line-height: 1;
-  align-self: flex-start;
-  flex-shrink: 0;
-  color: inherit; /* Inherits color from parent (.logo-toast) */
-}
-.toast-close:hover {
-  opacity: 1;
-}
-.toast-close svg {
-  width: 14px;
-  height: 14px;
-  display: block;
-  fill: currentColor;
-}
+  .notification-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: var(--font-weight-semibold);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    position: relative;
+    /* Default - inherits from variables */
+    background-color: var(--panel-bg);
+    color: var(--text-color);
+  }
 
-/* --- Modal Notifications --- */
+  /* Header Status Styles with improved contrast */
+  .notification-header.success { 
+    background: linear-gradient(45deg, #1c8a3c, #2eae50);
+    color: white;
+    border-bottom-color: rgba(0,0,0,0.2);
+  }
+  
+  .notification-header.error { 
+    background: linear-gradient(45deg, #c62828, #e53935);
+    color: white;
+    border-bottom-color: rgba(0,0,0,0.2);
+  }
+  
+  .notification-header.info { 
+    background: linear-gradient(45deg, #0d47a1, #1565c0);
+    color: white;
+    border-bottom-color: rgba(0,0,0,0.2);
+  }
+  
+  .notification-header.warning { 
+    background: linear-gradient(45deg, #ef6c00, #fb8c00);
+    color: #050505; /* Darker text for contrast */
+    border-bottom-color: rgba(0,0,0,0.1);
+  }
 
-/* ** FIX: Added Overlay Styles ** */
-.notification-modal-overlay {
-  position: fixed; /* ** CRITICAL: Keeps it fixed on screen ** */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.65); /* Dimming effect */
-  display: flex; /* ** CRITICAL: Enables centering ** */
-  align-items: center; /* ** CRITICAL: Vertical centering ** */
-  justify-content: center; /* ** CRITICAL: Horizontal centering ** */
-  z-index: 1040; /* Below modal, above page */
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
-  padding: 20px; /* Add padding for smaller screens */
-  box-sizing: border-box;
-}
-.notification-modal-overlay.active {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.3s ease, visibility 0s linear 0s;
-}
+  .notification-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+  
+  .notification-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: currentColor; /* Inherits color from header */
+  }
 
-/* Modal Dialog */
-.notification-modal {
-  background-color: var(--panel-bg-darker, #1f1f2a);
-  border-radius: 10px;
-  width: 90%;
-  max-width: 420px;
-  overflow: hidden; /* Clips header background */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  /* ** FIX: Base text color is light ** */
-  color: var(--text-color, #f0f0f5);
-  display: flex; /* Use flex for column layout */
-  flex-direction: column;
-  max-height: calc(100vh - 40px); /* Prevent modal being taller than viewport minus padding */
+  /* Fix warning icon color */
+  .notification-header.warning .notification-icon svg {
+    fill: #050505;
+  }
 
-  /* Animation properties from your snippet */
-  transform: scale(0.95);
-  transition: transform 0.3s cubic-bezier(0.215, 0.610, 0.355, 1);
-}
+  .notification-title {
+    flex: 1;
+    margin: 0;
+    /* Color inherited from header */
+  }
 
-/* Modal entrance animation when overlay is active */
-.notification-modal-overlay.active .notification-modal {
-  transform: scale(1);
-}
+  .notification-body {
+    padding: 20px;
+    line-height: 1.5;
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: var(--panel-bg-opaque);
+    color: var(--text-color);
+  }
 
-.notification-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  flex-shrink: 0; /* Prevent header from shrinking */
-  position: relative; /* For potential close button */
-  /* Default - might be overridden by status */
-  background-color: var(--panel-bg, #23232d);
-  color: var(--text-color, #f0f0f5);
-}
+  .notification-message {
+    margin: 0 0 15px;
+    color: var(--text-color);
+  }
+  
+  .notification-message:last-child {
+    margin-bottom: 0;
+  }
+  
+  .notification-message a {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+  
+  .notification-message a:hover {
+    text-decoration: underline;
+    opacity: 0.9;
+  }
 
-/* Header Status Styles (from your snippet) */
-.notification-header.success { background: var(--success-bg, linear-gradient(45deg, #2e7d32, #43a047)); color: white; border-bottom-color: rgba(0,0,0,0.2); }
-.notification-header.error   { background: var(--error-bg, linear-gradient(45deg, #c62828, #e53935)); color: white; border-bottom-color: rgba(0,0,0,0.2); }
-.notification-header.info    { background: var(--info-bg, linear-gradient(45deg, #1565c0, #1e88e5)); color: white; border-bottom-color: rgba(0,0,0,0.2); }
-.notification-header.warning { background: var(--warning-bg, linear-gradient(45deg, #ef6c00, #fb8c00)); color: white; border-bottom-color: rgba(0,0,0,0.1); }
-/* Ensure warning text is white if background is dark enough, adjust if needed */
+  .notification-footer {
+    padding: 10px 20px 15px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background-color: rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+  }
 
-.notification-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-}
-.notification-icon svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  fill: currentColor; /* Inherits color from header */
-}
+  .notification-btn {
+    padding: 8px 20px;
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
+    border: none;
+    background-color: var(--border-color);
+    color: var(--text-color);
+    min-width: 90px;
+    text-align: center;
+  }
+  
+  .notification-btn:hover {
+    background-color: var(--border-highlight);
+    opacity: 0.9;
+  }
+  
+  .notification-btn:active {
+    transform: scale(0.97);
+    opacity: 0.8;
+  }
+  
+  /* Primary button with accent color for better visibility */
+  .notification-btn.primary {
+    background-color: var(--accent-color);
+    color: var(--text-color-on-accent);
+  }
+  
+  .notification-btn.primary:hover {
+    background-color: color-mix(in srgb, var(--accent-color) 85%, white 15%);
+  }
 
-.notification-title {
-  flex: 1; /* Take remaining space */
-  margin: 0;
-  /* Color inherited from header */
-}
-
-.notification-body {
-  padding: 20px;
-  line-height: 1.5;
-  flex-grow: 1; /* Allow body to expand */
-  overflow-y: auto; /* Add scrollbar if content overflows */
-}
-
-.notification-message {
-  margin: 0 0 15px;
-  /* ** FIX: Explicitly set default text color for message area ** */
-  color: var(--text-color, #f0f0f5);
-}
-.notification-message:last-child {
-  margin-bottom: 0; /* Remove margin if it's the last element */
-}
-.notification-message a { /* Style links */
-  color: #8ab4f8; /* Example link color */
-  text-decoration: none;
-}
-.notification-message a:hover {
-  text-decoration: underline;
-}
-
-
-.notification-footer {
-  padding: 10px 20px 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  justify-content: flex-end; /* Align buttons right */
-  gap: 10px; /* Space between buttons */
-  background-color: rgba(0, 0, 0, 0.1);
-  flex-shrink: 0; /* Prevent footer from shrinking */
-}
-
-.notification-btn {
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease, opacity 0.2s ease;
-  border: none;
-  background-color: rgba(255, 255, 255, 0.15);
-  /* ** FIX: Explicitly set button text color (or ensure inherit works) ** */
-  color: var(--text-color, #f0f0f5);
-  min-width: 90px;
-  text-align: center;
-}
-.notification-btn:hover {
-  background-color: rgba(255, 255, 255, 0.25);
-  opacity: 0.9;
-}
-.notification-btn:active {
-  transform: scale(0.97);
-  opacity: 0.8;
-}
-/* Optional: Style specific buttons differently */
-.notification-btn.primary {
-   background-color: #1a73e8; /* Example primary blue */
-   color: white;
-}
-.notification-btn.primary:hover {
-   background-color: #2980e8;
-}
-
-
-/* Optional: Close button in header */
-.notification-header .close-modal-btn {
-  background: none;
-  border: none;
-  padding: 5px;
-  margin: -5px; /* Make clickable area larger */
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-  line-height: 1;
-  color: inherit; /* Inherits from header */
-  position: absolute;
-  top: 12px; /* Adjust positioning */
-  right: 15px;
-}
-.notification-header .close-modal-btn:hover {
-  opacity: 1;
-}
-.notification-header .close-modal-btn svg {
-  width: 18px;
-  height: 18px;
-  display: block;
-  fill: currentColor;
-}
-
-`;
+  /* Close button in header */
+  .notification-header .close-modal-btn {
+    background: none;
+    border: none;
+    padding: 5px;
+    margin: -5px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+    line-height: 1;
+    color: inherit;
+    position: absolute;
+    top: 12px;
+    right: 15px;
+  }
+  
+  .notification-header .close-modal-btn:hover {
+    opacity: 1;
+  }
+  
+  .notification-header .close-modal-btn svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+    fill: currentColor;
+  }
+  }
+  }
+  `;
   document.head.appendChild(styleElement);
 })();
 
@@ -344,82 +370,85 @@
 let notificationModalOverlay = null;
 let notificationModalInstance = null;
 let notificationHeader = null;
-let notificationTitle = null;
-let notificationMessage = null;
+let notificationTitleEl = null;
+let notificationMessageEl = null;
 let notificationIconContainer = null;
 let notificationOkBtn = null;
 
+/**
+ * Initialize the notification system DOM
+ * Creates modal structure if it doesn't exist
+ */
 function initNotificationSystemDOM() {
   // Prevent re-initialization
   if (document.getElementById('notification-modal-overlay')) return;
-  console.log("[Notifications] Initializing Notification System DOM..."); // Log init start
+  console.log("[Notifications] Initializing Notification System DOM...");
 
   const modalHTML = `
-   <div id="notification-modal-overlay" class="notification-modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="notification-title-id">
-     <div class="notification-modal">
-       <div class="notification-header">
-         <div class="notification-icon" aria-hidden="true"></div>
-         <h3 class="notification-title" id="notification-title-id">Notification</h3>
-       </div>
-       <div class="notification-body">
-         <!-- Added ID for aria-describedby -->
-         <p class="notification-message" id="notification-message-id"></p>
-       </div>
-       <div class="notification-footer">
-         <button class="notification-btn" id="notification-ok-btn">OK</button>
-       </div>
-     </div>
-   </div>
- `;
+    <div id="notification-modal-overlay" class="notification-modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="notification-title-id">
+      <div class="notification-modal">
+        <div class="notification-header">
+          <div class="notification-icon" aria-hidden="true"></div>
+          <h3 class="notification-title" id="notification-title-id">Notification</h3>
+        </div>
+        <div class="notification-body">
+          <p class="notification-message" id="notification-message-id"></p>
+        </div>
+        <div class="notification-footer">
+          <button class="notification-btn primary" id="notification-ok-btn">OK</button>
+        </div>
+      </div>
+    </div>
+  `;
 
   const modalContainer = document.createElement('div');
   modalContainer.innerHTML = modalHTML;
+  
   // Append safely - check if firstChild exists
   if (modalContainer.firstElementChild) {
-      document.body.appendChild(modalContainer.firstElementChild);
+    document.body.appendChild(modalContainer.firstElementChild);
   } else {
-       console.error("[Notifications] Failed to create modal element from HTML string.");
-       return; // Stop if modal wasn't created
+    console.error("[Notifications] Failed to create modal element from HTML string.");
+    return; // Stop if modal wasn't created
   }
-
 
   // Assign elements to module variables
   notificationModalOverlay = document.getElementById('notification-modal-overlay');
-  // Add checks after each query
-  if (!notificationModalOverlay) { console.error("[Notifications] Failed to find #notification-modal-overlay after insertion."); return; }
+  if (!notificationModalOverlay) { 
+    console.error("[Notifications] Failed to find #notification-modal-overlay after insertion."); 
+    return; 
+  }
 
   notificationModalInstance = notificationModalOverlay.querySelector('.notification-modal');
   notificationHeader = notificationModalOverlay.querySelector('.notification-header');
-  notificationTitleEl = document.getElementById('notification-title-id'); // Use ID selector
-  notificationMessageEl = document.getElementById('notification-message-id'); // Use ID selector
+  notificationTitleEl = document.getElementById('notification-title-id');
+  notificationMessageEl = document.getElementById('notification-message-id');
   notificationIconContainer = notificationModalOverlay.querySelector('.notification-icon');
   notificationOkBtn = document.getElementById('notification-ok-btn');
 
   // Check if all elements were found
-  if (!notificationModalInstance || !notificationHeader || !notificationTitleEl || !notificationMessageEl || !notificationIconContainer || !notificationOkBtn) {
-      console.error("[Notifications] Failed to find one or more internal modal elements.");
-      // Optionally remove the partially created overlay?
-      // notificationModalOverlay?.remove();
-      return;
+  if (!notificationModalInstance || !notificationHeader || !notificationTitleEl || 
+      !notificationMessageEl || !notificationIconContainer || !notificationOkBtn) {
+    console.error("[Notifications] Failed to find one or more internal modal elements.");
+    return;
   }
 
   const closeModal = () => {
-      if (!notificationModalOverlay) return;
-      notificationModalOverlay.classList.remove('active');
-      notificationModalOverlay.setAttribute('aria-hidden', 'true');
-      console.log("[Notifications] Modal closed via OK/Overlay/Escape.");
-      // Add focus management here if implementing: return focus to trigger element
+    if (!notificationModalOverlay) return;
+    notificationModalOverlay.classList.remove('active');
+    notificationModalOverlay.setAttribute('aria-hidden', 'true');
+    console.log("[Notifications] Modal closed via OK/Overlay/Escape.");
   };
 
   // Add core event listeners
   notificationOkBtn.addEventListener('click', closeModal);
   notificationModalOverlay.addEventListener('click', (e) => {
-      if (e.target === notificationModalOverlay) closeModal();
+    if (e.target === notificationModalOverlay) closeModal();
   });
   document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && notificationModalOverlay?.classList.contains('active')) closeModal();
+    if (e.key === 'Escape' && notificationModalOverlay?.classList.contains('active')) closeModal();
   });
-   console.log("[Notifications] DOM Initialized.");
+  console.log("[Notifications] DOM Initialized.");
 }
 
 // Initialize DOM elements when the document is ready
@@ -441,53 +470,62 @@ const ICONS = {
 /** Get a default title based on notification type */
 function getDefaultTitle(type) {
   switch (type) {
-      case 'success': return 'Success!';
-      case 'error': return 'Error';
-      case 'warning': return 'Warning';
-      case 'info': default: return 'Information';
+    case 'success': return 'Success!';
+    case 'error': return 'Error';
+    case 'warning': return 'Warning';
+    case 'info': default: return 'Information';
   }
 }
 
 // --- Public Notification Functions ---
 
 /**
-* Shows a toast notification.
-* @param {object|string} options - Notification options object or message string.
-* @param {string} options.message - The message to display.
-* @param {string} [options.type='info'] - 'success', 'error', 'info', 'warning'.
-* @param {string} [options.title] - Optional title.
-* @param {number} [options.duration=3000] - Duration in ms before auto-close.
-* @param {string} [options.filename] - Optional filename to display.
-* @param {string} [type='info'] - Fallback type if options is a string.
-*/
+ * Shows a toast notification.
+ * @param {object|string} options - Notification options object or message string.
+ * @param {string} options.message - The message to display.
+ * @param {string} [options.type='info'] - 'success', 'error', 'info', 'warning'.
+ * @param {string} [options.title] - Optional title.
+ * @param {number} [options.duration=3000] - Duration in ms before auto-close.
+ * @param {string} [options.filename] - Optional filename to display.
+ * @param {string} [type='info'] - Fallback type if options is a string.
+ */
 function showToast(options, type = 'info') {
   let config = {
-      message: '',
-      type: 'info',
-      title: '',
-      duration: 3000,
-      filename: null
+    message: '',
+    type: 'info',
+    title: '',
+    duration: 3000,
+    filename: null
   };
 
   if (typeof options === 'string') {
-      config.message = options;
-      config.type = type;
+    config.message = options;
+    config.type = type;
   } else if (typeof options === 'object' && options !== null) {
-      config = { ...config, ...options };
+    config = { ...config, ...options };
   } else {
-      console.error("[showToast] Invalid options provided:", options);
-      return;
+    console.error("[showToast] Invalid options provided:", options);
+    return;
   }
 
   // Basic validation
   if (!config.message) {
-       console.error("[showToast] Message is required.");
-       return;
+    console.error("[showToast] Message is required.");
+    return;
   }
   config.type = ['success', 'error', 'info', 'warning'].includes(config.type) ? config.type : 'info';
 
+  // Check for existing toast with same content to prevent duplicates
+  const existingToasts = document.querySelectorAll('.logo-toast');
+  for (const existing of existingToasts) {
+    if (existing.querySelector('.toast-message')?.textContent === config.message) {
+      console.log("[showToast] Duplicate toast prevented");
+      return;
+    }
+  }
+
   const toast = document.createElement('div');
-  toast.className = `logo-toast logo-toast-${config.type}`;
+  toast.className = `logo-toast ${config.type}`;
   toast.setAttribute('role', 'alert');
   toast.setAttribute('aria-live', 'assertive');
 
@@ -511,122 +549,114 @@ function showToast(options, type = 'info') {
   let autoCloseTimeout;
 
   const closeToast = () => {
-      clearTimeout(autoCloseTimeout);
-      toast.classList.remove('show');
-      // Remove the element after the transition completes
-      toast.addEventListener('transitionend', () => {
-          if (toast.parentNode) {
-              toast.parentNode.removeChild(toast);
-          }
-      }, { once: true });
-       // Failsafe removal
-       setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 500);
+    clearTimeout(autoCloseTimeout);
+    toast.classList.remove('show');
+    // Remove the element after the transition completes
+    toast.addEventListener('transitionend', () => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, { once: true });
+    // Failsafe removal
+    setTimeout(() => { 
+      if (toast.parentNode) toast.parentNode.removeChild(toast); 
+    }, 500);
   };
 
   closeBtn.addEventListener('click', closeToast);
 
   // Animate in
   requestAnimationFrame(() => {
-       requestAnimationFrame(() => { // Double rAF for better transition start
-           toast.classList.add('show');
-       });
+    requestAnimationFrame(() => { // Double rAF for better transition start
+      toast.classList.add('show');
+    });
   });
-
 
   // Auto-close after duration
   if (config.duration > 0) {
-       autoCloseTimeout = setTimeout(closeToast, config.duration);
+    autoCloseTimeout = setTimeout(closeToast, config.duration);
   }
 }
 
 /**
-* Shows a modal notification.
-* @param {object|string} options - Notification options object or message string.
-* @param {string} options.message - The message to display.
-* @param {string} [options.type='info'] - 'success', 'error', 'info', 'warning'.
-* @param {string} [options.title] - Title for the modal.
-* @param {Function} [options.onClose] - Callback function when the modal is closed.
-* @param {number} [options.autoClose] - Auto close after ms (optional, 0 or null for no auto-close).
-* @param {string} [type='info'] - Fallback type if options is a string.
-*/
+ * Shows a modal notification.
+ * @param {object|string} options - Notification options object or message string.
+ * @param {string} options.message - The message to display.
+ * @param {string} [options.type='info'] - 'success', 'error', 'info', 'warning'.
+ * @param {string} [options.title] - Title for the modal.
+ * @param {Function} [options.onClose] - Callback function when the modal is closed.
+ * @param {number} [options.autoClose] - Auto close after ms (optional, 0 or null for no auto-close).
+ * @param {string} [type='info'] - Fallback type if options is a string.
+ */
 function showModal(options, type = 'info') {
   // Ensure DOM is ready & elements are queried
-  if (!notificationModalOverlay || !notificationTitleEl || !notificationMessageEl || !notificationHeader || !notificationIconContainer || !notificationOkBtn ) {
-       console.error("[showModal] Notification DOM elements not ready. Cannot show modal.");
-       // Fallback to console or native alert if critical
-       const messageContent = typeof options === 'string' ? options : options?.message;
-       console.error(`Modal Fallback [${type}]: ${messageContent}`);
-       // window._originalAlert?.(`[${type}] ${messageContent}`); // Use original alert if available
-       return;
+  if (!notificationModalOverlay || !notificationTitleEl || !notificationMessageEl || 
+      !notificationHeader || !notificationIconContainer || !notificationOkBtn ) {
+    console.error("[showModal] Notification DOM elements not ready. Cannot show modal.");
+    // Fallback to console or native alert if critical
+    const messageContent = typeof options === 'string' ? options : options?.message;
+    console.error(`Modal Fallback [${type}]: ${messageContent}`);
+    return;
   }
 
-   let config = {
-      message: '',
-      type: 'info',
-      title: '',
-      onClose: null,
-      autoClose: null
+  let config = {
+    message: '',
+    type: 'info',
+    title: '',
+    onClose: null,
+    autoClose: null
   };
 
   if (typeof options === 'string') {
-      config.message = options;
-      config.type = type;
-      config.title = getDefaultTitle(type);
+    config.message = options;
+    config.type = type;
+    config.title = getDefaultTitle(type);
   } else if (typeof options === 'object' && options !== null) {
-      config = { ...config, ...options };
-      config.title = config.title || getDefaultTitle(config.type); // Ensure title fallback
+    config = { ...config, ...options };
+    config.title = config.title || getDefaultTitle(config.type); // Ensure title fallback
   } else {
-      console.error("[showModal] Invalid options provided:", options);
-      return;
+    console.error("[showModal] Invalid options provided:", options);
+    return;
   }
 
   // Basic validation
-   if (!config.message) {
-       console.error("[showModal] Message is required.");
-       return;
+  if (!config.message) {
+    console.error("[showModal] Message is required.");
+    return;
   }
   config.type = ['success', 'error', 'info', 'warning'].includes(config.type) ? config.type : 'info';
 
-
   // Update modal content
-
-  // Update modal content (using the renamed element variables)
   notificationHeader.className = `notification-header ${config.type}`;
   notificationTitleEl.textContent = config.title;
   notificationMessageEl.textContent = config.message;
   notificationIconContainer.innerHTML = ICONS[config.type] || ICONS.info;
 
-  // --- Accessibility Update ---
   // Set aria-describedby if message is not empty
-    if (config.message) {
-      notificationModalOverlay.setAttribute('aria-describedby', 'notification-message-id');
+  if (config.message) {
+    notificationModalInstance.setAttribute('aria-describedby', 'notification-message-id');
   } else {
-      notificationModalOverlay.removeAttribute('aria-describedby');
+    notificationModalInstance.removeAttribute('aria-describedby');
   }
-  // --- End Accessibility Update ---
 
   // Manage close handler and auto-close timer
-    // Manage close handler and auto-close timer
-    let autoCloseTimeout;
-    const closeHandler = () => {
-         clearTimeout(autoCloseTimeout);
-         notificationModalOverlay.classList.remove('active');
-         notificationModalOverlay.setAttribute('aria-hidden', 'true'); // Update ARIA state
-         console.log("[Notifications] Modal closeHandler executed.");
-         if (typeof config.onClose === 'function') {
-             try { config.onClose(); } catch (e) { console.error("Error in modal onClose callback:", e); }
-         }
-    };
-
+  let autoCloseTimeout;
+  const closeHandler = () => {
+    clearTimeout(autoCloseTimeout);
+    notificationModalOverlay.classList.remove('active');
+    notificationModalOverlay.setAttribute('aria-hidden', 'true');
+    console.log("[Notifications] Modal closeHandler executed.");
+    if (typeof config.onClose === 'function') {
+      try { 
+        config.onClose(); 
+      } catch (e) { 
+        console.error("Error in modal onClose callback:", e); 
+      }
+    }
+  };
 
   // Re-clone the OK button to remove previous listeners and add the new one
   const newOkBtn = notificationOkBtn.cloneNode(true);
-  notificationOkBtn.parentNode.replaceChild(newOkBtn, notificationOkBtn);
-  notificationOkBtn = newOkBtn; // Update module reference
-  notificationOkBtn.addEventListener('click', closeHandler);
-
-  // Show the modal
-  // Re-clone the OK button to ensure only the current closeHandler is attached
   notificationOkBtn.parentNode.replaceChild(newOkBtn, notificationOkBtn);
   notificationOkBtn = newOkBtn; // Update module reference
   notificationOkBtn.addEventListener('click', closeHandler);
@@ -638,12 +668,12 @@ function showModal(options, type = 'info') {
 
   // Auto close if specified
   if (config.autoClose && config.autoClose > 0) {
-        autoCloseTimeout = setTimeout(closeHandler, config.autoClose);
+    autoCloseTimeout = setTimeout(closeHandler, config.autoClose);
   }
 
   // Add basic focus management: focus the OK button when modal opens
   requestAnimationFrame(() => {
-      notificationOkBtn.focus();
+    notificationOkBtn.focus();
   });
 }
 
@@ -655,62 +685,66 @@ function replaceAlerts() {
   window._originalAlert = window.alert; // Store original
 
   window.alert = function(message) {
-      console.warn('Intercepted alert:', message); // Log interception
+    console.warn('Intercepted alert:', message); // Log interception
 
-      // Basic context detection (improve as needed)
-      let type = 'info';
-      let useModal = false;
-      let title = '';
+    // Basic context detection (improve as needed)
+    let type = 'info';
+    let useModal = false;
+    let title = '';
 
-      const lowerMsg = message.toLowerCase();
-      if (lowerMsg.includes('error') || lowerMsg.includes('failed') || lowerMsg.includes('invalid')) {
-          type = 'error'; useModal = true; title = 'Error';
-      } else if (lowerMsg.includes('success') || lowerMsg.includes('copied') || lowerMsg.includes('complete') || lowerMsg.includes('saved') || lowerMsg.includes('reset')) {
-          type = 'success'; title = 'Success!';
-      } else if (lowerMsg.includes('warning') || lowerMsg.includes('confirm')) {
-          type = 'warning'; useModal = true; title = 'Warning';
-      }
+    const lowerMsg = message.toLowerCase();
+    if (lowerMsg.includes('error') || lowerMsg.includes('failed') || lowerMsg.includes('invalid')) {
+      type = 'error'; useModal = true; title = 'Error';
+    } else if (lowerMsg.includes('success') || lowerMsg.includes('copied') || lowerMsg.includes('complete') || lowerMsg.includes('saved') || lowerMsg.includes('reset')) {
+      type = 'success'; title = 'Success!';
+    } else if (lowerMsg.includes('warning') || lowerMsg.includes('confirm')) {
+      type = 'warning'; useModal = true; title = 'Warning';
+    }
 
-      // Use modal for errors/warnings, toast otherwise
-      if (useModal) {
-          showModal({ message: message, type: type, title: title });
-      } else {
-          showToast({ message: message, type: type, title: title, duration: 3500 });
-      }
+    // Use modal for errors/warnings, toast otherwise
+    if (useModal) {
+      showModal({ message: message, type: type, title: title });
+    } else {
+      showToast({ message: message, type: type, title: title, duration: 3500 });
+    }
   };
   console.log("[Notifications] window.alert overridden.");
 }
 
-// Replace alert when the script loads (assuming DOM might be ready)
+// Replace alert when the script loads
 replaceAlerts();
 
 /** Simple alert replacement */
 function showAlert(message, type = 'info') {
   // Use modal for errors/warnings, toast for info/success
   if (type === 'error' || type === 'warning') {
-       showModal({ message, type });
+    showModal({ message, type });
   } else {
-       showToast({ message, type, duration: 3000 });
+    showToast({ message, type, duration: 3000 });
   }
 }
 
 /** Notify when text copied */
 function notifyCopied(itemType = 'Text') {
-  showToast({ message: `${itemType} copied to clipboard!`, type: 'success', title: 'Copied!', duration: 2000 });
+  showToast({ 
+    message: `${itemType} copied to clipboard!`, 
+    type: 'success', 
+    title: 'Copied!', 
+    duration: 2000 
+  });
 }
 
 /** Notify export error */
 function notifyExportError(format, errorMsg) {
-  showModal({ message: `Error exporting ${format}: ${errorMsg}`, type: 'error', title: 'Export Failed' });
+  showModal({ 
+    message: `Error exporting ${format}: ${errorMsg}`, 
+    type: 'error', 
+    title: 'Export Failed' 
+  });
 }
 
 /** Notify export success */
 function notifyExportSuccess(format, filename = null, duration = 3500) {
-  // Use the default toast close duration if none is specified
-  if (duration === undefined) {
-    duration = 3500;
-  }
-
   showToast({
     message: `${format} export complete!`,
     type: 'success',
@@ -727,12 +761,66 @@ function notifyResetSuccess(resetType = 'all') {
   else if (resetType === 'style') message = 'Style & background settings reset to defaults.';
   else if (resetType === 'all') message = 'All settings reset to defaults.';
 
-  showToast({ message, type: 'success', title: 'Reset Complete', duration: 2500 });
+  showToast({ 
+    message, 
+    type: 'success', 
+    title: 'Reset Complete', 
+    duration: 2500 
+  });
 }
 
+/**
+ * Helper function to determine if we're on a mobile device
+ * @returns {boolean} True if on mobile device
+ */
+function isMobileDevice() {
+  return window.innerWidth < 768 || 
+         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
 
-// Remove redundant reset modal init from here - handled by resetConfirmation.js
-// Remove replaceSpecificAlerts - the main alert override should handle most cases. Export handlers use specific notify functions.
+/**
+ * Helper function to determine if dark mode is active
+ * @returns {boolean} True if dark mode is active
+ */
+function isDarkMode() {
+  // First check body class (our own implementation)
+  if (document.body.classList.contains('light-mode')) {
+    return false;
+  }
+  
+  // Then try to detect OS/browser preference
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return true;
+  }
+  
+  // Default to dark if unsure (since our default theme seems to be dark)
+  return true;
+}
+
+/**
+ * Notify the user about a new feature or important information
+ * Shows only once per session using localStorage
+ * @param {string} id - Unique ID for this notification
+ * @param {string} message - Message to display
+ * @param {string} title - Title for the notification
+ */
+function notifyFeature(id, message, title = 'New Feature!') {
+  // Check if notification has been shown before
+  const notificationsShown = JSON.parse(localStorage.getItem('notificationsShown') || '{}');
+  
+  if (!notificationsShown[id]) {
+    showToast({
+      message: message,
+      type: 'info',
+      title: title,
+      duration: 6000 // Show longer for feature notifications
+    });
+    
+    // Mark notification as shown
+    notificationsShown[id] = Date.now();
+    localStorage.setItem('notificationsShown', JSON.stringify(notificationsShown));
+  }
+}
 
 // --- Global Exports ---
 window.showAlert = showAlert;
@@ -742,5 +830,6 @@ window.notifyCopied = notifyCopied;
 window.notifyExportError = notifyExportError;
 window.notifyExportSuccess = notifyExportSuccess;
 window.notifyResetSuccess = notifyResetSuccess;
+window.notifyFeature = notifyFeature;
 
 console.log("[Notifications] Module loaded, functions exposed globally.");
