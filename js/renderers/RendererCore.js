@@ -266,10 +266,17 @@ function createBackgroundRect(styles, bgGradientId, config) {
         return '';
     }
 }
-
-
-/** Creates the SVG text element (v2.3 - Separated Stroke/Border) */
-function generateSVGTextElement(textContent, styles, textGradientId, textFilterId, animationMetadata) {
+/** 
+ * Creates the SVG text element (v2.4 - Improved Positioning & Alignment)
+ * @param {string} textContent - The final text to display.
+ * @param {object} styles - The captured styles object from captureAdvancedStyles.
+ * @param {string|null} textGradientId - The ID of the text gradient definition.
+ * @param {string|null} textFilterId - The ID of the text effect filter.
+ * @param {string|null} borderFilterId - The ID of the border glow filter.
+ * @param {object|null} animationMetadata - Animation details (may include progress).
+ * @returns {string} The generated SVG <text> element string.
+ */
+function generateSVGTextElement(textContent, styles, textGradientId, textFilterId, borderFilterId, animationMetadata) {
     console.log("[Core SVG] Generating SVG text element. Text:", textContent);
     if (!styles?.font) {
         console.error("[Core SVG] Cannot generate text element: Missing font styles");
@@ -279,15 +286,36 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
     const font = styles.font;
     const color = styles.color || { mode: 'solid', value: '#ffffff' };
     // Distinguish between text stroke and container border
-    const textStroke = styles.stroke?.isTextStroke ? styles.stroke : null;
+    const textStroke = styles.stroke?.isTextStroke ? styles.stroke : 
+                     (styles.textStroke || null);
     // Container border is handled separately by a <rect> now
-    const textEffect = styles.textEffect || {}; // Use correct property name
+    const textEffect = styles.textEffect || {};
     const anim = styles.animation || {};
     const transform = styles.transform || {};
     const textOpacity = parseFloat(styles.opacity || '1');
 
-    let textElement = `<text x="50%" y="50%" `;
-    textElement += `text-anchor="${styles.textAnchor || 'middle'}" `;
+    // Dynamic positioning based on text alignment
+    let xPosition = '50%'; // Default (center)
+    let textAnchor = styles.textAnchor || 'middle';
+    
+    // Override based on textAlign if present
+    if (styles.textAlign) {
+        if (styles.textAlign === 'left') {
+            textAnchor = 'start';
+            xPosition = '5%'; // Left aligned with some padding
+        } else if (styles.textAlign === 'right') {
+            textAnchor = 'end';
+            xPosition = '95%'; // Right aligned with some padding
+        } else if (styles.textAlign === 'center') {
+            textAnchor = 'middle';
+            xPosition = '50%';
+        }
+    }
+    
+    console.log(`[Core SVG] Text alignment: ${styles.textAlign || 'none'}, anchor: ${textAnchor}, xPos: ${xPosition}`);
+
+    let textElement = `<text x="${xPosition}" y="50%" `;
+    textElement += `text-anchor="${textAnchor}" `;
     textElement += `dominant-baseline="middle" `; // Keep middle as default baseline
 
     // Font attributes
@@ -307,7 +335,7 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
         const fillColor = normalizeColor(color.value || '#ffffff', 'text fill');
         if (fillColor) {
              textElement += `fill="${fillColor}" `;
-             fillOpacity = extractOpacityFromColor(color.value); // Get opacity from color string (e.g., rgba)
+             fillOpacity = extractOpacityFromColor(color.value); // Get opacity from color string
              console.log(`[Core SVG Text] Applied solid fill: ${fillColor} (Opacity from color: ${fillOpacity})`);
         } else {
              textElement += `fill="none" `; // Explicitly no fill if color is transparent
@@ -315,13 +343,12 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
         }
     }
 
-     // Text Opacity (Combine with fill opacity)
-     const finalOpacity = Math.max(0, Math.min(1, isNaN(textOpacity) ? 1 : textOpacity)) * fillOpacity;
-     if (finalOpacity < 1) {
-         textElement += `opacity="${finalOpacity.toFixed(3)}" `;
-         console.log(`[Core SVG Text] Applied combined opacity: ${finalOpacity.toFixed(3)}`);
-     }
-
+    // Text Opacity (Combine with fill opacity)
+    const finalOpacity = Math.max(0, Math.min(1, isNaN(textOpacity) ? 1 : textOpacity)) * fillOpacity;
+    if (finalOpacity < 1) {
+        textElement += `opacity="${finalOpacity.toFixed(3)}" `;
+        console.log(`[Core SVG Text] Applied combined opacity: ${finalOpacity.toFixed(3)}`);
+    }
 
     // Text Stroke (Only if specifically set via text-stroke)
     if (textStroke) {
@@ -340,16 +367,20 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
          console.log(`[Core SVG Text] No direct text stroke detected.`);
     }
 
-    // Apply text effects filter (shadow/glow)
-    if (textFilterId) {
+    // Apply filters - prioritize border filter if present
+    if (borderFilterId) {
+        textElement += `filter="url(#${borderFilterId})" `;
+        console.log(`[Core SVG Text] Applied border filter: url(#${borderFilterId})`);
+    } else if (textFilterId) {
         textElement += `filter="url(#${textFilterId})" `;
         console.log(`[Core SVG Text] Applied text effect filter: url(#${textFilterId})`);
     }
 
-    // Transform (Rotation, etc.)
+    // Transform (Rotation, etc.) - Normalize CSS transforms for SVG
     if (transform.cssValue && transform.cssValue !== 'none') {
-        textElement += `transform="${escapeSVGAttribute(transform.cssValue)}" `;
-        console.log(`[Core SVG Text] Applied transform: ${transform.cssValue}`);
+        const normalizedTransform = normalizeCSSTransformForSVG(transform.cssValue);
+        textElement += `transform="${escapeSVGAttribute(normalizedTransform)}" `;
+        console.log(`[Core SVG Text] Applied transform: ${normalizedTransform}`);
     }
 
     // Animation Class
@@ -377,6 +408,25 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
 
     return textElement;
 }
+
+/**
+ * Helper to normalize CSS transforms for SVG
+ * @param {string} cssTransform - CSS transform value
+ * @returns {string} Normalized transform for SVG
+ */
+function normalizeCSSTransformForSVG(cssTransform) {
+    if (!cssTransform) return '';
+    
+    // Handle matrix transforms - they work the same in SVG
+    if (cssTransform.includes('matrix')) {
+        return cssTransform;
+    }
+    
+    // Handle potential comma separators in transform functions
+    return cssTransform.replace(/,\s+/g, ' ');
+}
+
+/**
 
 
 /**
