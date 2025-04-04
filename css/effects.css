@@ -458,7 +458,7 @@ border-right-width: var(--dynamic-border-width);
 @keyframes float { 0%,100%{transform:translateY(0) rotate(-1deg)} 50% {transform:translateY(-15px) rotate(1deg)} }
 @keyframes rotate { 0% {transform:rotate(0deg)} 100% {transform:rotate(360deg)} }
 @keyframes wave { 0%,100%{transform:skewX(0) skewY(0)} 25%{transform:skewX(5deg) skewY(1deg)} 75%{transform:skewX(-5deg) skewY(-1deg)} }
-@keyframes glitch-1 { 0%,100%{clip-path:inset(50% 0 30% 0);transform:translate(-4px,1px) scaleY(1.02)} 20%{clip-path:inset(10% 0 80% 0);transform:translate(3px,-2px) scaleY(0.98)} 40%{clip-path:inset(70% 0 5% 0);transform:translate(-3px,2px) scaleY(1.01)} 60%{clip-path:inset(45% 0 45% 0);transform:translate(4px,-1px) scaleY(0.99)} 80%{clip-path:inset(85% 0 10% 0);transform:translate(-2px,1px) scaleY(1.03)} }
+@keyframes glitch { 0%,100%{clip-path:inset(50% 0 30% 0);transform:translate(-4px,1px) scaleY(1.02)} 20%{clip-path:inset(10% 0 80% 0);transform:translate(3px,-2px) scaleY(0.98)} 40%{clip-path:inset(70% 0 5% 0);transform:translate(-3px,2px) scaleY(1.01)} 60%{clip-path:inset(45% 0 45% 0);transform:translate(4px,-1px) scaleY(0.99)} 80%{clip-path:inset(85% 0 10% 0);transform:translate(-2px,1px) scaleY(1.03)} }
 @keyframes glitch-2 { 0%,100%{clip-path:inset(40% 0 50% 0);transform:translate(3px,-1px) scaleY(0.98)} 20%{clip-path:inset(90% 0 5% 0);transform:translate(-4px,2px) scaleY(1.02)} 40%{clip-path:inset(15% 0 70% 0);transform:translate(2px,-2px) scaleY(0.99)} 60%{clip-path:inset(60% 0 30% 0);transform:translate(-3px,1px) scaleY(1.01)} 80%{clip-path:inset(5% 0 80% 0);transform:translate(3px,-1px) scaleY(1.03)} }
 @keyframes fadeInOut { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 @keyframes subtleRotate3D { 0%, 100% { transform: perspective(500px) rotateX(0deg) rotateY(0deg); } 50% { transform: perspective(500px) rotateX(8deg) rotateY(12deg) translateZ(10px); } }
@@ -491,7 +491,7 @@ pointer-events: none;
 animation-timing-function: steps(3, end);
 animation-iteration-count: infinite;
 }
-.anim-glitch::before { animation-name: glitch-1; animation-duration: calc(var(--current-animation-duration) * 0.8); animation-delay: -0.1s; }
+.anim-glitch::before { animation-name: glitch; animation-duration: calc(var(--current-animation-duration) * 0.8); animation-delay: -0.1s; }
 .anim-glitch::after { animation-name: glitch-2; animation-duration: calc(var(--current-animation-duration) * 1.1); animation-delay: 0.1s; }
 .anim-fade { animation-name: fadeInOut; animation-timing-function: ease-in-out; animation-direction: alternate; animation-iteration-count: infinite; animation-duration: var(--current-animation-duration); }
 .anim-rotate3d { animation-name: subtleRotate3D; animation-timing-function: ease-in-out; animation-direction: alternate; animation-duration: calc(var(--current-animation-duration) * 2.5); animation-iteration-count: infinite; }
