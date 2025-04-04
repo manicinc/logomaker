@@ -283,10 +283,6 @@ function closeModal() {
     console.log("[GIF UI] Modal closed.");
 }
 
-function resetCancelFlag() { exportCancelled = false; console.log('[GIF UI] Cancel flag reset.'); }
-function updateModalProgress(message) { if (loadingIndicator && progressText) { loadingIndicator.style.display = 'flex'; progressText.textContent = message; } }
-function hideModalProgress() { if (loadingIndicator) loadingIndicator.style.display = 'none'; }
-
 /** Reset the cancellation flag */
 function resetCancelFlag() { exportCancelled = false; console.log('[GIF UI] Cancel flag reset.'); }
 /** Show the modal's loading overlay with a message */
