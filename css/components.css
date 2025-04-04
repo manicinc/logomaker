@@ -988,3 +988,119 @@ textarea[readonly]:focus {
 .contact-button { /* Special link button in footer */ background-color: transparent; color: var(--text-color-muted); padding: 6px 12px; border-radius: 20px; font-size: var(--font-size-xs) !important; transition: all var(--transition-fast); border: 1px solid var(--border-color); }
 .contact-button svg { margin-right: var(--space-xs); width: 1em; height: 1em; }
 .contact-button:hover { background-color: var(--input-bg); color: var(--accent-color); border-color: var(--accent-color); transform: translateY(-1px); }
+
+.logo-text.text-align-left {
+  text-align: left !important;
+}
+.logo-text.text-align-center {
+  text-align: center !important;
+}
+.logo-text.text-align-right {
+  text-align: right !important;
+}
+
+/* 3. High contrast mode improvements for border visibility */
+@media (prefers-contrast: high) {
+  .logo-container.dynamic-border {
+    border-color: currentColor !important; /* Ensures border color is visible */
+  }
+  
+  .text-shadow-outline-thin,
+  .text-shadow-outline-thick {
+    text-shadow: 
+      -1px -1px 0 currentColor,
+      1px -1px 0 currentColor,
+      -1px 1px 0 currentColor,
+      1px 1px 0 currentColor !important;
+  }
+}
+
+/* 4. Add transition to text-align to make changes smoother */
+.logo-text {
+  transition: text-align 0.2s ease-out;
+}
+
+/* 5. Improved focus indicators for better accessibility */
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* 6. Optimize animations for reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .anim-pulse, .anim-bounce, .anim-shake, .anim-float,
+  .anim-rotate, .anim-wave, .anim-glitch, .anim-flicker,
+  .anim-fade, .anim-rotate3d, .anim-typing, .anim-reveal,
+  .anim-blur, .anim-zoom {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Add to components.css */
+
+/* Font Management Section */
+.font-management-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.font-management-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+.font-management-info .label {
+  opacity: 0.7;
+}
+
+.font-management-info .value {
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 8px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius-sm);
+}
+
+.warning-text {
+  font-size: var(--font-size-sm);
+  color: var(--warning-color);
+  background-color: rgba(var(--warning-color-rgb, 243, 156, 18), 0.1);
+  padding: var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--warning-color);
+}
+
+.secondary-button {
+  background-color: var(--button-secondary-bg) !important;
+  color: var(--text-color) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.secondary-button:hover {
+  background-color: var(--button-secondary-hover-bg) !important;
+}
+
+/* Add loading indicator styles */
+.button.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.button.loading svg {
+  animation: rotate 1.5s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1,15 +1,17 @@
 /**
- * PNGRenderer.js (Version 2.2 - Snapshot Temp Style Fix)
+ * PNGRenderer.js
  * ====================================================
  * Provides PNG export functionality. Prioritizes direct canvas snapshotting
  * (requires html2canvas.js) for WYSIWYG results, with SVG-based rendering
  * as a user-selectable alternative/fallback.
- * Attempts to temporarily fix styles for html2canvas snapshot.
+
  */
 
 // Import core functions from RendererCore
 // Ensure RendererCore v2.8+ is used (with global normalizeColor)
 import { generateConsistentPreview, generateSVGBlob, convertSVGtoPNG } from './RendererCore.js';
+import { captureLogoWithHTML2Canvas } from '../utils/html2Canvas.js';
+
 
 // --- Module Scope Variables ---
 let isInitialized = false;
@@ -211,13 +213,12 @@ const updatePreview = debounce(() => {
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
 /**
- * Core PNG export logic via direct canvas snapshot. (v2.2)
- * Requires html2canvas library. Attempts temporary style fix for text gradients.
+ * Core PNG export logic via direct canvas snapshot. (v2.3)
+ * Uses enhanced HTML2Canvas implementation for better text and style handling.
  */
 async function exportViaSnapshotCore(options = {}) {
-    console.log('[PNG Core Snapshot v2.2] Attempting export. Options:', options);
+    console.log('[PNG Core Snapshot v2.3] Attempting export with enhanced HTML2Canvas. Options:', options);
     const { width = 800, height = 400, quality = 0.95, transparentBackground = false } = options;
 
     if (typeof html2canvas !== 'function') {
@@ -225,105 +226,58 @@ async function exportViaSnapshotCore(options = {}) {
         throw new Error("Snapshotting requires the 'html2canvas.js' library, which was not found. Ensure it's included locally or use the SVG Render method.");
     }
 
-    const elementToSnapshot = document.querySelector('.logo-container');
-    if (!elementToSnapshot) throw new Error("Could not find '.logo-container' to snapshot.");
-    const logoTextElement = elementToSnapshot.querySelector('.logo-text');
-    console.log('[PNG Core Snapshot] Target element:', elementToSnapshot);
-
-    // --- Temporary Style Modification for background-clip: text ---
-    let originalStyles = { color: null, bgClip: null, webkitBgClip: null };
-    let stylesModified = false;
-    if (logoTextElement) {
-        try {
-            const computedText = window.getComputedStyle(logoTextElement);
-            // Check if background-clip is text
-            if (computedText.backgroundClip === 'text' || computedText.webkitBackgroundClip === 'text') {
-                console.log('[PNG Snapshot] Detected background-clip: text. Applying temporary solid color.');
-                stylesModified = true;
-                // Store original *inline* styles (important!)
-                originalStyles.color = logoTextElement.style.color;
-                originalStyles.bgClip = logoTextElement.style.backgroundClip;
-                originalStyles.webkitBgClip = logoTextElement.style.webkitBackgroundClip;
-
-                // Get a fallback solid color (first gradient color or default)
-                const settings = window.SettingsManager?.getCurrentSettings?.();
-                // Use captured styles if settings aren't available
-                const capturedStyles = window.captureAdvancedStyles ? window.captureAdvancedStyles() : null;
-                const fallbackColor = settings?.color1 || capturedStyles?.color?.gradient?.colors?.[0] || '#ff1493'; // Default Pink
-
-                // Apply temporary inline styles
-                logoTextElement.style.color = fallbackColor;
-                logoTextElement.style.backgroundClip = 'initial';
-                logoTextElement.style.webkitBackgroundClip = 'initial';
-                // Also ensure visibility if opacity was affected by effects
-                logoTextElement.style.opacity = '1';
-                logoTextElement.style.webkitTextFillColor = 'initial'; // Ensure text fill isn't transparent
-
-                // Force reflow/repaint (optional, may help ensure style application)
-                logoTextElement.offsetHeight;
-                await delay(50); // Short delay after style change
-                console.log('[PNG Snapshot] Temp styles applied. Color:', fallbackColor);
-            } else {
-                console.log('[PNG Snapshot] background-clip: text not detected on computed styles.');
-            }
-        } catch (e) {
-             console.error("[PNG Snapshot] Error applying temporary styles:", e);
-             stylesModified = false; // Ensure flag is false if error occurs
-        }
-    } else {
-        console.warn('[PNG Snapshot] .logo-text element not found for potential style modification.');
-    }
-    // --- End Temp Style Modification ---
-
-    console.log('[PNG Core Snapshot] Adding brief delay before final snapshot call...');
-    await delay(200); // Further delay after potential style change
+    const elementToSnapshot = document.querySelector('#previewContainer');
+    if (!elementToSnapshot) throw new Error("Could not find '#previewContainer' to snapshot.");
+    
+    console.log('[PNG Core Snapshot] Using enhanced HTML2Canvas implementation...');
 
     try {
-        const elementWidth = elementToSnapshot.offsetWidth; const elementHeight = elementToSnapshot.offsetHeight;
-        if (!elementWidth || !elementHeight) console.warn(`Target element zero dimensions (${elementWidth}x${elementHeight})`);
-        const scale = Math.max(1, width / elementWidth, height / elementHeight);
-        const h2cOptions = {
-            backgroundColor: transparentBackground ? null : undefined, // Use null for transparency
-            scale: scale, width: elementWidth, height: elementHeight,
-            useCORS: true, logging: true, allowTaint: false
+        // Use our improved HTML2Canvas implementation
+        const captureOptions = {
+            width: width,
+            height: height,
+            scale: window.devicePixelRatio * 2, // Higher quality
+            backgroundColor: transparentBackground ? null : undefined,
+            useCORS: true,
+            allowTaint: true
         };
-        console.log('[PNG Core Snapshot] html2canvas options:', h2cOptions);
+        
+        // This uses our enhanced implementation
+        const canvas = await captureLogoWithHTML2Canvas(elementToSnapshot, captureOptions);
+        console.log(`[PNG Core Snapshot] Enhanced capture successful. Canvas size: ${canvas.width}x${canvas.height}`);
 
-        const canvas = await html2canvas(elementToSnapshot, h2cOptions);
-        console.log(`[PNG Core Snapshot] Snapshot canvas created. Initial Size: ${canvas.width}x${canvas.height}`);
-
+        // Handle resizing if needed
         let finalCanvas = canvas;
         if (canvas.width !== width || canvas.height !== height) {
              console.warn(`[PNG Core Snapshot] Resizing snapshot canvas from ${canvas.width}x${canvas.height} to target ${width}x${height}.`);
-             finalCanvas = document.createElement('canvas'); finalCanvas.width = width; finalCanvas.height = height;
-             const ctx = finalCanvas.getContext('2d'); if (!ctx) throw new Error("Failed ctx");
+             finalCanvas = document.createElement('canvas'); 
+             finalCanvas.width = width; 
+             finalCanvas.height = height;
+             const ctx = finalCanvas.getContext('2d'); 
+             if (!ctx) throw new Error("Failed to get canvas context");
              ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, width, height);
         }
 
+        // Convert to blob
         return new Promise((resolve, reject) => {
-            finalCanvas.toBlob(blob => { if (blob) resolve(blob); else reject(new Error('Canvas toBlob failed')); }, 'image/png', quality);
+            finalCanvas.toBlob(blob => { 
+                if (blob) resolve(blob); 
+                else reject(new Error('Canvas toBlob failed')); 
+            }, 'image/png', quality);
         });
 
     } catch (error) {
-        console.error('[PNG Core Snapshot] html2canvas execution failed:', error);
+        console.error('[PNG Core Snapshot] Enhanced HTML2Canvas execution failed:', error);
         const errorMsg = error instanceof Error ? error.message : String(error);
-        if (errorMsg.includes('SecurityError')) { throw new Error("Snapshot failed: Cross-origin security restriction (fonts/images?)."); }
-        else if (errorMsg.includes('Timeout')) { throw new Error("Snapshot timed out. Logo might be too complex."); }
-        else { throw new Error(`Snapshot failed: ${errorMsg}`); }
-    } finally {
-         // --- Restore Original Styles ---
-         if (stylesModified && logoTextElement) {
-             logoTextElement.style.color = originalStyles.color; // Restore inline style (null if none)
-             logoTextElement.style.backgroundClip = originalStyles.bgClip;
-             logoTextElement.style.webkitBackgroundClip = originalStyles.webkitBgClip;
-             // Reset others that might have been affected
-             logoTextElement.style.opacity = ''; // Reset opacity
-             logoTextElement.style.webkitTextFillColor = ''; // Reset fill color
-
-             logoTextElement.offsetHeight; // Force reflow
-             console.log('[PNG Snapshot] Original text styles restored.');
-         }
-         // --- End Restore ---
+        if (errorMsg.includes('SecurityError')) { 
+            throw new Error("Snapshot failed: Cross-origin security restriction (fonts/images?)."); 
+        }
+        else if (errorMsg.includes('Timeout')) { 
+            throw new Error("Snapshot timed out. Logo might be too complex."); 
+        }
+        else { 
+            throw new Error(`Snapshot failed: ${errorMsg}`); 
+        }
     }
 }
 

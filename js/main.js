@@ -2,293 +2,231 @@
  * main.js
  * ========================================
  * Core initialization and orchestration for Logomaker.
+ * Uses ES6 Imports, ensures correct init order, fixes tab navigation.
  */
 
 // --- Imports ---
+// Core Managers
+import SettingsManager from './settingsManager.js';
+import { initializeFonts } from './fontManager.js'; // Assuming fontManager exports this
+
+// UI Initializers / Handlers (Ensure these files export the functions)
+import { setupTabNavigation } from './tabs.js'; // ** FIX: Import function **
+import { setupTooltips, updateSizeIndicator, throttle, randomizeStyle, openShareModal } from './misc.js'; // Assuming misc.js exports these
+import { showToast, showAlert } from './notificationsDropInAlerts.js'; // Assuming notificationsDropInAlerts.js exports these
+
+// Action Handlers
 import {
     handlePNGExport, handleSVGExport, handleGIFExport, handleHTMLCopy, handleCSSCopy
 } from './exportHandler.js';
-import { initializeFonts } from './fontManager.js';
-import SettingsManager from './settingsManager.js'; // Import directly
-import { openShareModal } from './misc.js'; // Import the function to open the share modal
 
-
-// Other UI/Util scripts load and potentially expose globals (window.setupTabNavigation, etc.)
-// misc.js now exposes window.openShareModal
-
-console.log('[Main] Logomaker main.js executing (v11).');
+console.log('[Main] Logomaker main.js executing (v12 - Refactored).');
 
 // --- Initialization Sequence ---
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[Main] DOMContentLoaded event fired.');
-    await initializeApp();
-});
+// Use DOMContentLoaded to ensure the initial HTML structure is ready
+document.addEventListener('DOMContentLoaded', initializeApp);
 
 async function initializeApp() {
     console.log('[Main] Initializing Application...');
     const startTime = performance.now();
 
-    // --- Initialize Core Modules in Strict Order ---
-
-    // 1. Initialize Fonts FIRST
     try {
-        console.log('[Main] Starting Font Manager initialization...');
-        const fontsInitialized = await initializeFonts(); // Keep local check result if needed for logging/warning
-        if (fontsInitialized) {
-            console.log('[Main] Font Manager initialized successfully.');
-        } else {
-            console.error('[Main] Font Manager initialization reported issues. Using fallbacks.');
-            if(typeof showAlert === 'function') showAlert("Font loading issues occurred. Using fallback fonts.", "warning", { duration: 5000 });
+        // --- Initialize Core Modules ---
+
+        // 1. Fonts (Optional but recommended to await if SM depends on it immediately)
+        try {
+            console.log('[Main] Starting Font Manager initialization...');
+            await initializeFonts(); // initializeFonts should handle its own errors/fallbacks internally
+            console.log('[Main] Font Manager initialization process completed.');
+        } catch (fontError) {
+            console.error("[Main] Error during font initialization:", fontError);
+            showAlert(`Font loading failed: ${fontError.message}. Using fallbacks.`, "error");
         }
-    } catch (e) {
-        console.error("[Main] CRITICAL Error during font initialization:", e);
-        if(typeof showAlert === 'function') showAlert(`Font loading failed: ${e.message}. Some features may be limited.`, "error");
-        // Proceed even if fonts fail, as fallbacks might exist
-    }
 
-    // 2. Initialize Settings Manager AFTER fonts are ready
-    try {
+        // 2. Settings Manager (Crucial - Must complete before dependent UI)
         console.log('[Main] Starting SettingsManager initialization...');
         if (typeof SettingsManager?.init !== 'function') {
-             throw new Error("SettingsManager or its init method is missing!");
+            throw new Error("SettingsManager or its init method is missing!");
         }
-        await SettingsManager.init(); // Wait for it to complete
+        await SettingsManager.init(); // Initializes, loads settings, applies initial styles/classes
         console.log('[Main] SettingsManager initialization finished successfully.');
-        // --- SettingsManager Init Succeeded ---
-        // Continue with dependent steps INSIDE this try block or after it
 
-        // 3. Initialize Other UI Components & Bind Buttons
-        console.log('[Main] Initializing other UI components & Binding Buttons...');
-        try { // Nested try for non-critical UI setup
-            if (typeof window.setupTabNavigation === 'function') { window.setupTabNavigation(); console.log('[Main] Tab Navigation Setup.'); }
-            else { console.warn('[Main] setupTabNavigation not found on window.'); }
-            if (typeof window.initMobileFeatures === 'function') { window.initMobileFeatures(); console.log('[Main] Mobile Features Setup.'); }
-            else { console.warn('[Main] initMobileFeatures not found on window.'); }
+        // --- Initialize UI Components & Bind Events (AFTER SettingsManager) ---
+        console.log('[Main] Initializing UI components & Binding Buttons...');
 
-            // Bind core export/copy buttons
-            initializeButtonHandlers();
+        // Setup Tabs
+        try {
+            console.log('[Main] Setting up tab navigation...');
+            setupTabNavigation(); // <-- Use the imported function
+            console.log('[Main] Tab navigation setup complete.');
+        } catch (tabError) {
+            console.error('[Main] Error setting up tab navigation:', tabError);
+            showAlert('Error initializing UI tabs.', 'warning');
+        }
 
-            // Bind buttons that depend on SettingsManager being ready
-            initializeExtraButtonHandlers(); // Handles Randomize, Share
+        // Setup Other UI Features
+        try {
+            setupTooltips();
+            console.log('[Main] Tooltips initialized.');
+        } catch (tooltipError) {
+            console.error('[Main] Error setting up tooltips:', tooltipError);
+        }
+        // Add other UI initializers here (e.g., modals if not self-initializing)
 
-            // Bind global listeners
-            initializeGlobalListeners();
-            if (typeof window.updateSizeIndicator === 'function') { setTimeout(window.updateSizeIndicator, 100); console.log('[Main] Initial Size Indicator update scheduled.'); }
-            else { console.warn("[Main] updateSizeIndicator function not found."); }
 
-            const endTime = performance.now();
-            console.log(`[Main] ✅ Application Initialized and Ready. Took ${(endTime - startTime).toFixed(0)}ms`);
+        // Bind Button Handlers
+        bindButtonHandlers(); // Binds export, copy, randomize, share etc.
 
-        } catch (e) { // Catch critical errors from SettingsManager.init()
-            console.error("[Main] CRITICAL Error initializing SettingsManager:", e);
-            if(typeof showAlert === 'function') showAlert(`Critical Error: Settings Manager failed: ${e.message}. Application cannot function correctly.`, "error");
-            else alert("Critical Error: Settings Manager failed. App cannot start.");
-            // DO NOT proceed
-            return;
-       }
+        // Initialize Global Listeners (like resize)
+        initializeGlobalListeners();
 
-    } catch (e) { // Catch errors from SettingsManager.init() or its check
-        // --- SettingsManager Init FAILED ---
-        console.error("[Main] CRITICAL Error initializing SettingsManager:", e);
-        if(typeof showAlert === 'function') showAlert(`Critical Error: Settings Manager failed: ${e.message}. Application cannot function correctly.`, "error");
-        else alert("Critical Error: Settings Manager failed to load. Application cannot function correctly.");
-        // DO NOT proceed with dependent steps if SettingsManager failed
-        return; // Halt initialization here
-    }
-    // 3. Initialize other UI components (Tabs, Modals, Mobile specific)
-    // These are loaded via script tags and assumed to be ready or self-initializing on DOMContentLoaded
-    console.log('[Main] Initializing other UI components (Tabs, ResetModal, Mobile)...');
-    try {
-        // Call initializers if they expose functions and exist globally
-        if (typeof window.setupTabNavigation === 'function') { window.setupTabNavigation(); console.log('[Main] Tab Navigation Setup.'); }
-        else { console.warn('[Main] setupTabNavigation not found on window.'); }
-
-        // Reset modal init seems to be handled within resetConfirmation.js via its own listener now, verify its script tag
-         // if (typeof window.initResetModal === 'function') { window.initResetModal(); console.log('[Main] Reset Modal Setup.'); }
-         // else { console.warn('[Main] initResetModal not found on window.'); }
-
-        if (typeof window.initMobileFeatures === 'function') { window.initMobileFeatures(); console.log('[Main] Mobile Features Setup.'); }
-        else { console.warn('[Main] initMobileFeatures not found on window.'); }
-
-        // Notification system initializes itself via its own script/DOMContentLoaded listener
-
-        // 4. Bind Core UI Event Listeners (Export buttons, Global)
-        // Ensure this runs after elements are ready and SettingsManager is done.
-        initializeButtonHandlers();
-        initializeGlobalListeners(); // Includes resize listener
-        // Bind buttons that depend on SettingsManager being ready
-        initializeExtraButtonHandlers(); // Handles Randomize, Share
-
-        // 5. Final Steps - Trigger initial updates that depend on everything being set up
-        // Example: Initial size indicator update after potential layout shifts
-        if (typeof window.updateSizeIndicator === 'function') {
-            // Call it after a slight delay to ensure layout is more stable
-            setTimeout(window.updateSizeIndicator, 100);
-            console.log('[Main] Initial Size Indicator update scheduled.');
-        } else { console.warn("[Main] updateSizeIndicator function not found on window."); }
+        // Final UI Updates
+        // SettingsManager.init() already calls applySettings which should update range displays.
+        // Trigger a size update after a short delay for rendering stabilization.
+        setTimeout(() => {
+             console.log('[Main] Triggering final size indicator update.');
+             updateSizeIndicator(); // Use imported function
+        }, 150); // Slightly longer delay
 
         const endTime = performance.now();
         console.log(`[Main] ✅ Application Initialized and Ready. Took ${(endTime - startTime).toFixed(0)}ms`);
 
-    } catch (uiError) {
-         console.error("[Main] Error during UI component initialization or binding:", uiError);
-         if(typeof showAlert === 'function') showAlert(`UI Setup Error: ${uiError.message}. Some features might not work.`, "warning");
+    } catch (error) { // Catch critical errors (e.g., SettingsManager init failure)
+        console.error("[Main] CRITICAL ERROR during initialization:", error);
+        showAlert(`App Initialization Failed: ${error.message}. Please reload.`, "error", { duration: null }); // Persist critical error
+        // Optionally hide the main interface or show a dedicated error screen
+        document.querySelector('.container')?.classList?.add('init-error');
     }
 }
 
-
-/** Initialize handlers for main action/export buttons */
-function initializeButtonHandlers() {
-    console.log('[Main] Binding main action button handlers...');
+/** Setup primary button event listeners */
+function bindButtonHandlers() {
+    console.log('[Main] Binding button handlers...');
     const buttonConfigs = [
-        // Main Export Buttons - Handlers now delegate to export*WithUI
-        { id: 'exportPngBtn', handler: handlePNGExport, name: 'PNG Export' },
-        { id: 'exportSvgBtn', handler: handleSVGExport, name: 'SVG Export' },
-        { id: 'exportGifBtn', handler: handleGIFExport, name: 'Animation Export (Frames ZIP)' },
+        // Main Export Buttons
+        { id: 'exportPngBtn', handler: handlePNGExport, label: 'PNG Export' },
+        { id: 'exportSvgBtn', handler: handleSVGExport, label: 'SVG Export' },
+        { id: 'exportGifBtn', handler: handleGIFExport, label: 'Animation Export (Frames ZIP)' },
         // Copy Buttons
-        { id: 'copyHtmlBtn', handler: handleHTMLCopy, name: 'Copy HTML' },
-        { id: 'copyCssBtn', handler: handleCSSCopy, name: 'Copy CSS' },
-        // Other Buttons (Reset is handled internally by SettingsManager/ResetConfirmation)
-        // Share button (handled by misc.js or urlParamsHandler.js)
-        // { id: 'shareUrlBtn', handler: window.handleShareUrlClick, name: 'Share URL' }, // Assuming handler exists globally
-        // Theme toggle (handled by misc.js)
-        // Preview toggle (handled by misc.js)
+        { id: 'copyHtmlBtn', handler: handleHTMLCopy, label: 'Copy HTML' },
+        { id: 'copyCssBtn', handler: handleCSSCopy, label: 'Copy CSS' },
+         // Extra Action Buttons
+        { id: 'shareUrlBtn', handler: openShareModal, label: 'Share URL' }, // Use imported handler
+        { id: 'randomizeStyleBtn', handler: randomizeStyle, label: 'Randomize Style' }, // Use imported handler
+        // Theme toggle might be handled in misc.js or similar
+        // Reset button is handled internally by SettingsManager / resetConfirmation.js
+        {
+            id: 'loadAllFontsBtn',
+            handler: async () => { // Make handler async
+              const btn = document.getElementById('loadAllFontsBtn');
+              if (!btn) return;
+  
+              const originalContent = btn.innerHTML; // Store original content
+              btn.disabled = true;
+              // Add a simple inline spinner or text
+              btn.innerHTML = `<span class="spinner small-inline" style="width:1em;height:1em;border-width:2px;margin-right:5px;"></span> Loading All...`;
+  
+              // Use a generic progress update via console or a dedicated UI element if needed
+               console.log('[LoadAll] Starting full font library load...');
+               // Optionally dispatch a custom event for a progress bar if you have one
+               // window.dispatchEvent(new CustomEvent('logomaker:load-all-progress', { detail: { percent: 0, message: 'Starting...' } }));
+  
+              try {
+                // Check if function exists on window before calling
+                if (typeof window.loadAllFonts === 'function') {
+                  const startTime = performance.now();
+                  // We need a way to get progress updates from loadAllFonts
+                  // For now, we just await completion.
+                  const result = await window.loadAllFonts(); // Call the function from fontManager
+                  const duration = ((performance.now() - startTime) / 1000).toFixed(1);
+  
+                  if (result.failed > 0) {
+                    showAlert(`Loaded ${result.loaded}/${result.total} font chunks (${result.failed} failed). Duration: ${duration}s`, "warning");
+                  } else {
+                    showToast({ message: `All ${result.total} font chunks loaded! (${duration}s)`, type: 'success' });
+                  }
+                   // Update loading mode display
+                   const modeDisplay = document.getElementById('fontLoadingMode');
+                   if (modeDisplay) {
+                      // You might want a more sophisticated check in fontManager to know the actual mode
+                      modeDisplay.textContent = 'All Chunks Loaded';
+                   }
+  
+                } else {
+                  throw new Error('window.loadAllFonts function not found.');
+                }
+              } catch (error) {
+                console.error("[Main] Error calling loadAllFonts:", error);
+                showAlert(`Failed to load all fonts: ${error.message}`, "error");
+                // Optionally reset progress UI
+                // window.dispatchEvent(new CustomEvent('logomaker:load-all-progress', { detail: { percent: 0, message: 'Load failed.' } }));
+              } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent; // Restore original button content
+              }
+            },
+            label: 'Load All Fonts'
+          },
     ];
 
     buttonConfigs.forEach(config => {
-        const btn = document.getElementById(config.id);
-        if (btn) {
+        const btnElement = document.getElementById(config.id);
+        if (btnElement) {
+            // Prevent adding listener multiple times
+            if (btnElement.dataset.listenerBound === 'true') return;
+
             if (typeof config.handler === 'function') {
-                if (btn.getAttribute('data-listener-bound') !== 'true') {
-                    btn.addEventListener('click', (event) => { /* ... handler call + logging ... */
-                         console.log(`[Main] Button clicked: ${config.name} (#${config.id})`);
-                         try {
-                              const result = config.handler(event);
-                              if (result instanceof Promise) { result.catch(err => { console.error(`[Main] Async handler error (${config.name}):`, err);}); }
-                         } catch (syncError) { /* ... error handling ... */ }
-                     });
-                    btn.setAttribute('data-listener-bound', 'true');
-                    console.log(`[Main] Bound handler for: ${config.name} button.`);
-                }
+                btnElement.addEventListener('click', async (event) => {
+                    console.log(`[Main] Button clicked: ${config.label} (#${config.id})`);
+                    // Optional: Add temporary disabled state
+                    // btnElement.disabled = true; btnElement.classList.add('loading');
+                    try {
+                        await config.handler(event); // Await async handlers
+                    } catch (error) {
+                        console.error(`[Main] Error during ${config.label} action:`, error);
+                        showAlert(`Error performing ${config.label}: ${error.message}`, 'error');
+                    } finally {
+                        // Optional: Remove temporary disabled state
+                        // btnElement.disabled = false; btnElement.classList.remove('loading');
+                    }
+                });
+                btnElement.dataset.listenerBound = 'true'; // Mark as bound
+                console.log(`[Main] Bound handler for: ${config.label} button.`);
             } else {
-                console.error(`[Main] Handler missing or invalid for button #${config.id} (${config.name}). Disabling.`);
-                btn.disabled = true;
-                btn.title = `Action for ${config.name} is unavailable. Handler invalid.`;
+                console.error(`[Main] Handler missing or invalid for button #${config.id} (${config.label}). Disabling.`);
+                btnElement.disabled = true;
+                btnElement.title = `Action for ${config.label} is unavailable.`;
             }
         } else {
-            // Don't warn for potentially optional buttons like share/theme if handled elsewhere
-            if (!['shareUrlBtn', 'themeToggleBtn', 'previewToggleBtn'].includes(config.id)) {
-                console.warn(`[Main] Button element not found: #${config.id}`);
-            }
+             console.warn(`[Main] Button element not found for binding: #${config.id}`);
         }
     });
-       // --- Share URL Button Setup ---
-     const shareBtn = document.getElementById('shareUrlBtn');
-     if (shareBtn) {
-        if (shareBtn.getAttribute('data-listener-bound') !== 'true') {
-             // Bind directly to the imported function
-             shareBtn.addEventListener('click', () => {
-                  console.log('[Main Share] Share button clicked! Calling imported openShareModal...');
-                  try {
-                     openShareModal(); // Call the imported function
-                  } catch(e) {
-                      console.error("[Main Share] Error calling openShareModal:", e);
-                      if(typeof showAlert === 'function') showAlert("Cannot open share dialog.", "error");
-                  }
-             });
-             shareBtn.setAttribute('data-listener-bound', 'true');
-             console.log('[Main] Bound handler for: Share URL button.');
-        }
-     } else { console.warn('[Main] Share button #shareUrlBtn not found.'); }
 }
 
 /** Initialize global listeners like window resize */
 function initializeGlobalListeners() {
     console.log('[Main] Initializing global listeners...');
-    // Ensure updateSizeIndicator is available globally (assigned in misc.js)
-    if (typeof window.updateSizeIndicator === 'function') {
-        // Use throttling utility (assuming it's defined globally or imported)
-        const throttleFunc = typeof throttle === 'function' ? throttle : (f, t) => f; // Basic fallback
-        const throttledResize = throttleFunc(window.updateSizeIndicator, 150); // Throttle to 150ms
 
-        // Prevent double binding for resize listener
-        if (!window._resizeListenerBound) {
-            window.addEventListener('resize', throttledResize);
-            window._resizeListenerBound = true;
-            console.log('[Main] Window resize listener added (throttled).');
-        }
-    } else {
-        console.warn("[Main] updateSizeIndicator not found on window for resize listener.");
+    // Throttled Resize Listener
+    // Ensure listener isn't added multiple times if init runs again
+    if (!window._resizeListenerBound) {
+         const throttledResize = throttle(() => {
+            // console.log('[Main] Window resized (throttled).'); // Can be noisy
+            updateSizeIndicator(); // Use imported function
+            // --- Add tab indicator update here if you implement it ---
+            // const activeTab = document.querySelector('.tabs .tab.active');
+            // if(activeTab && typeof updateActiveTabIndicator === 'function') {
+            //     updateActiveTabIndicator(activeTab);
+            // }
+        }, 150); // Throttle resize events to every 150ms
+
+        window.addEventListener('resize', throttledResize);
+        window._resizeListenerBound = true; // Set flag
+        console.log('[Main] Window resize listener added (throttled).');
     }
 }
 
-/** Throttling function utility (Keep internal or move to utils.js) */
-function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        const context = this;
-        if (!inThrottle) {
-            func.apply(context, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-        }
-    };
-}
+// --- Optional: Make critical modules accessible globally for debugging if needed ---
+// window.DevTools = { SettingsManager, initializeFonts /*, other modules */ };
 
-/** Initialize handlers for buttons requiring SettingsManager (Randomize, Share) */
-function initializeExtraButtonHandlers() {
-    console.log('[Main] Binding Extra button handlers (Randomize, Share)...');
-
-    // --- Randomizer Button Setup ---
-    const randomizeBtn = document.getElementById('randomizeStyleBtn');
-    if (randomizeBtn) {
-        if (randomizeBtn.getAttribute('data-listener-bound') !== 'true') {
-           randomizeBtn.addEventListener('click', () => {
-               console.log('[Main Randomizer] Button clicked!');
-               try {
-                   const defaults = SettingsManager.getDefaults(); // Use imported SM
-                   const current = SettingsManager.getCurrentSettings();
-                   // ... (Keep rest of the randomizer logic from misc.js previous version) ...
-                    const textSettings = { logoText: current.logoText, fontFamily: current.fontFamily, fontSize: current.fontSize, letterSpacing: current.letterSpacing, textCase: current.textCase, fontWeight: current.fontWeight };
-                    const getOptions = (id) => Array.from(document.querySelectorAll(`#${id} option`)).map(o => o.value);
-                    const getRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
-                    const gradientPresets = getOptions('gradientPreset').filter(v => v !== 'custom'); const textEffects = getOptions('textShadow'); const borderStyles = getOptions('borderStyle'); const animations = getOptions('textAnimation'); const backgroundTypes = getOptions('backgroundType').filter(v => v !== 'bg-transparent'); const bgGradientPresets = getOptions('backgroundGradientPreset').filter(v => v !== 'custom'); const textAligns = getOptions('textAlign');
-                    const randomHex = () => `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
-                    const randomSettings = { ...defaults, ...textSettings, textColorMode: Math.random() > 0.3 ? 'gradient' : 'solid', solidColorPicker: randomHex(), gradientPreset: getRandom(gradientPresets) || defaults.gradientPreset, color1: randomHex(), color2: randomHex(), useColor3: Math.random() > 0.7, color3: randomHex(), animationDirection: Math.floor(Math.random() * 361), textShadow: getRandom(textEffects) || defaults.textShadow, borderColorPicker: randomHex(), borderStyle: getRandom(borderStyles) || defaults.borderStyle, textAlign: getRandom(textAligns) || defaults.textAlign, rotation: Math.floor(Math.random() * 61) - 30, textAnimation: getRandom(animations) || defaults.textAnimation, animationSpeed: (Math.random() * 2.8 + 0.2).toFixed(1), backgroundType: getRandom(backgroundTypes) || defaults.backgroundType, backgroundColor: randomHex(), bgOpacity: (Math.random() * 0.6 + 0.4).toFixed(2), backgroundGradientPreset: getRandom(bgGradientPresets) || defaults.backgroundGradientPreset, bgColor1: randomHex(), bgColor2: randomHex(), bgGradientDirection: Math.floor(Math.random() * 361), previewSize: current.previewSize, exportWidth: current.exportWidth, exportHeight: current.exportHeight, exportQuality: current.exportQuality, exportTransparent: current.exportTransparent, exportFrames: current.exportFrames, exportFrameRate: current.exportFrameRate, };
-                    console.log('[Main Randomizer] Applying random settings:', randomSettings);
-                    SettingsManager.applySettings(randomSettings, true); // Apply and force UI update
-                    if(typeof showToast === 'function') showToast({message: 'Style Randomized! 🎲', type: 'info', duration: 2000});
-               } catch (err) {
-                   console.error("[Main Randomizer] Error:", err);
-                   if(typeof showAlert === 'function') showAlert(`Failed to randomize style: ${err.message}`, "error");
-               }
-           });
-           randomizeBtn.setAttribute('data-listener-bound', 'true');
-           console.log('[Main] Bound handler for: Randomize Style button.');
-        }
-    } else { console.warn('[Main] Randomize button #randomizeStyleBtn not found.'); }
-
-    // --- Share URL Button Setup ---
-    const shareBtn = document.getElementById('shareUrlBtn');
-    if (shareBtn) {
-       if (shareBtn.getAttribute('data-listener-bound') !== 'true') {
-            shareBtn.addEventListener('click', () => {
-                console.log('[Main Share] Share button clicked!');
-                // Call the globally exposed function from misc.js
-                if (typeof window.openShareModal === 'function') {
-                    window.openShareModal();
-                } else {
-                    console.error("[Main Share] Cannot open modal - window.openShareModal function not found!");
-                    if(typeof showAlert === 'function') showAlert("Cannot open share dialog.", "error");
-                }
-            });
-            shareBtn.setAttribute('data-listener-bound', 'true');
-            console.log('[Main] Bound handler for: Share URL button.');
-       }
-    } else { console.warn('[Main] Share button #shareUrlBtn not found.'); }
-}
-
-// Make throttle globally available if needed by other non-module scripts?
-// window.throttle = throttle;
-
-console.log('[Main] main.js setup complete.');
+console.log('[Main] main.js setup complete.'); // Log end of script execution

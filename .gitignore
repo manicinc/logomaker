@@ -29,8 +29,8 @@ jspm_packages/
 
 # Output of build tools
 dist/
-build/
-out/
+# build/  # Keep if you use it, otherwise remove
+# out/    # Keep if you use it, otherwise remove
 
 # Local development files
 .env.local
@@ -38,4 +38,19 @@ out/
 .env.test.local
 .env.production.local
 
+# Specific tool outputs (Keep if needed)
 repomix-output.txt
+
+# Logomaker Build Artifacts
+# -------------------------
+# Directory containing font index and data chunks for optimized build
+font-chunks/
+
+# Generated file with all fonts embedded (Base64) for portable build / chunk input
+inline-fonts-data.js
+
+# Generated JSON file with font metadata (no Base64) - build artifact
+fonts.json
+
+# Generated single-file portable HTML bundle (if using PortaPack)
+logomaker-portable.html

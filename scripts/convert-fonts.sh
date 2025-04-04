@@ -20,7 +20,7 @@ find ./fonts -type f -name "*.otf" | while read -r font_file; do
     echo "      To: $output_file"
     
     # Run conversion (with error handling)
-    if python -m fontTools.ttLib.woff2 compress "$font_file" -o "$output_file" 2>/dev/null; then
+    if python -m fontTools.ttLib.woff2 compress "$font_file" -o "$output_file"; then
         echo "✓ Success"
     else
         echo "✗ Failed to convert $font_file - trying alternative method"

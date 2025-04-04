@@ -1,404 +1,508 @@
 /**
  * misc.js
- * =========================================
- * Contains miscellaneous utility functions: Theme Toggle, Size Indicator, Keyframes, Share Modal Setup.
+ * ============================================================
+ * Contains miscellaneous utility functions:
+ * - Theme Toggle
+ * - Size Indicator Update
+ * - Keyframes Extraction
+ * - Share Modal Setup & Opening
+ * - Randomize Style Function
+ * - Throttle Utility
+ * - Tooltip Setup (Placeholder)
  */
 
-// Import SettingsManager needed for Share URL generation
-import SettingsManager from './settingsManager.js'; // Adjust path if needed
+// Ensure SettingsManager is imported for functions that need it
+import SettingsManager from './settingsManager.js';
+// Import notification functions if needed locally (or rely on main.js providing them)
+import { showToast, showAlert } from './notificationsDropInAlerts.js'; // Assuming export
 
-console.log("[Misc v8] Module loaded.");
+console.log("[Misc v9] Module loaded.");
+
+// --- Utility Functions ---
+
+/**
+ * Basic throttling function.
+ * @param {Function} func - Function to throttle.
+ * @param {number} limit - Throttle limit in milliseconds.
+ * @returns {Function} Throttled function.
+ */
+export function throttle(func, limit) { // EXPORTED
+    let inThrottle;
+    return function(...args) {
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
 
 /** Updates the width/height display */
-function updateSizeIndicator() {
+export function updateSizeIndicator() { // EXPORTED
     requestAnimationFrame(() => {
-         const logoText = document.querySelector('.logo-text'); const widthIndicator = document.getElementById('logoWidth'); const heightIndicator = document.getElementById('logoHeight');
-         if (!logoText || !widthIndicator || !heightIndicator) return;
-         try { const rect = logoText.getBoundingClientRect(); if (rect.width > 0 && rect.height > 0) { widthIndicator.textContent = Math.round(rect.width); heightIndicator.textContent = Math.round(rect.height); } } catch (e) { console.error("[Misc] Error updating size indicator:", e); }
+        const logoText = document.querySelector('.logo-text');
+        const widthIndicator = document.getElementById('logoWidth');
+        const heightIndicator = document.getElementById('logoHeight');
+        if (!logoText || !widthIndicator || !heightIndicator) return;
+        try {
+            const rect = logoText.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+                widthIndicator.textContent = Math.round(rect.width);
+                heightIndicator.textContent = Math.round(rect.height);
+            }
+        } catch (e) {
+            console.error("[Misc] Error updating size indicator:", e);
+        }
     });
 }
-window.updateSizeIndicator = updateSizeIndicator;
-document.addEventListener('DOMContentLoaded', () => { setTimeout(updateSizeIndicator, 250); });
 
-/** Theme Toggle */
-function setupThemeToggle() {
+/** Theme Toggle Setup - Called by main.js */
+export function setupThemeToggle() { // EXPORTED
     console.log('[Theme] setupThemeToggle running...');
-    const themeToggleBtn = document.getElementById('themeToggleBtn'); if (!themeToggleBtn) { console.warn("[Theme] Toggle button #themeToggleBtn not found."); return; }
-    const sunIcon = themeToggleBtn.querySelector('.sun-icon'); const moonIcon = themeToggleBtn.querySelector('.moon-icon'); const themeToggleText = themeToggleBtn.querySelector('.theme-toggle-text');
-    const themeStorageKey = 'logomakerThemePreference_v1'; let savedTheme = localStorage.getItem(themeStorageKey);
-    let systemPrefersLight = window.matchMedia?.('(prefers-color-scheme: light)')?.matches; let initialTheme;
-    console.log(`[Theme] Saved theme ('${themeStorageKey}'):`, savedTheme); console.log(`[Theme] System prefers light:`, systemPrefersLight);
-    if (savedTheme === 'light' || savedTheme === 'dark') { initialTheme = savedTheme; console.log(`[Theme] Using saved theme: ${initialTheme}`); }
-    else { initialTheme = systemPrefersLight ? 'light' : 'dark'; console.log(`[Theme] Using system preference: ${initialTheme}`); }
-    const applyTheme = (theme, isInitial = false) => {
-        const isLight = theme === 'light'; console.log(`[Theme] Applying theme: ${theme}. Initial: ${isInitial}`);
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    if (!themeToggleBtn) {
+        console.warn("[Theme] Toggle button #themeToggleBtn not found.");
+        return;
+    }
+    // Prevent duplicate listeners if called again
+    if (themeToggleBtn.dataset.themeListenerAttached === 'true') return;
+
+    const sunIcon = themeToggleBtn.querySelector('.sun-icon');
+    const moonIcon = themeToggleBtn.querySelector('.moon-icon');
+    const themeToggleText = themeToggleBtn.querySelector('.theme-toggle-text'); // Optional text element
+    const themeStorageKey = 'logomakerThemePreference_v1'; // Keep versioning consistent
+    let savedTheme = localStorage.getItem(themeStorageKey);
+    let systemPrefersLight = window.matchMedia?.('(prefers-color-scheme: light)')?.matches;
+    let initialTheme;
+
+    console.log(`[Theme] Saved theme ('${themeStorageKey}'):`, savedTheme);
+    console.log(`[Theme] System prefers light:`, systemPrefersLight);
+
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+        initialTheme = savedTheme;
+        console.log(`[Theme] Using saved theme: ${initialTheme}`);
+    } else {
+        initialTheme = systemPrefersLight ? 'light' : 'dark';
+        console.log(`[Theme] Using system preference: ${initialTheme}`);
+    }
+
+    const applyTheme = (theme) => { // Removed isInitial logic, save on every apply
+        const isLight = theme === 'light';
+        console.log(`[Theme] Applying theme: ${theme}.`);
         document.body.classList.toggle('light-mode', isLight);
-        if (sunIcon) sunIcon.style.display = isLight ? 'none' : 'inline-block'; if (moonIcon) moonIcon.style.display = isLight ? 'inline-block' : 'none';
-        const nextThemeName = isLight ? 'Dark' : 'Light'; if (themeToggleText) themeToggleText.textContent = nextThemeName;
-        themeToggleBtn?.setAttribute('title', `Switch to ${nextThemeName} Mode`); themeToggleBtn?.setAttribute('aria-label', `Switch to ${nextThemeName} Mode`);
-        if (!isInitial || !savedTheme) { localStorage.setItem(themeStorageKey, theme); console.log(`[Theme] Saved preference: ${theme}`); }
+        if (sunIcon) sunIcon.style.display = isLight ? 'none' : 'inline-block';
+        if (moonIcon) moonIcon.style.display = isLight ? 'inline-block' : 'none';
+        const nextThemeName = isLight ? 'Dark' : 'Light';
+        if (themeToggleText) themeToggleText.textContent = nextThemeName; // Update accessible text if exists
+        themeToggleBtn?.setAttribute('title', `Switch to ${nextThemeName} Mode`);
+        themeToggleBtn?.setAttribute('aria-label', `Switch to ${nextThemeName} Mode`);
+        localStorage.setItem(themeStorageKey, theme); // Always save the applied theme
+        console.log(`[Theme] Saved preference: ${theme}`);
     };
-    themeToggleBtn.addEventListener('click', () => { const current = document.body.classList.contains('light-mode') ? 'light' : 'dark'; const newTheme = current === 'light' ? 'dark' : 'light'; console.log(`[Theme] Toggle clicked! Changing to ${newTheme}`); applyTheme(newTheme, false); });
-    applyTheme(initialTheme, true);
-    try { window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => { const pref = e.matches; console.log(`[Theme] System pref changed. Prefers light: ${pref}`); if (!localStorage.getItem(themeStorageKey)) { console.log("[Theme] Applying system change."); applyTheme(pref ? 'light' : 'dark', false); } else { console.log("[Theme] Ignoring system change due to saved pref."); } }); } catch (e) { console.warn("[Theme] System preference listener failed:", e); }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const current = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+        const newTheme = current === 'light' ? 'dark' : 'light';
+        console.log(`[Theme] Toggle clicked! Changing to ${newTheme}`);
+        applyTheme(newTheme);
+    });
+
+    // Apply initial theme without saving it again if it came from storage
+    applyTheme(initialTheme);
+    localStorage.setItem(themeStorageKey, initialTheme); // Ensure initial state is saved too
+
+    // System preference listener
+    try {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+        const systemChangeListener = (e) => {
+            const prefersLight = e.matches;
+            console.log(`[Theme] System preference changed. Prefers light: ${prefersLight}`);
+            // Only apply if NO preference is saved in localStorage
+            if (!localStorage.getItem(themeStorageKey)) {
+                console.log("[Theme] Applying system theme change (no saved preference).");
+                applyTheme(prefersLight ? 'light' : 'dark');
+            } else {
+                console.log("[Theme] Ignoring system theme change (user preference saved).");
+            }
+        };
+        // Use addEventListener for modern browsers
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener('change', systemChangeListener);
+        } else if (mediaQuery.addListener) { // Deprecated fallback
+            mediaQuery.addListener(systemChangeListener);
+        }
+    } catch (e) {
+        console.warn("[Theme] System preference listener failed:", e);
+    }
+    themeToggleBtn.dataset.themeListenerAttached = 'true'; // Mark as attached
     console.log('[Theme] Toggle Initialized.');
 }
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', setupThemeToggle); } else { setupThemeToggle(); }
 
-/** Animation Keyframes */
-const FALLBACK_KEYFRAMES = { 'pulse': `@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.9}}`, 'bounce': `@keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-15px)}60%{transform:translateY(-8px)}}`, 'shake': `@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px)}20%,40%,60%,80%{transform:translateX(4px)}}`, 'float': `@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}`, 'rotate': `@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`, 'wave': `@keyframes wave{0%,100%{transform:skew(0deg,0deg)}50%{transform:skew(4deg,2deg)}}`, 'glitch': `@keyframes glitch-1{0%,100%{clip-path:inset(45% 0 45% 0);transform:translate(-2px,1px) scale(1.01)}25%{clip-path:inset(10% 0 70% 0);transform:translate(2px,-1px) scale(.99)}50%{clip-path:inset(75% 0 15% 0);transform:translate(-2px,-1px) scale(1.02)}75%{clip-path:inset(30% 0 60% 0);transform:translate(2px,1px) scale(.98)}}`, 'flicker': `@keyframes flicker{0%,100%{opacity:1}50%{opacity:.5}}`, 'fade': `@keyframes fade{0%,100%{opacity:.2}50%{opacity:1}}` };
-function getActiveAnimationKeyframes(animationName) {
+/** Animation Keyframes - Gets CSS text for @keyframes */
+const FALLBACK_KEYFRAMES = { // Keep fallbacks updated with effects.css
+    'pulse': `@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.9}}`,
+    'bounce': `@keyframes bounce{0%,100%{transform:translateY(0);animation-timing-function:cubic-bezier(0.5,0,0.5,1)}50%{transform:translateY(-15px);animation-timing-function:cubic-bezier(0.5,0,0.5,1)}}`,
+    'shake': `@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px) rotate(-0.5deg)}20%,40%,60%,80%{transform:translateX(4px) rotate(0.5deg)}}`,
+    'float': `@keyframes float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-15px) rotate(1deg)}}`,
+    'rotate': `@keyframes rotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`,
+    'wave': `@keyframes wave{0%,100%{transform:skewX(0) skewY(0)}25%{transform:skewX(5deg) skewY(1deg)}75%{transform:skewX(-5deg) skewY(-1deg)}}`,
+    'glitch-1': `@keyframes glitch-1{0%,100%{clip-path:inset(50% 0 30% 0);transform:translate(-4px,1px) scaleY(1.02)}20%{clip-path:inset(10% 0 80% 0);transform:translate(3px,-2px) scaleY(0.98)}40%{clip-path:inset(70% 0 5% 0);transform:translate(-3px,2px) scaleY(1.01)}60%{clip-path:inset(45% 0 45% 0);transform:translate(4px,-1px) scaleY(0.99)}80%{clip-path:inset(85% 0 10% 0);transform:translate(-2px,1px) scaleY(1.03)}}`,
+    'glitch-2': `@keyframes glitch-2{0%,100%{clip-path:inset(40% 0 50% 0);transform:translate(3px,-1px) scaleY(0.98)}20%{clip-path:inset(90% 0 5% 0);transform:translate(-4px,2px) scaleY(1.02)}40%{clip-path:inset(15% 0 70% 0);transform:translate(2px,-2px) scaleY(0.99)}60%{clip-path:inset(60% 0 30% 0);transform:translate(-3px,1px) scaleY(1.01)}80%{clip-path:inset(5% 0 80% 0);transform:translate(3px,-1px) scaleY(1.03)}}`,
+    'fadeInOut': `@keyframes fadeInOut{0%,100%{opacity:0.3}50%{opacity:1}}`,
+    'subtleRotate3D': `@keyframes subtleRotate3D{0%,100%{transform:perspective(500px) rotateX(0deg) rotateY(0deg)}50%{transform:perspective(500px) rotateX(8deg) rotateY(12deg) translateZ(10px)}}`,
+    'flicker': `@keyframes flicker{0%,18%,22%,25%,53%,57%,100%{opacity:1;text-shadow:inherit}20%,24%,55%{opacity:0.6;text-shadow:none}}`,
+    'typing': `@keyframes typing{from{width:0}to{width:100%}}`,
+    'caretBlink': `@keyframes caretBlink{50%{border-color:transparent}}`,
+    'textRevealClip': `@keyframes textRevealClip{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}`,
+    'blurInOut': `@keyframes blurInOut{0%,100%{filter:blur(5px);opacity:0}50%{filter:blur(0);opacity:1}}`,
+    'zoomInOut': `@keyframes zoomInOut{0%,100%{transform:scale(0.8);opacity:0}50%{transform:scale(1);opacity:1}}`
+};
+export function getActiveAnimationKeyframes(animationName) { // EXPORTED
     if (!animationName || typeof animationName !== 'string' || animationName === 'none') return null;
-    const keyframeName = animationName.startsWith('anim-') ? animationName.substring(5) : animationName; if (!keyframeName || keyframeName === 'none') return null;
+    // Normalize name (remove anim- prefix if present)
+    const keyframeName = animationName.startsWith('anim-') ? animationName.substring(5) : animationName;
+    if (!keyframeName || keyframeName === 'none') return null;
+
     console.log(`[Misc] Searching for @keyframes rule: '${keyframeName}'`);
     try {
-        const styleSheets = Array.from(document.styleSheets);
-        for (const sheet of styleSheets) {
-             if (sheet.disabled || (!sheet.href && !sheet.ownerNode)) continue; let canAccessRules = false; try { if (sheet.cssRules || sheet.rules) canAccessRules = true; } catch (e) {}
-             if (canAccessRules) {
-                 const rules = sheet.cssRules || sheet.rules;
-                 for (const rule of rules) {
-                      let foundRule = null; if (rule.type === CSSRule.KEYFRAMES_RULE && rule.name === keyframeName) foundRule = rule;
-                      else if (rule.type === CSSRule.MEDIA_RULE || rule.type === CSSRule.SUPPORTS_RULE) { try { for (const nestedRule of rule.cssRules) { if (nestedRule.type === CSSRule.KEYFRAMES_RULE && nestedRule.name === keyframeName) { foundRule = nestedRule; break; } } } catch(nestedErr) {} }
-                      if (foundRule) { console.log(`[Misc] Found @keyframes '${keyframeName}' in stylesheet: ${sheet.href || 'Inline/Embedded'}`); return foundRule.cssText; }
-                 }
-             }
-        }
-    } catch (error) { console.error('[Misc] Error searching stylesheets:', error); }
-    if (FALLBACK_KEYFRAMES[keyframeName]) { console.warn(`[Misc] Keyframes '${keyframeName}' not found in CSS. Using fallback.`); return FALLBACK_KEYFRAMES[keyframeName]; }
-    console.warn(`[Misc] No keyframes rule found or fallback defined for: '${keyframeName}'`); return null;
-}
-window.getActiveAnimationKeyframes = getActiveAnimationKeyframes;
+        for (const sheet of document.styleSheets) {
+            if (sheet.disabled || (!sheet.href && !sheet.ownerNode)) continue;
+            let rules;
+            try { rules = sheet.cssRules || sheet.rules; if (!rules) continue; } catch (e) { continue; } // Skip inaccessible sheets
 
+            for (const rule of rules) {
+                // Check for direct @keyframes rule
+                if (rule.type === CSSRule.KEYFRAMES_RULE && rule.name === keyframeName) {
+                    console.log(`[Misc] Found @keyframes '${keyframeName}' in stylesheet: ${sheet.href || 'Inline/Embedded'}`);
+                    return rule.cssText;
+                }
+                // TODO: Potentially search inside @media or @supports rules if needed
+            }
+        }
+    } catch (error) {
+        console.error('[Misc] Error searching stylesheets for keyframes:', error);
+    }
+
+    // Use fallback if not found in stylesheets
+    if (FALLBACK_KEYFRAMES[keyframeName]) {
+        console.warn(`[Misc] Keyframes '${keyframeName}' not found in CSS. Using fallback definition.`);
+        return FALLBACK_KEYFRAMES[keyframeName];
+    }
+
+    console.warn(`[Misc] No keyframes rule found or fallback defined for animation: '${keyframeName}'`);
+    return null;
+}
 
 // --- Share URL Functionality ---
 
-// Keep track of modal elements scoped to this module
-let shareUrlModal, shareUrlInput, copyShareUrlBtn, copyBtnText, shareModalClose, shareModalCancel, qrCodeDisplay, downloadQrCodeBtn;
-let shareTwitter, shareFacebook, shareEmail, shareWhatsapp, shareLinkedin, sharePinterest; // Social links
+/** Opens the Share Modal and populates it with the current configuration URL */
+export function openShareModal() { // EXPORTED
+    console.log('[Share] openShareModal called...');
 
-
-export function openShareModal() {
-    console.log('[Share] Opening Share Modal...');
-    
-    // Get modal elements
     const shareUrlModal = document.getElementById('shareUrlModal');
     const shareUrlInput = document.getElementById('shareUrlInput');
-    const copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
-    const copyBtnText = copyShareUrlBtn?.querySelector('span');
     const qrCodeDisplay = document.getElementById('qrCodeDisplay');
     const downloadQrCodeBtn = document.getElementById('downloadQrCode');
-    
-    // Social sharing elements
     const shareTwitter = document.getElementById('shareTwitter');
     const shareFacebook = document.getElementById('shareFacebook');
     const shareEmail = document.getElementById('shareEmail');
-    
-    // Ensure elements exist
-    if (!shareUrlModal || !shareUrlInput || !copyShareUrlBtn) {
-        console.error("[Share] Cannot open modal, elements not found (setupShareUrlModal likely failed).");
-        if(typeof showAlert === 'function') {
-            showAlert("Cannot open share dialog: UI elements missing.", "error");
-        }
+
+    if (!shareUrlModal || !shareUrlInput) {
+        console.error("[Share] Cannot open modal, core elements not found.");
+        showAlert("Cannot open share dialog: UI elements missing.", "error");
         return;
     }
-    
-    // FIXED: Check SettingsManager using both import and window fallback
-    const settingsManager = window.SettingsManager;
-    if (!settingsManager || typeof settingsManager.getCurrentSettings !== 'function') {
-        console.error("[Share] SettingsManager not available to generate URL.");
-        if(typeof showAlert === 'function') {
-            showAlert("Cannot generate share URL: Settings Manager error.", "error");
-        }
+
+    // Use the imported SettingsManager
+    if (!SettingsManager || typeof SettingsManager.getCurrentSettings !== 'function') {
+        console.error("[Share] SettingsManager not available.");
+        showAlert("Cannot generate share URL: Settings Manager error.", "error");
         shareUrlInput.value = "Error: Settings unavailable";
         return;
     }
 
-    // Generate URL with proper error handling
+    // --- Generate URL ---
     let generatedUrl = '';
     try {
         const baseUrl = window.location.origin + window.location.pathname;
-        const currentSettings = settingsManager.getCurrentSettings();
-        const defaults = typeof settingsManager.getDefaults === 'function' 
-            ? settingsManager.getDefaults() 
-            : {};
-            
-        // FIXED: Create params with more robust handling
+        const currentSettings = SettingsManager.getCurrentSettings();
+        const defaults = SettingsManager.getDefaults();
         const params = new URLSearchParams();
-        
-        // Relevant settings keys to include in URL
+
+        // Define keys relevant for sharing visual appearance
         const relevantKeys = [
             'logoText', 'fontFamily', 'fontSize', 'letterSpacing', 'textCase', 'fontWeight',
             'textColorMode', 'solidColorPicker', 'gradientPreset', 'color1', 'color2', 'useColor3', 'color3', 'animationDirection',
             'textShadow', 'borderColorPicker', 'borderStyle', 'textAlign', 'rotation',
             'textAnimation', 'animationSpeed',
             'backgroundType', 'backgroundColor', 'bgOpacity', 'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection'
+            // Exclude export settings like exportWidth, exportQuality etc.
         ];
 
-        // FIXED: More robust parameter generation with type handling
-        let paramsAdded = 0;
         relevantKeys.forEach(key => {
-            if (currentSettings.hasOwnProperty(key) && 
-                currentSettings[key] !== undefined && 
-                currentSettings[key] !== null) {
-                
-                // Only add if different from default or if key is essential (like logoText)
-                const isEssential = ['logoText', 'fontFamily'].includes(key);
-                const isDifferentFromDefault = 
-                    !defaults.hasOwnProperty(key) || 
-                    String(currentSettings[key]) !== String(defaults[key]);
-                
+            if (currentSettings.hasOwnProperty(key) && currentSettings[key] !== undefined && currentSettings[key] !== null) {
+                const isEssential = ['logoText', 'fontFamily'].includes(key); // Always include these
+                const isDifferentFromDefault = !defaults.hasOwnProperty(key) || String(currentSettings[key]) !== String(defaults[key]);
+
                 if (isEssential || isDifferentFromDefault) {
                     let value = currentSettings[key];
-                    
-                    // Handle different value types
-                    if (typeof value === 'boolean') {
-                        value = value ? '1' : '0';
-                    } else if (typeof value === 'number') {
-                        value = String(value);
-                    } else if (typeof value === 'string' && value.startsWith('#')) {
-                        // Remove # from color codes to shorten URL
-                        value = value.substring(1);
-                    }
-                    
+                    if (typeof value === 'boolean') value = value ? '1' : '0';
+                    else if (typeof value === 'string' && value.startsWith('#')) value = value.substring(1); // Remove # from colors
                     params.append(key, value);
-                    paramsAdded++;
                 }
             }
         });
-        
-        // FIXED: Ensure we have at least some parameters
-        if (paramsAdded === 0) {
-            // Add at least logoText if nothing else
-            const logoText = currentSettings.logoText || 'Manic';
-            params.append('logoText', logoText);
-        }
+
+        // Ensure at least logoText is present if all else is default
+        if (!params.has('logoText')) params.append('logoText', currentSettings.logoText || 'Logo');
 
         generatedUrl = `${baseUrl}?${params.toString()}`;
         shareUrlInput.value = generatedUrl;
-        console.log(`[Share] Generated URL (${generatedUrl.length} chars): ${generatedUrl}`);
+        console.log(`[Share] Generated URL (${generatedUrl.length} chars)`);
 
     } catch (err) {
         console.error("[Share] Error generating share URL:", err);
         shareUrlInput.value = "Error generating URL.";
-        generatedUrl = '';
+        generatedUrl = ''; // Ensure URL is empty on error
     }
 
-    // Update social links & QR
+    // --- Update Social Links & QR Code ---
     if (generatedUrl) {
         const encodedUrl = encodeURIComponent(generatedUrl);
         const shareText = encodeURIComponent("Check out this logo I designed with Logomaker by Manic!");
         const shareTitle = encodeURIComponent("Logomaker Design");
 
-        // Update social sharing buttons
-        if (shareTwitter) {
-            shareTwitter.href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${shareText}`;
-        }
-        if (shareFacebook) {
-            shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-        }
-        if (shareEmail) {
-            const subject = shareTitle;
-            const body = `${shareText}\n\n${generatedUrl}`;
-            shareEmail.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
-        }
+        if (shareTwitter) shareTwitter.href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${shareText}`;
+        if (shareFacebook) shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        if (shareEmail) shareEmail.href = `mailto:?subject=${shareTitle}&body=${encodeURIComponent(shareText + '\n\n' + generatedUrl)}`;
 
-        // Generate QR Code
+        // Generate QR Code (requires QRCode library loaded globally or imported)
         if (qrCodeDisplay) {
             qrCodeDisplay.innerHTML = '<div class="qr-placeholder">Generating QR...</div>';
             if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = true;
-            
-            // Check if QRCode library is available
-            if (typeof QRCode === 'undefined') {
-                console.warn('[Share] QRCode library not found.');
+
+            if (typeof QRCode === 'undefined') { // Check if library exists
+                console.warn('[Share] QRCode library not found. Cannot generate QR code.');
                 qrCodeDisplay.innerHTML = '<div class="qr-placeholder" style="font-size: 0.8em; color: #888;">QR Code library not loaded.</div>';
             } else {
-                try {
-                    qrCodeDisplay.innerHTML = ''; // Clear placeholder
-                    new QRCode(qrCodeDisplay, {
-                        text: generatedUrl,
-                        width: 160,
-                        height: 160,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                    if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = false;
-                    console.log('[Share] QR Code generated.');
-                } catch (qrError) {
-                    console.error('[Share] QR generation failed:', qrError);
-                    qrCodeDisplay.innerHTML = '<div class="qr-placeholder">QR Generation Failed</div>';
-                }
+                // Use timeout to ensure modal is visible before QR gen attempts DOM manipulation
+                setTimeout(() => {
+                    try {
+                        qrCodeDisplay.innerHTML = ''; // Clear placeholder
+                        new QRCode(qrCodeDisplay, {
+                            text: generatedUrl, width: 160, height: 160,
+                            colorDark: "#000000", colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                        if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = false;
+                        console.log('[Share] QR Code generated.');
+                    } catch (qrError) {
+                        console.error('[Share] QR generation failed:', qrError);
+                        qrCodeDisplay.innerHTML = '<div class="qr-placeholder">QR Generation Failed</div>';
+                        if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = true;
+                    }
+                }, 50); // Small delay
             }
         }
     } else {
-        // Disable links/QR if URL generation failed
-        if (qrCodeDisplay) {
-            qrCodeDisplay.innerHTML = '<div class="qr-placeholder">URL Generation Failed</div>';
-        }
+        // Disable sharing options if URL generation failed
+        if (shareTwitter) shareTwitter.removeAttribute('href');
+        if (shareFacebook) shareFacebook.removeAttribute('href');
+        if (shareEmail) shareEmail.removeAttribute('href');
+        if (qrCodeDisplay) qrCodeDisplay.innerHTML = '<div class="qr-placeholder">URL Error</div>';
         if (downloadQrCodeBtn) downloadQrCodeBtn.disabled = true;
     }
 
     // Show modal
     shareUrlModal.style.display = 'flex';
-    shareUrlModal.classList.add('active');
+    requestAnimationFrame(() => { shareUrlModal.classList.add('active'); });
+    console.log('[Share] Modal Opened.');
 }
 
-/** Share URL Modal Logic */
+/** Sets up listeners and elements for the Share Modal - Called by main.js */
+function setupShareUrlModal() { // Renamed, NOT exported directly, called internally or by main if needed
+    console.log('[Share] Initializing Share URL Modal setup...');
 
-/** Sets up listeners and elements for the Share Modal */
-function setupShareUrlModal() {
-    console.log('[Share] Initializing Share URL Modal logic...');
-    
-    // Get modal elements
     const shareUrlModal = document.getElementById('shareUrlModal');
     const shareUrlInput = document.getElementById('shareUrlInput');
     const copyShareUrlBtn = document.getElementById('copyShareUrlBtn');
     const copyBtnText = copyShareUrlBtn?.querySelector('span');
     const shareModalClose = document.getElementById('shareModalClose');
     const shareModalCancel = document.getElementById('shareModalCancel');
-    const qrCodeDisplay = document.getElementById('qrCodeDisplay');
+    const qrCodeDisplay = document.getElementById('qrCodeDisplay'); // Needed for download btn listener
     const downloadQrCodeBtn = document.getElementById('downloadQrCode');
-    
-    // Check for essential elements
-    if (!shareUrlModal || !shareUrlInput || !copyShareUrlBtn) {
-        console.warn('[Share] Setup failed: One or more Share URL modal elements are missing.');
-        return;
+
+    if (!shareUrlModal || !shareUrlInput || !copyShareUrlBtn || !shareModalClose || !shareModalCancel || !downloadQrCodeBtn) {
+        console.warn('[Share] Setup failed: One or more required Share URL modal elements are missing.');
+        return; // Don't attach listeners if elements are missing
     }
 
-    // Modal close function
+    // --- Prevent duplicate listener attachment ---
+    if (shareUrlModal.dataset.shareListenersAttached === 'true') {
+         console.log('[Share] Listeners already attached.');
+         return;
+    }
+
     const closeShareModal = () => {
         shareUrlModal.style.display = 'none';
         shareUrlModal.classList.remove('active');
-        console.log('[Share] Modal closed.');
-        
-        // Reset copy button text when modal closes
-        if (copyBtnText) copyBtnText.textContent = 'Copy';
+        if (copyBtnText) copyBtnText.textContent = 'Copy'; // Reset button text
     };
 
-    // Attach event listeners
-    shareModalClose?.addEventListener('click', closeShareModal);
-    shareModalCancel?.addEventListener('click', closeShareModal);
-    
-    // Close when clicking outside
-    shareUrlModal?.addEventListener('click', (e) => {
-        if (e.target === shareUrlModal) closeShareModal();
-    });
-    
-    // FIXED: Copy button functionality
-    copyShareUrlBtn?.addEventListener('click', () => {
+    shareModalClose.addEventListener('click', closeShareModal);
+    shareModalCancel.addEventListener('click', closeShareModal);
+    shareUrlModal.addEventListener('click', (e) => { if (e.target === shareUrlModal) closeShareModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && shareUrlModal.classList.contains('active')) closeShareModal(); });
+
+    // Copy button functionality
+    copyShareUrlBtn.addEventListener('click', () => {
         const textToCopy = shareUrlInput.value;
-        
-        // Skip empty text
-        if (!textToCopy || textToCopy.includes('Error:')) {
-            if (typeof showAlert === 'function') {
-                showAlert('Nothing to copy: URL generation failed', 'error');
-            }
-            return;
+        if (!textToCopy || textToCopy.includes('Error')) {
+            showAlert('Nothing to copy: URL generation failed', 'error'); return;
         }
-        
-        // Use clipboard API with fallback
-        const copyText = () => {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                return navigator.clipboard.writeText(textToCopy)
-                    .then(() => true)
-                    .catch(err => {
-                        console.error('[Share] Clipboard API error:', err);
-                        return false;
-                    });
-            } else {
-                // Fallback for browsers without clipboard API
-                try {
-                    shareUrlInput.select();
-                    shareUrlInput.setSelectionRange(0, 99999);
-                    const success = document.execCommand('copy');
-                    if (success) {
-                        return Promise.resolve(true);
-                    } else {
-                        return Promise.resolve(false);
-                    }
-                } catch (err) {
-                    console.error('[Share] execCommand copy error:', err);
-                    return Promise.resolve(false);
-                }
-            }
-        };
-        
-        // Execute copy and show feedback
-        copyText().then(success => {
-            if (success) {
-                // Update button text for feedback
-                if (copyBtnText) {
-                    copyBtnText.textContent = 'Copied!';
-                    setTimeout(() => {
-                        copyBtnText.textContent = 'Copy';
-                    }, 2000);
-                }
-                
-                // Show toast notification
-                if (typeof showToast === 'function') {
-                    showToast({
-                        message: 'Share URL copied to clipboard! ✓',
-                        type: 'success',
-                        duration: 2000
-                    });
-                }
-                console.log('[Share] URL copied successfully');
-            } else {
-                // Show error
-                if (typeof showAlert === 'function') {
-                    showAlert('Failed to copy URL to clipboard', 'error');
-                }
-                console.error('[Share] Copy failed');
-            }
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            if (copyBtnText) { copyBtnText.textContent = 'Copied!'; setTimeout(() => { copyBtnText.textContent = 'Copy'; }, 2000); }
+            showToast({ message: 'Share URL copied! ✓', type: 'success', duration: 2000 });
+            console.log('[Share] URL copied successfully');
+        }).catch(err => {
+            console.error('[Share] Clipboard API error:', err);
+            showAlert('Failed to copy URL. Check browser permissions or console.', 'error');
         });
     });
 
     // QR code download button
-    downloadQrCodeBtn?.addEventListener('click', () => {
+    downloadQrCodeBtn.addEventListener('click', () => {
         try {
-            // Find QR code canvas
-            const canvas = qrCodeDisplay.querySelector('canvas');
-            if (!canvas) {
-                console.error('[Share] QR canvas not found');
-                return;
-            }
-            
-            // Convert to image and download
+            const canvas = qrCodeDisplay?.querySelector('canvas'); // QR code library generates a canvas
+            if (!canvas) throw new Error('QR canvas element not found');
             const dataURL = canvas.toDataURL('image/png');
             const a = document.createElement('a');
             a.href = dataURL;
-            a.download = 'logomaker-qr.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
+            a.download = 'logomaker-share-qr.png';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
             console.log('[Share] QR downloaded');
-            
-            // Show notification
-            if (typeof showToast === 'function') {
-                showToast({
-                    message: 'QR Code downloaded!',
-                    type: 'success',
-                    duration: 2000
-                });
-            }
+            showToast({ message: 'QR Code downloaded!', type: 'success', duration: 2000 });
         } catch (err) {
             console.error('[Share] QR download error:', err);
-            if (typeof showAlert === 'function') {
-                showAlert('QR download failed', 'error');
-            }
+            showAlert(`QR download failed: ${err.message}`, 'error');
         }
     });
 
+    shareUrlModal.dataset.shareListenersAttached = 'true'; // Mark as initialized
     console.log('[Share] Share URL Modal setup complete.');
 }
 
-// Initialize Share URL Modal Logic on Load
+// Initialize Share Modal listeners on DOM ready
+// This ensures elements exist before attaching listeners.
+// main.js should import and call openShareModal, not setupShareUrlModal directly.
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', setupShareUrlModal); }
 else { setupShareUrlModal(); }
 
-// Expose handler globally for main.js binding
-window.handleShareUrlClick = () => { const shareBtn = document.getElementById('shareUrlBtn'); shareBtn?.click(); }; // Simple trigger
+/** Randomize Style Function - Called by main.js */
+export function randomizeStyle() { // EXPORTED
+    console.log('[Randomizer] Randomizing styles...');
+    try {
+        const defaults = SettingsManager.getDefaults();
+        const current = SettingsManager.getCurrentSettings();
 
-console.log("[Misc v6] Utilities ready.");
+        // Preserve Text/Font settings
+        const textSettings = {
+            logoText: current.logoText,
+            fontFamily: current.fontFamily,
+            fontSize: current.fontSize,
+            letterSpacing: current.letterSpacing,
+            textCase: current.textCase,
+            fontWeight: current.fontWeight
+        };
+         // Preserve Export settings
+         const exportSettings = {
+            exportWidth: current.exportWidth,
+            exportHeight: current.exportHeight,
+            exportQuality: current.exportQuality,
+            exportTransparent: current.exportTransparent,
+            exportFrames: current.exportFrames,
+            exportFrameRate: current.exportFrameRate
+        };
+         // Preserve Preview Size
+        const previewSetting = {
+            previewSize: current.previewSize
+        };
+
+
+        // Helper to get available options from a select dropdown
+        const getOptions = (id) => {
+            const select = document.getElementById(id);
+            return select ? Array.from(select.options).map(o => o.value).filter(v => v) : []; // Filter out empty values
+        };
+        // Helper to pick a random item from an array
+        const getRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
+        // Helper for random hex color
+        const randomHex = () => `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+
+        // Get available options dynamically
+        const gradientPresets = getOptions('gradientPreset').filter(v => v !== 'custom');
+        const textEffects = getOptions('textShadow').filter(v => v !== 'text-glow-none'); // Exclude 'none'
+        const borderStyles = getOptions('borderStyle').filter(v => v !== 'border-none'); // Exclude 'none'
+        const animations = getOptions('textAnimation').filter(v => v !== 'anim-none'); // Exclude 'none'
+        const backgroundTypes = getOptions('backgroundType').filter(v => v !== 'bg-transparent');
+        const bgGradientPresets = getOptions('backgroundGradientPreset').filter(v => v !== 'custom');
+        const textAligns = getOptions('textAlign');
+
+        // Generate random values for style-related settings
+        const randomStyleSettings = {
+            textColorMode: Math.random() > 0.3 ? 'gradient' : 'solid', // Favor gradient slightly
+            solidColorPicker: randomHex(),
+            gradientPreset: getRandom(gradientPresets) || defaults.gradientPreset, // Fallback to default preset
+            color1: randomHex(),
+            color2: randomHex(),
+            useColor3: Math.random() > 0.7, // ~30% chance of 3 colors
+            color3: randomHex(),
+            animationDirection: Math.floor(Math.random() * 361), // Text gradient angle
+            textShadow: getRandom(textEffects) || defaults.textShadow, // Random effect or default (which is 'none')
+            borderColorPicker: randomHex(),
+            borderStyle: getRandom(borderStyles) || defaults.borderStyle, // Random border or default ('none')
+            textAlign: getRandom(textAligns) || defaults.textAlign,
+            rotation: Math.floor(Math.random() * 61) - 30, // -30 to +30 degrees
+            textAnimation: getRandom(animations) || defaults.textAnimation, // Random animation or default ('none')
+            animationSpeed: (Math.random() * 2.8 + 0.2).toFixed(1), // 0.2x to 3.0x speed
+            backgroundType: getRandom(backgroundTypes) || defaults.backgroundType,
+            backgroundColor: randomHex(),
+            bgOpacity: (Math.random() * 0.6 + 0.4).toFixed(2), // 0.4 to 1.0 opacity
+            backgroundGradientPreset: getRandom(bgGradientPresets) || defaults.backgroundGradientPreset,
+            bgColor1: randomHex(),
+            bgColor2: randomHex(),
+            bgGradientDirection: Math.floor(Math.random() * 361),
+        };
+
+        // Combine preserved settings with randomized style settings
+        const finalSettings = {
+            ...defaults, // Start with defaults to ensure all keys are present
+            ...randomStyleSettings, // Apply randomized styles
+            ...textSettings, // Override with preserved text/font settings
+            ...previewSetting, // Override with preserved preview size
+            ...exportSettings // Override with preserved export settings
+        };
+
+        console.log('[Randomizer] Applying randomized settings:', finalSettings);
+        SettingsManager.applySettings(finalSettings, true); // Apply and force UI update
+        showToast({ message: 'Style Randomized! 🎲', type: 'info', duration: 2000 });
+
+    } catch (err) {
+        console.error("[Randomizer] Error:", err);
+        showAlert(`Failed to randomize style: ${err.message}`, "error");
+    }
+}
+
+// --- Tooltip Setup (Placeholder) ---
+export function setupTooltips() { // EXPORTED
+    console.log("[Misc] Placeholder: Tooltip setup would go here.");
+    // Add actual tooltip initialization logic (e.g., using Tippy.js or custom solution)
+     // Example: document.querySelectorAll('.tooltip-trigger').forEach(...)
+}
+
+console.log("[Misc] Utilities initialized/exposed.");
+
+// Removed: window.updateSizeIndicator = updateSizeIndicator;
+// Removed: window.getActiveAnimationKeyframes = getActiveAnimationKeyframes;
+// Removed: window.handleShareUrlClick = ...;
