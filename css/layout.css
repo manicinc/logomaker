@@ -145,6 +145,7 @@ header {
 }
 
 /* --- Preview Area --- */
+/* --- Preview Area --- */
 /* In layout.css */
 .preview-container {
   position: relative;
@@ -152,17 +153,16 @@ header {
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  overflow: hidden;
+  overflow: hidden; /* Keep overflow hidden */
   border-radius: var(--border-radius-md);
-  /* CHANGE THIS: Use background shorthand or make transparent */
-  /* Option A: Use shorthand (allows image to show over color if needed) */
-  background: var(--dynamic-bg-color);
-  /* Option B: Make transparent (Recommended if image should fully replace color) */
-  /* background-color: transparent; */
-  transition: background var(--transition-base), opacity var(--transition-base), min-height var(--transition-base), border-color var(--transition-base);
-  box-shadow: var(--box-shadow-inset);
-  border: 1px solid var(--border-color);
-  min-height: 300px;
+  /* --- FIX: Ensure transparent background base --- */
+  background-color: transparent; /* Let JS/classes handle background */
+  background-image: none; /* Ensure no base image */
+  /* --- Keep other layout/transition styles --- */
+  transition: opacity var(--transition-base), min-height var(--transition-base), border-color var(--transition-base);
+  box-shadow: var(--box-shadow-inset); /* Keep inset shadow if desired */
+  border: 1px solid var(--border-color); /* Keep base border, border-* classes override style/color */
+  min-height: 300px; /* Default medium size */
   width: 100%;
   max-width: 100%;
 }
@@ -182,46 +182,54 @@ header {
   transition: opacity var(--transition-base);
 }
 
-/* Logo Container (Direct child for alignment) */
+
+/* Logo Container (Direct child for alignment & BORDER TARGET) */
 .logo-container {
   position: relative;
-  display: flex; /* Use flex here as well */
-  align-items: center; /* Vertical center */
-  justify-content: center; /* Horizontal center (can be overridden) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
   z-index: 2; /* Above background overlay */
-  overflow: hidden; /* Prevent logo overflow if absolutely necessary */
+  overflow: hidden;
+  /* --- FIX: Remove default border/shadow here, let effects.css handle it --- */
+  border: none; /* Remove base border */
+  box-shadow: none; /* Remove base shadow */
+  /* Make sure background is transparent so preview shows through */
+  background-color: transparent;
 }
 
 /* Actual Logo Text Element */
 .logo-text {
-  font-family: var(--font-family-logo); /* Set default */
-  font-size: clamp(48px, 12vw, 150px); /* More aggressive clamp */
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.03em; /* Default */
-  text-align: center; /* Default */
-  background-image: var(--primary-gradient); /* Default gradient */
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+  /* --- FIX: Remove default styles that JS should control --- */
+  /* font-family: var(--font-family-logo); */ /* Let JS set font-family */
+  /* font-weight: var(--font-weight-bold); */ /* Let JS set font-weight */
+  /* background-image: var(--primary-gradient); */ /* Let JS set background-image */
+  /* -webkit-background-clip: text; */ /* Let JS handle this */
+  /* background-clip: text; */ /* Let JS handle this */
+  /* color: transparent; */ /* Let JS handle color/fill */
+  /* -webkit-text-fill-color: transparent; */ /* Let JS handle color/fill */
+  /* border: var(--dynamic-border-width, 2px) solid transparent; */ /* Let .logo-container handle border */
+  /* box-shadow: none; */
+
+  /* --- Keep Essential Layout/Text Styles --- */
+  font-size: clamp(48px, 12vw, 150px);
+  letter-spacing: 0.03em; /* JS controls this */
+  text-align: center; /* JS controls this */
   position: relative;
-  display: inline-block; /* Crucial for text effects/sizing */
-  padding: var(--space-sm); /* Padding around text */
+  display: inline-block; /* Keep this - important for effects/sizing */
+  padding: var(--space-sm);
   margin: 0;
-  max-width: 100%; /* Prevent overflow */
+  max-width: 100%;
   transform-origin: center center;
-  transition: all var(--transition-base); /* Smooth transitions */
-  will-change: transform, opacity, color, text-shadow, border; /* Optimize animations */
+  transition: all var(--transition-base); /* Keep transition */
+  will-change: transform, opacity, color, text-shadow, background-image; /* Updated will-change */
   cursor: default;
   user-select: none;
-  line-height: 1.1; /* Avoid excessive line height */
+  line-height: 1.1;
   overflow-wrap: break-word;
-  word-break: break-word; /* Ensure long text breaks */
-  /* Reset potential border from previous implementation */
-  border: var(--dynamic-border-width, 2px) solid transparent;
-  box-shadow: none; /* Reset potential box shadow */
+  word-break: break-word;
 }
 
 /* Size indicator */

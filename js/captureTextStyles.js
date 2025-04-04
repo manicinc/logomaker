@@ -436,31 +436,83 @@ function getRootCSSVariable(varName) {
   return rootStyle.getPropertyValue(varName).trim();
 }
 
-// Extract keyframes CSS for an animation
+/**
+ * Fixed extractKeyframesCSS function to handle CORS security errors
+ * and use fallback keyframes when needed
+ */
 function extractKeyframesCSS(animationName) {
-  // Check for animation name or variant (some animations use -1, -2 suffixes)
-  for (let i = 0; i < document.styleSheets.length; i++) {
-      try {
+    // Check for animation name or variant (some animations use -1, -2 suffixes)
+    console.log(`[Style Capture] Extracting keyframes for: ${animationName}`);
+    
+    // Define fallback keyframes for common animations
+    const FALLBACK_KEYFRAMES = {
+      'pulse': `@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.9}}`,
+      'bounce': `@keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-15px)}60%{transform:translateY(-8px)}}`,
+      'shake': `@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px)}20%,40%,60%,80%{transform:translateX(4px)}}`,
+      'float': `@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}`,
+      'rotate': `@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`,
+      'wave': `@keyframes wave{0%,100%{transform:skew(0deg,0deg)}50%{transform:skew(4deg,2deg)}}`,
+      'glitch': `@keyframes glitch{0%,100%{clip-path:inset(45% 0 45% 0);transform:translate(-2px,1px) scale(1.01)}25%{clip-path:inset(10% 0 70% 0);transform:translate(2px,-1px) scale(.99)}50%{clip-path:inset(75% 0 15% 0);transform:translate(-2px,-1px) scale(1.02)}75%{clip-path:inset(30% 0 60% 0);transform:translate(2px,1px) scale(.98)}}`,
+      'flicker': `@keyframes flicker{0%,100%{opacity:1}50%{opacity:.5}}`,
+      'fade': `@keyframes fade{0%,100%{opacity:.2}50%{opacity:1}}`
+    };
+    
+    // Try to get keyframes from window.getActiveAnimationKeyframes first
+    if (typeof window.getActiveAnimationKeyframes === 'function') {
+      const keyframesFromWindow = window.getActiveAnimationKeyframes(animationName);
+      if (keyframesFromWindow) {
+        console.log(`[Style Capture] Found keyframes via window.getActiveAnimationKeyframes for ${animationName}`);
+        return keyframesFromWindow;
+      }
+    }
+    
+    // Try to get keyframes from stylesheets - with CORS error handling
+    try {
+      for (let i = 0; i < document.styleSheets.length; i++) {
+        try {
           const sheet = document.styleSheets[i];
           const rules = sheet.cssRules || sheet.rules;
           
           for (let j = 0; j < rules.length; j++) {
-              const rule = rules[j];
-              if (rule.type === CSSRule.KEYFRAMES_RULE) {
-                  // Check for exact name or name-1 naming pattern
-                  if (rule.name === animationName || 
-                      rule.name === `${animationName}-1`) {
-                      return rule.cssText;
-                  }
+            const rule = rules[j];
+            if (rule.type === CSSRule.KEYFRAMES_RULE) {
+              // Check for exact name or name-1 naming pattern
+              if (rule.name === animationName || 
+                  rule.name === `${animationName}-1`) {
+                console.log(`[Style Capture] Found keyframes in stylesheet for ${rule.name}`);
+                return rule.cssText;
               }
+            }
           }
-      } catch (e) {
-          // Security errors happen when accessing cross-origin stylesheets
-          console.warn(`[Style Capture] Error accessing stylesheet ${i}:`, e);
+        } catch (e) {
+          // Handle CORS errors silently - this is expected for cross-origin stylesheets
+          if (e.name === 'SecurityError') {
+            console.log(`[Style Capture] Security restriction accessing stylesheet ${i} - this is normal`);
+          } else {
+            console.warn(`[Style Capture] Error accessing stylesheet ${i}:`, e);
+          }
+          continue; // Try next stylesheet
+        }
       }
-  }
-  
-  return null;
+    } catch (e) {
+      console.warn(`[Style Capture] Error during stylesheet iteration:`, e);
+    }
+    
+    // Use fallback keyframes if nothing found
+    if (FALLBACK_KEYFRAMES[animationName]) {
+      console.log(`[Style Capture] Using fallback keyframes for ${animationName}`);
+      return FALLBACK_KEYFRAMES[animationName];
+    }
+    
+    // Check for compound names (e.g., "glitch-1" should fall back to "glitch")
+    const baseName = animationName.split('-')[0];
+    if (baseName !== animationName && FALLBACK_KEYFRAMES[baseName]) {
+      console.log(`[Style Capture] Using base fallback keyframes for ${baseName} (from ${animationName})`);
+      return FALLBACK_KEYFRAMES[baseName];
+    }
+    
+    console.warn(`[Style Capture] No keyframes found for ${animationName} and no fallback available`);
+    return null;
 }
 
 // Parse animation duration into milliseconds

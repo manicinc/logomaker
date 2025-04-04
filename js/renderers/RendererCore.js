@@ -206,82 +206,120 @@ function createBackgroundRect(styles, bgGradientId) {
 
 
 /** Generate embedded CSS including font face and animations. */
-async function generateEmbeddedCSS(styles, animationMetadata) {
-    let css = `/* Embedded CSS - Logomaker Core v2.2 */\n`;
-    let cssAdded = false;
+
+/**
+ * This is the critical function that generates the embedded CSS for the SVG,
+ * focusing on fixing the animation keyframe name issue.
+ */
+function generateEmbeddedCSS(styleData, animationMetadata) {
     console.log('[Core CSS] Generating embedded CSS. Animation Metadata:', animationMetadata);
-
-    // --- Font Embedding ---
-    if (styles.font?.family && styles.font?.embedData) {
-        const embed = styles.font.embedData;
-        css += `@font-face {\n  font-family: "${styles.font.family}";\n  src: url("${embed.file}") format("${embed.format || 'woff2'}");\n  font-weight: ${embed.weight || 400};\n  font-style: ${embed.style || 'normal'};\n}\n\n`;
-        cssAdded = true; 
-        console.log(`[Core CSS] Embedded @font-face for ${styles.font.family}`);
-    } else if (styles.font?.family) { 
-        console.warn(`[Core CSS] Font ${styles.font.family} specified, but no embed data found.`); 
+    let css = "/* Embedded CSS - Logomaker Core v2.1 */\n";
+    
+// Font embedding section
+const fontFamily = styleData?.font?.family;
+if (fontFamily) {
+    // Extract primary font name (without quotes and fallbacks)
+    const primaryFont = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+    console.log(`[Core CSS] Processing font embedding for: ${primaryFont}`);
+    
+    // Try to get font data for embedding
+    if (typeof window.getFontDataByName === 'function') {
+        try {
+            const fontData = window.getFontDataByName(primaryFont);
+            if (fontData && fontData.variants && fontData.variants.length > 0) {
+                // Look for a matching variant with the correct weight/style
+                const fontWeight = styleData?.font?.weight || '400';
+                const fontStyle = styleData?.font?.style || 'normal';
+                
+                // Find best matching variant with embedded data
+                const matchingVariant = fontData.variants.find(v => 
+                    v.file && v.file.startsWith('data:') && 
+                    String(v.weight) === String(fontWeight) && 
+                    (v.style || 'normal') === fontStyle
+                ) || fontData.variants.find(v => 
+                    v.file && v.file.startsWith('data:') && 
+                    String(v.weight) === String(fontWeight)
+                ) || fontData.variants.find(v => 
+                    v.file && v.file.startsWith('data:')
+                );
+                
+                if (matchingVariant && matchingVariant.file) {
+                    css += `/* Embedded Font: ${primaryFont} */\n`;
+                    css += `@font-face {\n`;
+                    css += `  font-family: "${primaryFont}";\n`;
+                    css += `  src: url(${matchingVariant.file});\n`;
+                    css += `  font-weight: ${matchingVariant.weight || fontWeight};\n`;
+                    css += `  font-style: ${matchingVariant.style || fontStyle};\n`;
+                    css += `}\n\n`;
+                    console.log(`[Core CSS] Successfully embedded font ${primaryFont} with weight ${matchingVariant.weight}`);
+                } else {
+                    console.warn(`[Core CSS] No embeddable variant found for ${primaryFont}.`);
+                }
+            } else {
+                console.warn(`[Core CSS] Font ${primaryFont} specified, but no variant data found.`);
+            }
+        } catch (fontError) {
+            console.error(`[Core CSS] Error embedding font ${primaryFont}:`, fontError);
+        }
+    } else {
+        console.warn(`[Core CSS] getFontDataByName function not available. Cannot embed fonts.`);
     }
+}
 
-    // --- Animation Keyframes & Class ---
-    const anim = styles.animation;
-    if (anim?.class && anim.class !== 'anim-none') {
-        const animName = anim.class.replace('anim-', '');
-        let keyframesCss = anim.activeKeyframes; // Use captured keyframes first
+    // Add animation keyframes if present
+    if (animationMetadata && animationMetadata.name) {
+        // Ensure we have the actual keyframes CSS
+        let keyframesCSS = '';
         
-        // FIXED: Try to get keyframes from function or use fallbacks
-        if (!keyframesCss && typeof window.getActiveAnimationKeyframes === 'function') {
-            console.log(`[Core CSS] Trying getActiveAnimationKeyframes for '${animName}'`);
-            keyframesCss = window.getActiveAnimationKeyframes(animName);
+        // First, try to get keyframes from styleData's extracted CSS
+        if (styleData?.animation?.activeKeyframes) {
+            keyframesCSS = styleData.animation.activeKeyframes;
+            console.log(`[Core CSS] Using keyframes from styleData: ${keyframesCSS.substring(0, 50)}...`);
         }
         
-        // If still no keyframes, use hardcoded fallbacks
-        if (!keyframesCss) {
-            const fallbackKeyframes = {
-                'bounce': "@keyframes bounce { \n  0%, 100% { transform: translateY(0px); animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1); }\n  50% { transform: translateY(-15px); animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1); }\n}",
-                'glitch': "@keyframes glitch{0%,100%{clip-path:inset(45% 0 45% 0);transform:translate(-2px,1px) scale(1.01)}25%{clip-path:inset(10% 0 70% 0);transform:translate(2px,-1px) scale(.99)}50%{clip-path:inset(75% 0 15% 0);transform:translate(-2px,-1px) scale(1.02)}75%{clip-path:inset(30% 0 60% 0);transform:translate(2px,1px) scale(.98)}}",
-                'pulse': "@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.9}}",
-                'float': "@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}",
-                'rotate': "@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}",
-                'fade': "@keyframes fade{0%,100%{opacity:.2}50%{opacity:1}}",
-                'flicker': "@keyframes flicker{0%,100%{opacity:1}50%{opacity:.5}}",
-                'shake': "@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-4px)}20%,40%,60%,80%{transform:translateX(4px)}}",
-                'wave': "@keyframes wave{0%,100%{transform:skew(0deg,0deg)}50%{transform:skew(4deg,2deg)}}"
-            };
-            keyframesCss = fallbackKeyframes[animName];
-            
-            if (keyframesCss) {
-                console.log(`[Core CSS] Using fallback keyframes for ${animName}`);
+        // If not found, try to get from window's CSS extraction function
+        if (!keyframesCSS && typeof window.getActiveAnimationKeyframes === 'function') {
+            keyframesCSS = window.getActiveAnimationKeyframes(animationMetadata.name);
+            if (keyframesCSS) {
+                console.log(`[Core CSS] Using keyframes from global function: ${keyframesCSS.substring(0, 50)}...`);
             }
         }
-
-        if (keyframesCss) {
-            css += `/* Animation: ${animName} */\n${keyframesCss}\n\n`; 
-            cssAdded = true; 
-            console.log(`[Core CSS] Embedded @keyframes for ${animName}`);
-            
-            css += `.${anim.class} {\n`;
-            
-            // CRITICAL FIX: Force reasonable duration if original is 0s
-            const duration = (anim.duration && anim.duration !== '0s') ? anim.duration : '2s';
-            console.log(`[Core CSS] Using animation duration: ${duration} (original: ${anim.duration})`);
-            
-            // Base animation properties
-            css += `  animation: ${animName} ${duration} ${anim.timingFunction || 'ease'} ${anim.iterationCount || 'infinite'};\n`;
-            
-            if (styles.color?.mode === 'gradient') { 
-                css += `  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n  -webkit-text-fill-color: transparent;\n`; 
+        
+        // Extract original keyframe name from the CSS if found
+        let originalKeyframeName = animationMetadata.name;
+        if (keyframesCSS) {
+            const keyframeNameMatch = keyframesCSS.match(/@keyframes\s+([a-zA-Z0-9-_]+)/);
+            if (keyframeNameMatch && keyframeNameMatch[1]) {
+                originalKeyframeName = keyframeNameMatch[1];
+                console.log(`[Core CSS] Extracted original keyframe name from CSS: ${originalKeyframeName}`);
             }
-            
-            css += `}\n\n`; 
-            cssAdded = true; 
-            console.log(`[Core CSS] Added animation class rule for ${anim.class}`);
-        } else { 
-            console.warn(`[Core CSS] Failed to find or generate keyframes for animation: ${animName}`); 
         }
-    } else { 
-        console.log('[Core CSS] No active animation detected for CSS embedding.'); 
+        
+        // Add the keyframes to the CSS
+        if (keyframesCSS) {
+            css += `/* Animation: ${animationMetadata.name} */\n${keyframesCSS}\n`;
+            console.log(`[Core CSS] Embedded @keyframes for ${animationMetadata.name}`);
+        } else {
+            console.warn(`[Core CSS] No keyframes found for ${animationMetadata.name}. Animation might not work.`);
+        }
+        
+        // FIX: Use the original keyframe name in the animation property to ensure they match
+        css += `.${animationMetadata.class} {\n`;
+        css += `  animation: ${originalKeyframeName} ${animationMetadata.duration} ${animationMetadata.timingFunction || 'ease'} ${animationMetadata.iterationCount || 'infinite'};\n`;
+        
+        // For gradient text with animation, these properties must be in the animation class
+        if (styleData?.color?.mode === 'gradient') {
+            css += `  -webkit-background-clip: text;\n`;
+            css += `  background-clip: text;\n`;
+            css += `  color: transparent;\n`;
+            css += `  -webkit-text-fill-color: transparent;\n`;
+        }
+        
+        css += `}\n`;
+        console.log(`[Core CSS] Added animation class rule for ${animationMetadata.class} using keyframe name ${originalKeyframeName}`);
     }
-
-    return cssAdded ? css.trim() : null;
+    
+    return css;
 }
 
 /** Generate SVG Text element */function generateSVGTextElement(textContent, styles, gradientId, filterId, animationMetadata) {
