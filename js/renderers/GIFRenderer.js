@@ -283,94 +283,75 @@ function closeModal() {
     console.log("[GIF UI] Modal closed.");
 }
 
+
+function closeModal() {
+    if (!modal) return;
+    stopPreview(); // Stop animation loop
+    hideModalProgress();
+    modal.classList.remove('active');
+    modal.addEventListener('transitionend', () => {
+        if (!modal.classList.contains('active')) modal.style.display = 'none'; document.body.style.overflow = '';
+    }, { once: true });
+    setTimeout(() => { if (!modal.classList.contains('active')) { modal.style.display = 'none'; document.body.style.overflow = ''; }}, 500);
+    if (isExporting) cancelExport(); // Attempt to cancel if closing during export
+    console.log("[GIF UI] Modal closed.");
+}
+
 function resetCancelFlag() { exportCancelled = false; console.log('[GIF UI] Cancel flag reset.'); }
 function updateModalProgress(message) { if (loadingIndicator && progressText) { loadingIndicator.style.display = 'flex'; progressText.textContent = message; } }
 function hideModalProgress() { if (loadingIndicator) loadingIndicator.style.display = 'none'; }
 async function blobToDataURL(blob) { /* ... (same as before) ... */ }
 function debounce(func, wait) { /* ... (same as before) ... */ }
 
-/** Generate frames specifically for the preview loop (v2.3 - Robustness) */
+
+/** Generate frames specifically for the preview loop */
 async function generatePreviewFrames() {
     console.log("[GIF UI] Generating preview frames...");
-    previewFramesDataUrls = []; // Reset
-    stopPreview();
+    previewFramesDataUrls = [];
+    stopPreview(); // Stop existing loop
     if (previewLoadingSpinner) previewLoadingSpinner.style.display = 'block';
     if (previewImage) previewImage.style.opacity = 0;
 
-    const frameCount = Math.min(parseInt(modalFramesInput?.value || 15), 15);
+    const frameCount = Math.min(parseInt(modalFramesInput?.value || 15), 15); // Limit preview frames
     const transparent = modalTransparentInput?.checked || false;
-    const width = parseInt(modalWidthInput?.value || 400);
+    const width = parseInt(modalWidthInput?.value || 400); // Use synced dimensions
     const height = parseInt(modalHeightInput?.value || 300);
 
-    let frames = [];
     try {
-        console.log(`[GIF UI] Preview Params: ${frameCount} frames, ${width}x${height}, T: ${transparent}`);
-        frames = await generateAnimationFrames({
+        console.log(`[GIF UI] Preview Params: ${frameCount} frames, ${width}x${height}, Transparent: ${transparent}`);
+        // Use generateAnimationFrames (SVG->PNG method) from RendererCore
+        const frames = await generateAnimationFrames({
             width, height, frameCount, transparent,
-            onProgress: (prog, msg) => { /* Minimal progress */ }
+            onProgress: (prog, msg) => { /* Minimal progress update for preview gen */ }
         });
-
-        // *** ADDED VALIDATION ***
-        if (!Array.isArray(frames) || frames.length === 0) {
-            throw new Error("generateAnimationFrames returned invalid or empty result.");
-        }
-        if (!frames.every(f => f instanceof Blob)) {
-             console.warn("[GIF UI] Not all generated frames are valid Blobs:", frames);
-             // Filter out non-blobs, though this might indicate a deeper issue
-             frames = frames.filter(f => f instanceof Blob);
-             if (frames.length === 0) throw new Error("No valid Blob frames generated.");
-        }
-        console.log(`[GIF UI] Successfully generated ${frames.length} frame Blobs.`);
-        // *** END VALIDATION ***
+        if (!frames || frames.length === 0) throw new Error("No preview frames generated");
 
         console.log(`[GIF UI] Converting ${frames.length} preview blobs to data URLs...`);
-        // *** ADDED TRY/CATCH for Promise.all ***
-        try {
-            previewFramesDataUrls = await Promise.all(frames.map(blob => blobToDataURL(blob)));
-            // Add another check to ensure no undefined/null slipped through
-            previewFramesDataUrls = previewFramesDataUrls.filter(url => typeof url === 'string' && url.startsWith('data:'));
-            if(previewFramesDataUrls.length !== frames.length){
-                console.warn(`[GIF UI] Some frames failed data URL conversion. Expected ${frames.length}, got ${previewFramesDataUrls.length}`);
-            }
-            if (previewFramesDataUrls.length === 0) throw new Error("Data URL conversion resulted in empty array.");
-
-            console.log(`[GIF UI] Generated ${previewFramesDataUrls.length} valid preview frame data URLs.`);
-        } catch (dataUrlError) {
-            console.error("[GIF UI] Error converting blobs to data URLs:", dataUrlError);
-            previewFramesDataUrls = []; // Ensure empty on error
-            throw new Error(`Failed to convert frames to data URLs: ${dataUrlError.message}`);
-        }
-        // *** END TRY/CATCH ***
+        previewFramesDataUrls = await Promise.all(frames.map(blob => blobToDataURL(blob)));
+        console.log(`[GIF UI] Generated ${previewFramesDataUrls.length} preview frame data URLs.`);
 
     } catch (error) {
-        console.error("[GIF UI] Preview frame generation failed:", error);
-        previewFramesDataUrls = []; // Ensure empty on any error
+        console.error("[GIF UI] Preview frame generation error:", error);
+        previewFramesDataUrls = [];
         if (typeof showAlert === 'function') showAlert(`Preview failed: ${error.message}`, 'warning');
     } finally {
         if (previewLoadingSpinner) previewLoadingSpinner.style.display = 'none';
-        if (previewImage) previewImage.style.opacity = (previewFramesDataUrls.length > 0) ? 1 : 0; // Show only if frames exist
-        console.log("[GIF UI] Preview frame generation process finished.");
+        if (previewImage) previewImage.style.opacity = 1; // Show image area again
+        console.log("[GIF UI] Preview frame generation finished.");
     }
 }
 
-/** Start the preview animation loop (v2.3 - Robustness) */
+/** Start the preview animation loop */
 async function startPreviewLoop() {
     console.log('[GIF UI] Attempting to start preview loop...');
     stopPreview();
-    // Regenerate frames ensures we have the latest based on settings
-    await generatePreviewFrames();
+    await generatePreviewFrames(); // Generate/Re-generate frames
 
-    // *** ADDED VALIDATION ***
-    if (!previewImage || !Array.isArray(previewFramesDataUrls) || previewFramesDataUrls.length === 0 || typeof previewFramesDataUrls[0] !== 'string' || !previewFramesDataUrls[0].startsWith('data:')) {
-        console.error("[GIF UI] No valid preview frames/image element available. Cannot start loop.");
-        if (previewImage) {
-            previewImage.src = ''; // Clear potentially broken image
-            previewImage.alt = "Preview unavailable";
-            previewImage.style.opacity = 1; // Ensure container background shows
-        }
+    if (!previewImage || previewFramesDataUrls.length === 0) {
+        console.error("[GIF UI] No preview frames or image element available. Cannot start loop.");
+        if (previewImage) { previewImage.src = ''; previewImage.alt = "Preview generation failed"; }
         return;
     }
-    // *** END VALIDATION ***
 
     currentPreviewFrameIndex = 0;
     previewImage.src = previewFramesDataUrls[0];
@@ -382,27 +363,12 @@ async function startPreviewLoop() {
     console.log(`[GIF UI] Starting preview loop interval (${fr} FPS -> ${intervalTime.toFixed(1)}ms)`);
 
     previewInterval = setInterval(() => {
-        if (!previewImage || !previewFramesDataUrls || previewFramesDataUrls.length === 0) {
-             stopPreview();
-             console.warn("[GIF UI] Stopping loop: Invalid state detected inside interval.");
-             return;
-        }
+        if (!previewImage || previewFramesDataUrls.length === 0) { stopPreview(); return; }
         currentPreviewFrameIndex = (currentPreviewFrameIndex + 1) % previewFramesDataUrls.length;
-
-        // *** ADDED VALIDATION ***
-        const nextSrc = previewFramesDataUrls[currentPreviewFrameIndex];
-        if (typeof nextSrc === 'string' && nextSrc.startsWith('data:')) {
-            previewImage.src = nextSrc;
-        } else {
-             console.warn(`[GIF UI] Invalid data URL at index ${currentPreviewFrameIndex}. Stopping loop. Value:`, nextSrc);
-             stopPreview();
-             // Optionally show an error state on the image
-             previewImage.alt = "Preview Error";
-        }
-        // *** END VALIDATION ***
-
+        previewImage.src = previewFramesDataUrls[currentPreviewFrameIndex];
     }, intervalTime);
 }
+
 
 /** Stop the preview animation loop */
 function stopPreview() {
