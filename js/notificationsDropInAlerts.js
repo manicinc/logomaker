@@ -366,7 +366,7 @@ function getDefaultTitle(type) {
  * @param {string} [options.filename] - Optional filename to display.
  * @param {string} [type='info'] - Fallback type if options is a string.
  */
-function showToast(options, type = 'info') {
+export function showToast(options, type = 'info') {
   let config = {
     message: '',
     type: 'info',
@@ -592,7 +592,7 @@ function replaceAlerts() {
 replaceAlerts();
 
 /** Simple alert replacement */
-function showAlert(message, type = 'info') {
+export function showAlert(message, type = 'info') {
   // Use modal for errors/warnings, toast for info/success
   if (type === 'error' || type === 'warning') {
     showModal({ message, type });
@@ -650,7 +650,7 @@ function notifyResetSuccess(resetType = 'all') {
  * Helper function to determine if we're on a mobile device
  * @returns {boolean} True if on mobile device
  */
-function isMobileDevice() {
+export function isMobileDevice() {
   return window.innerWidth < 768 || 
          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
@@ -659,7 +659,7 @@ function isMobileDevice() {
  * Helper function to determine if dark mode is active
  * @returns {boolean} True if dark mode is active
  */
-function isDarkMode() {
+export function isDarkMode() {
   // First check body class (our own implementation)
   if (document.body.classList.contains('light-mode')) {
     return false;
@@ -681,7 +681,7 @@ function isDarkMode() {
  * @param {string} message - Message to display
  * @param {string} title - Title for the notification
  */
-function notifyFeature(id, message, title = 'New Feature!') {
+export function notifyFeature(id, message, title = 'New Feature!') {
   // Check if notification has been shown before
   const notificationsShown = JSON.parse(localStorage.getItem('notificationsShown') || '{}');
   
