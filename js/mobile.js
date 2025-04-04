@@ -26,7 +26,7 @@ function initMobileFeatures() {
       // optimizeFormInputs(); // Consider if needed
 
       // Add mobile preview toggle button (using the element created in this file)
-      setupPreviewToggle();
+    //   setupPreviewToggle();
 
       // Add preset buttons for export dimensions
       fixExportSizeControls();
