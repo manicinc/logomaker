@@ -41,6 +41,11 @@ Ideal for offline environments, workshops, or easy sharing.
 - [Node.js](https://nodejs.org/) (v18+)
 
 ### Quick Start
+
+From conception, this was designed as a lightweight application with no online or external dependencies required for functionality (some online libraries are optionally enabled for QR code and one PNG exporting option). 
+
+Thus, we have no `package.json` file, and keep things simple with a singular HTML entrypoint `index.html`, and your standard static assets in `css/` and `js/`. We also store fonts in `fonts/` in LFS, though we have a multitude of building and font loading options to allow for Logomaker to be run as both an offline HTML file without a server, or through a server with more optimal assets serving.
+
 ```bash
 # Clone & Setup
 git clone https://github.com/manicinc/logomaker.git
@@ -48,14 +53,16 @@ cd logomaker
 git lfs pull
 npm install
 
-# Build Options
-npm run build           # Build both optimized & portable versions
-npm run build:deploy    # Build for GitHub Pages
-npm run build:portable  # Build offline version
+# Dev with live reload
+node scripts/dev.js
 
-# Local Testing
-npm run serve           # Serve optimized version
-npm run serve:portable  # Serve portable version
+# Build Options
+node scripts/build.js           # Build both optimized & portable versions
+node scripts/build.js --target=deploy    # Build for GitHub Pages
+npm scripts/build.js --target=portable  # Build offline version
+
+# Serves a local server
+node scripts/build.js --serve
 ---
 ```
 
