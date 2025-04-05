@@ -3,30 +3,23 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logomaker: Make free logos anywhere</title>
-    <meta name="description" content="Instantly craft unique text logos with Logomaker by Manic Agency. Now featuring optimized loading! Explore fonts, dynamic effects, gradients, animations, and export SVG, PNG, or frames. Free, open-source, offline-capable.">
-    <meta name="keywords" content="logo maker, logo generator, free logo tool, text logo, animated logo, svg logo export, png logo export, brand identity, design tool, web tool, open source, offline tool, portable app, font chunking, manic agency, ai generated code">
+    <title>Logomaker v3: Make free logos anywhere</title> <meta name="description" content="Instantly craft unique text logos with Logomaker v3 by Manic Agency. Featuring optimized loading, border controls, and enhanced export fidelity! Explore fonts, dynamic effects, gradients, animations, and export SVG, PNG, or frames. Free, open-source, offline-capable.">
+    <meta name="keywords" content="logo maker, logo generator, free logo tool, text logo, animated logo, svg logo export, png logo export, brand identity, design tool, web tool, open source, offline tool, portable app, font chunking, manic agency, ai generated code, border radius, border padding">
     <meta name="author" content="Manic.agency">
 
-    <meta property="og:title" content="Logomaker: Optimized Free Online Logo Generator - Manic Agency">
-    <meta property="og:description" content="Design stunning text logos in seconds. Optimized loading, vast customization: fonts, colors, gradients, effects, animations & SVG/PNG export. Works offline!">
+    <meta property="og:title" content="Logomaker v3: Enhanced Free Online Logo Generator - Manic Agency">
+    <meta property="og:description" content="Design stunning text logos in seconds. Optimized loading, border radius/padding, vast customization: fonts, colors, gradients, effects, animations & SVG/PNG export. Works offline!">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://manicinc.github.io/logomaker">
-    <meta property="og:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Logomaker by Manic - Free, Optimized, Offline Logo Creator">
-    <meta name="twitter:description" content="Generate unique text logos instantly. Optimized loading, offline capability. Customize fonts, effects, animations & export SVG/PNG.">
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png">
-
-    <link rel="icon" href="https://manic.agency/favicon.ico" type="image/x-icon">
-    <link rel="canonical" href="https://manicinc.github.io/logomaker">
-
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YHJWW58FJ7"></script>
+    <meta property="og:url" content="https://manicinc.github.io/logomaker"> <meta property="og:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png"> <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Logomaker v3 by Manic - Free, Optimized, Offline Logo Creator with Borders">
+    <meta name="twitter:description" content="Generate unique text logos instantly. Optimized loading, offline capability. Customize fonts, effects, borders, animations & export SVG/PNG.">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png"> <link rel="icon" href="https://manic.agency/favicon.ico" type="image/x-icon">
+    <link rel="canonical" href="https://manicinc.github.io/logomaker"> <script async src="https://www.googletagmanager.com/gtag/js?id=G-YHJWW58FJ7"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-YHJWW58FJ7'); // Replace with your ID
+      gtag('config', 'G-YHJWW58FJ7');
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -37,19 +30,15 @@
     <link rel="stylesheet" href="./css/components.css">
     <link rel="stylesheet" href="./css/layout.css">
     <link rel="stylesheet" href="./css/loading.css">
-    <link rel="stylesheet" href="./css/generated-font-classes.css"> 
-    <link rel="stylesheet" href="./css/effects.css">
-    <link rel="stylesheet" href="./css/responsive.css">
+    <link rel="stylesheet" href="./css/generated-font-classes.css"> <link rel="stylesheet" href="./css/effects.css"> <link rel="stylesheet" href="./css/responsive.css">
 
     <style id="dynamic-font-style"></style>
-
+</head>
 <body>
 
-  <!-- Replace the existing loading overlay div with this enhanced version -->
   <div id="loading-overlay" class="loading-overlay">
     <div class="loading-content">
-      <h3>Logomaker</h3>
-      <div class="spinner"></div>
+      <h3>Logomaker <span style="font-size: 0.7em; opacity: 0.8;">v3</span></h3> <div class="spinner"></div>
       <p>Preparing extensive font library & effects...</p>
       <div class="loading-progress-container">
         <div id="loading-progress-bar" class="loading-progress-bar" role="progressbar" aria-valuenow="5" aria-valuemin="0" aria-valuemax="100"></div>
@@ -121,7 +110,8 @@
                  </div>
              </div>
              <button id="hideNoticeBtn" class="hide-notice-btn" title="Dismiss this notice" aria-label="Dismiss Notice">×</button>
-         </div>
+        </div>
+
 
         <main>
             <div class="controls-wrapper">
@@ -135,7 +125,7 @@
                 </div>
 
                 <div class="tab-content active" id="text-tab" role="tabpanel" aria-labelledby="tab-text">
-                    <div class="controls-container">
+                     <div class="controls-container">
                         <div class="control-group">
                             <label for="logoText">Logo Text</label>
                             <input type="text" id="logoText" value="Manic" placeholder="Your Logo Text" title="The text content of your logo" aria-describedby="logoTextLabel"/>
@@ -193,19 +183,20 @@
 
                 <div class="tab-content" id="style-tab" role="tabpanel" aria-labelledby="tab-style">
                     <div class="controls-container">
-                        <div class="control-group">
-                            <label id="textColorModeLabel" for="textColorMode">Text Fill Mode</label>
+                        <h4 class="full-width control-section-heading">Text Fill</h4>
+                         <div class="control-group">
+                            <label id="textColorModeLabel" for="textColorMode">Fill Mode</label>
                             <select id="textColorMode" title="Choose solid color or gradient fill for text" aria-labelledby="textColorModeLabel">
                                 <option value="gradient" selected>Gradient Fill</option>
                                 <option value="solid">Solid Color Fill</option>
                             </select>
                         </div>
                         <div class="control-group hidden" id="solidColorPickerGroup">
-                            <label id="solidColorPickerLabel" for="solidColorPicker">Text Color</label>
+                            <label id="solidColorPickerLabel" for="solidColorPicker">Solid Color</label>
                             <input type="color" id="solidColorPicker" value="#ffffff" title="Select solid text color" aria-labelledby="solidColorPickerLabel">
                         </div>
                         <div class="control-group" id="gradientPresetGroup">
-                            <label id="gradientPresetLabel" for="gradientPreset">Text Gradient Preset</label>
+                            <label id="gradientPresetLabel" for="gradientPreset">Gradient Preset</label>
                             <select id="gradientPreset" title="Select a predefined gradient or choose custom" aria-labelledby="gradientPresetLabel">
                                 <option value="primary-gradient">Primary Pink</option>
                                 <option value="cyberpunk-gradient">Cyberpunk</option>
@@ -223,7 +214,7 @@
                             </select>
                         </div>
                         <div id="customGradientControls" class="hidden full-width">
-                            <h4>Custom Text Gradient</h4>
+                            <h5>Custom Gradient</h5>
                             <div class="controls-container nested-controls">
                                 <div class="control-group">
                                     <label for="color1">Color 1</label>
@@ -250,50 +241,88 @@
                                 </div>
                             </div>
                         </div>
-                        <hr class="section-divider full-width">
+                         <hr class="section-divider full-width">
+
+                        <h4 class="full-width control-section-heading">Text Effect & Alignment</h4>
                         <div class="control-group">
-                            <label id="textShadowLabel" for="textShadow">Text Effect</label>
-                            <select id="textShadow" title="Apply visual effect like glow, shadow, outline" aria-labelledby="textShadowLabel">
-                                <option value="text-glow-none" selected>None</option>
-                                <option value="text-glow-soft">Soft Glow</option>
-                                <option value="text-glow-medium">Medium Glow</option>
-                                <option value="text-glow-sharp">Sharp Glow</option>
-                                <option value="text-glow-hard">Hard Shadow</option> <option value="text-glow-neon">Neon Glow</option> <option value="text-glow-outline">Outline</option> <option value="text-glow-retro">Retro Shadow</option> <option value="text-glow-emboss">Emboss</option> <option value="text-glow-inset">Inset</option> </select>
+                            <label id="textShadowLabel" for="textShadow">Effect</label>
+                             <select id="textShadow" title="Apply visual effect like glow, shadow, outline" aria-labelledby="textShadowLabel">
+                                 <option value="text-effect-none" selected>None</option>
+                                 <option value="text-effect-glow-soft">Soft Glow</option>
+                                 <option value="text-effect-glow-medium">Medium Glow</option>
+                                 <option value="text-effect-neon-primary">Neon Glow</option>
+                                 <option value="text-effect-shadow-soft-md">Soft Shadow</option>
+                                 <option value="text-effect-shadow-hard-md">Hard Shadow</option>
+                                 <option value="text-effect-outline-thin">Outline</option>
+                                 <option value="text-effect-shadow-retro">Retro Shadow</option>
+                                 <option value="text-effect-emboss">Emboss</option>
+                                 <option value="text-effect-inset">Inset</option>
+                                 </select>
                         </div>
-                        <div class="control-group">
-                            <label id="borderColorPickerLabel" for="borderColorPicker">Effect / Box Border Color</label>
-                            <input type="color" id="borderColorPicker" value="#ffffff" title="Sets color for text effects (Glow, Shadow, Outline) and box borders" aria-labelledby="borderColorPickerLabel">
-                        </div>
-                        <div class="control-group">
-                            <label id="borderStyleLabel" for="borderStyle">Box Border Style</label>
-                            <select id="borderStyle" title="Apply a border around the text's container" aria-labelledby="borderStyleLabel">
-                                 <option value="border-none" selected>None</option>
-                                 <option value="border-solid">Solid</option>
-                                 <option value="border-double">Double</option>
-                                 <option value="border-dashed">Dashed</option>
-                                 <option value="border-dotted">Dotted</option>
-                                 <option value="border-groove">Groove</option>
-                                 <option value="border-ridge">Ridge</option>
-                                 <option value="border-inset">Inset</option>
-                                 <option value="border-outset">Outset</option>
-                                 <option value="border-glow">Glow Border</option> <option value="border-pixel">Pixel Border</option> </select>
-                        </div>
-                        <hr class="section-divider full-width">
-                        <div class="control-group">
-                            <label id="textAlignLabel" for="textAlign">Text Alignment</label>
+                         <div class="control-group">
+                            <label id="textAlignLabel" for="textAlign">Alignment</label>
                             <select id="textAlign" title="Align the text within its box (useful for multi-line text)" aria-labelledby="textAlignLabel">
                                 <option value="center" selected>Center</option>
                                 <option value="left">Left</option>
                                 <option value="right">Right</option>
                             </select>
                         </div>
-                        <div class="control-group">
+                         <div class="control-group">
                             <label id="rotationLabel" for="rotation">Rotation</label>
                             <div class="range-container">
                                 <input type="range" id="rotation" min="-45" max="45" value="0" step="1" title="Rotate the text element" aria-labelledby="rotationLabel">
                                 <span class="range-value-display" aria-live="polite">0deg</span>
                             </div>
                         </div>
+                        <hr class="section-divider full-width">
+
+                        <h4 class="full-width control-section-heading">Container Border</h4>
+                         <div class="control-group">
+                            <label id="borderColorPickerLabel" for="borderColorPicker">Border Color</label>
+                            <input type="color" id="borderColorPicker" value="#ffffff" title="Sets color for container borders and some text effects" aria-labelledby="borderColorPickerLabel">
+                        </div>
+                        <div class="control-group">
+                            <label id="borderStyleLabel" for="borderStyle">Border Style</label>
+                             <select id="borderStyle" title="Apply a border around the text's container" aria-labelledby="borderStyleLabel">
+                                 <option value="border-none" selected>None</option>
+                                 <option value="border-solid">Solid</option>
+                                 <option value="border-double">Double</option>
+                                 <option value="border-dashed">Dashed</option>
+                                 <option value="border-dotted">Dotted</option>
+                                 <option value="border-groove">Groove (CSS only)</option>
+                                 <option value="border-ridge">Ridge (CSS only)</option>
+                                 <option value="border-inset">Inset (CSS only)</option>
+                                 <option value="border-outset">Outset (CSS only)</option>
+                                 <option value="border-glow">Glow Effect</option>
+                                 <option value="border-neon">Neon Effect</option>
+                                 <option value="border-gradient">Gradient Effect</option>
+                                 <option value="border-pixel">Pixel Border</option>
+                                 </select>
+                        </div>
+                         <div class="control-group">
+                             <label id="borderWidthLabel" for="borderWidth">Border Width (px)</label>
+                             <div class="number-input-wrapper">
+                                 <input type="number" id="borderWidth" value="2" min="0" max="50" step="1" title="Adjust border thickness in pixels" aria-labelledby="borderWidthLabel">
+                             </div>
+                         </div>
+                         <div class="control-group">
+                             <label id="borderRadiusLabel" for="borderRadius">Border Shape / Radius</label>
+                             <select id="borderRadius" title="Adjust the shape of the container border corners" aria-labelledby="borderRadiusLabel">
+                                 <option value="none" selected>Square Corners (None)</option>
+                                 <option value="rounded-sm">Slightly Rounded (sm)</option>
+                                 <option value="rounded-md">Rounded (md)</option>
+                                 <option value="rounded-lg">More Rounded (lg)</option>
+                                 <option value="pill">Pill Shape</option>
+                                 <option value="circle">Circle / Oval</option>
+                                 </select>
+                         </div>
+                         <div class="control-group">
+                             <label id="borderPaddingLabel" for="borderPadding">Padding Inside Border (px)</label>
+                             <div class="number-input-wrapper">
+                                 <input type="number" id="borderPadding" value="10" min="0" max="100" step="1" title="Adjust space between border and text" aria-labelledby="borderPaddingLabel">
+                             </div>
+                         </div>
+
                     </div>
                 </div>
 
@@ -326,7 +355,7 @@
                 </div>
 
                 <div class="tab-content" id="background-tab" role="tabpanel" aria-labelledby="tab-background">
-                    <div class="controls-container">
+                     <div class="controls-container">
                         <div class="control-group">
                             <label id="backgroundTypeLabel" for="backgroundType">Background Style</label>
                             <select id="backgroundType" title="Choose the style for the logo preview background" aria-labelledby="backgroundTypeLabel">
@@ -398,7 +427,7 @@
                 </div>
 
                 <div class="tab-content" id="advanced-tab" role="tabpanel" aria-labelledby="tab-advanced">
-                     <div class="controls-container">
+                    <div class="controls-container">
                          <div class="control-group">
                              <label id="previewSizeLabel" for="previewSize">Preview Area Size</label>
                              <select id="previewSize" title="Change the display size of the preview container" aria-labelledby="previewSizeLabel">
@@ -461,14 +490,12 @@
                              </label>
                              <textarea id="cssCode" rows="6" readonly title="CSS code representing the current logo styles" aria-labelledby="cssCodeLabel"></textarea>
                          </div>
-
-                        <!-- Add this inside the advanced-tab div in index.html, after the CSS code section -->
-                        <hr class="section-divider full-width">
+                         <hr class="section-divider full-width">
                         <div class="control-group full-width">
                             <h4>Font Management</h4>
                             <div class="font-management-controls">
                                 <button id="loadAllFontsBtn" class="button secondary-button" title="Download all fonts at once (100MB+)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                         <polyline points="7 10 12 15 17 10"></polyline>
@@ -481,13 +508,12 @@
                                     <span id="fontLoadingMode" class="value">-</span>
                                 </div>
                                 <p class="warning-text">
-                                    <strong>Warning:</strong> Loading all fonts will download up to 100MB of data and may slow down your browser temporarily. 
-                                    Use this option if you want to work completely offline or avoid font-loading delays when browsing fonts.
+                                    <strong>Warning:</strong> Loading all fonts will download up to 100MB of data and may slow down your browser temporarily.
+                                    Use this option if you want to work completely offline or avoid font-loading delays when Browse fonts.
                                 </p>
                             </div>
                         </div>
-
-                         <details class="info-details-section">
+                        <details class="info-details-section">
                              <summary>ℹ️ About Logomaker & Features</summary>
                              <div class="info-details-content">
                                  <h4>Forge Your Mark with Logomaker 🎨</h4>
@@ -582,7 +608,11 @@
                          </label>
                          <label class="reset-option">
                              <input type="radio" name="reset-type" value="style">
-                             <div><div class="reset-option-label">Reset Style & BG</div><div class="reset-option-desc">Restore colors, effects, borders, alignment, background</div></div>
+                              <div><div class="reset-option-label">Reset Style Only</div><div class="reset-option-desc">Restore colors, effects, borders (style, width, radius, padding), alignment, rotation</div></div>
+                         </label>
+                          <label class="reset-option">
+                             <input type="radio" name="reset-type" value="background">
+                             <div><div class="reset-option-label">Reset Background Only</div><div class="reset-option-desc">Restore background type, color, gradient, opacity</div></div>
                          </label>
                      </div>
                  </div>
@@ -593,8 +623,8 @@
              </div>
         </div>
 
-        <div id="shareUrlModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle" aria-hidden="true" style="display: none;">
-            <div class="modal-content">
+         <div id="shareUrlModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle" aria-hidden="true" style="display: none;">
+             <div class="modal-content">
                  <div class="modal-header">
                      <svg class="modal-header-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                      <h3 class="modal-title" id="shareModalTitle">Share Your Logo Design</h3>
@@ -685,33 +715,33 @@
              </p>
          </footer>
 
-    </div> 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js" integrity="sha256-xUHvBjJ4hahBW8qN9gceFBibSFUzbe9PNttUvehITzY=" crossorigin="anonymous"></script>
-    <script src="./js/utils/loading.js"></script>
-    <script src="./inline-fonts-data.js"></script>
 
+    </div> <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/davidshimjs-qrcodejs@0.0.2/qrcode.min.js" integrity="sha256-xUHvBjJ4hahBW8qN9gceFBibSFUzbe9PNttUvehITzY=" crossorigin="anonymous"></script>
+
+    <script src="./inline-fonts-data.js"></script> <script src="./js/utils/loading.js"></script>
     <script type="module" src="./js/utils/utils.js"></script>
     <script type="module" src="./js/utils/cssUtils.js"></script>
-    <script type="module" src="./js/fontManager.js"></script>
-    <script type="module" src="./js/settingsManager.js"></script> 
-    <script type="module" src="./js/misc.js"></script> <script type="module" src="./js/tabs.js"></script> <script type="module" src="./js/numInputControls.js"></script>
+    <script type="module" src="./js/utils/html2Canvas.js"></script> <script type="module" src="./js/utils/svgAnimationInfo.js"></script> <script type="module" src="./js/fontManager.js"></script>
+    <script type="module" src="./js/settingsManager.js"></script>
+    <script type="module" src="./js/misc.js"></script>
+    <script type="module" src="./js/tabs.js"></script>
+    <script type="module" src="./js/numInputControls.js"></script>
     <script type="module" src="./js/resetConfirmation.js"></script>
-    <script type="module" src="./js/mobile.js"></script> 
-    <script type="module" src="./js/notificationsDropInAlerts.js"></script> <script type="module" src="./js/renderers/RendererCore.js"></script>
-    <script type="module" src="./js/captureTextStyles.js"></script>
-    <script type="module" src="./js/renderers/SVGRenderer.js">
+    <script type="module" src="./js/mobile.js"></script>
+    <script type="module" src="./js/notificationsDropInAlerts.js"></script>
 
-    </script>
-    <script type="module" src="./js/renderers/PNGRenderer.js">
+    <script type="module" src="./js/captureTextStyles.js"></script> <script type="module" src="./js/renderers/RendererCore.js"></script>
+    <script type="module" src="./js/renderers/SVGRenderer.js"></script>
+    <script type="module" src="./js/renderers/PNGRenderer.js"></script>
+    <script type="module" src="./js/renderers/GIFRenderer.js"></script> <script type="module" src="./js/exportHandler.js"></script>
+    <script type="module" src="./js/urlParamsHandler.js"></script>
 
-    </script> <script type="module" src="./js/renderers/GIFRenderer.js"></script>
-    <script type="module" src="./js/exportHandler.js"></script> 
-    <script type="module" src="./js/urlParamsHandler.js"></script> <script type="module" src="./js/main.js"></script>
+    <script type="module" src="./js/main.js"></script>
 
-    <script type="module" src="./js/main.js"></script> <script>
+    <script>
         // Info Notice Show/Hide/Tabs Logic (Self-contained)
-        (function() {
+        (function() { /* Keep unchanged */
           function initInfoNotice() {
              const infoNotice = document.getElementById('info-notice');
              const hideNoticeBtn = document.getElementById('hideNoticeBtn');
@@ -783,8 +813,8 @@
           else { initInfoNotice(); }
         })();
 
-        // GitHub stars fetch
-        fetch('https://api.github.com/repos/manicinc/logomaker') // Update repo path if needed
+        // GitHub stars fetch (Keep unchanged)
+        fetch('https://api.github.com/repos/manicinc/logomaker')
           .then(response => response.ok ? response.json() : Promise.reject('Network error'))
           .then(data => {
              const starCount = document.getElementById('github-star-count');
@@ -794,12 +824,12 @@
           })
           .catch(err => console.warn('Could not fetch GitHub stars:', err));
 
-        // Set current year in footer copyright
+        // Set current year in footer copyright (Keep unchanged)
         const currentYear = new Date().getFullYear();
-        const startYear = 2024; // Year project started
-        document.getElementById('copyright-year').textContent = currentYear > startYear ? `-${currentYear % 100}` : ''; // e.g., -25
+        const startYear = 2024;
+        document.getElementById('copyright-year').textContent = currentYear > startYear ? `-${currentYear % 100}` : '';
 
-        // Modal Accessibility (ARIA observer)
+        // Modal Accessibility (Keep unchanged)
          try {
              const modalOverlays = document.querySelectorAll('.modal-overlay');
              if (modalOverlays.length > 0) {
@@ -807,8 +837,7 @@
                      mutations.forEach(mutation => {
                           if (mutation.type === 'attributes' && (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
                               const targetElement = mutation.target;
-                              // Check if style indicates visible (more reliable than just class sometimes)
-                              const isVisible = targetElement.style.display !== 'none' && !targetElement.classList.contains('hidden'); // Check both
+                              const isVisible = targetElement.style.display !== 'none' && !targetElement.classList.contains('hidden');
                               const ariaHiddenValue = !isVisible;
                               if (targetElement.getAttribute('aria-hidden') !== String(ariaHiddenValue)) {
                                   targetElement.setAttribute('aria-hidden', ariaHiddenValue);
@@ -825,48 +854,30 @@
              }
          } catch (error) { console.error("[Accessibility] Error setting up modal ARIA handling:", error); }
 
-         // Font License Display Logic (Run after main init)
+         // Font License Display Logic (Keep unchanged)
          document.addEventListener('DOMContentLoaded', () => {
-             // Add slight delay to ensure fontManager/settingsManager have likely run
              setTimeout(() => {
                  const fontSelect = document.getElementById('fontFamily');
                  const licenseContainer = document.getElementById('fontLicenseContainer');
                  const licenseTextEl = document.getElementById('fontLicenseText');
-
                  if (!fontSelect || !licenseContainer || !licenseTextEl) return;
-
-                 const displayLicense = async () => { // Make async if potentially fetching
+                 const displayLicense = async () => {
                       const selectedFontName = fontSelect.value;
-                      if (!selectedFontName) {
-                           licenseContainer.classList.add('hidden');
-                           return;
+                      if (!selectedFontName || typeof window.getFontDataAsync !== 'function') {
+                           licenseContainer.classList.add('hidden'); return;
                       }
-                      // Prefer getFontDataAsync as it handles chunk loading
-                      if (typeof window.getFontDataAsync !== 'function') return;
-
                       try {
                           const fontData = await window.getFontDataAsync(selectedFontName);
-                          let licenseInfo = "No license information available for this font.";
-                          let foundLicense = false;
-
-                          if (fontData && fontData.licenseText) {
-                              licenseInfo = fontData.licenseText;
-                              foundLicense = true;
-                          }
-                          // Add future fetch logic for fontData.licenseFile here if needed
-
-                          licenseTextEl.textContent = licenseInfo;
-                          licenseContainer.classList.toggle('hidden', !foundLicense);
+                          let licenseInfo = "No license information available for this font."; let foundLicense = false;
+                          if (fontData && fontData.licenseText) { licenseInfo = fontData.licenseText; foundLicense = true; }
+                          licenseTextEl.textContent = licenseInfo; licenseContainer.classList.toggle('hidden', !foundLicense);
                       } catch (err) {
                           console.error("[License Display] Error getting font data:", err);
-                          licenseTextEl.textContent = "Error retrieving license information.";
-                          licenseContainer.classList.add('hidden');
+                          licenseTextEl.textContent = "Error retrieving license information."; licenseContainer.classList.add('hidden');
                       }
                  };
-
-                 fontSelect.addEventListener('change', displayLicense);
-                 displayLicense(); // Call once on load after delay
-             }, 500); // 500ms delay
+                 fontSelect.addEventListener('change', displayLicense); displayLicense();
+             }, 500);
         });
 
     </script>

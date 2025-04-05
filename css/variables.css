@@ -1,5 +1,5 @@
 /* css/variables.css */
-/* REVAMPED - v1.0 */
+/* REVAMPED - v1.1 - Added Border Vars */
 
 :root {
   /* === COLOR PALETTE (Dark Mode Default) === */
@@ -58,6 +58,7 @@
   --bg-cyberpunk-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
   --bg-sunset-gradient: linear-gradient(to right, #ff7e5f, #feb47b);
   --bg-ocean-gradient: linear-gradient(to right, #00c6ff, #0072ff);
+  /* Add more BG presets if desired */
 
   /* --- Spacing --- */
   --space-xxs: 0.125rem;  /* 2px */
@@ -91,15 +92,18 @@
 
   /* --- Layout --- */
   --container-width-desktop: 1300px; /* Slightly wider */
+  --border-radius-base: var(--border-radius-md, 6px); /* Base radius for components */
   --border-radius-sm: 3px;
   --border-radius-md: 6px;
   --border-radius-lg: 10px;
+  --border-radius-xl: 16px; /* Added */
+  --border-radius-pill: 999px; /* Added */
+  --border-radius-circle: 50%; /* Added */
 
   /* --- Transitions & Animations --- */
   --transition-fast: 0.15s ease;
   --transition-base: 0.3s ease;
   --transition-slow: 0.5s ease;
-  --animation-duration: 2s; /* Base duration for effects */
 
   /* --- Shadows --- */
   /* Using darker shadows for depth in dark mode */
@@ -122,10 +126,21 @@
   /* --- Modal --- */
   --modal-bg: var(--panel-bg-opaque); /* Explicit modal background */
 
-  /* --- Dynamic Element Colors (Used by JS or effects.css) --- */
+  /* ==================================================== */
+  /* === DYNAMIC VARIABLES (Set by JS/SettingsManager) === */
+  /* ==================================================== */
+  --dynamic-font-size: 100px;
+  --dynamic-letter-spacing: 0.03em;
+  --dynamic-rotation: 0deg;
   --dynamic-border-color: var(--border-highlight); /* Default border color for effects */
   --dynamic-border-color-rgb: 80, 85, 107;      /* RGB for --border-highlight */
   --dynamic-border-width: 2px;                  /* Default border width for effects */
+  --dynamic-border-radius: 0px;                 /* NEW: Default border radius */
+  --dynamic-border-padding: 10px;               /* NEW: Default border padding */
+  --animation-duration: 2s;                     /* Base duration for text animations */
+  --gradient-direction: 45deg;                  /* Text gradient direction */
+  --bg-gradient-direction: 90deg;               /* Background gradient direction */
+  --bg-animation-duration: 15s;                 /* Duration for animated BG */
   --dynamic-bg-color: #000000;                  /* Default solid bg for preview */
   --dynamic-bg-gradient: var(--bg-primary-gradient); /* Default gradient bg for preview */
 }
@@ -213,7 +228,17 @@ body.light-mode {
     --transition-fast: 0s !important;
     --transition-base: 0s !important;
     --transition-slow: 0s !important;
-    --animation-duration: 1ms !important; /* Effectively disable */
+    /* Keep animation duration non-zero for potential JS logic, but make effects instant */
+    /* --animation-duration: 1ms !important; */
+  }
+  *, *::before, *::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important; /* Effectively disable visual animation */
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
   }
 }
 
