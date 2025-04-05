@@ -6,7 +6,7 @@ Logomaker is a free, open-source, client-side text logo generator featuring ~400
 
 This project is more than just a tool; it's a **Human+AI collaborative coding experiment** developed by [Manic Agency](https://manic.agency). Roughly 90% of the codebase originated from AI (LLMs like GPT-4, Claude 3, Gemini families) guided by **technical prompt engineering** and refined through an **iterative collaborative development and testing process**, or **✨ Vibe Coding ✨** – an attempt to harness AI for rapid development while maintaining robust engineering practices and a distinct creative workflow. It's a practical look at the potential and challenges of this emerging development paradigm, built by an agency focused on experimental tech (AR/VR, AI/ML, GenAI, Crypto, Game Design).
 
-See the [Technical Deep Dive (coming soon)](https://manic.agency/blog) and [architecture.md](./architecture.md) for more insights into the process and structure.
+See the [Technical Deep Dive (coming soon)](https://manic.agency/blog) for more insights into the process and structure.
 
 ---
 
@@ -58,26 +58,32 @@ Thus, we have no `package.json` file, and keep things simple with a singular HTM
 - [Git LFS](https://git-lfs.com)
 - [Node.js](https://nodejs.org/) (v18+)
 
-### Commands 
+### Usage
 
 ```bash
-# Clone & Setup
-git clone https://github.com/manicinc/logomaker.git
+# 1. Clone the repository
+git clone [https://github.com/manicinc/logomaker.git](https://github.com/manicinc/logomaker.git)
 cd logomaker
+
+# 2. Pull Git LFS files (the fonts)
 git lfs pull
+
+# 3. Install development dependencies (http-server, chokidar)
 npm install
 
-# Dev with live reload
-node scripts/dev.js
+# 4. Run Development Server (Watch, Build, Serve @ http://localhost:3000)
+npm run dev
+# (Edit code, save, then manually refresh browser)
+# (Press Ctrl+C to stop)
 
-# Build Options
-node scripts/build.js           # Build both optimized & portable versions
-node scripts/build.js --target=deploy    # Build for GitHub Pages
-npm scripts/build.js --target=portable  # Build offline version
+# 5. Run Production Preview (Build, Serve @ http://localhost:3001 - No Watch)
+npm run preview
+# (Press Ctrl+C to stop)
 
-# Serves a local server
-node scripts/build.js --serve
----
+# 6. Manual Builds (Output to ./dist/ folder)
+npm run build          # Build deploy target (default) -> ./dist/github-pages/
+npm run build:deploy   # Build deploy target -> ./dist/github-pages/
+npm run build:portable # Build portable target -> ./dist/portable/ (directory)
 ```
 
 See [development.md](./docs/development.md) for more info on development mode.

@@ -1,5 +1,5 @@
 /* css/effects.css */
-/* REVAMPED - v1.1 - Aligned with settingsManager v15 (Class-Based) */
+/* FIXED - v1.2 - Removed Excessive !important */
 /*
  * Sections:
  * 1. Base Setup & CSS Variables Usage
@@ -10,16 +10,17 @@
  * 6. Border Effects (Dynamic - via border-effect-* classes)
  * 7. Text Animations (Movement, Fades, Glitches - via anim-* classes)
  * 8. Background Patterns & Effects (via bg-* classes)
- * 9. Responsive & Accessibility Overrides
+ * 9. Responsive & Accessibility Overrides (Kept !important here)
  */
 
 /* --- 1. Base Setup & CSS Variables Usage --- */
 
 /* Apply CSS variables set by JS to the logo text */
+/* REMOVED !important - Rely on specificity/cascade order */
 .logo-text {
-  font-size: var(--dynamic-font-size, 100px) !important; /* Use var, !important may be needed */
-  letter-spacing: var(--dynamic-letter-spacing, 0.03em) !important;
-  transform: rotate(var(--dynamic-rotation, 0deg)) !important;
+  font-size: var(--dynamic-font-size, 100px);
+  letter-spacing: var(--dynamic-letter-spacing, 0.03em);
+  transform: rotate(var(--dynamic-rotation, 0deg));
   /* Base transitions */
   transition: color var(--transition-duration-fast, 0.2s),
               text-shadow var(--transition-duration-base, 0.3s),
@@ -39,13 +40,14 @@
 }
 
 /* Base for border effects - Applied to .logo-container */
+/* REMOVED !important from width/color - Rely on specificity/cascade */
 .dynamic-border {
-  border-width: var(--dynamic-border-width, 2px) !important; /* Use var */
-  border-color: var(--dynamic-border-color, #ffffff) !important; /* Use var */
+  border-width: var(--dynamic-border-width, 2px); /* Use var */
+  border-color: var(--dynamic-border-color, #ffffff); /* Use var */
   /* border-style applied by specific classes */
   transition: border var(--transition-duration-fast, 0.2s),
               box-shadow var(--transition-duration-base, 0.3s);
-  background-clip: padding-box !important; /* Important for border display, especially inset/outset */
+  background-clip: padding-box !important; /* KEPT !important - Often needed for border effects. Test removing later if desired. */
   position: relative; /* Needed for pseudo-elements in effects */
   z-index: 0; /* Ensure border effects are behind text */
 }
@@ -65,66 +67,71 @@
 /* Add rules for ALL sanitized font names used in your dropdown */
 /* These classes are added/removed by SettingsManager._applyFontFamily */
 /* Example: If dropdown has "Orbitron", JS adds "font-family-orbitron" */
-.font-family-orbitron { font-family: "Orbitron", sans-serif !important; }
-.font-family-arial { font-family: Arial, sans-serif !important; }
-.font-family-russoone { font-family: "Russo One", sans-serif !important; }
-.font-family-aachenstd { font-family: "AachenStd", serif !important; } /* Example, ensure name matches */
-.font-family-palacescriptmtstd { font-family: "PalaceScriptMtStd", cursive !important; } /* Example */
-.font-family-pressstart2p { font-family: "Press Start 2P", cursive !important; } /* Example */
+/* REMOVED !important */
+.font-family-orbitron { font-family: "Orbitron", sans-serif; }
+.font-family-arial { font-family: Arial, sans-serif; }
+.font-family-russoone { font-family: "Russo One", sans-serif; }
+.font-family-aachenstd { font-family: "AachenStd", serif; } /* Example, ensure name matches */
+.font-family-palacescriptmtstd { font-family: "PalaceScriptMtStd", cursive; } /* Example */
+.font-family-pressstart2p { font-family: "Press Start 2P", cursive; } /* Example */
 /* ... etc for all ~400 fonts defined in fontManager/CSS ... */
-.font-family-fallback { font-family: Arial, sans-serif !important; } /* Fallback */
+.font-family-fallback { font-family: Arial, sans-serif; } /* Fallback */
 
 /* Font Weight Classes - Applied by SettingsManager._applyFontWeight */
-.font-weight-100 { font-weight: 100 !important; }
-.font-weight-200 { font-weight: 200 !important; }
-.font-weight-300 { font-weight: 300 !important; }
-.font-weight-400 { font-weight: 400 !important; } /* Normal */
-.font-weight-500 { font-weight: 500 !important; }
-.font-weight-600 { font-weight: 600 !important; }
-.font-weight-700 { font-weight: 700 !important; } /* Bold */
-.font-weight-800 { font-weight: 800 !important; }
-.font-weight-900 { font-weight: 900 !important; }
-.font-weight-950 { font-weight: 950 !important; } /* Extra Black, if font supports */
+/* REMOVED !important */
+.font-weight-100 { font-weight: 100; }
+.font-weight-200 { font-weight: 200; }
+.font-weight-300 { font-weight: 300; }
+.font-weight-400 { font-weight: 400; } /* Normal */
+.font-weight-500 { font-weight: 500; }
+.font-weight-600 { font-weight: 600; }
+.font-weight-700 { font-weight: 700; } /* Bold */
+.font-weight-800 { font-weight: 800; }
+.font-weight-900 { font-weight: 900; }
+.font-weight-950 { font-weight: 950; } /* Extra Black, if font supports */
 
 /* Text Case Classes - Applied by SettingsManager._applyTextCase */
-.text-case-none { text-transform: none !important; }
-.text-case-uppercase { text-transform: uppercase !important; }
-.text-case-lowercase { text-transform: lowercase !important; }
-.text-case-capitalize { text-transform: capitalize !important; }
+/* REMOVED !important */
+.text-case-none { text-transform: none; }
+.text-case-uppercase { text-transform: uppercase; }
+.text-case-lowercase { text-transform: lowercase; }
+.text-case-capitalize { text-transform: capitalize; }
 
 /* --- 3. Text Alignment Classes --- */
 /* Applied by SettingsManager._applyTextAlign */
-.text-align-left { text-align: left !important; }
-.text-align-center { text-align: center !important; }
-.text-align-right { text-align: right !important; }
-/* .text-align-justify { text-align: justify !important; } */ /* Justify might look odd for logos */
+/* REMOVED !important - Ensure these don't conflict with components.css */
+.text-align-left { text-align: left; }
+.text-align-center { text-align: center; }
+.text-align-right { text-align: right; }
+/* .text-align-justify { text-align: justify; } */ /* Justify might look odd for logos */
 
 
 /* ============================================================= */
-/* == 4. Text Effects (Shadows, Glows - using text-effect-*)  == */
+/* == 4. Text Effects (Shadows, Glows - using text-effect-*)  == */
 /* ============================================================= */
 /* Applied by SettingsManager._applyTextEffect based on mapping */
 
-.text-effect-none { text-shadow: none !important; mix-blend-mode: normal !important; }
+/* REMOVED !important */
+.text-effect-none { text-shadow: none; mix-blend-mode: normal; }
 
 /* --- Glows --- */
 /* Mapped from 'text-glow-soft', 'text-glow-medium', etc. in JS */
 .text-effect-glow-soft {
   text-shadow: 0 0 10px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.7),
-               0 0 15px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.4) !important;
+               0 0 15px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.4);
 }
 .text-effect-glow-medium {
   text-shadow: 0 0 6px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.9),
-               0 0 18px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.6) !important;
+               0 0 18px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.6);
 }
 .text-effect-glow-strong { /* Styles from old .text-glow-strong */
   text-shadow: 0 0 5px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 1),
                0 0 12px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.8),
-               0 0 25px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.6) !important;
+               0 0 25px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.6);
 }
 .text-effect-glow-sharp { /* Styles from old .text-glow-sharp */
   text-shadow: 0 0 1px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 1),
-               0 0 3px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.8) !important;
+               0 0 3px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.8);
 }
 
 /* --- Neon Glows (Mapped from JS, e.g., 'text-glow-neon') --- */
@@ -136,7 +143,7 @@
     0 0 10px var(--dynamic-border-color, #0ff),
     0 0 20px rgba(var(--primary-color-rgb, 255, 20, 147), 0.8), /* Outer bloom using primary color */
     0 0 35px rgba(var(--primary-color-rgb, 255, 20, 147), 0.6),
-    0 0 50px rgba(var(--primary-color-rgb, 255, 20, 147), 0.4) !important;
+    0 0 50px rgba(var(--primary-color-rgb, 255, 20, 147), 0.4);
 }
 /* Add other specific neon classes if needed and mapped in JS (e.g., text-effect-neon-accent) */
 /* Example for accent: */
@@ -145,22 +152,22 @@
 /* --- Shadows (Mapped from JS, e.g., 'text-glow-hard') --- */
 /* Soft Shadows (Example: if dropdown had 'text-shadow-soft-md', map it) */
 .text-effect-shadow-soft-md { /* Styles from old .text-shadow-drop-soft-md */
-  text-shadow: 0 4px 8px rgba(0,0,0,0.35) !important;
+  text-shadow: 0 4px 8px rgba(0,0,0,0.35);
 }
 /* Add other soft shadow variations if needed and mapped in JS */
 
 /* Hard Shadows (Example: mapping 'text-glow-hard' -> text-effect-shadow-hard-md) */
 .text-effect-shadow-hard-sm { /* Styles from old .text-shadow-drop-hard-sm */
-  text-shadow: 1px 1px 0px var(--dynamic-border-color, #ffffff) !important;
+  text-shadow: 1px 1px 0px var(--dynamic-border-color, #ffffff);
 }
 .text-effect-shadow-hard-md { /* Styles from old .text-shadow-drop-hard-md */
-  text-shadow: 2px 2px 0px var(--dynamic-border-color, #ffffff) !important;
+  text-shadow: 2px 2px 0px var(--dynamic-border-color, #ffffff);
 }
 .text-effect-shadow-hard-lg { /* Styles from old .text-shadow-drop-hard-lg */
-  text-shadow: 3px 3px 0px var(--dynamic-border-color, #ffffff) !important;
+  text-shadow: 3px 3px 0px var(--dynamic-border-color, #ffffff);
 }
 .text-effect-shadow-hard-xl { /* Styles from old .text-shadow-drop-hard-xl */
-  text-shadow: 5px 5px 0px var(--dynamic-border-color, #ffffff) !important;
+  text-shadow: 5px 5px 0px var(--dynamic-border-color, #ffffff);
 }
 /* Add other hard shadow variations if needed and mapped in JS */
 
@@ -170,7 +177,7 @@
     -1px -1px 0 var(--dynamic-border-color, #ffffff),
      1px -1px 0 var(--dynamic-border-color, #ffffff),
     -1px  1px 0 var(--dynamic-border-color, #ffffff),
-     1px  1px 0 var(--dynamic-border-color, #ffffff) !important;
+     1px  1px 0 var(--dynamic-border-color, #ffffff);
 }
 .text-effect-outline-thick { /* Styles from old .text-shadow-outline-thick */
   text-shadow:
@@ -178,7 +185,7 @@
     -1px 1px 0 var(--dynamic-border-color, #ffffff), 1px 1px 0 var(--dynamic-border-color, #ffffff),
     -2px -2px 0 var(--dynamic-border-color, #ffffff), 2px -2px 0 var(--dynamic-border-color, #ffffff),
     -2px 2px 0 var(--dynamic-border-color, #ffffff), 2px 2px 0 var(--dynamic-border-color, #ffffff),
-    0 0 5px rgba(0,0,0,0.2) !important; /* Optional soft shadow behind outline */
+    0 0 5px rgba(0,0,0,0.2); /* Optional soft shadow behind outline */
 }
 
 /* --- Retro (Mapped from JS, e.g., 'text-glow-retro') --- */
@@ -187,117 +194,120 @@
   text-shadow:
     3px 3px 0px var(--secondary-color, #8A2BE2), /* Use CSS Variables */
     6px 6px 0px var(--primary-color, #FF1493),
-    9px 9px 5px rgba(0,0,0,0.2) !important;
+    9px 9px 5px rgba(0,0,0,0.2);
 }
 
 /* --- Emboss/Inset (Mapped from JS, e.g., 'text-glow-emboss') --- */
 .text-effect-emboss { /* Styles from old .text-shadow-emboss */
   text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.6),
-                1px  1px 1px rgba(255, 255, 255, 0.15) !important;
+                1px  1px 1px rgba(255, 255, 255, 0.15);
 }
 .text-effect-inset { /* Styles from old .text-shadow-inset */
   text-shadow:  1px  1px 1px rgba(0, 0, 0, 0.6),
-               -1px -1px 1px rgba(255, 255, 255, 0.15) !important;
+               -1px -1px 1px rgba(255, 255, 255, 0.15);
 }
 
 /* --- Blend Modes --- */
 /* These likely don't need mapping, apply directly if selected */
-.text-effect-blend-screen { mix-blend-mode: screen !important; color: #eee !important; }
-.text-effect-blend-multiply { mix-blend-mode: multiply !important; color: #333 !important; }
-.text-effect-blend-overlay { mix-blend-mode: overlay !important; }
-.text-effect-blend-difference { mix-blend-mode: difference !important; color: #fff !important; }
+/* REMOVED !important */
+.text-effect-blend-screen { mix-blend-mode: screen; color: #eee; }
+.text-effect-blend-multiply { mix-blend-mode: multiply; color: #333; }
+.text-effect-blend-overlay { mix-blend-mode: overlay; }
+.text-effect-blend-difference { mix-blend-mode: difference; color: #fff; }
 /* Add other blend modes if needed */
 
 
 /* ========================================================= */
-/* == 5. Border Styles (Static - using border-style-*)    == */
+/* == 5. Border Styles (Static - using border-style-*)    == */
 /* ========================================================= */
 /* Applied to .logo-container when .dynamic-border is present */
 /* Driven by SettingsManager._applyBorderStyle mapping */
+/* REMOVED !important */
 
-.dynamic-border.border-style-none { border-style: none !important; box-shadow: none !important; } /* Ensure box-shadow is also removed */
-.dynamic-border.border-style-solid { border-style: solid !important; }
+.dynamic-border.border-style-none { border-style: none; box-shadow: none; } /* Ensure box-shadow is also removed */
+.dynamic-border.border-style-solid { border-style: solid; }
 .dynamic-border.border-style-double {
-  border-style: double !important;
+  border-style: double;
   /* Adjust width if needed, old CSS used * 2.5 */
-  border-width: calc(var(--dynamic-border-width, 2px) * 2.5) !important;
+  border-width: calc(var(--dynamic-border-width, 2px) * 2.5);
 }
-.dynamic-border.border-style-dashed { border-style: dashed !important; }
-.dynamic-border.border-style-dotted { border-style: dotted !important; }
+.dynamic-border.border-style-dashed { border-style: dashed; }
+.dynamic-border.border-style-dotted { border-style: dotted; }
 .dynamic-border.border-style-groove {
-  border-style: groove !important;
+  border-style: groove;
   /* Old CSS used * 2 */
-  border-width: calc(var(--dynamic-border-width, 2px) * 2) !important;
+  border-width: calc(var(--dynamic-border-width, 2px) * 2);
 }
 .dynamic-border.border-style-ridge {
-  border-style: ridge !important;
+  border-style: ridge;
   /* Old CSS used * 2 */
-  border-width: calc(var(--dynamic-border-width, 2px) * 2) !important;
+  border-width: calc(var(--dynamic-border-width, 2px) * 2);
 }
 .dynamic-border.border-style-inset {
-  border-style: inset !important;
+  border-style: inset;
   /* Old CSS used * 2 */
-  border-width: calc(var(--dynamic-border-width, 2px) * 2) !important;
+  border-width: calc(var(--dynamic-border-width, 2px) * 2);
 }
 .dynamic-border.border-style-outset {
-  border-style: outset !important;
+  border-style: outset;
   /* Old CSS used * 2 */
-  border-width: calc(var(--dynamic-border-width, 2px) * 2) !important;
+  border-width: calc(var(--dynamic-border-width, 2px) * 2);
 }
 .dynamic-border.border-style-thick { /* Mapped from old 'border-thick' */
-  border-style: solid !important;
+  border-style: solid;
   /* Old CSS used * 2 */
-  border-width: calc(var(--dynamic-border-width, 2px) * 2) !important;
+  border-width: calc(var(--dynamic-border-width, 2px) * 2);
 }
 .dynamic-border.border-style-pixel { /* Styles from old .border-pixel */
-  border-width: calc(var(--dynamic-border-width, 2px) + 3px) !important; /* Adjust base width */
-  border-style: solid !important; /* Base style */
-  border-color: transparent !important; /* Color comes from border-image */
-  border-image-source: url("data:image/svg+xml,%3Csvg width='3' height='3' viewBox='0 0 3 3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2z' fill='currentColor'/%3E%3C/svg%3E") !important;
-  border-image-slice: 1 !important;
-  border-image-width: 1 !important; /* Controls image coverage */
-  border-image-repeat: repeat !important; /* Pixelated look */
-  image-rendering: pixelated !important; /* Crucial for sharp pixels */
-  box-shadow: none !important; /* No extra shadow */
+  border-width: calc(var(--dynamic-border-width, 2px) + 3px); /* Adjust base width */
+  border-style: solid; /* Base style */
+  border-color: transparent; /* Color comes from border-image */
+  border-image-source: url("data:image/svg+xml,%3Csvg width='3' height='3' viewBox='0 0 3 3' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2z' fill='currentColor'/%3E%3C/svg%3E");
+  border-image-slice: 1;
+  border-image-width: 1; /* Controls image coverage */
+  border-image-repeat: repeat; /* Pixelated look */
+  image-rendering: pixelated; /* Crucial for sharp pixels */
+  box-shadow: none; /* No extra shadow */
   /* Set the color on the element itself for 'currentColor' in SVG to work */
-  color: var(--dynamic-border-color) !important;
+  color: var(--dynamic-border-color);
 }
 /* Add other static border styles if needed and mapped in JS */
 
 
 /* ========================================================== */
-/* == 6. Border Effects (Dynamic - using border-effect-*)  == */
+/* == 6. Border Effects (Dynamic - using border-effect-*)  == */
 /* ========================================================== */
 /* Applied to .logo-container when .dynamic-border is present */
 /* Driven by SettingsManager._applyBorderStyle mapping */
+/* REMOVED !important */
 
-.dynamic-border.border-effect-none { box-shadow: none !important; }
+.dynamic-border.border-effect-none { box-shadow: none; }
 .dynamic-border.border-effect-none::before,
-.dynamic-border.border-effect-none::after { display: none !important; animation: none !important; content: none !important; }
+.dynamic-border.border-effect-none::after { display: none; animation: none; content: none; }
 
 /* Mapped from 'border-glow' -> 'border-effect-glow-soft' */
 .dynamic-border.border-effect-glow-soft { /* Styles from old .border-glow-soft */
-  border: 1px solid rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.5) !important;
+  border: 1px solid rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.5);
   box-shadow: 0 0 10px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.5),
-              0 0 20px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.3) !important;
-  border-style: solid !important; /* Ensure base style is solid */
+              0 0 20px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.3);
+  border-style: solid; /* Ensure base style is solid */
 }
 
 /* Add other glow variations if mapped */
 .dynamic-border.border-effect-glow-strong { /* Styles from old .border-glow-strong */
-  border: 1px solid rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.8) !important;
+  border: 1px solid rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.8);
   box-shadow: 0 0 8px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.7),
               0 0 15px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.5),
               0 0 25px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.3),
-              inset 0 0 5px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.2) !important;
-  border-style: solid !important;
+              inset 0 0 5px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.2);
+  border-style: solid;
 }
 
 .dynamic-border.border-effect-glow-pulse { /* Styles from old .border-glow-pulse */
-  border: 1px solid rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.8) !important;
-  box-shadow: 0 0 8px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.7) !important;
-  animation: borderGlowPulseAnim var(--animation-duration, 2s) infinite alternate !important; /* Use variable */
-  border-style: solid !important;
+  border: 1px solid rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.8);
+  box-shadow: 0 0 8px rgba(var(--dynamic-border-color-rgb, 255, 255, 255), 0.7);
+  animation: borderGlowPulseAnim var(--animation-duration, 2s) infinite alternate; /* Use variable */
+  border-style: solid;
 }
 /* Keep keyframes required by effects */
 @keyframes borderGlowPulseAnim {
@@ -306,9 +316,9 @@
 }
 
 .dynamic-border.border-effect-neon-animated { /* Styles from old .border-neon-animated */
-  border: var(--dynamic-border-width, 2px) solid transparent !important;
+  border: var(--dynamic-border-width, 2px) solid transparent;
   position: relative;
-  box-shadow: none !important;
+  box-shadow: none;
 }
 .dynamic-border.border-effect-neon-animated::before,
 .dynamic-border.border-effect-neon-animated::after {
@@ -338,10 +348,10 @@
 /* Add other border-effect-* classes as needed, copying rules from old CSS and mapping */
 /* Example: Gradient border */
 .dynamic-border.border-effect-gradient-animated { /* Styles from old .border-gradient-animated */
-  border: var(--dynamic-border-width, 2px) solid transparent !important;
+  border: var(--dynamic-border-width, 2px) solid transparent;
   position: relative;
   z-index: 0;
-  box-shadow: none !important;
+  box-shadow: none;
 }
 .dynamic-border.border-effect-gradient-animated::before {
   content: '';
@@ -367,7 +377,7 @@
 /* Add dashed animated, corners etc. if mapped in JS */
 
 /* ============================================================ */
-/* == 7. Text Animations (using anim-*)                      == */
+/* == 7. Text Animations (using anim-*)                     == */
 /* ============================================================ */
 /* Applied by SettingsManager._applyTextAnimation */
 
@@ -396,46 +406,46 @@
   to { background-position: 100% 50%; }
 }
 
-
 /* --- Keep all .anim-* class definitions from OLD Section 7 --- */
-.anim-none { animation: none !important; }
+/* REMOVED !important from animation properties */
+.anim-none { animation: none; }
 
 .anim-pulse {
-  animation-name: pulse !important;
+  animation-name: pulse;
   animation-timing-function: ease-in-out;
   /* Duration/Iteration set by base [class*="anim-"] rule */
 }
 .anim-bounce {
-  animation-name: bounce !important;
+  animation-name: bounce;
   /* Timing/Iteration set by base rule, specific timing in keyframes */
 }
 .anim-shake {
-  animation-name: shake !important;
+  animation-name: shake;
   animation-duration: calc(var(--animation-duration, 2s) * 0.4); /* Adjust duration if needed */
   /* Iteration set by base rule */
 }
 .anim-float {
-  animation-name: float !important;
+  animation-name: float;
   animation-duration: calc(var(--animation-duration, 2s) * 1.8); /* Adjust duration */
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
   /* Iteration set by base rule */
 }
 .anim-rotate {
-  animation-name: rotate !important;
+  animation-name: rotate;
   animation-duration: calc(var(--animation-duration, 2s) * 3); /* Adjust duration */
   animation-timing-function: linear;
   /* Iteration set by base rule */
 }
 .anim-wave {
-  animation-name: wave !important;
+  animation-name: wave;
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
   /* Iteration set by base rule */
 }
 .anim-glitch { /* Base style for glitch container */
   position: relative;
-  animation: none !important; /* Container doesn't animate */
+  animation: none; /* Container doesn't animate */
 }
 .anim-glitch::before,
 .anim-glitch::after {
@@ -453,30 +463,30 @@
   /* Duration is variable */
 }
 .anim-glitch::before {
-  animation-name: glitch-1 !important;
+  animation-name: glitch-1;
   animation-duration: calc(var(--animation-duration, 2s) * 0.8);
   animation-delay: -0.1s;
 }
 .anim-glitch::after {
-  animation-name: glitch-2 !important;
+  animation-name: glitch-2;
   animation-duration: calc(var(--animation-duration, 2s) * 1.1);
   animation-delay: 0.1s;
 }
 .anim-fade {
-  animation-name: fadeInOut !important;
+  animation-name: fadeInOut;
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
   /* Iteration/Duration set by base rule */
 }
 .anim-rotate3d {
-  animation-name: subtleRotate3D !important;
+  animation-name: subtleRotate3D;
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
   animation-duration: calc(var(--animation-duration, 2s) * 2.5); /* Adjust duration */
   /* Iteration set by base rule */
 }
 .anim-flicker {
-  animation-name: flicker !important;
+  animation-name: flicker;
   animation-duration: calc(var(--animation-duration, 2s) * 1.5); /* Adjust duration */
   animation-timing-function: steps(1, end);
   /* Iteration set by base rule */
@@ -484,11 +494,11 @@
 
 /* Animations requiring specific element setup */
 .anim-typing {
-  animation-name: typing, caretBlink !important;
-  animation-duration: calc(var(--animation-duration, 2s) * 2), 0.75s !important;
-  animation-timing-function: steps(30, end), step-end !important;
-  animation-iteration-count: infinite, infinite !important; /* Both parts infinite */
-  animation-direction: alternate, normal !important;
+  animation-name: typing, caretBlink;
+  animation-duration: calc(var(--animation-duration, 2s) * 2), 0.75s;
+  animation-timing-function: steps(30, end), step-end;
+  animation-iteration-count: infinite, infinite; /* Both parts infinite */
+  animation-direction: alternate, normal;
   white-space: nowrap;
   overflow: hidden;
   border-right: .15em solid var(--primary-color, currentColor); /* Caret */
@@ -496,20 +506,20 @@
   display: inline-block; /* Or block */
 }
 .anim-reveal {
-  animation-name: textRevealClip !important;
+  animation-name: textRevealClip;
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
   /* Iteration/Duration set by base rule */
 }
 .anim-blur {
-  animation-name: blurInOut !important;
+  animation-name: blurInOut;
   animation-duration: calc(var(--animation-duration, 2s) * 1.5); /* Adjust duration */
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
   /* Iteration set by base rule */
 }
 .anim-zoom {
-  animation-name: zoomInOut !important;
+  animation-name: zoomInOut;
   animation-duration: calc(var(--animation-duration, 2s) * 1.5); /* Adjust duration */
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
@@ -530,25 +540,26 @@ background-size: 200% auto;
 
 
 /* ============================================================ */
-/* == 8. Background Patterns & Effects (using bg-*)          == */
+/* == 8. Background Patterns & Effects (using bg-*)         == */
 /* ============================================================ */
 /* Ensure these target #previewContainer directly */
 /* Applied by SettingsManager._handleBackgroundTypeChange */
+/* REMOVED !important */
 
-#previewContainer.bg-transparent { background: transparent !important; }
+#previewContainer.bg-transparent { background: transparent; }
 #previewContainer.bg-solid {
-  background-image: none !important;
+  background-image: none;
   /* background-color set by JS/inline style */
 }
 #previewContainer.bg-gradient {
-  background-size: 100% 100% !important;
-  background-color: transparent !important; /* Ensure gradient shows */
+  background-size: 100% 100%;
+  background-color: transparent; /* Ensure gradient shows */
   /* background-image set by JS/inline style */
 }
 #previewContainer.bg-gradient-animated-css { /* Uses same gradient as bg-gradient */
-  background-size: 300% 300% !important;
-  animation: bgAnimateGradient var(--bg-animation-duration, 15s) ease infinite !important;
-  background-color: transparent !important;
+  background-size: 300% 300%;
+  animation: bgAnimateGradient var(--bg-animation-duration, 15s) ease infinite;
+  background-color: transparent;
   /* background-image set by JS/inline style */
 }
 /* Keep keyframes required by effects */
@@ -560,14 +571,14 @@ background-size: 200% auto;
 
 /* --- Static Patterns - Applied directly to #previewContainer --- */
 /* Copy rules from OLD Section 8 */
-#previewContainer.bg-grid { background-color: var(--surface-sunken-opaque, #2a2a2e); background-image: linear-gradient(var(--border-subtle, #444) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle, #444) 1px, transparent 1px) !important; background-size: 30px 30px !important; }
-#previewContainer.bg-dots-sm { background-color: var(--bg-base, #1e1e1e); background-image: radial-gradient(var(--border-default, #666) 1px, transparent 1px) !important; background-size: 15px 15px !important; }
-#previewContainer.bg-dots-lg { background-color: var(--bg-base, #1e1e1e); background-image: radial-gradient(var(--border-default, #666) 2px, transparent 2px) !important; background-size: 30px 30px !important; }
-#previewContainer.bg-checkerboard { background-color: var(--surface-sunken, #252526); background-image: linear-gradient(45deg, var(--border-subtle, #444) 25%, transparent 25%), linear-gradient(-45deg, var(--border-subtle, #444) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--border-subtle, #444) 75%), linear-gradient(-45deg, transparent 75%, var(--border-subtle, #444) 75%) !important; background-size: 20px 20px !important; background-position: 0 0, 0 10px, 10px -10px, -10px 0px !important; }
-#previewContainer.bg-lines-diag { background-color: var(--bg-base, #1e1e1e); background-image: repeating-linear-gradient(45deg, var(--border-subtle, #444), var(--border-subtle, #444) 1px, transparent 1px, transparent 10px) !important; }
-#previewContainer.bg-lines-vert { background-color: var(--bg-base, #1e1e1e); background-image: repeating-linear-gradient(to right, var(--border-subtle, #444), var(--border-subtle, #444) 1px, transparent 1px, transparent 10px) !important; }
-#previewContainer.bg-carbon { background-color: #222 !important; background-image: linear-gradient(45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent), linear-gradient(-45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent) !important; background-size: 10px 10px !important; }
-#previewContainer.bg-brushed-metal { background: linear-gradient(to bottom, #aaa, #eee, #aaa), linear-gradient(to right, rgba(0,0,0,0.1) 0px, rgba(255,255,255,0.1) 1px, rgba(0,0,0,0.1) 2px) !important; background-size: 100% 100%, 100% 2px !important; }
+#previewContainer.bg-grid { background-color: var(--surface-sunken-opaque, #2a2a2e); background-image: linear-gradient(var(--border-subtle, #444) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle, #444) 1px, transparent 1px); background-size: 30px 30px; }
+#previewContainer.bg-dots-sm { background-color: var(--bg-base, #1e1e1e); background-image: radial-gradient(var(--border-default, #666) 1px, transparent 1px); background-size: 15px 15px; }
+#previewContainer.bg-dots-lg { background-color: var(--bg-base, #1e1e1e); background-image: radial-gradient(var(--border-default, #666) 2px, transparent 2px); background-size: 30px 30px; }
+#previewContainer.bg-checkerboard { background-color: var(--surface-sunken, #252526); background-image: linear-gradient(45deg, var(--border-subtle, #444) 25%, transparent 25%), linear-gradient(-45deg, var(--border-subtle, #444) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--border-subtle, #444) 75%), linear-gradient(-45deg, transparent 75%, var(--border-subtle, #444) 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px; }
+#previewContainer.bg-lines-diag { background-color: var(--bg-base, #1e1e1e); background-image: repeating-linear-gradient(45deg, var(--border-subtle, #444), var(--border-subtle, #444) 1px, transparent 1px, transparent 10px); }
+#previewContainer.bg-lines-vert { background-color: var(--bg-base, #1e1e1e); background-image: repeating-linear-gradient(to right, var(--border-subtle, #444), var(--border-subtle, #444) 1px, transparent 1px, transparent 10px); }
+#previewContainer.bg-carbon { background-color: #222; background-image: linear-gradient(45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent), linear-gradient(-45deg, rgba(255,255,255,.05) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.05) 50%, rgba(255,255,255,.05) 75%, transparent 75%, transparent); background-size: 10px 10px; }
+#previewContainer.bg-brushed-metal { background: linear-gradient(to bottom, #aaa, #eee, #aaa), linear-gradient(to right, rgba(0,0,0,0.1) 0px, rgba(255,255,255,0.1) 1px, rgba(0,0,0,0.1) 2px); background-size: 100% 100%, 100% 2px; }
 
 
 /* --- Pattern Overlays (using ::before on #previewContainer) --- */
@@ -584,40 +595,42 @@ background-size: 200% auto;
   transition: opacity var(--transition-duration-base, 0.3s);
 }
 /* Specific overlay patterns */
+/* REMOVED !important */
 #previewContainer.bg-noise::before {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E") !important;
-  opacity: 0.6 !important;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
+  opacity: 0.6;
 }
-body.light-mode #previewContainer.bg-noise::before { opacity: 0.4 !important; } /* Light mode adjustment */
+body.light-mode #previewContainer.bg-noise::before { opacity: 0.4; } /* Light mode adjustment */
 
 #previewContainer.bg-scanlines::before {
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px) !important;
-  opacity: 0.5 !important;
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px);
+  opacity: 0.5;
 }
 body.light-mode #previewContainer.bg-scanlines::before {
-  background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px) !important;
-  opacity: 0.7 !important; /* Light mode adjustment */
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent 2px, rgba(255,255,255,0.3) 2px, rgba(255,255,255,0.3) 4px);
+  opacity: 0.7; /* Light mode adjustment */
 }
 
 #previewContainer.bg-circuit::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23888888' stop-opacity='.2'/%3E%3Cstop offset='100%25' stop-color='%23cccccc' stop-opacity='.2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)'/%3E%3Cpath d='M0 50 H20 V20 H40 V50 H60 V80 H80 V50 H100 M50 0 V20 M80 20 V0 M20 80 V100 M50 80 V100 M80 80 V100' stroke='rgba(255,255,255,0.1)' stroke-width='1' fill='none'/%3E%3Ccircle cx='20' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='20' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E") !important;
-  background-size: 100px 100px !important;
-  opacity: 0.5 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='0' y1='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23888888' stop-opacity='.2'/%3E%3Cstop offset='100%25' stop-color='%23cccccc' stop-opacity='.2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23g)'/%3E%3Cpath d='M0 50 H20 V20 H40 V50 H60 V80 H80 V50 H100 M50 0 V20 M80 20 V0 M20 80 V100 M50 80 V100 M80 80 V100' stroke='rgba(255,255,255,0.1)' stroke-width='1' fill='none'/%3E%3Ccircle cx='20' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='20' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='20' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='80' cy='80' r='2' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
+  background-size: 100px 100px;
+  opacity: 0.5;
 }
-body.light-mode #previewContainer.bg-circuit::before { opacity: 0.2 !important; } /* Light mode adjustment */
+body.light-mode #previewContainer.bg-circuit::before { opacity: 0.2; } /* Light mode adjustment */
 
 /* --- Animated Backgrounds - Target #previewContainer --- */
 /* Copy rules from OLD Section 8 */
-#previewContainer.bg-stars { background-color: var(--bg-deep, #05060a) !important; background-image: radial-gradient(circle at center, rgba(255,255,255,0.8) 0px, transparent 1px), radial-gradient(circle at center, rgba(255,255,255,0.5) 0px, transparent 2px), radial-gradient(circle at center, rgba(255,255,255,0.3) 0px, transparent 3px) !important; background-size: 60px 60px, 110px 110px, 180px 180px !important; background-position: 0 0, 30px 30px, 70px 80px !important; animation: starsTwinkle 30s linear infinite alternate !important; }
+/* REMOVED !important */
+#previewContainer.bg-stars { background-color: var(--bg-deep, #05060a); background-image: radial-gradient(circle at center, rgba(255,255,255,0.8) 0px, transparent 1px), radial-gradient(circle at center, rgba(255,255,255,0.5) 0px, transparent 2px), radial-gradient(circle at center, rgba(255,255,255,0.3) 0px, transparent 3px); background-size: 60px 60px, 110px 110px, 180px 180px; background-position: 0 0, 30px 30px, 70px 80px; animation: starsTwinkle 30s linear infinite alternate; }
 @keyframes starsTwinkle { 0% { background-position: 0 0, 30px 30px, 70px 80px; } 100% { background-position: -50px 20px, 10px 80px, 120px 20px; } }
 
-#previewContainer.bg-synthwave { background: linear-gradient(to bottom, #1e1035 0%, #4a2a70 60%, #f03d90 100%) !important; }
-#previewContainer.bg-synthwave::before { /* Grid lines */ content: ""; position: absolute; inset: 0; top: 50%; background-image: linear-gradient(to bottom, rgba(var(--accent-color-rgb, 255, 215, 0), 0.5) 1px, transparent 1px) !important; background-size: 100% 30px !important; transform: perspective(150px) rotateX(65deg) !important; transform-origin: center top !important; animation: synthGridScroll 8s linear infinite !important; z-index: 0 !important; opacity: 1 !important; } /* Ensure opacity doesn't conflict */
+#previewContainer.bg-synthwave { background: linear-gradient(to bottom, #1e1035 0%, #4a2a70 60%, #f03d90 100%); }
+#previewContainer.bg-synthwave::before { /* Grid lines */ content: ""; position: absolute; inset: 0; top: 50%; background-image: linear-gradient(to bottom, rgba(var(--accent-color-rgb, 255, 215, 0), 0.5) 1px, transparent 1px); background-size: 100% 30px; transform: perspective(150px) rotateX(65deg); transform-origin: center top; animation: synthGridScroll 8s linear infinite; z-index: 0; opacity: 1; } /* Ensure opacity doesn't conflict */
 @keyframes synthGridScroll { from { background-position: 0 0; } to { background-position: 0 -60px; } }
 #previewContainer.bg-synthwave::after { /* Sun - Use ::after to avoid conflict with pattern ::before */ content: ''; position: absolute; bottom: 65%; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, #fada7a 10%, #f03d90 60%, transparent 70%); filter: blur(10px); opacity: 0.7; z-index: 0; pointer-events: none; }
 
 /* Matrix requires specific HTML setup, defined in old CSS */
-#previewContainer.bg-matrix { background-color: #000 !important; filter: saturate(1.5) brightness(1.1); /* Ensure children fill */ position: relative; }
+#previewContainer.bg-matrix { background-color: #000; filter: saturate(1.5) brightness(1.1); /* Ensure children fill */ position: relative; }
 /* Needs JS to add .matrix-columns > .matrix-column inside #previewContainer */
 #previewContainer.bg-matrix .matrix-columns { display: flex; position: absolute; inset: 0; z-index: 0; overflow: hidden; }
 #previewContainer.bg-matrix .matrix-column {
@@ -635,15 +648,15 @@ body.light-mode #previewContainer.bg-circuit::before { opacity: 0.2 !important; 
 }
 
 #previewContainer.bg-nebula { /* Styles from old .bg-nebula */
-  background-color: #0a0b10 !important;
+  background-color: #0a0b10;
   background-image:
       radial-gradient(ellipse at 30% 70%, rgba(var(--primary-color-rgb, 255, 20, 147), 0.4) 0%, transparent 60%),
       radial-gradient(ellipse at 70% 30%, rgba(var(--secondary-color-rgb, 138, 43, 226), 0.4) 0%, transparent 50%),
       radial-gradient(ellipse at 50% 50%, rgba(var(--accent-color-rgb, 255, 215, 0), 0.3) 0%, transparent 70%),
-      radial-gradient(circle at center, rgba(255,255,255,0.6) 0px, transparent 1px) !important;
-  background-size: 150% 150%, 120% 120%, 180% 180%, 80px 80px !important;
-  background-position: -20% 0%, 120% 80%, 50% 50%, 10px 10px !important;
-  animation: nebulaDrift 60s linear infinite alternate !important;
+      radial-gradient(circle at center, rgba(255,255,255,0.6) 0px, transparent 1px);
+  background-size: 150% 150%, 120% 120%, 180% 180%, 80px 80px;
+  background-position: -20% 0%, 120% 80%, 50% 50%, 10px 10px;
+  animation: nebulaDrift 60s linear infinite alternate;
 }
 @keyframes nebulaDrift {
   0% { background-position: -20% 0%, 120% 80%, 50% 50%, 10px 10px; }
@@ -651,7 +664,7 @@ body.light-mode #previewContainer.bg-circuit::before { opacity: 0.2 !important; 
 }
 
 #previewContainer.bg-geometric-cubes { /* Styles from old .bg-geometric-cubes */
-  background-color: var(--bg-base, #1e1e1e) !important;
+  background-color: var(--bg-base, #1e1e1e);
   --cube-size: 50px;
   --cube-color-1: hsla(from var(--primary-color, #FF1493) h s l / 0.1);
   --cube-color-2: hsla(from var(--secondary-color, #8A2BE2) h s l / 0.1);
@@ -662,21 +675,22 @@ body.light-mode #previewContainer.bg-circuit::before { opacity: 0.2 !important; 
       linear-gradient(30deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
       linear-gradient(150deg, var(--cube-color-1) 12%, transparent 12.5%, transparent 87%, var(--cube-color-1) 87.5%, var(--cube-color-1)),
       linear-gradient(60deg, var(--cube-color-2) 25%, transparent 25.5%, transparent 75%, var(--cube-color-2) 75%, var(--cube-color-2)),
-      linear-gradient(60deg, var(--cube-color-3) 25%, transparent 25.5%, transparent 75%, var(--cube-color-3) 75%, var(--cube-color-3)) !important;
-  background-size: calc(var(--cube-size) * 1.732) var(--cube-size) !important;
-  background-position: 0 0, 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5) !important;
+      linear-gradient(60deg, var(--cube-color-3) 25%, transparent 25.5%, transparent 75%, var(--cube-color-3) 75%, var(--cube-color-3));
+  background-size: calc(var(--cube-size) * 1.732) var(--cube-size);
+  background-position: 0 0, 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5), 0 0, calc(var(--cube-size) * 0.866) calc(var(--cube-size) * 0.5);
 }
 body.light-mode #previewContainer.bg-geometric-cubes {
-  --cube-color-1: hsla(from var(--primary-color, #FF1493) h s l / 0.05) !important;
-  --cube-color-2: hsla(from var(--secondary-color, #8A2BE2) h s l / 0.05) !important;
-  --cube-color-3: hsla(from var(--accent-color, #FFD700) h s l / 0.05) !important;
+  --cube-color-1: hsla(from var(--primary-color, #FF1493) h s l / 0.05);
+  --cube-color-2: hsla(from var(--secondary-color, #8A2BE2) h s l / 0.05);
+  --cube-color-3: hsla(from var(--accent-color, #FFD700) h s l / 0.05);
 }
 
 
 /* ========================================================================== */
-/* == 9. Responsive & Accessibility Overrides                              == */
+/* == 9. Responsive & Accessibility Overrides                             == */
 /* ========================================================================== */
 /* --- Keep Section 9 rules from OLD file --- */
+/* --- KEPT !important in this section for accessibility overrides --- */
 
 /* --- Mobile Optimizations --- */
 @media (max-width: 768px) {
@@ -764,7 +778,7 @@ body.light-mode #previewContainer.bg-geometric-cubes {
 }
 
 /* --- High Contrast Preference --- */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   /* Remove subtle glows and shadows that rely on low contrast */
   [class*="text-effect-glow-"],
   [class*="text-effect-shadow-soft"],

@@ -1,30 +1,39 @@
-## 💻 Development Mode (Live Reload)
+# 💻 Development Mode
 
-For easier development, a live-reloading environment is available. This mode automatically rebuilds the application and refreshes your browser when you make changes to the source code.
+For easier development, Logomaker provides a development server environment powered by Node.js and managed via npm scripts. This mode automatically rebuilds the application when you save changes to source code.
 
-**How it Works:**
+## Prerequisites
 
-1.  **Initial Setup:** When you run the script, it performs a full initial build (using `node scripts/build.js`), generating all necessary assets (HTML, CSS, JS, font metadata, etc.) for the web-optimized (`deploy`) target.
-2.  **Web Server:** It starts a local web server (using `npx http-server`) to serve the built files (from the `dist/github-pages` directory).
-3.  **Browser Launch:** The *first time* it starts, it automatically opens the application in your default web browser.
-4.  **File Watching:** The script continuously watches your source files (`index.html`, `js/`, `css/`, and significantly, `fonts/`).
-5.  **Automatic Rebuild & Refresh:**
-    * When a change is detected in `index.html`, `js/`, or `css/`, the script triggers a quick rebuild (skipping the time-consuming font regeneration) and restarts the local web server. Your browser should reflect the changes (you might need to manually refresh if hot-reloading isn't configured, but the server *will* have the latest code).
-    * When a change is detected specifically within the `fonts/` directory, the script performs a *full* rebuild, including regenerating all font metadata and CSS, before restarting the server.
-6.  **No More New Tabs:** After the initial launch, subsequent server restarts (due to file changes) will *not* open new browser tabs.
+* [Git](https://git-scm.com/downloads) & [Git LFS](https://git-lfs.com)
+* [Node.js](https://nodejs.org/) (v18+) & npm
+* Run `npm install` in the project root directory once to install necessary development tools (`chokidar` for file watching, `http-server` for serving). Note: These are **devDependencies** only and not required for the built application to run.
 
-**How to Run:**
+## How It Works (`npm run dev`)
 
-1.  Make sure you have run `npm install` at least once in the project root to install development dependencies like `http-server`.
-2.  Open your terminal, navigate to the project's root directory (`logomaker/`).
-3.  Run the command:
-    ```bash
-    node scripts/dev.js
-    ```
-4.  The script will output logs showing the build process and server status. Look for a line indicating the server is running (e.g., `Access at http://localhost:3000`).
-5.  Develop! Edit your code, save files, and watch the terminal for rebuild messages. Check the browser (refresh if needed) to see your changes.
+1.  **Initial Build:** When you run `npm run dev`, the `scripts/dev.js` script first triggers a full, clean build using `scripts/build.js --target=deploy`.
+    * This cleans `dist/github-pages/`.
+    * It runs `scripts/generate-fonts-json.js` (without Base64).
+    * It runs `scripts/split-fonts.js` (which cleans `font-chunks/` and creates the index/chunks).
+    * It copies all necessary assets (`index.html`, `js/`, `css/`, `font-chunks/`, `fonts/`, `fonts.json`) to `dist/github-pages/`.
+2.  **Web Server:** Once the initial build succeeds, `scripts/dev.js` starts a local web server using the `http-server` development dependency.
+    * It serves files from the `dist/github-pages` directory.
+    * It typically runs on port 3000 (`http://localhost:3000`).
+    * It automatically opens your default browser to the correct address (`-o` flag).
+3.  **File Watching:** The script uses `chokidar` (a reliable file watcher) to monitor your source files (`index.html`, `js/`, `css/`, `fonts/`).
+4.  **Automatic Rebuild:**
+    * When you **save a change** to a watched source file:
+        * `chokidar` detects the change.
+        * After a brief delay (debouncing), `scripts/dev.js` automatically triggers a new build (`scripts/build.js --target=deploy`).
+        * If a non-font file (`js/`, `css/`, `index.html`) changed, the build will use the `--skip-font-regen` flag for speed.
+        * If a file inside the `fonts/` directory changed, the build will run *without* the skip flag, ensuring font metadata (`fonts.json`, `inline-fonts-data.js`, chunks) and CSS (`css/generated-font-classes.css`) are fully regenerated.
+5.  **Automatic Server Restart:**
+    * If the automatic rebuild **completes successfully**, `scripts/dev.js` automatically stops the old `http-server` instance and starts a new one serving the updated files from `dist/github-pages`.
+6.  **Viewing Changes:**
+    * After the server restarts (check the terminal logs), you need to **manually refresh your browser** (F5 or Ctrl+R / Cmd+R) to load the latest changes. *There is no automatic browser injection/refresh.*
 
-**How to Stop:**
+## Usage
 
-* Go back to the terminal window where `node scripts/dev.js` is running.
-* Press `CTRL+C`. The script will shut down the build process and the web server gracefully.
+The primary command for development is:
+
+```bash
+npm run dev

@@ -1,0 +1,21 @@
+{
+    "name": "logomaker",
+    "version": "3.0.0",
+    "description": "Logomaker v3 - Free Online & Offline Logo Generator",
+    "author": "Manic.agency",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+      "dev": "node scripts/dev.js --mode=dev",
+      "preview": "node scripts/dev.js --mode=prod-preview --port=3001",
+      "build": "npm run build:deploy",
+      "build:deploy": "node scripts/build.js --target=deploy",
+      "build:portable": "node scripts/generate-fonts-json.js --base64 && node scripts/build.js --target=portable",
+      "generate-fonts": "node scripts/generate-fonts-json.js",
+      "generate-fonts:base64": "node scripts/generate-fonts-json.js --base64"
+    },
+    "devDependencies": {
+      "chokidar": "^3.5.3",
+      "http-server": "^14.1.1" 
+    }
+  }
