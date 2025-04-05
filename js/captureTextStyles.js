@@ -895,7 +895,6 @@ function extractKeyframesCSS(animationName) {
     return null;
 }
 
-console.log("yeah");
 // Make the main function globally accessible if not using ES modules
 if (typeof window !== 'undefined') {
     window.captureAdvancedStyles = captureAdvancedStyles;
