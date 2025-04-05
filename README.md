@@ -13,7 +13,17 @@ See the [Technical Deep Dive (coming soon)](https://manic.agency/blog) and [arch
 ![Logomaker Preview](./docs/preview.png)
 ---
 
-## 🚀 Using Logomaker
+## ✨ Features Overview
+
+* **🔤 BYOF Font Library with defaults:** ~400 fonts available. Dynamically loaded online (chunked w/ IndexedDB caching) or fully embedded offline, with font licensing support. See [fontmanager.md](./docs/fontmanager.md).
+* **🎬 Full Vector Animation Support:** Apply subtle animations (Pulse, Bounce, Glitch, etc.). Control speed. Included directly in SVG exports via CSS!
+* **📦 Pro Export Options:**
+    * **SVG:** Clean, scalable vectors. Embeds fonts (via `@font-face` data URLs) & CSS animations. Ideal for web/editing.
+    * **PNG:** High-quality raster images with optional transparency. Control resolution and quality.
+    * **Frames (ZIP):** Animation sequence as individual PNG frames + HTML preview.
+* **🔗 Shareable URLs:** Generate unique links capturing your exact design state.
+
+## 🚀 Getting Started
 
 Choose the version that best suits your needs:
 
@@ -33,6 +43,14 @@ Ideal for offline environments, workshops, or easy sharing.
 * **Single File:** If `dist/portable/logomaker-portable.html` exists (requires the `portapack` dev dependency: `npm install -D portapack`), open this single file in any modern browser. All assets, including fonts (Base64 encoded), are embedded.
 * *Note:* Expect a **significantly slower initial load** compared to the optimized version due to the large (~90-100MB) embedded font data.
 
+## Background 
+
+From conception, this was designed as a lightweight application with no online or external dependencies required for functionality (some online libraries are optionally enabled for QR code and one PNG exporting option). Thus, this can also easily be built into native desktop / mobile experiences with Electron, Ionic, etc.
+
+Imagine having your own offline designing / editing app that never needs updating or will ever break,m and embeds a full extendable font library with virtually unlimited font support from lazy loading. That was a straightforward enough vision to keep everything lightweight (save for the font media assets).
+
+Thus, we have no `package.json` file, and keep things simple with a singular HTML entrypoint `index.html`, and your standard static assets in `css/` and `js/`. We also store fonts in `fonts/` in LFS, though we have a multitude of building and font loading options to allow for Logomaker to be run as both an offline HTML file without a server, or through a server with more optimal assets serving.
+
 ## 🛠️ Local Development
 
 ### Prerequisites
@@ -40,13 +58,7 @@ Ideal for offline environments, workshops, or easy sharing.
 - [Git LFS](https://git-lfs.com)
 - [Node.js](https://nodejs.org/) (v18+)
 
-### Quick Start
-
-From conception, this was designed as a lightweight application with no online or external dependencies required for functionality (some online libraries are optionally enabled for QR code and one PNG exporting option). Thus, this can also easily be built into native desktop / mobile experiences with Electron, Ionic, etc.
-
-Imagine having your own offline designing / editing app that never needs updating or will ever break,m and embeds a full extendable font library with virtually unlimited font support from lazy loading. That was a straightforward enough vision to keep everything lightweight (save for the font media assets).
-
-Thus, we have no `package.json` file, and keep things simple with a singular HTML entrypoint `index.html`, and your standard static assets in `css/` and `js/`. We also store fonts in `fonts/` in LFS, though we have a multitude of building and font loading options to allow for Logomaker to be run as both an offline HTML file without a server, or through a server with more optimal assets serving.
+### Commands 
 
 ```bash
 # Clone & Setup
@@ -70,20 +82,9 @@ node scripts/build.js --serve
 
 See [development.md](./docs/development.md) for more info on development mode.
 
-## ✨ Features Overview
+### 🛠️ Building the Project
 
-* **🔤 BYOF Font Library with defaults:** ~400 fonts available. Dynamically loaded online (chunked w/ IndexedDB caching) or fully embedded offline, with font licensing support. See [fontmanager.md](./docs/fontmanager.md).
-* **🌈 Vibrant Gradients:** Apply multi-color gradients with presets or full customization.
-* **✨ Dizzying Effects:** Enhance text with glows, shadows, outlines, retro styles, emboss, inset effects – all color-customizable.
-* **🔲 Flexible Borders:** Frame logos with various styles (solid, dashed, pixelated, glowing). *Note: Complex borders simplified in SVG exports.*
-* **🎬 Engaging Animations:** Apply subtle animations (Pulse, Bounce, Glitch, etc.). Control speed. Included directly in SVG exports via CSS!
-* **📦 Pro Export Options:**
-    * **SVG:** Clean, scalable vectors. Embeds fonts (via `@font-face` data URLs) & CSS animations. Ideal for web/editing.
-    * **PNG:** High-quality raster images with optional transparency. Control resolution and quality.
-    * **Frames (ZIP):** Animation sequence as individual PNG frames + HTML preview.
-* **🔗 Shareable URLs:** Generate unique links capturing your exact design state.
-* **🌓 Light/Dark Themes:** Adapts to system preference or toggle manually.
----
+Logomaker offers two build targets: a web-optimized version with chunked font loading and a fully portable offline build. The project uses a lightweight build process with no external dependencies, allowing for easy deployment across different environments. Simply run `node scripts/build.js` to generate the default web version, or use `node scripts/build.js --target=portable` for an offline, single-file application. For detailed build instructions and advanced configuration, check out our [comprehensive build documentation](docs/build.md).
 
 ## 🤔 Performance & Loading: Optimized vs. Portable
 
