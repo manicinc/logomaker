@@ -10,6 +10,7 @@
 import SettingsManager from './settingsManager.js';
 import { initializeFonts } from './fontManager.js'; // Assuming fontManager exports this
 
+import { setupThemeToggle } from './misc.js';
 // UI Initializers / Handlers (Ensure these files export the functions)
 import { setupTabNavigation } from './tabs.js'; // ** FIX: Import function **
 import { setupTooltips, updateSizeIndicator, throttle, randomizeStyle, openShareModal } from './misc.js'; // Assuming misc.js exports these
@@ -74,6 +75,12 @@ async function initializeApp() {
         // Add other UI initializers here (e.g., modals if not self-initializing)
 
 
+        try {
+            setupThemeToggle(); // Assuming this function exists in misc.js
+        } catch (themeError) {
+            console.error('[Main] Error setting up theme toggle:', themeError);
+        }
+        
         // Bind Button Handlers
         bindButtonHandlers(); // Binds export, copy, randomize, share etc.
 
