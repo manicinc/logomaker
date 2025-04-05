@@ -1,13 +1,7 @@
 /**
- * scripts/dev.js
- * Development Watcher for Logomaker (v1.2 - Conditional Font Rebuild)
- * ---------------------------------
- * Watches source files (HTML, CSS, JS, Fonts) and automatically restarts
- * the build & serve process (`node scripts/build.js --serve`).
- * Only forces font artifact regeneration if font files are changed.
- * Uses Node.js built-in modules (`fs`, `child_process`).
- *
- * Usage: Run from project root -> `node scripts/dev.js`
+ * scripts/dev.js (v1.6 - Functional Version)
+ * Development Watcher for Logomaker - Manages Both Build & Server
+ * Uses Node's built-in `fs.watch`. Assumes `scripts/build.js` is correctly implemented.
  */
 
 const fs = require('fs');
@@ -15,35 +9,38 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 // --- Configuration ---
-
-// Files/Directories to watch (relative to project root)
-const WATCH_TARGETS = [
-    'index.html', // Watch the main HTML file
-    'js',         // Watch the entire JS directory recursively
-    'css',        // Watch the entire CSS directory recursively
-    'fonts'       // Watch the fonts source directory recursively
+const projectRoot = path.resolve(__dirname, '..');
+const WATCH_TARGETS = ['index.html', 'js', 'css', 'fonts'];
+const GENERATED_CSS_FILENAME = 'generated-font-classes.css';
+const GENERATED_CSS_RELPATH = path.join('css', GENERATED_CSS_FILENAME);
+const IGNORE_PATTERNS_IN_CALLBACK = [
+    path.join('dist', ''), path.join('node_modules', ''), path.join('.git', ''),
+    path.join('scripts', ''), path.join('font-chunks', ''),
+    'inline-fonts-data.js', 'fonts.json', GENERATED_CSS_RELPATH,
+    'logomaker-portable.html', '.DS_Store', 'Thumbs.db', 'desktop.ini', '___', '~$'
 ];
-
-// Command to run for building and serving
 const BUILD_COMMAND = 'node';
-// Base arguments for the build script (change if testing portable mode)
-const BASE_BUILD_ARGS = ['scripts/build.js', '--serve'];
-// To watch the PORTABLE build instead, use:
-// const BASE_BUILD_ARGS = ['scripts/build.js', '--serve', '--portable'];
-
-// Argument to pass to build.js when font regeneration is NOT needed
-const SKIP_CLEAN_ARG = '--skip-font-clean';
-
-// Delay after detecting a change before triggering a rebuild
-const DEBOUNCE_DELAY = 500; // milliseconds
+const BASE_BUILD_ARGS = ['scripts/build.js']; // Assumes build.js is fixed!
+const TARGET_TO_SERVE = 'deploy'; // Default, change if needed
+const BUILD_TARGET_ARG = `--target=${TARGET_TO_SERVE}`;
+const SERVER_COMMAND = 'npx';
+const SERVER_PORT = 3000;
+const SERVER_ARGS = ['http-server', '', '-p', SERVER_PORT, '-o', '--cors', '-c-1'];
+const SKIP_FONT_REGEN_ARG = '--skip-font-regen';
+const DEBOUNCE_DELAY = 500;
 
 // --- Script State ---
+let buildProcess = null;
+let serverProcess = null;
+let debounceTimeout = null;
+let needsFontRebuild = true;
+let watchers = [];
+let isHandlingChange = false;
 
-const projectRoot = path.resolve(__dirname, '..');
-let buildProcess = null;    // Holds the current running build/serve process
-let debounceTimeout = null; // Timer for debouncing file changes
-let needsFontRebuild = true; // Flag to track if fonts need rebuilding (true initially)
-let watchers = [];          // Array to hold file system watcher instances
+// --- Determine Serve Path ---
+const GITHUB_PAGES_SUBDIR = 'github-pages';
+const PORTABLE_SUBDIR = 'portable';
+const servePath = path.resolve(projectRoot, 'dist', TARGET_TO_SERVE === 'deploy' ? GITHUB_PAGES_SUBDIR : PORTABLE_SUBDIR);
 
 // --- Logging Helpers ---
 const log = (msg) => console.log(`[DEV] ${msg}`);
@@ -51,244 +48,167 @@ const logWarn = (msg) => console.warn(`[DEV] [WARN] ${msg}`);
 const logError = (msg, err) => console.error(`[DEV] [ERROR] ${msg}`, err || '');
 const logAction = (msg) => console.log(`\n✨ ${msg} ✨`);
 const logSuccess = (msg) => console.log(`[DEV] ✅ ${msg}`);
+const logInfo = (msg) => console.log(`[DEV INFO] ${msg}`);
+const logTrace = (msg) => console.log(`[DEV TRACE] ${msg}`);
 
 // --- Process Management ---
-
-/**
- * Attempts to gracefully kill the currently running build process.
- * Uses taskkill on Windows, kill with SIGTERM/SIGKILL on Unix-like.
- * Executes a callback function once the process is confirmed (or assumed) stopped.
- * @param {function} [callback] - Optional function to call after process termination attempt.
- */
-function killCurrentProcess(callback) {
-    if (!buildProcess || buildProcess.killed) {
-        buildProcess = null;
-        if (callback) process.nextTick(callback); // Ensure async callback if no process
-        return;
-    }
-
-    log(`Stopping previous build/serve process (PID: ${buildProcess.pid})...`);
-    const pid = buildProcess.pid;
+function killProcess(proc, name, callback) {
+    if (!proc || proc.killed) { if (callback) process.nextTick(callback); return; }
+    const pid = proc.pid;
+    log(`Stopping ${name} process (PID: ${pid})...`);
     let killed = false;
-
-    // Cleanup function called on exit or timeout
     const killCleanup = () => {
         if (!killed) {
             killed = true;
-            // Ensure the reference is cleared even if exit event didn't fire reliably
-            if (buildProcess && buildProcess.pid === pid) {
-                 buildProcess = null;
-            }
-            log('Previous process stop attempt finished.');
-            if (callback) process.nextTick(callback); // Proceed with next action
+            if (name === 'Build' && buildProcess && buildProcess.pid === pid) buildProcess = null;
+            if (name === 'Server' && serverProcess && serverProcess.pid === pid) serverProcess = null;
+            if (callback) process.nextTick(callback);
         }
     };
-
-    // Listen for the actual exit event
-    buildProcess.once('exit', (code, signal) => {
-         log(`Previous process exited (Code: ${code}, Signal: ${signal})`);
-        killCleanup();
-    });
-
-    // Attempt termination
+    proc.once('exit', killCleanup);
+    proc.once('error', (err) => { logWarn(`Error emitted by ${name} (PID: ${pid}) during kill: ${err.message}`); killCleanup(); });
     try {
-        if (process.platform === 'win32') {
-            // /F forces termination, /T kills child processes
-            spawn('taskkill', ['/PID', pid, '/F', '/T'], { detached: true, stdio: 'ignore' })
-                .on('error', (err) => {
-                    logWarn(`taskkill command failed (PID: ${pid}): ${err.message}. Fallback might be needed.`);
-                    // Fallback: try node's default kill (less effective on Windows for trees)
-                     try { if(buildProcess && !buildProcess.killed) buildProcess.kill('SIGTERM'); } catch (e) {}
-                });
-        } else {
-            // On Unix, send SIGTERM to the process group first, then the process itself
-             try { process.kill(-pid, 'SIGTERM'); } // Kill group
-             catch (e) {
-                  try { process.kill(pid, 'SIGTERM'); } catch (e2) {} // Kill process if group failed
-            }
-        }
-    } catch (e) {
-        logWarn(`Error sending initial termination signal (PID: ${pid}): ${e.message}.`);
-        // If initial kill fails, might need SIGKILL later in timeout
-    }
-
-    // Failsafe: Force kill if it doesn't exit after a timeout
+        if (process.platform === 'win32') { spawn('taskkill', ['/PID', pid, '/F', '/T'], { detached: true, stdio: 'ignore' }).on('error', () => { try { if (proc && !proc.killed) proc.kill('SIGTERM'); } catch (e) {} }); }
+        else { try { process.kill(-pid, 'SIGTERM'); } catch (e) { try { if (proc && !proc.killed) process.kill(pid, 'SIGTERM'); } catch (e2) {} } }
+    } catch (e) { logWarn(`Error sending SIGTERM to ${name} (PID: ${pid}): ${e.message}.`); }
     setTimeout(() => {
-        if (!killed && buildProcess && buildProcess.pid === pid && !buildProcess.killed) {
-            logWarn(`Force killing process ${pid} via SIGKILL (timeout).`);
-             try { process.kill(pid, 'SIGKILL'); } catch (e) { logError(`Force kill failed for PID ${pid}:`, e); }
+        if (!killed && proc && !proc.killed) {
+            logWarn(`Force killing ${name} process ${pid} via SIGKILL (timeout).`);
+            try { if (process.platform === 'win32') { spawn('taskkill', ['/PID', pid, '/F', '/T'], { detached: true, stdio: 'ignore' }); } else { process.kill(pid, 'SIGKILL'); } }
+            catch (e) { logError(`Force kill failed for ${name} (PID ${pid}):`, e); }
         }
-        // Ensure cleanup runs even if SIGKILL fails or process already exited
         killCleanup();
-    }, 3000); // 3 second timeout
+    }, 3000);
 }
 
-/**
- * Starts the build and serve process (`node scripts/build.js --serve`).
- * Adds the `--skip-font-clean` argument if `forceFontRebuild` is false.
- * @param {boolean} [forceFontRebuild=false] - Whether to force font artifact regeneration.
- */
-function startBuildServe(forceFontRebuild = false) {
-    const effectiveForceFontRebuild = forceFontRebuild || needsFontRebuild; // Check explicit flag OR tracked state
-    const buildArgs = [...BASE_BUILD_ARGS]; // Copy base arguments
+function killAllProcesses(callback) {
+    logInfo('Stopping all managed processes...');
+    killProcess(serverProcess, 'Server', () => {
+        killProcess(buildProcess, 'Build', () => {
+            logInfo("All managed processes stop attempts initiated.");
+            if (callback) callback();
+        });
+    });
+}
 
-    if (!effectiveForceFontRebuild) {
-        buildArgs.push(SKIP_CLEAN_ARG); // Add skip flag if NOT rebuilding fonts
-        logAction(`Starting build & serve (Skipping Font Regen)... (${new Date().toLocaleTimeString()})`);
-    } else {
-        logAction(`Starting build & serve (Forcing Font Regen)... (${new Date().toLocaleTimeString()})`);
-    }
+function startServer() {
+    if (serverProcess && !serverProcess.killed) { logWarn("Server already running."); return; }
+    logAction(`>>> Starting server for target: ${TARGET_TO_SERVE}...`);
+    logInfo(`>>> Serving directory: ${servePath}`);
+    if (!fs.existsSync(servePath)) { logError(`Cannot start server: Directory not found: ${servePath}`); return; }
+    const finalServerArgs = [...SERVER_ARGS]; finalServerArgs[1] = servePath;
+    logInfo(`>>> Spawning Server: ${SERVER_COMMAND} ${finalServerArgs.join(' ')}`);
+    try {
+        serverProcess = spawn(SERVER_COMMAND, finalServerArgs, { stdio: 'inherit', shell: true, cwd: projectRoot });
+        const pid = serverProcess.pid; if (!pid) throw new Error("Spawned server process has no PID.");
+        logSuccess(`>>> Spawned server process (PID: ${pid}) - Access at http://localhost:${SERVER_PORT}`);
+        serverProcess.on('error', (err) => { logError(`>>> Server (PID: ${pid}) error:`, err); if (serverProcess && serverProcess.pid === pid) serverProcess = null; });
+        serverProcess.on('close', (code, signal) => { logWarn(`>>> Server (PID: ${pid}) exited (Code: ${code}, Signal: ${signal})`); if (serverProcess && serverProcess.pid === pid) serverProcess = null; });
+    } catch (e) { logError(">>> Error spawning server process:", e); serverProcess = null; }
+}
 
-    // Ensure previous process is fully stopped before starting new one
-    killCurrentProcess(() => {
+function startBuild(forceFontRebuild = false) {
+    killProcess(buildProcess, 'Build', () => { // Kill previous build first
+        if (buildProcess && !buildProcess.killed) { logWarn("Build already in progress after kill attempt. Skipping trigger."); return; }
+
+        const shouldBuildFonts = forceFontRebuild || needsFontRebuild;
+        const buildArgs = [...BASE_BUILD_ARGS, BUILD_TARGET_ARG];
+        logInfo(`startBuild called. forceFontRebuild=${forceFontRebuild}, needsFontRebuild=${needsFontRebuild}, calculated shouldBuildFonts=${shouldBuildFonts}`);
+        if (!shouldBuildFonts) { buildArgs.push(SKIP_FONT_REGEN_ARG); logAction(`Starting build (${TARGET_TO_SERVE} target, Skipping Font Regen)... (${new Date().toLocaleTimeString()})`); }
+        else { logAction(`Starting build (${TARGET_TO_SERVE} target, Forcing Font Regen)... (${new Date().toLocaleTimeString()})`); }
+        logInfo(`Spawning Build: ${BUILD_COMMAND} ${buildArgs.join(' ')} (NO shell, piping stdio)`);
+
         try {
-            // Spawn the build script
-            buildProcess = spawn(BUILD_COMMAND, buildArgs, { // Use the dynamically determined args
-                stdio: 'inherit', // Show build/server output in this terminal
-                shell: true,      // Often needed for 'node' command, esp. on Windows
-                cwd: projectRoot, // Ensure it runs from the project root directory
-            });
-
-             if (!buildProcess || !buildProcess.pid) {
-                 throw new Error("Failed to get valid process object after spawn.");
-             }
-            const pid = buildProcess.pid; // Store pid for reliable tracking
+            // Spawn build.js WITHOUT shell, pipe stdio to capture its output
+            buildProcess = spawn(BUILD_COMMAND, buildArgs, { stdio: 'pipe', cwd: projectRoot });
+            const pid = buildProcess.pid; if (!pid) throw new Error("Spawned build process has no PID.");
             log(`Spawned build process (PID: ${pid})`);
 
-            buildProcess.on('error', (err) => {
-                // This usually means the command itself couldn't be found/executed
-                logError(`Failed to start build process:`, err);
-                 buildProcess = null; // Clear the reference on spawn error
-            });
+            let buildStderr = ''; // Capture stderr
+            if (buildProcess.stdout) { buildProcess.stdout.on('data', (data) => log(`[Build ${pid} OUT] ${data.toString().trim()}`)); }
+            else { logWarn(`[Build ${pid}] No stdout stream available.`); }
+            if (buildProcess.stderr) { buildProcess.stderr.on('data', (data) => { buildStderr += data.toString(); logError(`[Build ${pid} ERR] ${data.toString().trim()}`); }); }
+            else { logWarn(`[Build ${pid}] No stderr stream available.`); }
 
-            buildProcess.on('close', (code) => {
-                log(`Build process (PID: ${pid}) exited (Code: ${code})`);
-                // Only clear the reference if it's the *same* process that closed
-                if (buildProcess && buildProcess.pid === pid) {
-                     buildProcess = null;
-                     if (code === 0) {
-                         // If the build was successful, reset the flag
-                         // so the *next* change doesn't force font rebuild unless it's a font file
-                         needsFontRebuild = false;
-                         log("Build successful, font rebuild flag reset.");
-                     } else {
-                         // If build failed, assume fonts might still need rebuild next time
-                         needsFontRebuild = true;
-                          logWarn("Build failed, font rebuild flag remains set.");
-                     }
+            buildProcess.on('error', (err) => { logError(`Build process (PID: ${pid}) SPAWN error:`, err); if (buildProcess && buildProcess.pid === pid) buildProcess = null; logWarn("Setting needsFontRebuild=true due to build process SPAWN error."); needsFontRebuild = true; });
+            buildProcess.on('close', (code, signal) => {
+                const currentPid = pid;
+                logInfo(`Build process (PID: ${currentPid}) exited (Code: ${code}, Signal: ${signal}).`);
+                if (buildStderr.includes('[DEV] Initializing development environment')) { logError("!!! BUILD SCRIPT IS STILL RUNNING DEV LOGIC !!!"); } // Check added
+
+                if (buildProcess && buildProcess.pid === currentPid) { buildProcess = null; }
+                else if (buildProcess) { logWarn(`Newer build active. Ignoring close for PID ${currentPid}.`); return; }
+
+                if (code === 0) { // Build SUCCESSFUL
+                    if (shouldBuildFonts) { logInfo("Build OK (font regen). Resetting needsFontRebuild=false."); needsFontRebuild = false; }
+                    else { logInfo(`Build OK (no font regen). needsFontRebuild=${needsFontRebuild}.`); }
+                    logSuccess(`Build successful for ${TARGET_TO_SERVE}. Restarting server...`);
+                    killProcess(serverProcess, 'Server', () => { logInfo("Starting server..."); startServer(); }); // Restart server
+                } else { // Build FAILED
+                    logError(`Build failed (Code: ${code}, Signal: ${signal}). Server not started/restarted.`);
+                    if (buildStderr.toLowerCase().includes('permission denied')) { logError("Permission error detected in build."); }
+                    if (code !== 0) { logWarn("Setting needsFontRebuild=true due to build failure."); needsFontRebuild = true; }
                 }
             });
-
-        } catch (spawnError) {
-            logError(`Error spawning build process:`, spawnError);
-             buildProcess = null;
-        }
+        } catch (spawnError) { logError(`Error spawning build:`, spawnError); buildProcess = null; logWarn("Setting needsFontRebuild=true (spawn error)."); needsFontRebuild = true; }
     });
 }
 
 // --- File Watching ---
+function handleFileChange(eventType, targetDirAbs, filename) {
+    logTrace(`handleFileChange: event='${eventType}', dir='${path.basename(targetDirAbs)}', file='${filename || 'N/A'}'`);
+    if (isHandlingChange) { logTrace("Skipping: Already handling change."); return; }
+    isHandlingChange = true;
+    const changedItemAbs = filename ? path.join(targetDirAbs, filename) : targetDirAbs;
+    const relativePath = path.relative(projectRoot, changedItemAbs);
+    if (filename && filename === GENERATED_CSS_FILENAME && relativePath === GENERATED_CSS_RELPATH) { logTrace(`Ignoring event explicitly for generated CSS file: ${relativePath}`); isHandlingChange = false; return; }
+    const lowerRelativePath = relativePath.toLowerCase();
+    if (IGNORE_PATTERNS_IN_CALLBACK.some(pattern => { const p = pattern.toLowerCase(); return lowerRelativePath === p || lowerRelativePath.startsWith(p + path.sep); })) { logTrace(`Ignoring change in "${relativePath}" due to pattern match.`); isHandlingChange = false; return; }
+    const fontsDirAbs = path.resolve(projectRoot, 'fonts');
+    const isFontChange = changedItemAbs.startsWith(fontsDirAbs + path.sep);
+    log(`Change detected: ${eventType} in "${relativePath}" (isFontChange: ${isFontChange})`);
+    if (isFontChange) { if (!needsFontRebuild) { logWarn("Font dir change! Font rebuild required."); } needsFontRebuild = true; }
+    logInfo(`needsFontRebuild state = ${needsFontRebuild}`);
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => { logInfo(`Debounce timeout -> Calling startBuild.`); startBuild(false); isHandlingChange = false; }, DEBOUNCE_DELAY);
+}
 
-/**
- * Sets up watchers for the specified targets.
- */
 function setupWatchers() {
-    log('Setting up file watchers...');
+    log('Setting up file watchers using fs.watch...');
+    let targetsProcessed = 0;
+    watchers.forEach(w => { try { w.close(); } catch (e) {} }); watchers = [];
     WATCH_TARGETS.forEach(target => {
-        const targetPath = path.resolve(projectRoot, target);
-        if (!fs.existsSync(targetPath)) {
-            logWarn(`Watch target not found: "${target}", skipping.`);
-            return;
-        }
-
-        // Determine if the target is the fonts directory
-        const isFontsDir = path.relative(projectRoot, targetPath) === 'fonts';
-        log(`Watching: "${path.relative(projectRoot, targetPath)}" ${isFontsDir ? '(Triggers Font Regen)' : ''}`);
-
+        const targetPathAbs = path.resolve(projectRoot, target);
+        if (!fs.existsSync(targetPathAbs)) { logWarn(`Watch target not found: "${target}", skipping.`); return; }
         try {
-            const watcher = fs.watch(targetPath, { recursive: true }, (eventType, filename) => {
-                // Construct the approximate full path of the changed file/directory
-                const changedItemPath = filename ? path.join(targetPath, filename) : targetPath;
-                const relativePath = path.relative(projectRoot, changedItemPath);
-
-                // Basic ignore patterns (fs.watch can be noisy)
-                if (relativePath.startsWith('dist') ||
-                    relativePath.includes('node_modules') ||
-                    relativePath.includes('.git') ||
-                    relativePath.endsWith('___') || // Editor temporary files
-                    relativePath.endsWith('~') ||
-                    relativePath.includes('generated-font-classes.css')) { // Ignore generated CSS
-                    return;
-                }
-
-                log(`Change detected: ${eventType} in "${relativePath}"`);
-
-                // Decide if a font rebuild is needed
-                const isFontChange = relativePath.startsWith('fonts' + path.sep) || relativePath === 'fonts';
-                if (isFontChange) {
-                     logWarn("Change in fonts directory detected! Forcing font rebuild on next trigger.");
-                    needsFontRebuild = true; // Set flag to force rebuild
-                }
-
-                // Trigger the rebuild (debounced)
-                clearTimeout(debounceTimeout);
-                debounceTimeout = setTimeout(() => {
-                    // Pass the current state of the flag to startBuildServe
-                    startBuildServe(needsFontRebuild);
-                }, DEBOUNCE_DELAY);
-            });
-
-            watcher.on('error', (err) => {
-                 logError(`Watcher error for "${targetPath}":`, err);
-                 // Consider attempting to restart the specific watcher if feasible
-            });
-            watchers.push(watcher);
-
-        } catch (error) {
-            logError(`Failed to set up watch for "${targetPath}":`, error);
-             if (error.code === 'ERR_FEATURE_UNAVAILABLE_ON_PLATFORM') {
-                 logWarn('Recursive watch might not be fully supported on this platform. Consider using the `chokidar` package.');
-             }
-        }
+            const isDir = fs.statSync(targetPathAbs).isDirectory();
+            const relativeTargetPath = path.relative(projectRoot, targetPathAbs);
+            log(`Watching: "${relativeTargetPath}" ${isDir ? '(Recursive)' : ''}`);
+            const watcher = fs.watch(targetPathAbs, { recursive: isDir }, (eventType, filename) => handleFileChange(eventType, targetPathAbs, filename));
+            watcher.on('error', (err) => logError(`Watcher error for "${relativeTargetPath}":`, err));
+            watchers.push(watcher); targetsProcessed++;
+        } catch (error) { logError(`Failed to watch "${target}":`, error); }
     });
-
-    if (watchers.length > 0) {
-         logSuccess(`Watcher active on ${watchers.length} target(s).`);
-    } else {
-         logError("No valid watch targets found or watchers could be set up. Exiting.");
-         process.exit(1);
-    }
+    if (targetsProcessed > 0) { logSuccess(`Watcher active on ${targetsProcessed} target(s). Note: fs.watch reliability varies.`); }
+    else { logError("No watchers started. Exiting."); process.exit(1); }
 }
 
 // --- Initial Run & Cleanup ---
-
-/**
- * Gracefully shuts down watchers and the build process.
- */
 function cleanup() {
-    log('\nShutting down watcher and server...');
-     watchers.forEach(watcher => {
-          try { watcher.close(); } catch (e) {} // Close individual watchers
-     });
-     watchers = []; // Clear watcher references
-    log("Watchers closed.");
-    killCurrentProcess(() => { // Kill the running build/serve process
-         log("Cleanup complete. Exiting.");
-        process.exit(0); // Exit gracefully
-    });
-     // Failsafe exit if cleanup hangs
-     setTimeout(() => {
-          logWarn("Forcing exit after cleanup timeout.");
-          process.exit(1);
-     }, 5000); // 5 seconds timeout
+    log('\nShutting down...');
+    process.off('SIGINT', cleanup); process.off('SIGTERM', cleanup);
+    if (watchers.length > 0) { logInfo(`Closing ${watchers.length} watchers...`); watchers.forEach(w => { try { w.close(); } catch (e) {} }); watchers = []; logInfo("Watchers closed."); } else { logInfo("No active watchers."); }
+    if(debounceTimeout) { clearTimeout(debounceTimeout); logInfo("Cleared debounce timer."); }
+    killAllProcesses(() => { logSuccess("Cleanup complete. Exiting."); process.exit(0); });
+    setTimeout(() => { logWarn("Forcing exit after cleanup timeout."); process.exit(1); }, 5000);
 }
-
-// Set up signal handlers for graceful shutdown
-process.on('SIGINT', cleanup); // Catches Ctrl+C
-process.on('SIGTERM', cleanup); // Catches standard termination signal
+process.on('SIGINT', cleanup); process.on('SIGTERM', cleanup);
 
 // --- Start the Development Process ---
-log("Initializing development environment...");
-startBuildServe(true); // Initial run - explicitly force font rebuild
-setupWatchers();      // Setup watchers AFTER initial build starts
+log("Initializing development environment (Build -> Serve)...");
+log(`Configured to serve target: '${TARGET_TO_SERVE}' from path: '${servePath}'`);
+setupWatchers(); // Setup watchers first
+startBuild(true); // Run initial build (forcing font regen)
 log('Ready! Waiting for file changes...');
-log('Press CTRL+C to stop.');
+log(`Will serve '${TARGET_TO_SERVE}' target from '${servePath}' on port ${SERVER_PORT} after successful builds.`);
+log('Press CTRL+C in this terminal to stop.');

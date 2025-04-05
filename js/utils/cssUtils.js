@@ -1,6 +1,7 @@
 /**
- * Utility functions for handling CSS variables and computed styles
- * Enhanced with improved border styling support, radius options, and consistent style handling
+ * cssUtils.js - v2.0
+ * Enhanced utility functions for handling CSS variables and computed styles
+ * With improved border styling support, radius options, and consistent style handling
  */
 
 const CSSUtils = (function() {
@@ -75,7 +76,7 @@ const CSSUtils = (function() {
     );
     
     // Get padding (important for border appearance)
-    const padding = computed.padding || '0px';
+    const padding = computed.padding || getCSSVariable('dynamic-border-padding') || '0px';
     const paddingTop = computed.paddingTop || padding;
     const paddingRight = computed.paddingRight || padding;
     const paddingBottom = computed.paddingBottom || padding;
@@ -196,8 +197,8 @@ const CSSUtils = (function() {
       }
     }
     
-    // For named colors, we would need a mapping table
-    // Add named color support if needed
+    // For named colors, we'd need a full mapping table (omitted for brevity)
+    // We can add if needed
     
     return "255, 255, 255"; // Default fallback
   }
@@ -214,24 +215,53 @@ const CSSUtils = (function() {
     if (radius === 'circle' || radius === 'round') {
       element.style.borderRadius = '50%';
       setCSSVariable('dynamic-border-radius', '50%');
+      console.log("[CSSUtils] Applied circular border radius (50%)");
       return;
     }
     
     if (radius === 'oval') {
-      element.style.borderRadius = '30%';
-      setCSSVariable('dynamic-border-radius', '30%');
+      element.style.borderRadius = '30% / 50%';  // Different horizontal/vertical for oval
+      setCSSVariable('dynamic-border-radius', '30% / 50%');
+      console.log("[CSSUtils] Applied oval border radius (30% / 50%)");
       return;
     }
     
     if (radius === 'pill') {
       element.style.borderRadius = '999px';
       setCSSVariable('dynamic-border-radius', '999px');
+      console.log("[CSSUtils] Applied pill border radius (999px)");
       return;
     }
     
     if (radius === 'none' || radius === 'square') {
       element.style.borderRadius = '0';
       setCSSVariable('dynamic-border-radius', '0');
+      console.log("[CSSUtils] Applied square border radius (0)");
+      return;
+    }
+    
+    // Handle standard size keywords
+    if (radius === 'rounded-sm') {
+      const size = getCSSVariable('border-radius-sm', '3px');
+      element.style.borderRadius = size;
+      setCSSVariable('dynamic-border-radius', size);
+      console.log(`[CSSUtils] Applied small rounded corners (${size})`);
+      return;
+    }
+    
+    if (radius === 'rounded-md') {
+      const size = getCSSVariable('border-radius-md', '6px');
+      element.style.borderRadius = size;
+      setCSSVariable('dynamic-border-radius', size);
+      console.log(`[CSSUtils] Applied medium rounded corners (${size})`);
+      return;
+    }
+    
+    if (radius === 'rounded-lg') {
+      const size = getCSSVariable('border-radius-lg', '10px');
+      element.style.borderRadius = size;
+      setCSSVariable('dynamic-border-radius', size);
+      console.log(`[CSSUtils] Applied large rounded corners (${size})`);
       return;
     }
     
@@ -245,6 +275,7 @@ const CSSUtils = (function() {
       
       element.style.borderRadius = normalizedRadius;
       setCSSVariable('dynamic-border-radius', normalizedRadius);
+      console.log(`[CSSUtils] Applied custom border radius (${normalizedRadius})`);
     }
   }
   
@@ -264,6 +295,33 @@ const CSSUtils = (function() {
     
     element.style.padding = normalizedPadding;
     setCSSVariable('dynamic-border-padding', normalizedPadding);
+    console.log(`[CSSUtils] Applied border padding (${normalizedPadding})`);
+  }
+  
+  /**
+   * Gets border dasharray pattern for SVG stroke based on style
+   * @param {string} style - Border style (dotted, dashed, etc)
+   * @param {string|number} width - Border width
+   * @returns {string|null} - SVG stroke-dasharray value or null if solid/none
+   */
+  function getBorderDashArray(style, width) {
+    if (!style || style === 'none' || style === 'solid') return null;
+    
+    // Get clean width as number
+    const w = parseFloat(width) || 1;
+    
+    // Create appropriate dasharray patterns for different styles
+    switch(style.toLowerCase()) {
+      case 'dotted':
+        return `${w}, ${w * 2}`;
+      case 'dashed':
+        return `${w * 3}, ${w * 2}`;
+      case 'double':
+        // Double can't really be done with dasharray, but we attempt an approximation
+        return `${w * 4}, ${w}`;
+      default:
+        return null;
+    }
   }
   
   // Public API
@@ -274,9 +332,12 @@ const CSSUtils = (function() {
     getTextColorForBackground,
     extractRGB,
     applyBorderRadius,
-    applyBorderPadding
+    applyBorderPadding,
+    getBorderDashArray
   };
 })();
 
 // Make globally available
 window.CSSUtils = CSSUtils;
+
+console.log("[CSSUtils] Enhanced v2.0 loaded with improved border handling");

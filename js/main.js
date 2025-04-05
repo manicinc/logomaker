@@ -12,7 +12,7 @@ import { initializeFonts } from './fontManager.js'; // Assuming fontManager expo
 
 import { setupThemeToggle } from './misc.js';
 // UI Initializers / Handlers (Ensure these files export the functions)
-import { setupTabNavigation } from './tabs.js'; // ** FIX: Import function **
+import { setupTabNavigation } from './utils/tabs.js'; // ** FIX: Import function **
 import { setupTooltips, updateSizeIndicator, throttle, randomizeStyle, openShareModal } from './misc.js'; // Assuming misc.js exports these
 import { showToast, showAlert } from './notificationsDropInAlerts.js'; // Assuming notificationsDropInAlerts.js exports these
 
@@ -80,7 +80,7 @@ async function initializeApp() {
         } catch (themeError) {
             console.error('[Main] Error setting up theme toggle:', themeError);
         }
-        
+
         // Bind Button Handlers
         bindButtonHandlers(); // Binds export, copy, randomize, share etc.
 

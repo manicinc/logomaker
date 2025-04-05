@@ -10,7 +10,7 @@ See the [Technical Deep Dive (coming soon)](https://manic.agency/blog) and [arch
 
 ---
 
-![Logomaker Preview](./preview.png)
+![Logomaker Preview](./docs/preview.png)
 ---
 
 ## 🚀 Using Logomaker
@@ -68,9 +68,11 @@ node scripts/build.js --serve
 ---
 ```
 
+See [development.md](./docs/development.md) for more info on development mode.
+
 ## ✨ Features Overview
 
-* **🔤 BYOF Font Library with defaults:** ~400 fonts available. Dynamically loaded online (chunked w/ IndexedDB caching) or fully embedded offline, with font licensing support.
+* **🔤 BYOF Font Library with defaults:** ~400 fonts available. Dynamically loaded online (chunked w/ IndexedDB caching) or fully embedded offline, with font licensing support. See [fontmanager.md](./docs/fontmanager.md).
 * **🌈 Vibrant Gradients:** Apply multi-color gradients with presets or full customization.
 * **✨ Dizzying Effects:** Enhance text with glows, shadows, outlines, retro styles, emboss, inset effects – all color-customizable.
 * **🔲 Flexible Borders:** Frame logos with various styles (solid, dashed, pixelated, glowing). *Note: Complex borders simplified in SVG exports.*
@@ -106,7 +108,7 @@ Logomaker's development was a deliberate exploration of **Human+AI Collaborative
 
 * **Process:** Involved defining requirements and architecture, then using **technically-guided prompt engineering** with LLMs to generate initial code structures, functions, and UI elements. This was followed by rigorous **human testing, debugging, refactoring, and integration**. No significant function was purely hand-written; AI provided the initial drafts or suggestions, which were then iteratively refined.
 * **Goal:** To investigate if this collaborative "vibe" could accelerate development while producing a reasonably complex, functional application. It highlights the strengths of AI in boilerplate generation and exploring implementation options, alongside the indispensable role of human expertise in architecture, validation, and ensuring robustness.
-* **Architecture:** See [**architecture.md**](./architecture.md) for a breakdown of components, the rendering flow, and more on the Human+AI model.
+* **Architecture:** See [**architecture.md**](./docs/architecture.md) for a breakdown of components, the rendering flow, and more on the Human+AI model.
 ---
 
 ## ⚠️ Known Limitations & Future Ideas

@@ -1,328 +1,192 @@
 /**
- * scripts/build.js (v2.4 - Conditional Font Clean)
- *
- * Builds Logomaker targets or serves locally.
- * Always cleans previous font artifacts before build/serve UNLESS --skip-font-clean is passed.
- * This version is required by dev.js v1.2+
+ * scripts/build.js (v3.1 - Fixed CSS Copying)
+ * Performs the build steps for Logomaker.
+ * Copies generated CSS from root to dist.
+ * Contains NO development watcher or server code.
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync, spawn } = require('child_process');
+const { spawnSync } = require('child_process'); // Using sync for build steps
 
-// --- Configuration ---
-const OUTPUT_DIR = 'dist';
+console.log('Starting Build Script...');
+
+// --- Configuration & Argument Parsing ---
+const projectRoot = path.resolve(__dirname, '..');
+const args = process.argv.slice(2);
+let target = 'deploy'; // Default target
+let skipFontRegen = false;
+
+args.forEach(arg => {
+    if (arg.startsWith('--target=')) {
+        target = arg.split('=')[1] || 'deploy';
+        if (target !== 'deploy' && target !== 'portable') {
+            console.warn(`Unknown target '${target}', defaulting to 'deploy'.`);
+            target = 'deploy';
+        }
+    } else if (arg === '--skip-font-regen') {
+        skipFontRegen = true;
+    }
+});
+
+console.log(`Build Target: ${target}`);
+console.log(`Skip Font Regen: ${skipFontRegen}`);
+
+const distBaseDir = path.join(projectRoot, 'dist');
 const GITHUB_PAGES_SUBDIR = 'github-pages';
 const PORTABLE_SUBDIR = 'portable';
-const FONT_CHUNKS_DIR = 'font-chunks';
-const INLINE_DATA_FILE = 'inline-fonts-data.js';
-const FONTS_JSON_FILE = 'fonts.json';
-const PORTABLE_BUNDLE_HTML = 'logomaker-portable.html';
-const GENERATED_CSS_FILE = 'generated-font-classes.css'; // Added for cleanup
+const targetSubDir = target === 'deploy' ? GITHUB_PAGES_SUBDIR : PORTABLE_SUBDIR;
+const distDir = path.join(distBaseDir, targetSubDir);
 
-// Paths
-const PROJECT_ROOT = process.cwd();
-const OUTPUT_BASE_PATH = path.resolve(PROJECT_ROOT, OUTPUT_DIR);
-const DEPLOY_TARGET_PATH = path.resolve(OUTPUT_BASE_PATH, GITHUB_PAGES_SUBDIR);
-const PORTABLE_TARGET_PATH = path.resolve(OUTPUT_BASE_PATH, PORTABLE_SUBDIR);
-const FONT_CHUNKS_PATH = path.resolve(PROJECT_ROOT, FONT_CHUNKS_DIR);
-const INLINE_DATA_PATH = path.resolve(PROJECT_ROOT, INLINE_DATA_FILE);
-const FONTS_JSON_PATH = path.resolve(PROJECT_ROOT, FONTS_JSON_FILE);
-const GENERATED_CSS_PATH = path.resolve(PROJECT_ROOT, 'css', GENERATED_CSS_FILE); // Added path
-
-const FILES_TO_EXCLUDE_FROM_COPY = [
-    'node_modules', '.git', '.github', 'dist', 'scripts',
-    FONT_CHUNKS_DIR, INLINE_DATA_FILE, FONTS_JSON_FILE, PORTABLE_BUNDLE_HTML, GENERATED_CSS_PATH, // Exclude generated CSS from root copy
-    '.gitignore', 'package.json', 'package-lock.json', '.DS_Store',
-    'Thumbs.db', 'desktop.ini', 'README.md',
-];
-
-// --- Argument Parsing ---
-const args = process.argv.slice(2);
-const serveMode = args.includes('--serve');
-const targetArg = args.find(arg => arg.startsWith('--target='));
-const buildTarget = targetArg ? targetArg.split('=')[1] : null;
-const servePortable = serveMode && args.includes('--portable');
-const skipFontClean = args.includes('--skip-font-clean'); // <<< Check for the new flag
-
-const buildDeploy = !targetArg || targetArg === '--target=deploy';
-const buildPortable = !targetArg || targetArg === '--target=portable';
-
-// --- Helper Functions ---
-function logInfo(message) { console.log(`[INFO] ${message}`); }
-function logWarn(message) { console.warn(`[WARN] ${message}`); }
-function logError(message, error) { console.error(`[ERROR] ${message}`, error || ''); process.exitCode = 1; }
-function logSuccess(message) { console.log(`✅ ${message}`); }
-function logStep(message) { console.log(`\n⚙️  ${message}...`); }
-
-// Recursive Copy (remains the same)
-function copyRecursiveSync(src, dest, exclude = []) {
-    // ... (keep existing copyRecursiveSync code) ...
-    const exists = fs.existsSync(src);
-    if (!exists) {
-        logWarn(`Source path "${src}" does not exist. Skipping copy.`);
-        return;
-    }
-    const stats = fs.statSync(src);
-    const isDirectory = stats.isDirectory();
-    const relativeSrc = path.relative(PROJECT_ROOT, src) || '.';
-
-    if (exclude.some(pattern => {
-        // Handle file paths and directory paths correctly
-        const relativePath = relativeSrc.replace(/\\/g, '/'); // Normalize slashes for comparison
-        const patternPath = pattern.replace(/\\/g, '/');
-        return relativePath === patternPath || (isDirectory && relativePath.startsWith(patternPath + '/'));
-    })) {
-        return; // Skip excluded
-    }
-
-
-    if (isDirectory) {
-        if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
-        fs.readdirSync(src).forEach(child => copyRecursiveSync(path.join(src, child), path.join(dest, child), exclude));
-    } else {
-        const destDir = path.dirname(dest);
-        if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-        try { fs.copyFileSync(src, dest); }
-        catch (copyError) { logError(`Failed to copy file from "${src}" to "${dest}".`, copyError); }
-    }
-}
-
-// Run Command (remains the same)
-function runCommand(command, description) {
-    logInfo(`> Executing: ${command} (${description})`);
-    try {
-        execSync(command, { stdio: 'inherit', cwd: PROJECT_ROOT });
-        return true;
-    } catch (error) {
-        logError(`${description} failed.`);
-        return false;
-    }
-}
-
-// Ensure Generated File (remains the same)
-function ensureGeneratedFile(filePath, generationCommand, description) {
-    const fileName = path.basename(filePath);
-    if (!fs.existsSync(filePath)) {
-        logWarn(`Required ${fileName} not found. Generating...`);
-        if (!runCommand(generationCommand, description)) {
-            logError(`Failed to generate ${fileName}. Aborting subsequent steps.`);
-            return false;
-        }
-        if (!fs.existsSync(filePath)) {
-             logError(`Generation command ran but ${fileName} still not found. Aborting.`);
-             return false;
-        }
-         logInfo(` > ${fileName} generated successfully.`);
-    } else {
-         logInfo(` > Found existing ${fileName}.`);
-    }
-    return true;
-}
-
-// Clean Root Font Artifacts (NOW CHECKS THE FLAG)
-function cleanRootFontArtifacts() {
-    // <<< --- CHECK THE FLAG --- >>>
-    if (skipFontClean) {
-        logInfo("Skipping font artifact cleanup (--skip-font-clean specified).");
-        return; // Exit the function if flag is present
-    }
-    // <<< --- END CHECK --- >>>
-
-    logStep("Cleaning previous font artifacts (inline data, chunks, json, generated css)");
-    let cleaned = false;
-    try {
-        if (fs.existsSync(FONT_CHUNKS_PATH)) {
-            fs.rmSync(FONT_CHUNKS_PATH, { recursive: true, force: true });
-            cleaned = true;
-        }
-        if (fs.existsSync(INLINE_DATA_PATH)) {
-            fs.unlinkSync(INLINE_DATA_PATH);
-            cleaned = true;
-        }
-        if (fs.existsSync(FONTS_JSON_PATH)) {
-            fs.unlinkSync(FONTS_JSON_PATH);
-            cleaned = true;
-        }
-        // Also clean generated CSS
-        if (fs.existsSync(GENERATED_CSS_PATH)) { // Use defined path
-            fs.unlinkSync(GENERATED_CSS_PATH);
-            cleaned = true;
-        }
-        if (cleaned) {
-            logSuccess("Cleaned temporary root font artifacts.");
+// --- Helper Function ---
+function copyDirRecursive(source, destination) {
+    if (!fs.existsSync(source)) { console.warn(`Source directory not found, skipping copy: ${source}`); return; }
+    fs.mkdirSync(destination, { recursive: true });
+    const entries = fs.readdirSync(source, { withFileTypes: true });
+    for (let entry of entries) {
+        const srcPath = path.join(source, entry.name);
+        const destPath = path.join(destination, entry.name);
+        if (entry.isDirectory()) {
+            if (entry.name === '.git' || entry.name === 'node_modules') continue; // Skip unwanted dirs
+            copyDirRecursive(srcPath, destPath);
         } else {
-            logInfo("No previous font artifacts found to clean.");
+            if (entry.name === '.DS_Store' || entry.name === 'Thumbs.db') continue; // Skip system files
+            try { fs.copyFileSync(srcPath, destPath); }
+            catch (copyError) { console.error(`Failed to copy ${srcPath} to ${destPath}:`, copyError); throw copyError; } // Make copy errors fatal
         }
-    } catch(cleanErr){
-        logWarn("Could not clean all root font artifacts.", cleanErr);
     }
 }
 
-// --- Build Target Functions ---
-// (Build target functions remain the same - they rely on ensureGeneratedFile
-// which will now only run generation if cleanRootFontArtifacts actually deleted stuff)
-function buildDeployTarget() {
-    logStep(`Building Deploy Target (Optimized) ${skipFontClean ? '(Skipping Font Regen)' : '(Regenerating Fonts)'}`);
-    // ... (keep existing buildDeployTarget logic) ...
-    if (!ensureGeneratedFile(INLINE_DATA_PATH, 'node scripts/generate-fonts-json.js --base64', 'Generate Base64 Font Data')) return false;
-    if (!ensureGeneratedFile(FONT_CHUNKS_PATH, 'node scripts/split-fonts.js', 'Split Fonts into Chunks')) return false;
-    if (!ensureGeneratedFile(GENERATED_CSS_PATH, 'echo "CSS gen happens in generate-fonts-json" && exit 0', 'Check/Generate Font CSS')) {
-         logWarn("Generate script should create generated-font-classes.css");
-         // Allow continuing even if CSS isn't strictly checked here, generate-fonts-json handles it
-    }
+// --- Build Steps ---
+try {
+    // 1. Clean previous build directory
+    console.log(`Cleaning target directory: ${distDir}`);
+    if (fs.existsSync(distDir)) { fs.rmSync(distDir, { recursive: true, force: true }); }
+    fs.mkdirSync(distDir, { recursive: true });
+    console.log('Target directory cleaned and created.');
 
-
-    logInfo(`Copying application files to "${GITHUB_PAGES_SUBDIR}"...`);
-    // Ensure generated CSS is NOT excluded during copy TO dist
-    const deployExcludes = FILES_TO_EXCLUDE_FROM_COPY.filter(f => f !== GENERATED_CSS_PATH);
-    copyRecursiveSync(PROJECT_ROOT, DEPLOY_TARGET_PATH, deployExcludes);
-
-    logInfo(`Copying font chunks to "${GITHUB_PAGES_SUBDIR}"...`);
-    copyRecursiveSync(FONT_CHUNKS_PATH, path.join(DEPLOY_TARGET_PATH, FONT_CHUNKS_DIR), []);
-
-
-    logInfo(`Modifying index.html in "${GITHUB_PAGES_SUBDIR}" for chunked loading...`);
-    const indexHtmlPath = path.join(DEPLOY_TARGET_PATH, 'index.html');
-    try {
-        if (!fs.existsSync(indexHtmlPath)) throw new Error("index.html not found");
-        let indexHtmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
-        const inlineScriptRegex = /<script\s+src=["']\.\/(inline-fonts-data\.js)["'](?:\s+defer)?\s*><\/script>/i;
-        if (inlineScriptRegex.test(indexHtmlContent)) {
-             indexHtmlContent = indexHtmlContent.replace(inlineScriptRegex, ``);
-             fs.writeFileSync(indexHtmlPath, indexHtmlContent, 'utf8');
-             logSuccess(`Removed inline data script from ${GITHUB_PAGES_SUBDIR}/index.html.`);
-        } else {
-            logWarn(`Inline data script already removed or not found in ${GITHUB_PAGES_SUBDIR}/index.html.`);
-        }
-        // Ensure generated CSS is linked (it should be copied with core files)
-        const cssLinkRegex = /<link\s+rel=["']stylesheet["']\s+href=["']\.\/css\/(generated-font-classes\.css)["']\s*>/i;
-         if (!cssLinkRegex.test(indexHtmlContent)) {
-             logWarn(`Link for ${GENERATED_CSS_FILE} not found in ${GITHUB_PAGES_SUBDIR}/index.html. Make sure it's in the source index.html.`);
-         }
-
-    } catch (error) {
-        logError(`Failed to modify index.html in "${GITHUB_PAGES_SUBDIR}".`, error);
-        return false;
-    }
-
-    logSuccess("Deploy Target build complete.");
-    return true;
-}
-
-function buildPortableTarget() {
-    logStep(`Building Portable Target (Offline/Embedded) ${skipFontClean ? '(Skipping Font Regen)' : '(Regenerating Fonts)'}`);
-    // ... (keep existing buildPortableTarget logic) ...
-    if (!ensureGeneratedFile(INLINE_DATA_PATH, 'node scripts/generate-fonts-json.js --base64', 'Generate Base64 Font Data')) return false;
-     if (!ensureGeneratedFile(GENERATED_CSS_PATH, 'echo "CSS gen happens in generate-fonts-json" && exit 0', 'Check/Generate Font CSS')) {
-         logWarn("Generate script should create generated-font-classes.css");
-     }
-
-    logInfo(`Copying application files to "${PORTABLE_SUBDIR}"...`);
-     // Ensure generated CSS and inline data are NOT excluded during copy TO dist/portable
-    const portableExcludes = FILES_TO_EXCLUDE_FROM_COPY.filter(f => f !== INLINE_DATA_FILE && f !== GENERATED_CSS_PATH);
-    copyRecursiveSync(PROJECT_ROOT, PORTABLE_TARGET_PATH, portableExcludes);
-
-    logInfo("Attempting PortaPack bundling (optional)...");
-    // ...(PortaPack logic remains the same)...
-    try {
-        execSync('npx portapack --version', { stdio: 'pipe' });
-        const inputHtml = path.resolve(PORTABLE_TARGET_PATH, 'index.html');
-        const outputHtml = path.resolve(PORTABLE_TARGET_PATH, PORTABLE_BUNDLE_HTML);
-        if (!fs.existsSync(inputHtml)) { logError(`PortaPack input not found: ${inputHtml}`); }
-        else {
-            const portapackCmd = `npx portapack -i "${inputHtml}" -o "${outputHtml}" --no-embed-preview --minify`;
-            if(runCommand(portapackCmd, `Bundle with PortaPack`)){ logSuccess(`Created single portable file: ${PORTABLE_BUNDLE_HTML}`); }
-            else { logWarn(`PortaPack bundling failed. Using multi-file output in "${PORTABLE_SUBDIR}".`); }
-        }
-    } catch (error) {
-        logInfo(`PortaPack not found or failed. Skipping single-file bundle.`);
-    }
-
-
-    logSuccess("Portable Target build complete.");
-    return true;
-}
-
-// --- Serve Function --- (remains the same)
-function serveTarget(targetPath, mode) {
-    // ... (keep existing serveTarget code) ...
-    logStep(`Serving ${mode} version locally (NO CACHING)`);
-    logInfo(`Target directory: ${targetPath}`);
-    if (!fs.existsSync(targetPath)) {
-        logError(`Serve failed: Directory not found: ${targetPath}`);
-        logInfo(`(Build target first: node scripts/build.js --target=${mode === 'Optimized (Chunked)' ? 'deploy' : 'portable'})`);
-        return;
-    }
-    const port = 3000;
-    logInfo(`Attempting to start server on http://localhost:${port}`);
-    logInfo("Caching disabled via '-c-1'. Use Ctrl+C to stop.");
-    try {
-        const serverProcess = spawn('npx', ['http-server', targetPath, '-p', port, '-o', '--cors', '-c-1'], {
-            stdio: 'inherit', shell: true
-        });
-        serverProcess.on('error', (err) => { logError(`Failed to start http-server. Is Node.js/npx available?`, err); });
-        serverProcess.on('close', (code) => { logInfo(`Server stopped (code: ${code}).`); });
-    } catch (error) { logError('Failed to spawn http-server process.', error); }
-}
-
-
-// --- Main Execution Logic ---
-console.log('=========================================================');
-console.log('🚀 Logomaker Build Script (v2.4 - Conditional Font Clean)'); // Updated version
-console.log('=========================================================');
-
-// === Serve Mode ===
-if (serveMode) {
-    logInfo(`Mode: Serve ${skipFontClean ? '(--skip-font-clean specified)' : ''}`);
-    // <<< Cleanup is now conditional based on --skip-font-clean flag >>>
-    cleanRootFontArtifacts(); // Function now checks the flag internally
-
-    if (servePortable) {
-        logInfo("Target: Portable Mode");
-        if (buildPortableTarget()) { // Will regenerate fonts ONLY if clean ran
-            serveTarget(PORTABLE_TARGET_PATH, 'Portable (Embedded)');
-        } else { logError("Build failed during serve prep."); }
+    // 2. Generate Font Assets (if not skipped)
+    if (!skipFontRegen) {
+        console.log('Running generate-fonts-json.js...');
+        // Portable target requires base64 data according to docs
+        const fontArgs = (target === 'portable') ? ['--base64'] : [];
+        const fontGenCmd = 'node';
+        const fontGenScript = path.join(__dirname, 'generate-fonts-json.js');
+        console.log(`Executing: ${fontGenCmd} ${fontGenScript} ${fontArgs.join(' ')}`);
+        const fontGenResult = spawnSync(fontGenCmd, [fontGenScript, ...fontArgs], { stdio: 'inherit', encoding: 'utf-8', cwd: projectRoot });
+        if (fontGenResult.status !== 0 || fontGenResult.error) { throw new Error(`generate-fonts-json.js failed. Status: ${fontGenResult.status}, Error: ${fontGenResult.error || 'Unknown error'}`); }
+        console.log('Font assets generated successfully.');
     } else {
-        logInfo("Target: Optimized Mode");
-        if (buildDeployTarget()) { // Will regenerate fonts ONLY if clean ran
-            serveTarget(DEPLOY_TARGET_PATH, 'Optimized (Chunked)');
-        } else { logError("Build failed during serve prep."); }
-    }
-}
-// === Build Mode ===
-else {
-    logInfo(`Mode: Build ${skipFontClean ? '(--skip-font-clean specified)' : ''}`);
-    logInfo(`Build target(s): ${buildTarget || 'BOTH'}`);
-
-    logStep("Cleaning previous output directory");
-    if (fs.existsSync(OUTPUT_BASE_PATH)) fs.rmSync(OUTPUT_BASE_PATH, { recursive: true, force: true });
-    fs.mkdirSync(OUTPUT_BASE_PATH, { recursive: true });
-    logSuccess("Cleaned output directory.");
-
-    // <<< Cleanup is now conditional based on --skip-font-clean flag >>>
-    cleanRootFontArtifacts(); // Function now checks the flag internally
-
-    // Build targets
-    if (buildDeploy) {
-        if (!buildDeployTarget()) { /* Error logged */ }
-    }
-    if (buildPortable) {
-        if (!buildPortableTarget()) { /* Error logged */ }
+        console.log('Skipping font regeneration.');
+        // Check if essential generated files exist if skipping
+        // Check for generated CSS at ROOT now
+        if (!fs.existsSync(path.join(projectRoot, 'generated-font-classes.css'))) { console.warn("WARNING: Skipping font regen, but 'generated-font-classes.css' not found at project root!"); }
+        // Check for fonts.json at ROOT now
+        if (!fs.existsSync(path.join(projectRoot, 'fonts.json'))) { console.warn("WARNING: Skipping font regen, but 'fonts.json' not found at project root!"); }
+        if (target === 'portable' && !fs.existsSync(path.join(projectRoot, 'inline-fonts-data.js'))) { console.warn("WARNING: Skipping font regen for portable target, but 'inline-fonts-data.js' not found!"); }
     }
 
-    // Final summary (remains the same)
-    console.log('\n=========================================================');
-    if (process.exitCode === 1) { logError('❌ Build finished with errors.'); }
-    else {
-        logSuccess('✅ Build Finished!');
-        if (buildDeploy) console.log(`   Optimized build output: ${DEPLOY_TARGET_PATH}`);
-        if (buildPortable) {
-            console.log(`   Portable build output:  ${PORTABLE_TARGET_PATH}`);
-            if (fs.existsSync(path.join(PORTABLE_TARGET_PATH, PORTABLE_BUNDLE_HTML))) {
-                console.log(`   Single-file bundle:   ${path.join(PORTABLE_TARGET_PATH, PORTABLE_BUNDLE_HTML)}`);
-            }
+    // 3. Process & Copy Assets (HTML, CSS, JS, etc.)
+    console.log('Processing and copying assets...');
+
+    // Copy root files identified from ls and README/docs
+    const rootFilesToCopy = ['index.html', 'LICENSE.md', 'README.md', 'preview.png', 'architecture.md', 'fontmanager.md']; // Add favicon.ico if needed
+    rootFilesToCopy.forEach(file => {
+        const sourcePath = path.join(projectRoot, file);
+        const destPath = path.join(distDir, file);
+        if (fs.existsSync(sourcePath)) { console.log(`Copying ${file}...`); fs.copyFileSync(sourcePath, destPath); }
+        else { console.warn(`Asset not found, skipping copy: ${file}`); }
+    });
+
+    // Copy CSS directory (includes source CSS files)
+    const cssSourceDir = path.join(projectRoot, 'css');
+    const cssDestDir = path.join(distDir, 'css');
+    console.log(`Copying SOURCE CSS from ${cssSourceDir} to ${cssDestDir}...`);
+    copyDirRecursive(cssSourceDir, cssDestDir);
+
+    // <<< --- FIX APPLIED HERE --- >>>
+    // Copy the generated CSS file from the project root to the dist CSS directory
+    const generatedCssSourcePath = path.join(projectRoot, 'generated-font-classes.css');
+    const generatedCssDestPath = path.join(distDir, 'css', 'generated-font-classes.css');
+    if (fs.existsSync(generatedCssSourcePath)) {
+        console.log(`Copying generated CSS from ${generatedCssSourcePath} to ${generatedCssDestPath}...`);
+        try {
+            // Ensure the destination directory exists (it should after copyDirRecursive)
+            fs.mkdirSync(path.dirname(generatedCssDestPath), { recursive: true });
+            fs.copyFileSync(generatedCssSourcePath, generatedCssDestPath);
+        } catch (copyError) {
+            console.error(`Failed to copy generated-font-classes.css:`, copyError);
+            throw copyError; // Make this error fatal for the build
+        }
+    } else {
+        console.warn(`WARNING: Generated CSS file not found at ${generatedCssSourcePath}. Build might be incomplete if font regen was expected.`);
+        // If font regeneration was supposed to run but the file is missing, it's a critical error
+        if (!skipFontRegen) {
+             throw new Error(`generate-fonts-json.js was supposed to run, but ${generatedCssSourcePath} is missing! Check generate-fonts-json.js script.`);
         }
     }
-    console.log('=========================================================');
+    // <<< --- END FIX --- >>>
+
+    // Copy JS directory
+    const jsSourceDir = path.join(projectRoot, 'js');
+    const jsDestDir = path.join(distDir, 'js');
+    console.log(`Copying JS from ${jsSourceDir} to ${jsDestDir}...`);
+    copyDirRecursive(jsSourceDir, jsDestDir);
+
+    // 4. Handle Target-Specific Steps based on docs
+    if (target === 'deploy') {
+        console.log('Performing deploy-specific steps (chunking)...');
+
+        // Run split-fonts.js
+        console.log('Running split-fonts.js...');
+        const splitCmd = 'node';
+        const splitScript = path.join(__dirname, 'split-fonts.js');
+        console.log(`Executing: ${splitCmd} ${splitScript}`);
+        const splitResult = spawnSync(splitCmd, [splitScript], { stdio: 'inherit', cwd: projectRoot });
+        if (splitResult.status !== 0 || splitResult.error) { throw new Error(`split-fonts.js failed. Status: ${splitResult.status}, Error: ${splitResult.error || 'Unknown error'}`); }
+
+        // Copy font chunks
+        const chunkSourceDir = path.join(projectRoot, 'font-chunks');
+        const chunkDestDir = path.join(distDir, 'font-chunks');
+        console.log(`Copying font chunks from ${chunkSourceDir} to ${chunkDestDir}...`);
+        copyDirRecursive(chunkSourceDir, chunkDestDir);
+
+        // Copy fonts directory (actual .woff2 etc files are needed for non-base64 builds)
+        const fontSourceDir = path.join(projectRoot, 'fonts');
+        const fontDestDir = path.join(distDir, 'fonts');
+        console.log(`Copying source fonts from ${fontSourceDir} to ${fontDestDir}...`);
+        copyDirRecursive(fontSourceDir, fontDestDir);
+
+        // Copy fonts.json (needed by deploy target according to docs - now expected at root)
+        const fontsJsonSource = path.join(projectRoot, 'fonts.json'); // Expect at root
+        const fontsJsonDest = path.join(distDir, 'fonts.json');
+        if (fs.existsSync(fontsJsonSource)) { console.log(`Copying fonts.json...`); fs.copyFileSync(fontsJsonSource, fontsJsonDest); }
+        else { console.error(`ERROR: fonts.json not found at ${fontsJsonSource}! Deploy build requires this.`); throw new Error("fonts.json missing"); }
+
+    } else if (target === 'portable') {
+        console.log('Performing portable-specific steps (embedding)...');
+        // Ensure generate-fonts used --base64 if not skipped
+        if (!skipFontRegen && !args.includes('--base64')) { console.warn("Portable target build usually requires base64 font data (run generate-fonts with --base64).");}
+
+        // Copy inline-fonts-data.js (should contain base64 data)
+        const inlineJsSource = path.join(projectRoot, 'inline-fonts-data.js');
+        const inlineJsDest = path.join(distDir, 'inline-fonts-data.js');
+        if (fs.existsSync(inlineJsSource)) { console.log("Copying inline-fonts-data.js for portable build..."); fs.copyFileSync(inlineJsSource, inlineJsDest); }
+        else { console.error(`ERROR: inline-fonts-data.js not found at ${inlineJsSource}! Portable build requires this.`); throw new Error("inline-fonts-data.js missing"); }
+
+        // Attempt to run portapack (as described in README)
+        console.log("Attempting to create single file with npx portapack (if installed)...");
+        const portapackArgs = ['portapack', '--root', distDir, '--entry', 'index.html', '--output', path.join(distDir, 'logomaker-portable.html'), '--inline-js', '--inline-css'];
+        console.log(`Running: npx ${portapackArgs.join(' ')}`);
+        const portapackResult = spawnSync('npx', portapackArgs, { stdio: 'inherit', shell: true, cwd: projectRoot }); // shell: true often needed for npx
+        if (portapackResult.status !== 0) { console.warn("--- WARNING: 'npx portapack' failed or not found. Single-file build may not be created. Ensure 'portapack' dev dependency is installed ('npm install -D portapack') ---"); }
+        else { console.log("Portapack completed successfully."); /* Optional: Clean up separate assets */ }
+    }
+
+    console.log(`\n✅ Build successful for target '${target}'! Output in: ${distDir}`);
+
+} catch (error) {
+    console.error('\n❌ Build Failed!');
+    console.error(error);
+    process.exit(1); // Exit with error code
 }
