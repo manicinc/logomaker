@@ -386,8 +386,9 @@ function generateEmbeddedCSS(styleData, animationMetadata) {
 // ==========================================================================
 // === SVG Element Generators ===============================================
 // ==========================================================================
-
-/** Generates the SVG background rectangle */
+/** 
+ * Generates the SVG background rectangle with proper border radius handling
+ */
 function createBackgroundRect(styles, bgGradientId, config) {
     if (!config.includeBackground || config.transparentBackground) {
         console.log("[Core SVG Bg] Skipping background rect (transparent or excluded).");
@@ -427,10 +428,19 @@ function createBackgroundRect(styles, bgGradientId, config) {
     // Ensure opacity is valid
     const finalOpacity = isNaN(bgOpacity) ? 1 : Math.max(0, Math.min(1, bgOpacity));
 
+    // Get border radius if available - NEW CODE FOR BORDER RADIUS
+    let borderRadiusAttr = '';
+    if (styles.borderRadius) {
+        // The borderRadius could be a complex value like "50%" or "10px / 20px"
+        // For SVG we'll handle this consistently
+        borderRadiusAttr = ` rx="${escapeSVGAttribute(styles.borderRadius)}"`;
+        console.log(`[Core SVG Bg] Adding border radius to background: ${styles.borderRadius}`);
+    }
+
     if (bgFill !== 'none') {
         // If using a pattern AND a fallback color is desired, might need two rects or just rely on the fill color.
         // Simple approach: Just use the determined fill.
-        let rectTag = `<rect id="background-rect" width="100%" height="100%" `;
+        let rectTag = `<rect id="background-rect" width="100%" height="100%"${borderRadiusAttr} `;
         rectTag += `fill="${escapeSVGAttribute(bgFill)}" `;
         // Opacity applies to the whole rect including its fill
         if (finalOpacity < 1) {
@@ -441,7 +451,7 @@ function createBackgroundRect(styles, bgGradientId, config) {
         // If pattern requires a base color underneath AND the pattern might have transparency
         if (patternId && bgColor && bgFill !== bgColor) {
              console.log(`[Core SVG Bg] Adding underlying rect for pattern base color: ${bgColor}`);
-             return `<rect width="100%" height="100%" fill="${bgColor}" opacity="${finalOpacity.toFixed(3)}"/>\n` + rectTag;
+             return `<rect width="100%" height="100%"${borderRadiusAttr} fill="${bgColor}" opacity="${finalOpacity.toFixed(3)}"/>\n` + rectTag;
         }
 
         return rectTag;
@@ -451,6 +461,113 @@ function createBackgroundRect(styles, bgGradientId, config) {
     }
 }
 
+// === REPLACE THE CONTAINER BORDER RECTANGLE CODE IN generateSVGBlob ===
+
+// Replace the border code in the generateSVGBlob function around step 8
+// with this improved version that properly handles radius and padding
+
+/**
+ * Container Border Rectangle code for generateSVGBlob
+ * This replaces the code in step 8 of the generateSVGBlob function
+ * 
+ * @param {object} styles - The captured styles object
+ * @param {object} config - Export configuration
+ * @returns {string} SVG border rectangle element
+ */
+function createBorderRect(styles, config) {
+    if (!styles.border || styles.stroke?.isTextStroke) {
+        return '';
+    }
+    
+    const border = styles.border;
+    const strokeColor = normalizeColor(border.color, 'container border');
+    let strokeWidth = 0;
+    
+    if (typeof border.width === 'string' || typeof border.width === 'number') {
+        strokeWidth = parseFloat(border.width) || 0;
+    }
+
+    if (!strokeColor || strokeWidth <= 0) {
+        return '';
+    }
+        
+    // Get border radius - IMPORTANT FOR CONSISTENCY
+    let rx = 0, ry = 0;
+    
+    // Handle border radius properly
+    if (styles.borderRadius) {
+        // Check if we have a simple percentage or pixel value
+        const match = String(styles.borderRadius).match(/^(\d+)(px|%)?$/);
+        if (match) {
+            rx = match[1];
+            // For percentage, SVG uses 0-1 range (e.g., 50% = 0.5)
+            if (match[2] === '%') {
+                rx = parseFloat(rx) / 100;
+            }
+            ry = rx; // Same value for both dimensions
+        } else if (styles.borderRadius === '50%') {
+            // Special case for circular/oval shapes
+            rx = config.width / 2;
+            ry = config.height / 2;
+            console.log('[Core SVG Border] Using elliptical border for circular shape');
+        } else {
+            // Handle complex border radius like "10px / 20px"
+            const complexMatch = String(styles.borderRadius).match(/(\d+)(?:px)?\s*\/\s*(\d+)(?:px)?/);
+            if (complexMatch) {
+                rx = complexMatch[1];
+                ry = complexMatch[2];
+            }
+            // Any other formats will keep rx=0, ry=0
+        }
+    }
+    
+    // Calculate border position with padding
+    let borderPadding = 0;
+    if (styles.borderPadding) {
+        const paddingMatch = String(styles.borderPadding).match(/(\d+)(?:px|em|rem|%)?/);
+        if (paddingMatch) {
+            borderPadding = parseInt(paddingMatch[1]) || 0;
+        }
+    }
+    
+    // Adjust inset to account for border width and padding
+    const insetX = strokeWidth / 2;
+    const insetY = strokeWidth / 2;
+    const width = config.width - strokeWidth;
+    const height = config.height - strokeWidth;
+    
+    // Create the SVG rectangle
+    let borderRect = `  <rect id="container-border-rect" x="${insetX}" y="${insetY}" `;
+    borderRect += `width="${width}" height="${height}" `;
+    
+    // Add radius if specified
+    if (rx && ry) {
+        borderRect += `rx="${rx}" ry="${ry}" `;
+    }
+    
+    borderRect += `fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" `;
+
+    const strokeOpacity = extractOpacityFromColor(border.color);
+    if (strokeOpacity < 1) {
+        borderRect += `stroke-opacity="${strokeOpacity.toFixed(3)}" `;
+    }
+    
+    // Add dash array for dotted/dashed borders
+    if (border.dasharray) {
+        borderRect += `stroke-dasharray="${border.dasharray}" `;
+    }
+
+    // Apply filter if it's a glow border
+    if (border.isGlow && styles.textEffect?.type === 'glow') {
+        // Use the same filter as text if available
+        borderRect += `filter="url(#svgTextEffect)" `;
+    }
+
+    borderRect += `/>\n`;
+    console.log(`[Core SVG Border] Added container border rect: ${border.style}, ${border.color}, ${border.width}`);
+    
+    return borderRect;
+}
 
 /**
  * Creates the SVG text element (v2.6 - Corrected Transform Call & Filter Logic)

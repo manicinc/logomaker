@@ -1,9 +1,9 @@
-/* settingsManager.js (Version 16.0 - Enhanced with advanced border styles and radius)
+/* settingsManager.js (Version 17.0 - With Enhanced Border Handling)
  * =========================================================================
  * Manages UI state, applies styles via CSS CLASSES & CSS Variables,
  * handles settings persistence, and properly interacts with fontManager.js.
- * Enhanced to support: border-radius, border-padding, circular borders, 
- * and improved html2canvas export compatibility.
+ * Enhanced with improved border radius, border padding support, and
+ * consistent class application for SVG export.
  */
 
 // --- Constants for CSS Class Prefixes ---
@@ -14,7 +14,7 @@ const TEXT_CASE_CLASS_PREFIX = 'text-case-';
 const TEXT_EFFECT_CLASS_PREFIX = 'text-effect-'; // Prefix for ALL text effects (glows, shadows etc)
 const BORDER_STYLE_CLASS_PREFIX = 'border-style-'; // Prefix for static border styles
 const BORDER_EFFECT_CLASS_PREFIX = 'border-effect-'; // Prefix for dynamic border effects (glows etc)
-const BORDER_RADIUS_CLASS_PREFIX = 'border-radius-'; // New for radius styles
+const BORDER_RADIUS_CLASS_PREFIX = 'border-radius-'; // For radius styles
 const ANIMATION_CLASS_PREFIX = 'anim-';
 const PREVIEW_SIZE_CLASS_PREFIX = 'preview-size-';
 const BACKGROUND_CLASS_PREFIX = 'bg-';
@@ -32,12 +32,12 @@ const DEFAULT_SETTINGS = {
     gradientPreset: 'primary-gradient',
     color1: '#FF1493', color2: '#8A2BE2', useColor3: false, color3: '#FF4500',
     // *** Values below MUST match <option value="..."> in index.html ***
-    textShadow: 'text-glow-none', // Dropdown VALUE, maps to text-effect-* class
+    textShadow: 'text-effect-none', // Updated to new class format 
     borderColorPicker: '#ffffff', // Applied via CSS var --dynamic-border-color
     borderStyle: 'border-none', // Dropdown VALUE, maps to border-style-* or border-effect-* class
     borderWidth: '2', // Applied via CSS var --dynamic-border-width
-    borderRadius: 'none', // New: border radius setting (none, circle, custom value)
-    borderPadding: '10', // New: border padding in pixels
+    borderRadius: 'none', // Border radius setting (none, circle, custom value)
+    borderPadding: '10', // Border padding in pixels
     textAlign: 'center', // Maps to text-align-center class
     rotation: '0', // Applied via CSS var --dynamic-rotation
     textAnimation: 'anim-none', // Maps to anim-none class
@@ -55,6 +55,76 @@ const DEFAULT_SETTINGS = {
     exportTransparent: false, exportFrames: '15', exportFrameRate: '10'
 };
 
+// --- Mapping for Border Style Classes ---
+// This helps convert dropdown values to specific CSS classes
+const BORDER_STYLE_MAP = {
+    // Static styles
+    'border-none': 'border-style-none',
+    'border-solid': 'border-style-solid',
+    'border-double': 'border-style-double',
+    'border-dashed': 'border-style-dashed',
+    'border-dotted': 'border-style-dotted',
+    'border-groove': 'border-style-groove',
+    'border-ridge': 'border-style-ridge',
+    'border-inset': 'border-style-inset',
+    'border-outset': 'border-style-outset',
+    'border-pixel': 'border-style-pixel',
+    'border-thick': 'border-style-thick',
+    
+    // Effect styles
+    'border-glow': 'border-effect-glow-soft',
+    'border-neon': 'border-effect-neon-animated',
+    'border-pulse': 'border-effect-glow-pulse',
+    'border-gradient': 'border-effect-gradient-animated'
+};
+
+// --- Mapping for Text Effect Classes --- 
+// This helps convert dropdown values to specific CSS classes
+const TEXT_EFFECT_MAP = {
+    'text-glow-none': 'text-effect-none',
+    'text-shadow-none': 'text-effect-none',
+    'text-effect-none': 'text-effect-none',
+    
+    // Glows
+    'text-glow-soft': 'text-effect-glow-soft',
+    'text-glow-medium': 'text-effect-glow-medium',
+    'text-glow-strong': 'text-effect-glow-strong',
+    'text-glow-sharp': 'text-effect-glow-sharp',
+    'text-glow-neon': 'text-effect-neon-primary',
+    
+    // Shadows
+    'text-shadow-soft': 'text-effect-shadow-soft-md',
+    'text-glow-hard': 'text-effect-shadow-hard-md',
+    'text-shadow-hard-sm': 'text-effect-shadow-hard-sm',
+    'text-shadow-hard-md': 'text-effect-shadow-hard-md',
+    'text-shadow-hard-lg': 'text-effect-shadow-hard-lg',
+    'text-shadow-hard-xl': 'text-effect-shadow-hard-xl',
+    
+    // Outlines & Special
+    'text-glow-outline': 'text-effect-outline-thin',
+    'text-glow-retro': 'text-effect-shadow-retro',
+    'text-glow-emboss': 'text-effect-emboss',
+    'text-glow-inset': 'text-effect-inset',
+    
+    // Blend modes
+    'text-effect-blend-screen': 'text-effect-blend-screen',
+    'text-effect-blend-multiply': 'text-effect-blend-multiply',
+    'text-effect-blend-overlay': 'text-effect-blend-overlay',
+    'text-effect-blend-difference': 'text-effect-blend-difference'
+};
+
+// --- Mapping for Border Radius Classes ---
+const BORDER_RADIUS_MAP = {
+    'none': 'border-radius-none',
+    'square': 'border-radius-none',
+    'rounded-sm': 'border-radius-sm',
+    'rounded-md': 'border-radius-md',
+    'rounded-lg': 'border-radius-lg',
+    'pill': 'border-radius-pill',
+    'circle': 'border-radius-circle',
+    'oval': 'border-radius-oval'
+};
+
 // --- SettingsManager Object ---
 const SettingsManager = {
     _currentSettings: {}, _listeners: [], _isInitialized: false,
@@ -67,7 +137,7 @@ const SettingsManager = {
     // --- Initialization ---
     async init() {
         if (this._isInitialized) return;
-        console.log('[SM] Initialize (v16.0 - Enhanced with border radius & padding)...'); 
+        console.log('[SM] Initialize (v17.0 - Enhanced with improved border handling)...'); 
 
         // Cache elements
         this._logoElement = document.querySelector('.logo-text');
@@ -86,8 +156,7 @@ const SettingsManager = {
 
         // Check CSSUtils dependency
         if (!window.CSSUtils) {
-            console.error("[SM CRITICAL] CSSUtils not found! Ensure cssUtils.js is loaded first.");
-            return;
+            console.warn("[SM] CSSUtils not found! Some border features may not work correctly.");
         }
 
         try {
@@ -124,15 +193,15 @@ const SettingsManager = {
         this._bindSelectListener('gradientPreset');
         this._bindSelectListener('textShadow');
         this._bindSelectListener('borderStyle');
-        this._bindSelectListener('borderRadius'); // New: bind border radius
+        this._bindSelectListener('borderRadius'); // Bind border radius
         this._bindSelectListener('textAlign');
         this._bindSelectListener('textAnimation');
         this._bindSelectListener('backgroundType');
         this._bindSelectListener('backgroundGradientPreset');
         this._bindSelectListener('previewSize');
         this._bindNumberInputListener('fontSize', '--dynamic-font-size', 'px');
-        this._bindNumberInputListener('borderWidth', '--dynamic-border-width', 'px'); // New: numeric border width
-        this._bindNumberInputListener('borderPadding', '--dynamic-border-padding', 'px'); // New: border padding
+        this._bindNumberInputListener('borderWidth', '--dynamic-border-width', 'px');
+        this._bindNumberInputListener('borderPadding', '--dynamic-border-padding', 'px');
         this._bindRangeInputListener('letterSpacing', '--dynamic-letter-spacing', 'em');
         this._bindRangeInputListener('rotation', '--dynamic-rotation', 'deg');
         this._bindRangeInputListener('animationSpeed');
@@ -286,9 +355,7 @@ const SettingsManager = {
                 }
                 else if (cssVar === '--dynamic-border-padding') {
                     // Apply padding to the logo container
-                    if (this._logoContainer) {
-                        CSSUtils.applyBorderPadding(this._logoContainer, `${value}${unit}`);
-                    }
+                    this._applyBorderPadding(value, unit);
                 }
             }
             
@@ -375,8 +442,15 @@ const SettingsManager = {
                  
                  // For border color, we also want to set the RGB variable
                  if (cssVar === '--dynamic-border-color') {
-                     const rgbValue = CSSUtils.extractRGB(value);
-                     document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgbValue);
+                     // Use CSSUtils if available, otherwise simple fallback 
+                     if (window.CSSUtils && typeof window.CSSUtils.extractRGB === 'function') {
+                         const rgbValue = window.CSSUtils.extractRGB(value);
+                         document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgbValue);
+                     } else {
+                         // Simple RGB extraction fallback
+                         const rgbValue = this._extractColorRGB(value);
+                         document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgbValue);
+                     }
                      
                      // If we have a border, make sure it gets the updated color
                      if (this._currentSettings.borderStyle && this._currentSettings.borderStyle !== 'border-none') {
@@ -415,6 +489,41 @@ const SettingsManager = {
              
              this._triggerSettingsUpdate();
          });
+    },
+    
+    /** Simple RGB extraction fallback if CSSUtils is not available */
+    _extractColorRGB(color) {
+        if (!color) return "255, 255, 255"; // Default white
+        
+        // For hex colors
+        if (color.startsWith('#')) {
+            const hex = color.slice(1);
+            let r, g, b;
+            
+            if (hex.length === 3) {
+                r = parseInt(hex[0] + hex[0], 16);
+                g = parseInt(hex[1] + hex[1], 16);
+                b = parseInt(hex[2] + hex[2], 16);
+            } else if (hex.length === 6) {
+                r = parseInt(hex.slice(0, 2), 16);
+                g = parseInt(hex.slice(2, 4), 16);
+                b = parseInt(hex.slice(4, 6), 16);
+            } else {
+                return "255, 255, 255"; // Fallback
+            }
+            
+            return `${r}, ${g}, ${b}`;
+        }
+        
+        // Basic RGB parsing
+        if (color.startsWith('rgb')) {
+            const match = color.match(/rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+            if (match) {
+                return `${match[1]}, ${match[2]}, ${match[3]}`;
+            }
+        }
+        
+        return "255, 255, 255"; // Default fallback
     },
 
     // --- Core Style Application Logic ---
@@ -521,71 +630,42 @@ const SettingsManager = {
     },
 
     /** 
-     * Applies text effect using CSS classes based on mapping 
-     * Maps from dropdown values to CSS classes
-     */
+     * Applies text effect using CSS classes with mapping*/
     _applyTextEffect(effectValueFromDropdown) {
         if (!this._logoElement || !effectValueFromDropdown) return;
-        // Mapping from dropdown value="...": Maps OLD values to NEW classes
-        const effectMap = {
-            'text-glow-none': 'text-effect-none',
-            'text-glow-soft': 'text-effect-glow-soft',
-            'text-glow-medium': 'text-effect-glow-medium',
-            'text-glow-strong': 'text-effect-glow-strong',
-            'text-glow-sharp': 'text-effect-glow-sharp',
-            'text-glow-neon': 'text-effect-neon-primary',
-            'text-glow-hard': 'text-effect-shadow-hard-md',
-            'text-glow-outline': 'text-effect-outline-thin',
-            'text-glow-retro': 'text-effect-shadow-retro',
-            'text-glow-emboss': 'text-effect-emboss',
-            'text-glow-inset': 'text-effect-inset',
-            // Add all other values from #textShadow dropdown here
-        };
-        const className = effectMap[effectValueFromDropdown] || 'text-effect-none'; // Fallback
-        this._applyClass(this._logoElement, className, TEXT_EFFECT_CLASS_PREFIX); // Applies the mapped class
+        
+        // Use the mapping to ensure consistent class names
+        const effectClass = TEXT_EFFECT_MAP[effectValueFromDropdown] || 'text-effect-none';
+        console.log(`[SM] Applying text effect: '${effectValueFromDropdown}' → '${effectClass}'`);
+        
+        this._applyClass(this._logoElement, effectClass, TEXT_EFFECT_CLASS_PREFIX);
     },
 
     /** 
      * Applies border style/effect using CSS classes to the container 
-     * Maps from dropdown values to CSS classes
+     * Using the mapped class format for consistency
      */
     _applyBorderStyle(borderValueFromDropdown) {
         if (!this._logoContainer || !borderValueFromDropdown) return;
         
-        // Mapping from dropdown value="...": Maps IDs to specific border-style-* or border-effect-* classes
-        const borderClassMap = {
-            'border-none': 'border-style-none',
-            'border-solid': 'border-style-solid',
-            'border-double': 'border-style-double',
-            'border-dashed': 'border-style-dashed',
-            'border-dotted': 'border-style-dotted',
-            'border-groove': 'border-style-groove',
-            'border-ridge': 'border-style-ridge',
-            'border-inset': 'border-style-inset',
-            'border-outset': 'border-style-outset',
-            'border-pixel': 'border-style-pixel',
-            'border-glow': 'border-effect-glow-soft', // Map dropdown 'glow' to specific soft glow effect
-            'border-neon': 'border-effect-neon-animated', // Added mapping for neon
-            'border-pulse': 'border-effect-glow-pulse', // Added mapping for pulse
-            'border-gradient': 'border-effect-gradient-animated', // Added mapping for gradient
-            'border-thick-solid': 'border-style-thick', // Added mapping for thick solid
-            // Add other effect mappings as needed
-        };
+        // Use the mapping to ensure consistent class names
+        const borderClass = BORDER_STYLE_MAP[borderValueFromDropdown] || 'border-style-none';
+        console.log(`[SM] Applying border style: '${borderValueFromDropdown}' → '${borderClass}'`);
         
-        const className = borderClassMap[borderValueFromDropdown] || 'border-style-none'; // Fallback
-        const isStaticStyle = className.startsWith(BORDER_STYLE_CLASS_PREFIX);
-        const isEffect = className.startsWith(BORDER_EFFECT_CLASS_PREFIX);
-        const hasBorder = className !== 'border-style-none';
+        const isStaticStyle = borderClass.startsWith(BORDER_STYLE_CLASS_PREFIX);
+        const isEffect = borderClass.startsWith(BORDER_EFFECT_CLASS_PREFIX);
+        const hasBorder = borderClass !== 'border-style-none';
 
-        this._logoContainer.classList.toggle('dynamic-border', hasBorder); // Base class needed
+        // Add/remove base container class
+        this._logoContainer.classList.toggle('dynamic-border', hasBorder);
 
         // Apply specific class, ensuring only one type (style or effect) is active
         if (isStaticStyle) {
-            this._applyClass(this._logoContainer, className, BORDER_STYLE_CLASS_PREFIX);
+            this._applyClass(this._logoContainer, borderClass, BORDER_STYLE_CLASS_PREFIX);
             this._applyClass(this._logoContainer, 'border-effect-none', BORDER_EFFECT_CLASS_PREFIX);
         } else if (isEffect) {
             this._applyClass(this._logoContainer, 'border-style-none', BORDER_STYLE_CLASS_PREFIX);
-            this._applyClass(this._logoContainer, className, BORDER_EFFECT_CLASS_PREFIX);
+            this._applyClass(this._logoContainer, borderClass, BORDER_EFFECT_CLASS_PREFIX);
         } else { // Handle 'none' case explicitly
             this._applyClass(this._logoContainer, 'border-style-none', BORDER_STYLE_CLASS_PREFIX);
             this._applyClass(this._logoContainer, 'border-effect-none', BORDER_EFFECT_CLASS_PREFIX);
@@ -597,6 +677,9 @@ const SettingsManager = {
         
         // Ensure correct padding is applied
         this._applyBorderPadding(this._currentSettings.borderPadding || '10');
+        
+        // Ensure correct radius is applied (maintain current radius)
+        this._applyBorderRadius(this._currentSettings.borderRadius || 'none');
     },
     
     /** 
@@ -606,37 +689,85 @@ const SettingsManager = {
     _applyBorderRadius(radiusValue) {
         if (!this._logoContainer || !radiusValue) return;
         
-        // For CSS class tracking/compatibility
-        const classMap = {
-            'none': 'border-radius-none',
-            'circle': 'border-radius-circle',
-            'pill': 'border-radius-pill',
-            'oval': 'border-radius-oval',
-            'rounded-sm': 'border-radius-sm',
-            'rounded-md': 'border-radius-md',
-            'rounded-lg': 'border-radius-lg'
-        };
+        // Use the mapping table to ensure consistent class names
+        const radiusClass = BORDER_RADIUS_MAP[radiusValue] || 'border-radius-custom';
+        console.log(`[SM] Applying border radius: '${radiusValue}' → '${radiusClass}'`);
         
-        // First remove any existing radius classes
-        this._applyClass(this._logoContainer, classMap[radiusValue] || 'border-radius-custom', BORDER_RADIUS_CLASS_PREFIX);
+        // Add the appropriate class (ensures proper CSS exports)
+        this._applyClass(this._logoContainer, radiusClass, BORDER_RADIUS_CLASS_PREFIX);
         
-        // Use CSSUtils for actual style application (handles special values)
-        CSSUtils.applyBorderRadius(this._logoContainer, radiusValue);
+        // Use CSSUtils if available for actual style application
+        if (window.CSSUtils && typeof window.CSSUtils.applyBorderRadius === 'function') {
+            window.CSSUtils.applyBorderRadius(this._logoContainer, radiusValue);
+        }
+        else {
+            // Simple direct style fallback if CSSUtils not available
+            switch (radiusValue) {
+                case 'none':
+                case 'square':
+                    this._logoContainer.style.borderRadius = '0';
+                    document.documentElement.style.setProperty('--dynamic-border-radius', '0');
+                    break;
+                case 'circle':
+                    this._logoContainer.style.borderRadius = '50%';
+                    document.documentElement.style.setProperty('--dynamic-border-radius', '50%');
+                    break;
+                case 'oval':
+                    this._logoContainer.style.borderRadius = '30% / 50%';
+                    document.documentElement.style.setProperty('--dynamic-border-radius', '30% / 50%');
+                    break;
+                case 'pill':
+                    this._logoContainer.style.borderRadius = '999px';
+                    document.documentElement.style.setProperty('--dynamic-border-radius', '999px');
+                    break;
+                case 'rounded-sm':
+                    this._logoContainer.style.borderRadius = '3px';
+                    document.documentElement.style.setProperty('--dynamic-border-radius', '3px');
+                    break;
+                case 'rounded-md':
+                    this._logoContainer.style.borderRadius = '6px';
+                    document.documentElement.style.setProperty('--dynamic-border-radius', '6px');
+                    break;
+                case 'rounded-lg':
+                    this._logoContainer.style.borderRadius = '10px';
+                    document.documentElement.style.setProperty('--dynamic-border-radius', '10px');
+                    break;
+                default:
+                    // If a numeric value or string with units, apply directly
+                    if (!isNaN(radiusValue)) {
+                        this._logoContainer.style.borderRadius = `${radiusValue}px`;
+                        document.documentElement.style.setProperty('--dynamic-border-radius', `${radiusValue}px`);
+                    } else {
+                        this._logoContainer.style.borderRadius = radiusValue;
+                        document.documentElement.style.setProperty('--dynamic-border-radius', radiusValue);
+                    }
+            }
+        }
     },
     
     /**
      * Apply border padding to the container
      */
-    _applyBorderPadding(padding) {
+    _applyBorderPadding(padding, unit = 'px') {
         if (!this._logoContainer) return;
         
         // Normalize padding to ensure it has unit
         let normalizedPadding = padding;
         if (!isNaN(padding)) {
-            normalizedPadding = `${padding}px`;
+            normalizedPadding = `${padding}${unit}`;
         }
         
-        CSSUtils.applyBorderPadding(this._logoContainer, normalizedPadding);
+        // Use CSSUtils if available for advanced style application
+        if (window.CSSUtils && typeof window.CSSUtils.applyBorderPadding === 'function') {
+            window.CSSUtils.applyBorderPadding(this._logoContainer, normalizedPadding);
+        }
+        else {
+            // Fallback direct style application
+            this._logoContainer.style.padding = normalizedPadding;
+            document.documentElement.style.setProperty('--dynamic-border-padding', normalizedPadding);
+        }
+        
+        console.log(`[SM] Applied border padding: ${normalizedPadding}`);
     },
 
     /** Applies text animation using CSS classes */
@@ -644,6 +775,12 @@ const SettingsManager = {
         if (!this._logoElement || !animValue) return;
         this._applyClass(this._logoElement, animValue, ANIMATION_CLASS_PREFIX);
         this._applyAnimationSpeed(this._currentSettings.animationSpeed); // Ensure speed/duration var is current
+        
+        // Add data-text attribute for glitch animation if needed
+        if (animValue === 'anim-glitch' && this._logoElement.textContent) {
+            this._logoElement.setAttribute('data-text', this._logoElement.textContent);
+            console.log(`[SM] Applied data-text for glitch animation: "${this._logoElement.textContent}"`);
+        }
     },
 
     /** Applies preview size using CSS classes */
@@ -724,11 +861,13 @@ const SettingsManager = {
         this._logoElement.style.webkitBackgroundClip = 'initial';
         this._logoElement.style.color = color;
         this._logoElement.style.webkitTextFillColor = 'initial';
+        console.log(`[SM] Applied solid text color: ${color}`);
     },
     
     _applySolidBgColor(color) {
          if (!this._previewContainer) return;
          this._previewContainer.style.backgroundColor = color;
+         console.log(`[SM] Applied solid background color: ${color}`);
     },
     
     /**
@@ -873,6 +1012,7 @@ const SettingsManager = {
          const baseDuration = 2;
          const duration = Math.max(0.1, baseDuration / Math.max(0.1, speed));
          document.documentElement.style.setProperty('--animation-duration', `${duration.toFixed(2)}s`);
+         console.log(`[SM] Applied animation speed multiplier: ${speed}x (Duration: ${duration.toFixed(2)}s)`);
     },
     
     _updateFontPreview(fontFamilyName) {
@@ -983,8 +1123,15 @@ const SettingsManager = {
             
             // Set border width and RGB value for effects
             document.documentElement.style.setProperty('--dynamic-border-width', `${this._currentSettings.borderWidth}px`);
-            const rgbValue = CSSUtils.extractRGB(this._currentSettings.borderColorPicker);
-            document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgbValue);
+            
+            if (window.CSSUtils && typeof window.CSSUtils.extractRGB === 'function') {
+                const rgbValue = window.CSSUtils.extractRGB(this._currentSettings.borderColorPicker);
+                document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgbValue);
+            } else {
+                // Fallback RGB extraction
+                const rgbValue = this._extractColorRGB(this._currentSettings.borderColorPicker);
+                document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgbValue);
+            }
 
             // Apply border padding (new feature)
             this._applyBorderPadding(this._currentSettings.borderPadding || '10');
@@ -997,8 +1144,8 @@ const SettingsManager = {
             this._applyAnimationSpeed(this._currentSettings.animationSpeed);
 
             // Effects & Borders (Uses Class Application with Mapping)
-            this._applyTextEffect(this._currentSettings.textShadow); // Key 'textShadow' holds dropdown value
-            this._applyBorderStyle(this._currentSettings.borderStyle); // Key 'borderStyle' holds dropdown value
+            this._applyTextEffect(this._currentSettings.textShadow); // Use mapped classes
+            this._applyBorderStyle(this._currentSettings.borderStyle); // Use mapped classes
             
             // Apply border radius (new feature)
             this._applyBorderRadius(this._currentSettings.borderRadius || 'none');
@@ -1075,7 +1222,7 @@ const SettingsManager = {
      * Enhanced to include border radius, padding, and improved class representation
      */
     _generateCSSCode() {
-        console.log("[SM] Generating CSS Code (Updated with advanced styling)...");
+        console.log("[SM] Generating CSS Code (Updated with advanced styling v17)...");
         if (!this._logoElement || !this._previewContainer || !this._logoContainer) {
             return "/* Error: Missing core elements */";
         }
@@ -1109,264 +1256,268 @@ const SettingsManager = {
             const getPrefixedClass = (element, prefix) => 
                 Array.from(element.classList).find(c => c.startsWith(prefix));
 
+            // Get all relevant container classes
             const containerClasses = Array.from(this._logoContainer.classList)
                 .filter(c => c === 'dynamic-border' || 
-                            c.startsWith(BORDER_STYLE_CLASS_PREFIX) || 
-                            c.startsWith(BORDER_EFFECT_CLASS_PREFIX) ||
-                            c.startsWith(BORDER_RADIUS_CLASS_PREFIX))
-                .map(c => `.${c}`) // Add dot for CSS selector
-                .join(''); // e.g., .dynamic-border.border-style-solid
+                    c.startsWith(BORDER_STYLE_CLASS_PREFIX) || 
+                    c.startsWith(BORDER_EFFECT_CLASS_PREFIX) ||
+                    c.startsWith(BORDER_RADIUS_CLASS_PREFIX))
+        .map(c => `.${c}`) // Add dot for CSS selector
+        .join(''); // e.g., .dynamic-border.border-style-solid
 
-            const textClasses = Array.from(this._logoElement.classList)
-                .filter(c => c.startsWith(FONT_FAMILY_CLASS_PREFIX) || 
-                           c.startsWith(FONT_WEIGHT_CLASS_PREFIX) ||
-                           c.startsWith(TEXT_ALIGN_CLASS_PREFIX) || 
-                           c.startsWith(TEXT_CASE_CLASS_PREFIX) ||
-                           c.startsWith(TEXT_EFFECT_CLASS_PREFIX) || 
-                           c.startsWith(ANIMATION_CLASS_PREFIX))
-                .map(c => `.${c}`) // Add dot
-                .join('');
+    // Get all relevant text classes
+    const textClasses = Array.from(this._logoElement.classList)
+        .filter(c => c.startsWith(FONT_FAMILY_CLASS_PREFIX) || 
+                   c.startsWith(FONT_WEIGHT_CLASS_PREFIX) ||
+                   c.startsWith(TEXT_ALIGN_CLASS_PREFIX) || 
+                   c.startsWith(TEXT_CASE_CLASS_PREFIX) ||
+                   c.startsWith(TEXT_EFFECT_CLASS_PREFIX) || 
+                   c.startsWith(ANIMATION_CLASS_PREFIX))
+        .map(c => `.${c}`) // Add dot
+        .join('');
 
-            // Container CSS
-            css += `.logo-container${containerClasses} { /* Container styles reflecting applied classes */\n`;
-            css += `  /* Base positioning styles */\n`;
-            css += `  position: relative;\n`;
-            css += `  display: flex;\n`;
-            css += `  align-items: center;\n`;
-            css += `  justify-content: center;\n`;
-            
-            // Add padding if set
-            const padding = CSSUtils.getCSSVariable('dynamic-border-padding');
-            if (padding) {
-                css += `  padding: ${padding};\n`;
-            }
-            
-            // Add border radius if set
-            const borderRadius = CSSUtils.getCSSVariable('dynamic-border-radius');
-            if (borderRadius && borderRadius !== '0px' && borderRadius !== '0') {
-                css += `  border-radius: ${borderRadius};\n`;
-            }
-            
-            css += `}\n\n`;
+    // Container CSS
+    css += `.logo-container${containerClasses} { /* Container styles reflecting applied classes */\n`;
+    css += `  /* Base positioning styles */\n`;
+    css += `  position: relative;\n`;
+    css += `  display: flex;\n`;
+    css += `  align-items: center;\n`;
+    css += `  justify-content: center;\n`;
+    
+    // Add padding if set
+    const padding = document.documentElement.style.getPropertyValue('--dynamic-border-padding') || 
+                   getComputedStyle(document.documentElement).getPropertyValue('--dynamic-border-padding');
+    if (padding) {
+        css += `  padding: ${padding};\n`;
+    }
+    
+    // Add border radius if set
+    const borderRadius = document.documentElement.style.getPropertyValue('--dynamic-border-radius') || 
+                       getComputedStyle(document.documentElement).getPropertyValue('--dynamic-border-radius');
+    if (borderRadius && borderRadius !== '0px' && borderRadius !== '0') {
+        css += `  border-radius: ${borderRadius};\n`;
+    }
+    
+    css += `}\n\n`;
 
-            // Text CSS
-            css += `.logo-text${textClasses} { /* Text styles reflecting applied classes */\n`;
-            
-            // Font family, weight, text-align, text-case, effect, animation handled by classes included above
-            // Styles controlled by CSS Variables
-            css += `  font-size: var(--dynamic-font-size);\n`;
-            css += `  letter-spacing: var(--dynamic-letter-spacing);\n`;
-            css += `  transform: rotate(var(--dynamic-rotation));\n`;
+    // Text CSS
+    css += `.logo-text${textClasses} { /* Text styles reflecting applied classes */\n`;
+    
+    // Font family, weight, text-align, text-case, effect, animation handled by classes included above
+    // Styles controlled by CSS Variables
+    css += `  font-size: var(--dynamic-font-size);\n`;
+    css += `  letter-spacing: var(--dynamic-letter-spacing);\n`;
+    css += `  transform: rotate(var(--dynamic-rotation));\n`;
 
-            // Color/Gradient (get current inline style applied by JS handlers)
-            if (this._currentSettings.textColorMode === 'gradient') {
-                css += `  background-image: ${this._logoElement.style.backgroundImage || 'none'}; /* Current gradient */\n`;
-                css += `  -webkit-background-clip: text;\n  background-clip: text;\n`;
-                css += `  color: transparent;\n  -webkit-text-fill-color: transparent;\n`;
-            } else {
-                css += `  color: ${this._logoElement.style.color || '#ffffff'}; /* Current solid color */\n`;
-                // Ensure gradient properties are reset if solid
-                css += `  background-image: none;\n`;
-                css += `  background-clip: initial;\n  -webkit-background-clip: initial;\n`;
-                css += `  -webkit-text-fill-color: initial;\n`;
-            }
+    // Color/Gradient (get current inline style applied by JS handlers)
+    if (this._currentSettings.textColorMode === 'gradient') {
+        css += `  background-image: ${this._logoElement.style.backgroundImage || 'none'}; /* Current gradient */\n`;
+        css += `  -webkit-background-clip: text;\n  background-clip: text;\n`;
+        css += `  color: transparent;\n  -webkit-text-fill-color: transparent;\n`;
+    } else {
+        css += `  color: ${this._logoElement.style.color || '#ffffff'}; /* Current solid color */\n`;
+        // Ensure gradient properties are reset if solid
+        css += `  background-image: none;\n`;
+        css += `  background-clip: initial;\n  -webkit-background-clip: initial;\n`;
+        css += `  -webkit-text-fill-color: initial;\n`;
+    }
 
-            css += `  /* Essential text styles */\n`;
-            css += `  line-height: 1.2;\n`;
-            css += `  white-space: nowrap;\n`; // Add for consistent width calculations
-            css += `}\n\n`;
+    css += `  /* Essential text styles */\n`;
+    css += `  line-height: 1.2;\n`;
+    css += `  white-space: nowrap;\n`; // Add for consistent width calculations
+    css += `}\n\n`;
 
-            // Include relevant @keyframes if animation is active
-            const animClass = getPrefixedClass(this._logoElement, ANIMATION_CLASS_PREFIX);
-            if (animClass && animClass !== 'anim-none' && typeof getActiveAnimationKeyframes === 'function') {
-                const keyframesCss = getActiveAnimationKeyframes(animClass.replace(ANIMATION_CLASS_PREFIX, ''));
-                if (keyframesCss) css += keyframesCss + '\n\n';
-            }
+    // Include relevant @keyframes if animation is active
+    const animClass = getPrefixedClass(this._logoElement, ANIMATION_CLASS_PREFIX);
+    if (animClass && animClass !== 'anim-none' && typeof getActiveAnimationKeyframes === 'function') {
+        const keyframesCss = getActiveAnimationKeyframes(animClass.replace(ANIMATION_CLASS_PREFIX, ''));
+        if (keyframesCss) css += keyframesCss + '\n\n';
+    }
 
-            // Include background class CSS definition (optional)
-            const bgClass = Array.from(this._previewContainer.classList)
-                .find(c => c.startsWith(BACKGROUND_CLASS_PREFIX));
-                
-            if (bgClass && bgClass !== 'bg-solid' && bgClass !== 'bg-transparent' && !bgClass.includes('gradient')) {
-                css += `/* Background Pattern Class: .${bgClass} */\n`;
-                css += `/* Add the full definition for .${bgClass} from effects.css here if needed for standalone use */\n\n`;
-            }
+    // Include background class CSS definition (optional)
+    const bgClass = Array.from(this._previewContainer.classList)
+        .find(c => c.startsWith(BACKGROUND_CLASS_PREFIX));
+        
+    if (bgClass && bgClass !== 'bg-solid' && bgClass !== 'bg-transparent' && !bgClass.includes('gradient')) {
+        css += `/* Background Pattern Class: .${bgClass} */\n`;
+        css += `/* Add the full definition for .${bgClass} from effects.css here if needed for standalone use */\n\n`;
+    }
 
-            return css;
-        } catch (e) {
-            console.error("Error generating CSS:", e);
-            return `/* CSS Gen Error: ${e.message} */`;
+    return css;
+} catch (e) {
+    console.error("Error generating CSS:", e);
+    return `/* CSS Gen Error: ${e.message} */`;
+}
+},
+
+_initializeUIComponentsState() {
+console.log('[SM] Initializing UI component states...');
+
+this._handleColorModeChange(this._currentSettings.textColorMode);
+this._handleGradientPresetChange(this._currentSettings.gradientPreset);
+this._handleBackgroundTypeChange(this._currentSettings.backgroundType);
+this._handleBackgroundGradientChange(this._currentSettings.backgroundGradientPreset);
+this._updateFontPreview(this._currentSettings.fontFamily);
+this._updateRangeValueDisplays();
+this._setupResetButton(); // Ensure reset modal listeners are attached
+
+console.log('[SM] UI component states initialized.');
+},
+
+_setupResetButton() {
+const resetBtn = document.getElementById('resetBtn'); 
+if (!resetBtn || resetBtn.dataset.listenerAttached) return;
+
+const resetModal = document.getElementById('resetConfirmModal');
+const cancelBtn = document.getElementById('resetModalCancel');
+const confirmBtn = document.getElementById('resetModalConfirm');
+
+if (!resetModal || !cancelBtn || !confirmBtn) { 
+    console.warn('[SM] Reset modal elements missing.'); 
+    return; 
+}
+
+const closeModal = () => {
+    resetModal.style.display = 'none';
+    resetModal.classList.remove('active');
+};
+
+resetBtn.onclick = () => {
+    resetModal.style.display = 'flex';
+    resetModal.classList.add('active');
+};
+
+cancelBtn.onclick = closeModal;
+
+// Use arrow function to preserve 'this' context when calling resetSettings
+confirmBtn.onclick = () => {
+     const resetType = document.querySelector('input[name="reset-type"]:checked')?.value || 'all';
+     this.resetSettings(resetType); // Call method on SettingsManager instance
+     closeModal();
+};
+
+resetModal.onclick = (e) => {
+    if (e.target === resetModal) closeModal();
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && resetModal.classList.contains('active')) closeModal();
+});
+
+resetBtn.dataset.listenerAttached = 'true'; // Mark as listener attached
+},
+
+resetSettings(resetType = 'all') {
+console.log(`[SM Resetting] Type: ${resetType}`);
+const defaults = this.getDefaults();
+let settingsToApply;
+
+if (resetType === 'all') {
+    settingsToApply = { ...defaults };
+} else {
+    settingsToApply = { ...this.getCurrentSettings() }; // Start with current
+    
+    const keyMap = {
+        text: [
+            'logoText', 'fontFamily', 'fontSize', 'letterSpacing', 
+            'textCase', 'fontWeight'
+        ],
+        style: [
+            'textColorMode', 'solidColorPicker', 'gradientPreset', 
+            'color1', 'color2', 'useColor3', 'color3', 'textShadow', 
+            'borderColorPicker', 'borderStyle', 'borderWidth', 'borderRadius', 
+            'borderPadding', 'textAlign', 'rotation', 'animationDirection', 
+            'textAnimation', 'animationSpeed'
+        ], 
+        background: [
+            'backgroundType', 'backgroundColor', 'bgOpacity', 
+            'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection'
+        ],
+    };
+    
+    const keysToReset = keyMap[resetType] || Object.keys(defaults);
+    keysToReset.forEach(key => {
+        if (defaults.hasOwnProperty(key)) settingsToApply[key] = defaults[key];
+    });
+}
+
+// Apply the determined settings and force UI update
+this.applySettings(settingsToApply, true)
+    .then(() => {
+        console.log('[SM] Settings reset applied successfully.');
+        if (typeof notifyResetSuccess === 'function') {
+            notifyResetSuccess(resetType);
+        } else if (typeof showToast === 'function') {
+            showToast({message: `Settings Reset (${resetType})!`, type:'success'});
         }
-    },
-    
-    _initializeUIComponentsState() {
-        console.log('[SM] Initializing UI component states...');
-        
-        this._handleColorModeChange(this._currentSettings.textColorMode);
-        this._handleGradientPresetChange(this._currentSettings.gradientPreset);
-        this._handleBackgroundTypeChange(this._currentSettings.backgroundType);
-        this._handleBackgroundGradientChange(this._currentSettings.backgroundGradientPreset);
-        this._updateFontPreview(this._currentSettings.fontFamily);
-        this._updateRangeValueDisplays();
-        this._setupResetButton(); // Ensure reset modal listeners are attached
-        
-        console.log('[SM] UI component states initialized.');
-    },
-    
-    _setupResetButton() {
-        const resetBtn = document.getElementById('resetBtn'); 
-        if (!resetBtn || resetBtn.dataset.listenerAttached) return;
-        
-        const resetModal = document.getElementById('resetConfirmModal');
-        const cancelBtn = document.getElementById('resetModalCancel');
-        const confirmBtn = document.getElementById('resetModalConfirm');
-        
-        if (!resetModal || !cancelBtn || !confirmBtn) { 
-            console.warn('[SM] Reset modal elements missing.'); 
-            return; 
+    })
+    .catch(err => {
+        console.error("[SM] Error applying reset settings:", err);
+        if (typeof showAlert === 'function') {
+            showAlert("Failed to apply reset settings.", "error");
         }
+    });
+},
+
+loadSavedSettings() {
+try {
+    const saved = localStorage.getItem('logomakerSettings');
+    if (saved) {
+        const loadedSettings = JSON.parse(saved);
         
-        const closeModal = () => {
-            resetModal.style.display = 'none';
-            resetModal.classList.remove('active');
-        };
-        
-        resetBtn.onclick = () => {
-            resetModal.style.display = 'flex';
-            resetModal.classList.add('active');
-        };
-        
-        cancelBtn.onclick = closeModal;
-        
-        // Use arrow function to preserve 'this' context when calling resetSettings
-        confirmBtn.onclick = () => {
-             const resetType = document.querySelector('input[name="reset-type"]:checked')?.value || 'all';
-             this.resetSettings(resetType); // Call method on SettingsManager instance
-             closeModal();
-        };
-        
-        resetModal.onclick = (e) => {
-            if (e.target === resetModal) closeModal();
-        };
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && resetModal.classList.contains('active')) closeModal();
-        });
-        
-        resetBtn.dataset.listenerAttached = 'true'; // Mark as listener attached
-    },
-    
-    resetSettings(resetType = 'all') {
-        console.log(`[SM Resetting] Type: ${resetType}`);
+        // Check for new properties added since the last version
+        // This ensures old saved settings work with new features
         const defaults = this.getDefaults();
-        let settingsToApply;
+        const mergedSettings = { 
+            ...defaults, 
+            ...loadedSettings,
+            // Force these new border properties if missing in old saved settings
+            borderRadius: loadedSettings.borderRadius || defaults.borderRadius,
+            borderPadding: loadedSettings.borderPadding || defaults.borderPadding,
+            borderWidth: loadedSettings.borderWidth || defaults.borderWidth
+        };
         
-        if (resetType === 'all') {
-            settingsToApply = { ...defaults };
-        } else {
-            settingsToApply = { ...this.getCurrentSettings() }; // Start with current
-            
-            const keyMap = {
-                text: [
-                    'logoText', 'fontFamily', 'fontSize', 'letterSpacing', 
-                    'textCase', 'fontWeight'
-                ],
-                style: [
-                    'textColorMode', 'solidColorPicker', 'gradientPreset', 
-                    'color1', 'color2', 'useColor3', 'color3', 'textShadow', 
-                    'borderColorPicker', 'borderStyle', 'borderWidth', 'borderRadius', 
-                    'borderPadding', 'textAlign', 'rotation', 'animationDirection', 
-                    'textAnimation', 'animationSpeed'
-                ], 
-                background: [
-                    'backgroundType', 'backgroundColor', 'bgOpacity', 
-                    'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection'
-                ],
-            };
-            
-            const keysToReset = keyMap[resetType] || Object.keys(defaults);
-            keysToReset.forEach(key => {
-                if (defaults.hasOwnProperty(key)) settingsToApply[key] = defaults[key];
-            });
-        }
+        this._currentSettings = mergedSettings;
         
-        // Apply the determined settings and force UI update
-        this.applySettings(settingsToApply, true)
-            .then(() => {
-                console.log('[SM] Settings reset applied successfully.');
-                if (typeof notifyResetSuccess === 'function') {
-                    notifyResetSuccess(resetType);
-                } else if (typeof showToast === 'function') {
-                    showToast({message: `Settings Reset (${resetType})!`, type:'success'});
-                }
-            })
-            .catch(err => {
-                console.error("[SM] Error applying reset settings:", err);
-                if (typeof showAlert === 'function') {
-                    showAlert("Failed to apply reset settings.", "error");
-                }
-            });
-    },
-    
-    loadSavedSettings() {
-        try {
-            const saved = localStorage.getItem('logomakerSettings');
-            if (saved) {
-                const loadedSettings = JSON.parse(saved);
-                
-                // Check for new properties added since the last version
-                // This ensures old saved settings work with new features
-                const defaults = this.getDefaults();
-                const mergedSettings = { 
-                    ...defaults, 
-                    ...loadedSettings,
-                    // Force these new border properties if missing in old saved settings
-                    borderRadius: loadedSettings.borderRadius || defaults.borderRadius,
-                    borderPadding: loadedSettings.borderPadding || defaults.borderPadding,
-                    borderWidth: loadedSettings.borderWidth || defaults.borderWidth
-                };
-                
-                this._currentSettings = mergedSettings;
-                
-                // Font check needs to happen AFTER font dropdown is populated by fontManager
-                setTimeout(() => {
-                    const fontDropdown = document.getElementById('fontFamily');
-                    const savedFont = this._currentSettings.fontFamily;
-                    if (fontDropdown && !fontDropdown.querySelector(`option[value="${savedFont}"]`)) {
-                         console.warn(`[SM] Saved font '${savedFont}' not in dropdown. Reverting to default '${DEFAULT_SETTINGS.fontFamily}'.`);
-                         this._currentSettings.fontFamily = DEFAULT_SETTINGS.fontFamily;
-                    }
-                }, 200); // Delay font check slightly
-                
-                console.log('[SM] Loaded settings from localStorage.');
-            } else {
-                this._currentSettings = this.getDefaults(); // Use deep copy
-                console.log('[SM] No saved settings found, using defaults.');
+        // Font check needs to happen AFTER font dropdown is populated by fontManager
+        setTimeout(() => {
+            const fontDropdown = document.getElementById('fontFamily');
+            const savedFont = this._currentSettings.fontFamily;
+            if (fontDropdown && !fontDropdown.querySelector(`option[value="${savedFont}"]`)) {
+                 console.warn(`[SM] Saved font '${savedFont}' not in dropdown. Reverting to default '${DEFAULT_SETTINGS.fontFamily}'.`);
+                 this._currentSettings.fontFamily = DEFAULT_SETTINGS.fontFamily;
             }
-        } catch (err) {
-            console.error('[SM] Error loading settings:', err);
-            this._currentSettings = this.getDefaults(); // Fallback to deep copy
-            if(typeof showAlert === 'function') {
-                showAlert('Failed to load saved settings. Using defaults.', 'warning');
-            }
-        }
-    },
-    
-    saveCurrentSettings() {
-         try { 
-             localStorage.setItem('logomakerSettings', JSON.stringify(this._currentSettings)); 
-         } catch (err) { 
-             console.error('[SM] Error saving settings:', err); 
-         }
-    },
-    
-    addSettingsChangeListener(listener) { 
-        if (typeof listener === 'function') this._listeners.push(listener); 
-    },
-    
-    removeSettingsChangeListener(listener) { 
-        this._listeners = this._listeners.filter(l => l !== listener); 
-    },
+        }, 200); // Delay font check slightly
+        
+        console.log('[SM] Loaded settings from localStorage.');
+    } else {
+        this._currentSettings = this.getDefaults(); // Use deep copy
+        console.log('[SM] No saved settings found, using defaults.');
+    }
+} catch (err) {
+    console.error('[SM] Error loading settings:', err);
+    this._currentSettings = this.getDefaults(); // Fallback to deep copy
+    if(typeof showAlert === 'function') {
+        showAlert('Failed to load saved settings. Using defaults.', 'warning');
+    }
+}
+},
+
+saveCurrentSettings() {
+ try { 
+     localStorage.setItem('logomakerSettings', JSON.stringify(this._currentSettings)); 
+ } catch (err) { 
+     console.error('[SM] Error saving settings:', err); 
+ }
+},
+
+addSettingsChangeListener(listener) { 
+if (typeof listener === 'function') this._listeners.push(listener); 
+},
+
+removeSettingsChangeListener(listener) { 
+this._listeners = this._listeners.filter(l => l !== listener); 
+},
 
 }; // End of SettingsManager object literal
 
