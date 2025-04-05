@@ -1,4 +1,4 @@
-# Logomaker: Portable, Offline Logos with Self-Managed Fonts Library (An Experiment in ✨ Vibe Coding ✨)
+# Logomaker: Portable, Offline Logos with Self-Managed Fonts Library (An Experiment in ✨ Vibe Coding ✨ and Human-Computer Interaction)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE) [![Live Demo](https://img.shields.io/badge/Live_Demo-Online-brightgreen)](https://manicinc.github.io/logomaker/) [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/manicinc)
 
