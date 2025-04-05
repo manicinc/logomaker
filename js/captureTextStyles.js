@@ -37,8 +37,11 @@ export function captureAdvancedStyles() {
     const containerStyle = window.getComputedStyle(logoContainer);
     const textStyle = window.getComputedStyle(logoText);
     const previewContainerStyle = previewContainer ? window.getComputedStyle(previewContainer) : {};
-    const rootStyle = window.getComputedStyle(document.documentElement); // For CSS Vars
-
+    // Inside captureAdvancedStyles
+    const rootStyle = window.getComputedStyle(document.documentElement);
+    // ... other captures ...
+    styles.font.letterSpacing = rootStyle.getPropertyValue('--dynamic-letter-spacing').trim() || textStyle.letterSpacing || 'normal'; // Prioritize CSS var
+    console.log(`[Style Capture] Letter Spacing: Captured as "${styles.font.letterSpacing}" (CSS Var: ${rootStyle.getPropertyValue('--dynamic-letter-spacing').trim()}, Computed: ${textStyle.letterSpacing})`);
     // --- Settings ---
     const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
 

@@ -188,26 +188,71 @@ function debounce(func, wait) {
     };
 }
 
-/** Update the preview image (ALWAYS uses SVG Render method for consistency) */
-const updatePreview = debounce(() => {
-    if (!isInitialized) return; // Don't run if not ready
-    console.log("[PNG UI] Updating preview (using SVG Render method)...");
+const updatePreview = debounce(async () => { // Make async
+    if (!isInitialized) return;
+
+    const selectedMethod = snapshotRadio?.checked ? 'snapshot' : 'svgRender';
+    console.log(`[PNG UI] Updating preview using method: ${selectedMethod}...`);
 
     const options = {
-        width: parseInt(widthInput?.value) || 400, // Use smaller preview dimensions
+        width: parseInt(widthInput?.value) || 400,
         height: parseInt(heightInput?.value) || 300,
-        quality: (parseInt(qualityInput?.value) || 95) / 100, // Quality technically ignored for preview PNG
-        transparentBackground: transparentCheckbox?.checked || false
+        transparentBackground: transparentCheckbox?.checked || false,
+        // Quality isn't really used for preview blob/dataURL generation typically
     };
 
-    // Use the consistent preview generator which relies on SVG->Canvas
-    generateConsistentPreview(options, previewImage, loadingIndicator, 'png')
-        .then(() => console.log("[PNG UI] Preview generation successful."))
-        .catch(error => {
-            console.error('[PNG UI] Preview generation failed:', error);
-            if (typeof showAlert === 'function') showAlert(`Preview failed: ${error.message}`, 'warning');
-        });
-}, 300); // Debounce preview updates
+    if (loadingIndicator) loadingIndicator.style.display = 'flex';
+    if (previewImage) { previewImage.style.display = 'none'; previewImage.removeAttribute('src'); }
+
+    try {
+        let previewBlob = null;
+        if (selectedMethod === 'snapshot') {
+            // --- Use Snapshot Method for Preview ---
+            if (typeof captureLogoWithHTML2Canvas !== 'function') {
+                throw new Error("Snapshot preview failed: html2canvas function not found.");
+            }
+            const elementToSnapshot = document.querySelector('#previewContainer'); // Or the appropriate element
+            if (!elementToSnapshot) throw new Error("Snapshot preview failed: Preview container not found.");
+
+             // Set loading text specifically for snapshot
+             const progressTextEl = loadingIndicator?.querySelector('.progress-text') || loadingIndicator;
+             if(progressTextEl) progressTextEl.textContent = 'Generating snapshot preview...';
+
+            // Use smaller dimensions for snapshot preview to keep it fast
+            const snapshotOptions = { ...options, scale: window.devicePixelRatio }; // Lower scale for preview speed?
+            const canvas = await captureLogoWithHTML2Canvas(elementToSnapshot, snapshotOptions);
+            previewBlob = await new Promise((resolve, reject) => {
+                 canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas toBlob failed for preview')), 'image/png');
+             });
+             console.log("[PNG UI] Snapshot preview generated.");
+             // --- End Snapshot ---
+        } else {
+             // --- Use SVG Render Method for Preview ---
+             const result = await generateConsistentPreview(options, previewImage, loadingIndicator, 'png');
+             previewBlob = result.blob; // Already handled UI updates
+              console.log("[PNG UI] SVG Render preview generated.");
+             // --- End SVG Render ---
+        }
+
+        // Update image source if snapshot method was used (consistent preview handles its own update)
+         if (selectedMethod === 'snapshot' && previewImage && previewBlob) {
+             const dataUrl = await RendererCore.blobToDataURL(previewBlob); // Assuming RendererCore is accessible or helper imported
+             previewImage.onload = () => { console.log(`[PNG UI] Snapshot Preview loaded.`); if (loadingIndicator) loadingIndicator.style.display = 'none'; previewImage.style.display = 'block'; previewImage.alt = `PNG Preview (Snapshot)`; };
+             previewImage.onerror = () => { console.error(`[PNG UI] Failed to load snapshot preview.`); if (loadingIndicator) loadingIndicator.style.display = 'none'; previewImage.style.display = 'block'; previewImage.alt = `PNG Preview Failed (Snapshot)`; };
+             previewImage.src = dataUrl;
+         } else if (selectedMethod === 'snapshot' && loadingIndicator) {
+             // Hide loading if snapshot finished but image element was missing
+             loadingIndicator.style.display = 'none';
+         }
+
+    } catch (error) {
+        console.error(`[PNG UI] Preview generation failed (${selectedMethod} method):`, error);
+         if (typeof showAlert === 'function') showAlert(`Preview failed: ${error.message}`, 'warning');
+        if (loadingIndicator) { loadingIndicator.style.display = 'flex'; (loadingIndicator.querySelector('.progress-text') || loadingIndicator).textContent = "Preview Failed!"; }
+        if (previewImage) { previewImage.style.display = 'none'; previewImage.alt = "Preview Failed"; }
+    }
+
+}, 300); // Debounce remains
 
 /** Simple delay helper */
 function delay(ms) {
