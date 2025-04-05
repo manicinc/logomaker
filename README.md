@@ -42,7 +42,9 @@ Ideal for offline environments, workshops, or easy sharing.
 
 ### Quick Start
 
-From conception, this was designed as a lightweight application with no online or external dependencies required for functionality (some online libraries are optionally enabled for QR code and one PNG exporting option). 
+From conception, this was designed as a lightweight application with no online or external dependencies required for functionality (some online libraries are optionally enabled for QR code and one PNG exporting option). Thus, this can also easily be built into native desktop / mobile experiences with Electron, Ionic, etc.
+
+Imagine having your own offline designing / editing app that never needs updating or will ever break,m and embeds a full extendable font library with virtually unlimited font support from lazy loading. That was a straightforward enough vision to keep everything lightweight (save for the font media assets).
 
 Thus, we have no `package.json` file, and keep things simple with a singular HTML entrypoint `index.html`, and your standard static assets in `css/` and `js/`. We also store fonts in `fonts/` in LFS, though we have a multitude of building and font loading options to allow for Logomaker to be run as both an offline HTML file without a server, or through a server with more optimal assets serving.
 
