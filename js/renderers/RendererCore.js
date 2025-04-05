@@ -20,7 +20,7 @@ console.log("[RendererCore] Module loading (v2.6)...");
  * @param {Blob} blob - The input Blob.
  * @returns {Promise<string>} A promise resolving with the Data URL.
  */
-function blobToDataURL(blob) {
+export function blobToDataURL(blob) {
     if (!(blob instanceof Blob)) {
         console.error("[Core Util] blobToDataURL: Invalid input, expected Blob.", blob);
         return Promise.reject(new Error("Invalid input: Expected a Blob."));
