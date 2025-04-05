@@ -9,7 +9,7 @@
 
 // Import core functions from RendererCore
 // Ensure RendererCore v2.8+ is used (with global normalizeColor)
-import { generateConsistentPreview, generateSVGBlob, convertSVGtoPNG } from './RendererCore.js';
+import { generateConsistentPreview, generateSVGBlob, convertSVGtoPNG, blobToDataURL } from './RendererCore.js';
 import { captureLogoWithHTML2Canvas } from '../utils/html2Canvas.js';
 
 
@@ -236,7 +236,7 @@ const updatePreview = debounce(async () => { // Make async
 
         // Update image source if snapshot method was used (consistent preview handles its own update)
          if (selectedMethod === 'snapshot' && previewImage && previewBlob) {
-             const dataUrl = await RendererCore.blobToDataURL(previewBlob); // Assuming RendererCore is accessible or helper imported
+             const dataUrl = await blobToDataURL(previewBlob); // Assuming RendererCore is accessible or helper imported
              previewImage.onload = () => { console.log(`[PNG UI] Snapshot Preview loaded.`); if (loadingIndicator) loadingIndicator.style.display = 'none'; previewImage.style.display = 'block'; previewImage.alt = `PNG Preview (Snapshot)`; };
              previewImage.onerror = () => { console.error(`[PNG UI] Failed to load snapshot preview.`); if (loadingIndicator) loadingIndicator.style.display = 'none'; previewImage.style.display = 'block'; previewImage.alt = `PNG Preview Failed (Snapshot)`; };
              previewImage.src = dataUrl;
