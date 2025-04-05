@@ -57,6 +57,7 @@ npm run build:portable  # Build offline version
 npm run serve           # Serve optimized version
 npm run serve:portable  # Serve portable version
 ---
+```
 
 ## ✨ Features Overview
 
