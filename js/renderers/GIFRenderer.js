@@ -7,7 +7,7 @@
 // Core Rendering & Utilities
 import { generateAnimationFrames as generateSvgAnimationFrames, generateConsistentPreview, blobToDataURL } from './RendererCore.js'; // Use core functions for SVG-based frames
 import { captureLogoWithHTML2Canvas } from '../utils/html2Canvas.js'; // For Snapshot rendering
-import { createSimpleZip, downloadZipBlob } from '../utils/zipUtils.js'; // Custom ZIP functions
+import { createSimpleUncompressedZip, downloadZipBlob } from '../utils/zipUtils.js'; // Custom ZIP functions
 import { extractSVGAnimationDetails } from '../utils/svgAnimationInfo.js'; // For metadata
 import { captureAdvancedStyles } from '../captureTextStyles.js'; // For metadata
 
@@ -878,104 +878,184 @@ function confirmExportSize(frameCount, renderMethod) {
     }
     return Promise.resolve(true); // Proceed if below threshold
 }
-
-/** Handle the main export process (Updated) */
+/** Handle the main export process (ADDED DEBUG LOGGING at start) */
 async function handleExport() {
-    if (isExporting) { if(typeof showAlert ==='function') showAlert("Export already in progress.", "warning"); return; }
+    // --- DEBUG: Log entry ---
+    console.log('[GIF UI DEBUG] handleExport function entered.');
 
-    const renderMethod = snapshotRenderRadio?.checked ? 'snapshot' : 'svg';
-    const width = parseInt(modalWidthInput?.value);
-    const height = parseInt(modalHeightInput?.value);
-    const frameCount = parseInt(modalFramesInput?.value);
-    const transparent = modalTransparentInput?.checked;
+    // --- DEBUG: Check isExporting flag ---
+    console.log(`[GIF UI DEBUG] Checking isExporting flag. Value: ${isExporting}`);
+    if (isExporting) {
+        console.warn('[GIF UI DEBUG] Exiting handleExport because isExporting is true.');
+        if (typeof showAlert === 'function') showAlert("Export already in progress.", "warning");
+        return;
+    }
+
+    // --- DEBUG: Check required elements right away ---
+    if (!snapshotRenderRadio || !svgRenderRadio || !modalWidthInput || !modalHeightInput || !modalFramesInput || !modalTransparentInput || !exportBtn || !cancelBtn || !cancelExportBtnModal || !loadingIndicator || !progressText) {
+        console.error('[GIF UI DEBUG] CRITICAL ERROR: One or more required modal elements are missing in handleExport!');
+        console.error({ snapshotRenderRadio, svgRenderRadio, modalWidthInput, modalHeightInput, modalFramesInput, modalTransparentInput, exportBtn, cancelBtn, cancelExportBtnModal, loadingIndicator, progressText });
+        if (typeof showAlert === 'function') showAlert("Critical error: UI elements missing for export. Cannot proceed.", "error");
+        isExporting = false; // Ensure flag is reset if we exit here
+        return;
+    }
+     console.log('[GIF UI DEBUG] All checked elements seem to exist.');
+
+    // --- Original logic starts here ---
+    const renderMethod = snapshotRenderRadio.checked ? 'snapshot' : 'svg';
+    const width = parseInt(modalWidthInput.value);
+    const height = parseInt(modalHeightInput.value);
+    const frameCount = parseInt(modalFramesInput.value);
+    const transparent = modalTransparentInput.checked;
     const maxFrames = renderMethod === 'snapshot' ? 30 : 60; // Enforce limits
 
     console.log("[GIF UI] Starting Export Process. Settings:", { renderMethod, width, height, frameCount, transparent, maxFrames });
 
     if (isNaN(width) || isNaN(height) || isNaN(frameCount) || width <= 0 || height <= 0 || frameCount <= 0 || frameCount > maxFrames) {
-        if(typeof showAlert === 'function') showAlert(`Invalid export settings (Width/Height > 0, Frames: 1-${maxFrames} for ${renderMethod}).`, "error"); return;
+        console.error('[GIF UI DEBUG] Invalid export settings detected.');
+        if (typeof showAlert === 'function') showAlert(`Invalid export settings (Width/Height > 0, Frames: 1-${maxFrames} for ${renderMethod}).`, "error");
+        isExporting = false; // Ensure flag is reset
+        return;
     }
 
-    // Await confirmation if needed (now passes render method)
+    // Await confirmation if needed
+    console.log('[GIF UI DEBUG] Awaiting export size confirmation...');
     const proceed = await confirmExportSize(frameCount, renderMethod);
-    if (!proceed) { console.log('[GIF UI] Export cancelled by user size confirmation.'); return; }
+    if (!proceed) {
+        console.log('[GIF UI DEBUG] Export cancelled by user size confirmation.');
+        // No need to set isExporting = true if cancelled here
+        return;
+    }
+    console.log('[GIF UI DEBUG] User confirmed export.');
 
-    isExporting = true; resetCancelFlag(); updateModalProgress(`Starting ${renderMethod} export...`);
+    // --- Set Exporting State ---
+    isExporting = true; // Set flag *after* confirmation and checks
+    console.log(`[GIF UI DEBUG] isExporting flag set to true.`);
+    resetCancelFlag();
+    updateModalProgress(`Starting ${renderMethod} export...`);
     if (exportBtn) exportBtn.disabled = true;
     if (cancelBtn) cancelBtn.disabled = true;
     if (cancelExportBtnModal) { cancelExportBtnModal.disabled = false; cancelExportBtnModal.style.display = 'inline-block'; }
-    stopPreview();
+    stopPreview(); // Stop preview loop during export
+
+    let filesToZip = []; // Declare here to access in error handling
 
     try {
+        // Get filename base (ensure Utils is available)
         const getFilenameFunc = typeof window.Utils?.getLogoFilenameBase === 'function' ? window.Utils.getLogoFilenameBase : () => 'logo';
         const safeLogoText = getFilenameFunc();
         const logoText = document.querySelector('.logo-text')?.textContent || safeLogoText;
+        console.log(`[GIF UI DEBUG] Filename base: ${safeLogoText}`);
 
-        // 1. Generate Export Frames based on selected method
+        // --- 1. Generate Export Frames ---
         updateModalProgress(`Generating ${frameCount} frames (${renderMethod}, 0%)...`);
         let frames = [];
         const exportOptions = {
             width, height, frameCount, transparent,
             onProgress: (progress, message) => {
-                if (exportCancelled) throw new Error("Export cancelled"); // Check cancellation flag
-                updateModalProgress(message || `Generating frames (${renderMethod}, ${Math.round(progress*100)}%)...`);
+                if (exportCancelled) throw new Error("Export cancelled"); // Propagate cancellation
+                // Update progress text using the correct ID
+                const progressTextElement = document.getElementById(`${MODAL_ID}ProgressText`);
+                if (progressTextElement) {
+                     progressTextElement.textContent = message || `Generating frames (${renderMethod}, ${Math.round(progress * 100)}%)...`;
+                }
             }
         };
-
+        console.log('[GIF UI DEBUG] Calling frame generation function...');
         if (renderMethod === 'snapshot') {
             frames = await internalExportFramesSnapshot(exportOptions);
         } else {
             frames = await internalExportFramesSVG(exportOptions);
         }
-
+        console.log(`[GIF UI DEBUG] Frame generation function returned ${frames.length} frames.`);
         if (exportCancelled) throw new Error('Export cancelled'); // Check again
+        console.log(`[GIF UI] Successfully generated ${frames.length} frames.`);
+        await new Promise(resolve => setTimeout(resolve, 50)); // UI update pause
 
-        // 2. Prepare files for ZIP
-        updateModalProgress("Packaging files...");
-        const filesToZip = frames.map((blob, index) => ({ blob, name: `${safeLogoText}-frame-${String(index).padStart(3, '0')}.png` }));
-        if (exportCancelled) throw new Error('Export cancelled');
+        // --- 2. Prepare files for ZIP ---
+        updateModalProgress("Preparing files for ZIP package...");
+        console.log('[GIF UI DEBUG] Preparing filesToZip array...');
+        // filesToZip = []; // Already declared outside try
+        frames.forEach((frameBlob, index) => {
+            if (frameBlob instanceof Blob) {
+                filesToZip.push({
+                    blob: frameBlob,
+                    name: `${safeLogoText}-frame-${String(index).padStart(3, '0')}.png`
+                });
+            } else {
+                 console.warn(`[GIF UI DEBUG] Frame ${index} is not a valid Blob, skipping.`);
+            }
+        });
 
-        // 3. Create HTML Preview and Info Text (pass renderMethod)
-        const previewHTML = createDetailedHTMLPreview({ logoName: safeLogoText, frameCount, width, height, renderMethod });
-        const infoTXT = createInfoText(logoText, width, height, frameCount, renderMethod); // Pass method
+        // --- 3. Create HTML Preview and Info Text ---
+        console.log('[GIF UI DEBUG] Creating HTML/TXT info files...');
+        const previewHTML = createDetailedHTMLPreview({ logoName: safeLogoText, frameCount: filesToZip.length, width, height, renderMethod });
+        const infoTXT = createInfoText(logoText, width, height, filesToZip.length, renderMethod);
         filesToZip.push({ blob: new Blob([previewHTML], { type: 'text/html' }), name: `${safeLogoText}-preview.html` });
         filesToZip.push({ blob: new Blob([infoTXT], { type: 'text/plain' }), name: `${safeLogoText}-info.txt` });
-
-        // 4. Create ZIP Blob
+        console.log(`[GIF UI DEBUG] Prepared ${filesToZip.length} total files for zipping.`);
+        await new Promise(resolve => setTimeout(resolve, 30));
         if (exportCancelled) throw new Error('Export cancelled');
-        const zipFilename = `${safeLogoText}-animation-frames-${renderMethod}.zip`; // Add method to filename
-        updateModalProgress("Creating ZIP package...");
-        const zipBlob = await createSimpleZip(filesToZip);
-        if (exportCancelled) throw new Error('Export cancelled');
-        console.log(`[GIF UI] ZIP Blob created (${renderMethod}). Size: ${(zipBlob.size / 1024).toFixed(1)} KB`);
 
-        // 5. Trigger Download
-        updateModalProgress("Downloading ZIP...");
-        downloadZipBlob(zipBlob, zipFilename);
-        if (exportCancelled) throw new Error('Export cancelled'); // Check one last time
+        // --- 4. Create ZIP and Trigger Download ---
+        const zipFilename = `${safeLogoText}-animation-frames-${renderMethod}.zip`;
+        updateModalProgress("Creating ZIP package... (JSZip if available, else fallback)");
+        console.log(`[GIF UI DEBUG] >>>>>>>> Calling createZip... Filename: ${zipFilename}`);
+        await new Promise(resolve => setTimeout(resolve, 50)); // UI update pause
 
-        // 6. Success Notification & Cleanup
+        const zipSuccess = await createZip(filesToZip, zipFilename, (percent) => {
+            // Update UI progress via callback from zipUtils
+            const progressTextElement = document.getElementById(`${MODAL_ID}ProgressText`);
+            if (progressTextElement) {
+                progressTextElement.textContent = `Creating ZIP package... ${percent}%`;
+                console.log(`[GIF UI DEBUG] ZIP Progress Callback: ${percent}%`);
+            }
+        });
+
+        console.log(`[GIF UI DEBUG] <<<<<<<< createZip call finished. Success: ${zipSuccess}`);
+        if (exportCancelled) throw new Error('Export cancelled after zip attempt');
+
+        if (!zipSuccess) {
+            console.error("[GIF UI DEBUG] createZip returned false, indicating failure.");
+            throw new Error("ZIP/Fallback export process failed. Check console and browser download settings.");
+        }
+
+        // --- 5. Success Notification & Cleanup ---
+        console.log("[GIF UI DEBUG] Export process successful. Notifying and closing modal.");
         const notifyFunc = typeof window.notifyExportSuccess === 'function' ? window.notifyExportSuccess : (f, fn) => showAlert(`${f} Export Complete! File: ${fn}`, 'success');
-        notifyFunc(`Animation Frames ZIP (${renderMethod})`, zipFilename);
-        closeModal();
+        notifyFunc(`Animation Frames Export (${renderMethod})`, zipFilename); // Notify with intended ZIP name
+        closeModal(); // Close the modal on success
 
     } catch (error) {
-        hideModalProgress();
-        if (error.message === 'Export cancelled') {
-            if(typeof showAlert === 'function') showAlert('Export cancelled by user.', 'info');
-            console.log('[GIF UI] Export process cancelled.');
+        // --- Error Handling ---
+        console.error("[GIF UI DEBUG] Caught error in handleExport:", error); // Log the full error
+        hideModalProgress(); // Hide spinner on error
+        if (error.message && error.message.toLowerCase().includes('export cancelled')) {
+            if (typeof showAlert === 'function') showAlert('Export cancelled by user.', 'info');
+            console.log('[GIF UI DEBUG] Export process was cancelled.');
         } else {
-            console.error(`[GIF UI] Export process failed (${renderMethod}):`, error);
-            if(typeof showAlert === 'function') showAlert(`Animation Export failed (${renderMethod}): ${error.message}`, 'error');
+            // Log specific error details if available
+            console.error(`[GIF UI] Export process failed (${renderMethod}):`, error.message, error.cause ? `\nCause: ${error.cause}` : '');
+            if (typeof showAlert === 'function') showAlert(`Animation Export failed (${renderMethod}): ${error.message || 'Unknown error'}`, 'error');
+            // Check if fallback might have been triggered before the error
+            if (!isJSZipAvailable() && filesToZip && filesToZip.length > 0) {
+                 if (typeof showAlert === 'function') showAlert(`ZIP creation may have failed. Direct frame downloads might have been attempted. Check your downloads folder.`, 'warning');
+                 console.warn('[GIF UI DEBUG] Error occurred, but direct download fallback might have been initiated.');
+            }
         }
     } finally {
-        isExporting = false;
-        if(exportBtn) exportBtn.disabled = false;
-        if(cancelBtn) cancelBtn.disabled = false;
-        if(cancelExportBtnModal) cancelExportBtnModal.style.display = 'none';
-        resetCancelFlag();
-        hideModalProgress();
-        console.log("[GIF UI] Export handle finished.");
+        // --- Cleanup ---
+        console.log("[GIF UI DEBUG] Entering finally block.");
+        isExporting = false; // Reset the flag ALWAYS
+        console.log(`[GIF UI DEBUG] isExporting flag reset to false.`);
+        // Re-enable buttons
+        if (exportBtn) exportBtn.disabled = false;
+        if (cancelBtn) cancelBtn.disabled = false;
+        if (cancelExportBtnModal) cancelExportBtnModal.style.display = 'none';
+        resetCancelFlag(); // Reset cancellation flag
+        // Ensure progress indicator is hidden unless an error message is needed
+        // hideModalProgress(); // Already called in catch, potentially hide again just in case?
+        console.log("[GIF UI DEBUG] Export handle finished.");
     }
 }
 

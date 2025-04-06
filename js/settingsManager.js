@@ -851,13 +851,34 @@ const SettingsManager = {
 
     /**
      * Applies text alignment (left, center, right) using CSS classes.
-     * Assumes classes like `.text-align-center` exist.
+     * @param {string} align - The alignment value ('left', 'center', 'right')
      * @private
-     * @param {string} align - The alignment value ('left', 'center', 'right').
      */
     _applyTextAlign(align) {
-        if (!this._logoElement || !align) return;
-        this._applyClass(this._logoElement, TEXT_ALIGN_CLASS_PREFIX + align, TEXT_ALIGN_CLASS_PREFIX);
+        const validAlignments = ['left', 'center', 'right'];
+        if (!align || !validAlignments.includes(align)) {
+            align = 'center'; // Default to center
+        }
+
+        const logoText = document.querySelector('.logo-text');
+        if (!logoText) return;
+
+        // First remove all alignment classes
+        validAlignments.forEach(a => {
+            logoText.classList.remove(`${TEXT_ALIGN_CLASS_PREFIX}${a}`);
+        });
+
+        // Apply the new alignment class
+        logoText.classList.add(`${TEXT_ALIGN_CLASS_PREFIX}${align}`);
+        
+        // Also set inline style as a fallback
+        logoText.style.textAlign = align;
+        
+        // Add debug output to check if this function is being called
+        console.log(`[SettingsManager] Applied text alignment: ${align}`);
+        
+        // Update CSS variable if we're using it anywhere
+        document.documentElement.style.setProperty('--text-align', align);
     },
 
     /**

@@ -532,20 +532,55 @@ async function _populateFontDropdown(fonts) {
  */
 async function _populateFontDropdownWithFallbacks() {
     const fallbackFonts = [
-        { familyName: 'Arial', displayName: 'Arial (System)' },
-        { familyName: 'Verdana', displayName: 'Verdana (System)' },
-        { familyName: 'Helvetica', displayName: 'Helvetica (System)' },
-        { familyName: 'Times New Roman', displayName: 'Times New Roman (System)' },
-        { familyName: 'Courier New', displayName: 'Courier New (System)' },
-        { familyName: 'Georgia', displayName: 'Georgia (System)' },
-        { familyName: 'Tahoma', displayName: 'Tahoma (System)' },
-        { familyName: 'Impact', displayName: 'Impact (System)' }
+        { familyName: 'Arial', displayName: 'Arial (System)', variants: [
+            { weight: '400', style: 'normal', url: '' },
+            { weight: '700', style: 'normal', url: '' }
+        ]},
+        { familyName: 'Verdana', displayName: 'Verdana (System)', variants: [
+            { weight: '400', style: 'normal', url: '' },
+            { weight: '700', style: 'normal', url: '' }
+        ]},
+        { familyName: 'Helvetica', displayName: 'Helvetica (System)', variants: [
+            { weight: '400', style: 'normal', url: '' },
+            { weight: '700', style: 'normal', url: '' }
+        ]},
+        { familyName: 'Times New Roman', displayName: 'Times New Roman (System)', variants: [
+            { weight: '400', style: 'normal', url: '' },
+            { weight: '700', style: 'normal', url: '' }
+        ]},
+        { familyName: 'Courier New', displayName: 'Courier New (System)', variants: [
+            { weight: '400', style: 'normal', url: '' },
+            { weight: '700', style: 'normal', url: '' }
+        ]},
+        { familyName: 'Georgia', displayName: 'Georgia (System)', variants: [
+            { weight: '400', style: 'normal', url: '' },
+            { weight: '700', style: 'normal', url: '' }
+        ]},
+        { familyName: 'Tahoma', displayName: 'Tahoma (System)', variants: [
+            { weight: '400', style: 'normal', url: '' },
+            { weight: '700', style: 'normal', url: '' }
+        ]},
+        { familyName: 'Impact', displayName: 'Impact (System)', variants: [
+            { weight: '400', style: 'normal', url: '' }
+        ]}
     ];
 
     console.warn('[FontMan] Using system fallback fonts only.');
+    
+    // Add these to _fontDataCache to make them accessible through getFontDataByName
+    if (!_fontDataCache) {
+        _fontDataCache = fallbackFonts;
+    } else {
+        // Avoid duplicates
+        for (const fallbackFont of fallbackFonts) {
+            if (!_fontDataCache.some(f => f.familyName === fallbackFont.familyName)) {
+                _fontDataCache.push(fallbackFont);
+            }
+        }
+    }
+    
     await _populateFontDropdown(fallbackFonts);
 }
-
 /**
  * Dispatch a progress event to inform the UI about ongoing font loading
  * @param {number} percent - Loading progress percentage (0-100)

@@ -989,15 +989,6 @@ textarea[readonly]:focus {
 .contact-button svg { margin-right: var(--space-xs); width: 1em; height: 1em; }
 .contact-button:hover { background-color: var(--input-bg); color: var(--accent-color); border-color: var(--accent-color); transform: translateY(-1px); }
 
-.logo-text.text-align-left {
-  text-align: left !important;
-}
-.logo-text.text-align-center {
-  text-align: center !important;
-}
-.logo-text.text-align-right {
-  text-align: right !important;
-}
 
 /* 3. High contrast mode improvements for border visibility */
 @media (prefers-contrast: high) {
@@ -1016,9 +1007,9 @@ textarea[readonly]:focus {
 }
 
 /* 4. Add transition to text-align to make changes smoother */
-.logo-text {
-  transition: text-align 0.2s ease-out;
-}
+/* .logo-text { */
+  /* transition: text-align 0.2s ease-out; */
+/* } */
 
 /* 5. Improved focus indicators for better accessibility */
 select:focus-visible,
