@@ -12,6 +12,9 @@ import { extractSVGAnimationDetails } from '../utils/svgAnimationInfo.js';
 // Import the required style capture function ---
 import { captureAdvancedStyles } from '../captureTextStyles.js'; // Adjust path if needed
 
+// so it can be accessed by both attachModalEventListeners (to set it up) and detachModalEventListeners (to remove it later).
+let handleSettingsUpdateListener = null; 
+
 // --- Module Scope Variables ---
 let svgExportUI = null; // Reference to the modal DOM element
 let isInitialized = false;
@@ -80,6 +83,24 @@ body.dark-mode .svg-exporter-modal .svg-metadata-info code {
     color: #ddd;
 }
 
+.svg-exporter-modal .exporter-preview-image {
+    /* Use checkerboard for transparency indication */
+    background: repeating-conic-gradient(var(--border-subtle, #ccc) 0% 25%, var(--panel-bg-opaque, #fff) 0% 50%) 50% / 20px 20px;
+    background-size: 20px 20px; /* Ensure size is set */
+    /* Keep other styles like max-width, border etc. */
+    display: block; /* Ensure it behaves like a block */
+    max-width: 100%;
+    height: auto;
+    border: 1px solid var(--border-color, #ccc);
+    min-height: 100px; /* Or match other preview min-heights */
+    object-fit: contain; /* Ensure SVG scales within bounds */
+}
+
+/* Ensure dark mode checkerboard is appropriate */
+body.dark-mode .svg-exporter-modal .exporter-preview-image {
+    background: repeating-conic-gradient(var(--border-color, #333) 0% 25%, var(--panel-bg, #222) 0% 50%) 50% / 20px 20px;
+    background-size: 20px 20px;
+}
 
 /* Ensure loading indicator styles are present */
 .svg-exporter-modal .exporter-preview-loading {
@@ -138,13 +159,15 @@ const MODAL_HTML = `
             <div class="control-group">
                 <label for="${MODAL_ID}Width">Width (px)</label>
                 <div class="number-input-wrapper">
-                    <input type="number" id="${MODAL_ID}Width" value="800" min="50" max="8000" step="10">
+                    <input type="number" id="${MODAL_ID}Width" value="800" min="10" max="8000" step="10"
+                        readonly title="Output width is set in the Advanced tab.">
                 </div>
             </div>
             <div class="control-group">
                 <label for="${MODAL_ID}Height">Height (px)</label>
                 <div class="number-input-wrapper">
-                    <input type="number" id="${MODAL_ID}Height" value="400" min="50" max="8000" step="10">
+                    <input type="number" id="${MODAL_ID}Height" value="400" min="10" max="8000" step="10"
+                        readonly title="Output height is set in the Advanced tab.">
                 </div>
             </div>
             <label class="checkbox-label control-group" style="margin-top: 10px;">
@@ -204,37 +227,31 @@ function queryModalElements() {
     return true; // All essential elements found
 }
 
+/** Opens the modal and attaches listeners */
 function openModal() {
     if (!isInitialized || !modal) { const msg = "SVG exporter UI not ready or missing."; console.error(`[SVG UI] ${msg}`); if (typeof showAlert === 'function') showAlert(msg, "error"); throw new Error(msg); }
     console.log("[SVG UI] Opening Modal...");
-    syncExportSettings(); // Sync settings from main UI *before* showing
+    syncExportSettings(); // Sync settings FIRST
+    attachModalEventListeners(); // <-- Attach listeners AFTER sync
+
     modal.style.display = 'flex';
-    requestAnimationFrame(() => { // Allow display change to paint before adding class
-        modal.classList.add('active');
-    });
+    requestAnimationFrame(() => { modal.classList.add('active'); });
     document.body.style.overflow = 'hidden';
-    updatePreview(); // Generate initial preview and metadata
+    updatePreview(); // Generate initial preview and metadata AFTER listeners are attached
 }
 
+/** Closes the modal and detaches listeners */
 function closeModal() {
     if (!modal) return;
+    detachModalEventListeners(); // <-- Detach listeners BEFORE hiding
     modal.classList.remove('active');
-    // Use transitionend event for smoother removal from DOM/display none
     modal.addEventListener('transitionend', () => {
-        if (!modal.classList.contains('active')) { // Check if it's still meant to be hidden
-             modal.style.display = 'none';
-             document.body.style.overflow = '';
-        }
+        if (!modal.classList.contains('active')) { modal.style.display = 'none'; document.body.style.overflow = ''; }
     }, { once: true });
-    // Failsafe in case transitionend doesn't fire
-    setTimeout(() => {
-         if (!modal.classList.contains('active')) {
-             modal.style.display = 'none';
-             document.body.style.overflow = '';
-         }
-    }, 500); // Slightly longer than typical transition
+    setTimeout(() => { if (!modal.classList.contains('active')) { modal.style.display = 'none'; document.body.style.overflow = ''; }}, 500);
     console.log("[SVG UI] Modal closed.");
 }
+
 
 /** Debounce function */
 function debounce(func, wait) {
@@ -436,7 +453,6 @@ function triggerDownloadFallback(blob, filename) {
         setTimeout(() => URL.revokeObjectURL(url), 250);
     } catch (err) { console.error(`[SVG UI Fallback Download] Error:`, err); showAlert(`Download failed: ${err.message}`, "error"); }
 }
-
 /** Attach event listeners */
 function attachModalEventListeners() {
     if (!modal || modal.dataset.listenersAttached === 'true') return;
@@ -447,34 +463,51 @@ function attachModalEventListeners() {
     exportBtn?.addEventListener('click', handleExport);
     modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-    // Update preview on input change (debounced)
-    widthInput?.addEventListener('input', updatePreview);
-    heightInput?.addEventListener('input', updatePreview);
+    // Update preview only on transparency change in this modal
     transparentCheckbox?.addEventListener('change', updatePreview);
 
-    // Add Escape key listener
-    document.addEventListener('keydown', handleEscapeKey);
+    // --- ADDED: Listener for global settings updates ---
+    handleSettingsUpdateListener = (event) => {
+        console.log('[SVG UI] Received logomaker-settings-updated event.');
+         if (modal && modal.style.display === 'flex') { // Only update if modal is visible
+            syncExportSettings(); // Re-sync the displayed readonly values
+            updatePreview();    // Update the preview based on the new dimensions
+         }
+    };
+    document.addEventListener('logomaker-settings-updated', handleSettingsUpdateListener);
+    // --- END ADDED ---
+
+    document.addEventListener('keydown', handleEscapeKey); // Assuming handleEscapeKey exists
 
     modal.dataset.listenersAttached = 'true';
     console.log('[SVG UI] Event listeners attached.');
 }
 
-// /** Remove event listeners */
-// function removeModalEventListeners() {
-//      if (!modal || modal.dataset.listenersAttached !== 'true') return;
-//      console.log('[SVG UI] Removing event listeners...');
-//     closeBtn?.removeEventListener('click', closeModal);
-//     cancelBtn?.removeEventListener('click', closeModal);
-//     exportBtn?.removeEventListener('click', handleExport);
-//     modal?.removeEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-//     widthInput?.removeEventListener('input', updatePreview);
-//     heightInput?.removeEventListener('input', updatePreview);
-//     transparentCheckbox?.removeEventListener('change', updatePreview);
-//      document.removeEventListener('keydown', handleEscapeKey);
+/** Remove event listeners */
+function detachModalEventListeners() {
+    if (!modal || modal.dataset.listenersAttached !== 'true') return;
+     console.log('[SVG UI] Removing event listeners...');
 
-//     modal.removeAttribute('data-listeners-attached');
-//      console.log('[SVG UI] Event listeners removed.');
-// }
+    closeBtn?.removeEventListener('click', closeModal);
+    cancelBtn?.removeEventListener('click', closeModal);
+    exportBtn?.removeEventListener('click', handleExport);
+    modal?.removeEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    transparentCheckbox?.removeEventListener('change', updatePreview);
+
+    // --- ADDED: Remove the global settings update listener ---
+    if (handleSettingsUpdateListener) {
+        document.removeEventListener('logomaker-settings-updated', handleSettingsUpdateListener);
+        handleSettingsUpdateListener = null; // Clear the reference
+        console.log('[SVG UI] Removed settings update listener.');
+    }
+    // --- END ADDED ---
+
+    document.removeEventListener('keydown', handleEscapeKey);
+
+    modal.removeAttribute('data-listeners-attached');
+     console.log('[SVG UI] Event listeners removed.');
+}
 
 /** Handle escape key press */
 function handleEscapeKey(event) {

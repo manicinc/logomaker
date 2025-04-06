@@ -1,277 +1,103 @@
-# Logomaker Build & Font Management System 🚀
+# FontManager
 
 ## Overview
 
-The Logomaker project implements a sophisticated, multi-strategy font loading and build system designed for extreme portability, performance, and offline functionality. This system allows Logomaker to handle a large font library efficiently across different deployment scenarios (web vs. offline).
+The Logomaker project implements a sophisticated, multi-strategy font loading and build system designed for portability, web performance, and offline functionality. This system allows Logomaker to handle a large font library efficiently across different deployment scenarios (web vs. offline/Electron) using conditional builds and HTML templates.
 
-## Font Management Architecture
+## Font Management Architecture (`fontManager.js`)
 
 The system revolves around `fontManager.js`, which intelligently selects a loading strategy based on the build target and available data.
 
 ### Key Loading Strategies
 
-1. **Embedded Mode (Portable Build)**
-   - **Mechanism:** Detects `window._INLINE_FONTS_DATA` on startup
-   - All font data pre-loaded in a global variable
-   - Entire font library bundled into the application
-   - Perfect for offline/standalone use
-   - Pros: 
-     * Fully self-contained
-     * Works anywhere offline
-   - Cons: 
-     * Very large initial payload (~100MB+)
-     * Slow initial load
-     * High memory usage
+1.  **Embedded Mode (Portable Target)**
+    * **Mechanism:** Detects `window._INLINE_FONTS_DATA` global variable upon initialization. This variable is expected to be created by the `<script src="inline-fonts-data.js"></script>` tag present in the HTML output of the `portable` build.
+    * All font data (including Base64 data URLs for variants) is pre-loaded.
+    * **Use Case:** Perfect for offline/standalone/Electron use (`npm run build:portable`).
+    * **Pros:**
+        * Fully self-contained directory output.
+        * Works completely offline.
+    * **Cons:**
+        * Very large `inline-fonts-data.js` file (~50-100MB+ depending on fonts), increasing storage footprint.
+        * Slower initial HTML parse and script execution time due to the large inline script. Potentially higher initial memory usage.
 
-2. **Chunked Lazy Loading (Web Optimized / Deploy Build)**
-   - Optimized for web performance with on-demand font loading
-   - Process:
-     1. Initial load of core HTML, CSS, JS
-     2. Fetch `/font-chunks/index.json` (small metadata file)
-     3. Populate UI font selector
-     4. On user font selection:
-        * Identify required data chunk
-        * Check cache (memory/IndexedDB)
-        * Fetch chunk JSON if needed
-        * Extract font variant data
-        * Dynamically inject `@font-face` CSS rule
-        * Browser downloads actual font file
-   - Pros:
-     * Fast initial load
-     * Efficient bandwidth usage
-     * Persistent caching
-   - Cons:
-     * Requires web server
-     * Needs network for uncached fonts
+2.  **Chunked Lazy Loading (Deploy Target)**
+    * **Mechanism:** Used when Embedded Mode data is not found. Optimized for web performance.
+    * **Process:**
+        1.  Initial load of core HTML, CSS, JS (HTML generated from `index.template.html`, *without* `inline-fonts-data.js` script).
+        2.  Fetch `/font-chunks/index.json` (small metadata file) to populate the font selector. Relies on `/fonts.json` for additional metadata if needed.
+        3.  On user font selection:
+            * Identify required data chunk (e.g., `a-f.json`) based on font name.
+            * Check cache (in-memory then IndexedDB).
+            * Fetch chunk `.json` file via network if not cached.
+            * Extract Base64 font variant data from the chunk.
+            * Dynamically inject `@font-face` CSS rule using the Base64 data URL.
+            * Browser renders font using the injected rule. (No separate font file download needed if using Base64 chunks).
+    * **Use Case:** Web hosting (`npm run build:deploy`).
+    * **Pros:**
+        * Fast initial page load.
+        * Efficient bandwidth (only loads needed font data).
+        * Persistent caching via IndexedDB improves subsequent loads.
+    * **Cons:**
+        * Requires a web server capable of serving static files.
+        * Needs network access for uncached font chunks.
 
-3. **Traditional JSON (Dev Fallback)**
-   - Simple single `fonts.json` file
-   - Simpler local development setup
-   - Pros: Easier to implement
-   - Cons: Less efficient initial load
+3.  **Traditional JSON (Dev/Fallback)**
+    * Can load a single, potentially large, `fonts.json` containing relative URLs to font files (not Base64).
+    * Used as a fallback or potentially in simpler development setups without chunking.
+    * Requires separate font file requests (`.woff2`, etc.).
 
-4. **System Font Fallback**
-   - Graceful degradation using system fonts
-   - Ensures basic functionality if custom font loading fails
+4.  **System Font Fallback**
+    * Graceful degradation using common system fonts if all custom font loading methods fail.
+    * Ensures basic application functionality.
 
 ## Font Directory Structure & Requirements
 
 ### Font Storage Guidelines
 
-1. **Directory Location**: 
-   - Fonts must be stored in a `./fonts/` directory at the project root.
-   - Each font family should have its own subdirectory.
+1.  **Directory Location**:
+    * Source fonts **must** be stored in a `./fonts/` directory at the project root.
+    * Each font family **must** have its own subdirectory within `./fonts/`. The subdirectory name becomes the technical `familyName`.
 
-2. **Recommended Structure**:
-```
-fonts/
-├── Roboto/
-│   ├── Roboto-Regular.otf
-│   ├── Roboto-Bold.otf
-│   ├── Roboto-Italic.otf
-│   └── license.txt
-├── OpenSans/
-│   ├── OpenSans-Regular.woff2
-│   ├── OpenSans-SemiBold.woff2
-│   └── license.md
-└── ...
-```
+2.  **Recommended Structure**:
+    ```
+    fonts/
+    ├── Orbitron/
+    │   ├── Orbitron-Regular.otf
+    │   ├── Orbitron-Bold.otf
+    │   └── license.txt
+    ├── OpenSans/
+    │   ├── OpenSans-Regular.woff2
+    │   ├── OpenSans-SemiBold.woff2
+    │   └── license.md
+    └── ... other font families ...
+    ```
 
-3. **Supported Font Formats**:
-   - `.otf` (OpenType Font)
-   - `.ttf` (TrueType Font)
-   - `.woff` (Web Open Font Format)
-   - `.woff2` (Web Open Font Format 2)
-   - `.eot` (Embedded OpenType)
+3.  **Supported Font Formats** (by `generate-fonts-json.js`):
+    * `.otf` (OpenType Font)
+    * `.ttf` (TrueType Font)
+    * `.woff` (Web Open Font Format)
+    * `.woff2` (Web Open Font Format 2)
+    * `.eot` (Embedded OpenType) - *Note: EOT is legacy and generally not needed.*
 
-4. **Naming Conventions**:
-   - Use clear, descriptive filenames
-   - Include weight and style in the filename (e.g., `Roboto-Bold.otf`, `OpenSans-Italic.woff2`)
-   - Recommended naming patterns:
-     * `FontName-Weight.ext`
-     * `FontName-Weight-Style.ext`
-     * Examples: 
-       - `Roboto-Regular.otf`
-       - `Roboto-Bold.otf`
-       - `Roboto-Italic.otf`
-       - `Roboto-BoldItalic.otf`
+4.  **Naming Conventions**:
+    * Use clear, descriptive filenames for font variants.
+    * **Recommended:** Include weight and style information (e.g., `Roboto-Bold.otf`, `OpenSans-Italic.woff2`) to help the script guess `fontWeight` and `fontStyle`.
 
-5. **License Handling**:
-   - Include a `license.txt` or `license.md` in each font family directory
-   - Supported license filenames: 
-     * `license.txt`
-     * `license.md`
-     * `license`
-     * `readme.md`
-     * `readme.txt`
-     * `ofl.txt`
+5.  **License Handling**:
+    * Optionally include a license file in each font family directory.
+    * Supported filenames (case-insensitive): `license.txt`, `license.md`, `license`, `readme.md`, `readme.txt`, `ofl.txt`.
+    * The build script embeds the license text in `inline-fonts-data.js` for the portable build.
 
 ## Build Process Workflow
 
-### 1. Font Conversion: `convert-fonts.sh`
-Converts source font files to web-optimized formats:
+### 1. Font Conversion (Optional): `convert-fonts.sh`
+A utility script provided to convert source fonts (e.g., `.otf`) to the highly optimized `.woff2` format using `fontTools`. This is typically run manually *before* the build process if needed.
 
 ```bash
-#!/bin/bash
-# Converts .otf fonts to web-optimized .woff2
-mkdir -p converted_fonts
-find ./fonts -type f -name "*.otf" | while read -r font_file; do
-    python -m fontTools.ttLib.woff2 compress "$font_file" -o "converted_fonts/${font_file}.woff2"
-done
-```
-
-**Note**: The script assumes fonts are stored in the `./fonts/` directory with a structure matching the guidelines above.
-
-### 2. Font Metadata Generation: `generate-fonts-json.js`
-- Scans font directories
-- Extracts font metadata
-- Generates:
-  - `fonts.json`: Metadata with relative paths
-  - `inline-fonts-data.js`: Optionally Base64 encoded fonts
-  - `css/generated-font-classes.css`: CSS classes for font families
-
-### 3. Font Chunk Splitting: `split-fonts.js`
-- Splits monolithic `inline-fonts-data.js` into smaller chunks
-- Creates `font-chunks/index.json` and `font-chunks/*.json`
-- Optimizes for web loading
-
-### 4. Build Script: `build.js`
-Supports two primary build targets:
-
-#### Deploy Target (`--target=deploy`)
-- Optimized for web hosting
-- Uses chunked font loading
-- Smaller initial payload
-- Requires network for full font library
-
-#### Portable Target (`--target=portable`)
-- Single HTML file with embedded fonts
-- Complete offline functionality
-- Larger file size
-- Uses `PortaPack` for bundling
-
-## Build & Serve Commands
-
-```bash
-# Clean build for deploy target (web optimized, chunked loading)
-node scripts/build.js --target=deploy
-
-# Clean build for portable target (offline, embedded base64 fonts)
-node scripts/build.js --target=portable
-
-# Rebuild deploy target, skip regenerating font metadata/CSS
-node scripts/build.js --target=deploy --skip-font-regen
-
-# Run development server
-node scripts/dev.js
-
-# Serve deploy build locally
-npx http-server ./dist/github-pages -o -c-1 --cors
-
-# Serve portable build locally
-npx http-server ./dist/portable -o -c-1 --cors
-```
-
-## Font Licensing & Attribution
-
-### Licensing Strategy
-
-1. **License Tracking**
-   - Each font family can include a `license.txt` or `license.md`
-   - Metadata generation script captures license information
-
-2. **Embedded License Metadata**
-   - License text included in font metadata
-   - Easy attribution and compliance tracking
-
-### Example License Handling
-
-```javascript
-// Extract and store license information
-if (licenseFileRelativePath) {
-    familyObj.licenseFile = licenseFileRelativePath;
-    
-    // For embedded builds, include full license text
-    if (includeBase64 && licenseText !== null) {
-        familyObj.licenseText = licenseText;
-    }
-}
-```
-
-### Recommended Font License Compliance
-1. Maintain original license files
-2. Include clear attribution in UI
-3. Provide mechanism to view full licenses
-4. Respect individual font licensing terms
-
-## `.gitignore` Configuration
-
-```gitignore
-# System & Development Ignores
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Editor Ignores
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# Dependency & Build Ignores
-node_modules/
-dist/
-font-chunks/
-
-# Generated Artifacts
-inline-fonts-data.js
-fonts.json
-logomaker-portable.html
-
-# Logs & Caches
-*.log
-.npm
-.eslintcache
-
-# Environment Files
-.env*
-!.env.example
-
-# Build-Specific Ignores
-*.base64
-*.woff2
-```
-
-## Performance Optimization Techniques
-- Lazy font loading
-- Chunk-based font retrieval
-- IndexedDB caching
-- Dynamic `@font-face` injection
-- Optimized font formats (.woff2)
-- Potential future improvements:
-  * Exponential backoff for network requests
-  * Progress tracking and fallback mechanisms
-
-## Future Improvements
-- Web Workers for heavy font processing
-- More sophisticated caching strategies
-- Enhanced offline font management
-- Improved error handling and logging
-- Advanced progress tracking
-
-## Troubleshooting
-- Ensure all script dependencies are installed
-- Check network connectivity for chunked loading
-- Verify font file compatibility
-- Monitor browser console for detailed logs
-
-## Contributing
-1. Follow existing code structure
-2. Add comprehensive error handling
-3. Update documentation
-4. Write tests for new functionality
-
+# Example: Convert all OTF fonts in ./fonts to WOFF2 in ./converted_fonts
+./scripts/convert-fonts.sh
+# (You would then replace the OTFs with WOFF2s in the ./fonts directory)
 ---
 
 🚀 Crafted by Manic Agency

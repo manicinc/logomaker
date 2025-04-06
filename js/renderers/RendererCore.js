@@ -737,42 +737,91 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
 // === Main Export Functions ================================================
 // ==========================================================================
 /**
+ * Parses a CSS padding string (simple version).
+ * Assumes uniform padding and extracts the first pixel value.
+ * Returns 0 if parsing fails or padding is invalid.
+ * @param {string|null} paddingString - e.g., "10px", "10px 20px", "0".
+ * @returns {number} The parsed padding value in pixels, or 0.
+ */
+function parsePadding(paddingString) {
+    if (!paddingString || typeof paddingString !== 'string') {
+        return 0;
+    }
+    // Extract the first numerical value, assuming pixels for simplicity
+    const match = paddingString.match(/^(-?[\d.]+)/);
+    const value = match ? parseFloat(match[1]) : 0;
+    // Ensure padding is not negative
+    return Math.max(0, value);
+}
+
 /**
- * Main function to generate the SVG Blob (v2.6.3 - Revised Padding Fix).
+ * Converts an SVG Blob to a PNG Blob using Canvas.
+ * @param {Blob} svgBlob - The input SVG Blob.
+ * @param {object} options - Options like width, height.
+ * @returns {Promise<Blob>} A promise resolving with the PNG Blob.
+ */
+
+
+/**
+ * Main function to generate the SVG Blob (v2.6.4 - Proportional Scaling).
  * Uses nested <svg> correctly positioned *inside* the border group.
- * @param {object} options - Export options like width, height, text, etc.
+ * Calculates final dimensions based on original aspect ratio.
+ * @param {object} options - Export options like target width, height, text, etc.
  * @returns {Promise<Blob>} A promise resolving with the SVG Blob.
  */
 export async function generateSVGBlob(options = {}) {
-    console.log("[Core SVG Gen v2.6.3] generateSVGBlob called (Revised Padding Fix). Options:", JSON.stringify(options));
+    console.log("[Core SVG Gen v2.6.4] generateSVGBlob called (Proportional Scaling). Options:", JSON.stringify(options));
 
     try {
         // --- 1. Capture Styles ---
         const styles = captureAdvancedStyles();
         if (!styles) throw new Error('Failed to capture styles for SVG generation');
-        console.log("[Core SVG Gen v2.6.3] Styles Captured:", styles);
+        console.log("[Core SVG Gen v2.6.4] Styles Captured:", styles);
 
-        // --- 2. Determine Configuration ---
+        // --- 2. Determine Configuration & Calculate Final Dimensions ---
         const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
+
+        // Target dimensions from user settings or options
+        const targetWidth = parseInt(options.width || styles.exportConfig?.width || '800');
+        const targetHeight = parseInt(options.height || styles.exportConfig?.height || '400');
+
+        // Original aspect ratio from captured styles
+        const originalAspectRatio = styles.originalDimensions?.aspectRatio || (targetWidth / targetHeight); // Fallback if capture failed
+
+        console.log(`[Core SVG Gen v2.6.4] Target: ${targetWidth}x${targetHeight}, Original Aspect Ratio: ${originalAspectRatio.toFixed(4)}`);
+
+        // Calculate final dimensions maintaining aspect ratio
+        let finalWidth = targetWidth;
+        let finalHeight = finalWidth / originalAspectRatio;
+
+        if (finalHeight > targetHeight) {
+            // Height is the limiting factor
+            finalHeight = targetHeight;
+            finalWidth = finalHeight * originalAspectRatio;
+        }
+
+        // Ensure dimensions are positive integers
+        finalWidth = Math.max(1, Math.round(finalWidth));
+        finalHeight = Math.max(1, Math.round(finalHeight));
+
+        console.log(`[Core SVG Gen v2.6.4] Calculated Final Dimensions: ${finalWidth}x${finalHeight}`);
+
         const defaults = {
-            width: parseInt(styles.exportConfig?.width || '800'),
-            height: parseInt(styles.exportConfig?.height || '400'),
+            width: finalWidth, // Use calculated final width
+            height: finalHeight, // Use calculated final height
             text: styles.textContent?.finalText || 'Logo',
             includeBackground: true,
             transparentBackground: styles.exportConfig?.transparent ?? options.transparentBackground ?? false,
             animationMetadata: options.animationMetadata || extractSVGAnimationDetails()
+            // Keep original target dimensions if needed elsewhere?  Maybe not.
         };
-        const config = { ...defaults, ...options };
+        const config = { ...defaults, ...options, width: finalWidth, height: finalHeight }; // Ensure config uses final dimensions
 
-        config.width = Number(config.width) || 800;
-        config.height = Number(config.height) || 400;
-        if (config.width <= 0) config.width = 800;
-        if (config.height <= 0) config.height = 400;
+        console.log("[Core SVG Gen v2.6.4] Final Config:", config);
 
-        console.log("[Core SVG Gen v2.6.3] Final Config:", config);
-
-        // --- 3. Build SVG String ---
+        // --- 3. Build SVG String (MODIFIED Header) ---
         let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n`;
+        // The main SVG dimensions and viewBox now use the calculated final dimensions
         svg += `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${config.width}" height="${config.height}" viewBox="0 0 ${config.width} ${config.height}">\n`;
 
         // --- 4. Definitions (`<defs>`) ---
@@ -847,16 +896,14 @@ export async function generateSVGBlob(options = {}) {
         console.log(`[Core SVG Gen v2.6.3] Added logo-container-group with opacity: ${finalContainerOpacity.toFixed(3)}`);
 
         // --- 9. Draw Container Border (Inside the Group) ---
-        // createBorderRect uses config.width/height and strokeWidth to draw near edges of its container (the group)
+        // createBorderRect uses config.width/height (which are now the final calculated ones)
         if (hasVisibleBorder) {
-             const borderRect = createBorderRect(styles, config);
-             if (borderRect) {
-                 svg += borderRect; // Adds the <rect...> tag
-             }
+             const borderRect = createBorderRect(styles, config); // Pass the final config
+             if (borderRect) { svg += borderRect; }
         }
 
         // --- 10. Calculate Inner Padded Area Dimensions ---
-        // Relative to the group's 0,0 (which is the main SVG's 0,0)
+        // These calculations are relative to the *final* config.width/height
         const borderOffset = strokeWidth / 2; // Stroke is centered
         const innerX = borderOffset + paddingValue;
         const innerY = borderOffset + paddingValue;
@@ -870,31 +917,22 @@ export async function generateSVGBlob(options = {}) {
             svg += `  <svg id="inner-content-area" x="${innerX.toFixed(3)}" y="${innerY.toFixed(3)}" width="${innerWidth.toFixed(3)}" height="${innerHeight.toFixed(3)}" viewBox="0 0 ${innerWidth.toFixed(3)} ${innerHeight.toFixed(3)}" overflow="visible">\n`;
 
             // --- 12. Text Element (`<text>`) inside Nested SVG ---
-            // Use config based on inner dimensions for text scaling/positioning
+            // Use config based on inner dimensions for text scaling within that nested SVG
             const textElementConfig = { ...config, width: innerWidth, height: innerHeight };
-
             const textElement = generateSVGTextElement(
-                config.text,
-                styles,
-                textGradientId,
-                textFilterId,
+                config.text, styles, textGradientId, textFilterId,
                 config.animationMetadata,
                 textElementConfig // Pass config based on inner dimensions
             );
 
             if (textElement) {
-                svg += `    ${textElement}\n`; // Indent text within inner SVG
+                svg += `    ${textElement}\n`;
                 console.log("[Core SVG Gen v2.6.3] Text element generated inside nested SVG.");
-            } else {
-                console.error("[Core SVG Gen v2.6.3] Failed to generate text element!");
-                throw new Error("Failed to generate the core SVG text element.");
-            }
+            } else { throw new Error("Failed to generate the core SVG text element."); }
 
             // Close the nested SVG
             svg += `  </svg>\n`;
-        } else {
-             console.warn("[Core SVG Gen v2.6.3] Inner width or height is zero or negative due to padding/border width. Skipping text rendering.");
-        }
+        } else { console.warn("[Core SVG Gen v2.6.3] Inner width or height is zero or negative due to padding/border width. Skipping text rendering."); }
 
         // --- 13. Close `.logo-container` Group ---
         svg += `</g>\n`; // Closes #logo-container-group
@@ -919,33 +957,21 @@ export async function generateSVGBlob(options = {}) {
 }
 
 /**
- * Parses a CSS padding string (simple version).
- * Assumes uniform padding and extracts the first pixel value.
- * Returns 0 if parsing fails or padding is invalid.
- * @param {string|null} paddingString - e.g., "10px", "10px 20px", "0".
- * @returns {number} The parsed padding value in pixels, or 0.
- */
-function parsePadding(paddingString) {
-    if (!paddingString || typeof paddingString !== 'string') {
-        return 0;
-    }
-    // Extract the first numerical value, assuming pixels for simplicity
-    const match = paddingString.match(/^(-?[\d.]+)/);
-    const value = match ? parseFloat(match[1]) : 0;
-    // Ensure padding is not negative
-    return Math.max(0, value);
-}
-
-/**
- * Converts an SVG Blob to a PNG Blob using Canvas.
+ * Converts an SVG Blob to a PNG Blob using Canvas. (v2.6.1 - Proportional Scaling)
+ * Calculates final dimensions based on original aspect ratio from SVG content if possible.
  * @param {Blob} svgBlob - The input SVG Blob.
- * @param {object} options - Options like width, height.
+ * @param {object} options - Options like TARGET width, height.
  * @returns {Promise<Blob>} A promise resolving with the PNG Blob.
  */
 export async function convertSVGtoPNG(svgBlob, options = {}) {
      return new Promise(async (resolve, reject) => {
-         const { width = 800, height = 400, transparentBackground = false } = options; // Note: Quality ignored for PNG
-         console.log(`[Core PNG Conv] Converting SVG to PNG. Target: ${width}x${height}, Transparent: ${transparentBackground}`);
+         // Target dimensions from options
+         const targetWidth = parseInt(options.width || '800');
+         const targetHeight = parseInt(options.height || '400');
+         const transparentBackground = options.transparentBackground || false;
+         const quality = options.quality || 0.95; // Get quality for PNG
+
+         console.log(`[Core PNG Conv v2.6.1] Converting SVG to PNG. Target: ${targetWidth}x${targetHeight}, Transparent: ${transparentBackground}`);
 
          if (!(svgBlob instanceof Blob)) { return reject(new Error("Invalid SVG Blob provided.")); }
 
@@ -955,49 +981,75 @@ export async function convertSVGtoPNG(svgBlob, options = {}) {
              const img = new Image();
 
              img.onload = () => {
-                 console.log("[Core PNG Conv] SVG Image loaded into memory.");
+                 console.log("[Core PNG Conv v2.6.1] SVG Image loaded. Determining final dimensions...");
                  try {
+                     // --- Calculate Final Dimensions ---
+                     // Use the natural dimensions of the loaded SVG image as the 'original'
+                     const originalWidth = img.naturalWidth || img.width;
+                     const originalHeight = img.naturalHeight || img.height;
+                     let finalWidth = targetWidth;
+                     let finalHeight = targetHeight;
+
+                     if (originalWidth > 0 && originalHeight > 0) {
+                         const originalAspectRatio = originalWidth / originalHeight;
+                         finalWidth = targetWidth; // Start assuming width is limiting factor
+                         finalHeight = finalWidth / originalAspectRatio;
+                         if (finalHeight > targetHeight) {
+                             finalHeight = targetHeight;
+                             finalWidth = finalHeight * originalAspectRatio;
+                         }
+                         finalWidth = Math.max(1, Math.round(finalWidth));
+                         finalHeight = Math.max(1, Math.round(finalHeight));
+                         console.log(`[Core PNG Conv v2.6.1] SVG Natural Size: ${originalWidth}x${originalHeight}. Final Canvas Size: ${finalWidth}x${finalHeight}`);
+                     } else {
+                         // Fallback if SVG size couldn't be determined (use target, might distort)
+                         finalWidth = targetWidth;
+                         finalHeight = targetHeight;
+                         console.warn(`[Core PNG Conv v2.6.1] Could not get SVG natural size. Using target ${finalWidth}x${finalHeight} directly.`);
+                     }
+
+                     // --- Create Canvas & Draw ---
                      const canvas = document.createElement('canvas');
-                     canvas.width = width;
-                     canvas.height = height;
+                     canvas.width = finalWidth; // Use calculated final dimensions
+                     canvas.height = finalHeight; // Use calculated final dimensions
                      const ctx = canvas.getContext('2d');
                      if (!ctx) { throw new Error("Failed to get 2D context from canvas"); }
 
-                     // Clear canvas (important if background is transparent)
-                      ctx.clearRect(0, 0, width, height);
-                      // Background color handled by SVG itself if not transparent
+                     ctx.clearRect(0, 0, finalWidth, finalHeight); // Clear for transparency
 
-                     ctx.drawImage(img, 0, 0, width, height);
-                     console.log("[Core PNG Conv] SVG drawn to canvas.");
+                     // Draw the loaded SVG image onto the canvas at the calculated final size
+                     ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                     console.log("[Core PNG Conv v2.6.1] SVG drawn to canvas.");
 
+                     // --- Convert Canvas to Blob ---
                      canvas.toBlob(
                          blob => {
-                             URL.revokeObjectURL(url); // Clean up object URL *after* blob creation
+                             URL.revokeObjectURL(url); // Clean up
                              if (blob) {
-                                 console.log(`[Core PNG Conv] PNG Blob created. Size: ${(blob.size / 1024).toFixed(1)} KB`);
+                                 console.log(`[Core PNG Conv v2.6.1] PNG Blob created. Size: ${(blob.size / 1024).toFixed(1)} KB`);
                                  resolve(blob);
-                             } else {
-                                 console.error('[Core PNG Conv] canvas.toBlob failed (returned null).');
-                                 reject(new Error('Failed to convert canvas to PNG blob.'));
-                             }
+                             } else { reject(new Error('Failed to convert canvas to PNG blob.')); }
                          },
-                         'image/png' // Specify PNG format
-                         // Quality argument is ignored for image/png
+                         'image/png',
+                         quality // Pass quality hint for PNG
                      );
+
                  } catch (err) {
                      if(url) URL.revokeObjectURL(url);
-                     console.error('[Core PNG Conv] Canvas drawing or toBlob conversion failed:', err);
+                     console.error('[Core PNG Conv v2.6.1] Canvas drawing or toBlob conversion failed:', err);
                      reject(new Error(`Canvas conversion failed: ${err.message || err}`));
                  }
              };
 
+             // ... (img.onerror remains the same) ...
              img.onerror = (errEvent) => {
                  if(url) URL.revokeObjectURL(url);
-                 console.error('[Core PNG Conv] Failed to load SVG blob into Image element:', errEvent);
+                 console.error('[Core PNG Conv v2.6.1] Failed to load SVG blob into Image element:', errEvent);
                  reject(new Error('Failed to load SVG image for PNG conversion. Check SVG content/validity.'));
              };
 
-             img.src = url; // Start loading the SVG into the Image element
+             img.src = url;
+
          } catch (setupError) {
              if (url) URL.revokeObjectURL(url);
              console.error('[Core PNG Conv] Error setting up SVG image loading:', setupError);

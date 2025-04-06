@@ -10,30 +10,64 @@ For easier development, Logomaker provides a development server environment powe
 
 ## How It Works (`npm run dev`)
 
-1.  **Initial Build:** When you run `npm run dev`, the `scripts/dev.js` script first triggers a full, clean build using `scripts/build.js --target=deploy`.
+1.  **Initial Build (`deploy` target):** When you run `npm run dev`, the `scripts/dev.js` script first triggers a full, clean build using `scripts/build.js --target=deploy`.
     * This cleans `dist/github-pages/`.
     * It runs `scripts/generate-fonts-json.js` (without Base64).
     * It runs `scripts/split-fonts.js` (which cleans `font-chunks/` and creates the index/chunks).
-    * It copies all necessary assets (`index.html`, `js/`, `css/`, `font-chunks/`, `fonts/`, `fonts.json`) to `dist/github-pages/`.
+    * It copies the necessary assets (`js/` including `ui-init.js`, `css/`, `assets/`, `font-chunks/`, `fonts.json`) to `dist/github-pages/`.
+    * It copies the **`index.template.html`** source file to `dist/github-pages/index.html`.
 2.  **Web Server:** Once the initial build succeeds, `scripts/dev.js` starts a local web server using the `http-server` development dependency.
-    * It serves files from the `dist/github-pages` directory.
-    * It typically runs on port 3000 (`http://localhost:3000`).
-    * It automatically opens your default browser to the correct address (`-o` flag).
-3.  **File Watching:** The script uses `chokidar` (a reliable file watcher) to monitor your source files (`index.html`, `js/`, `css/`, `fonts/`).
+    * It serves files from the **`dist/github-pages`** directory.
+    * It typically runs on port 3000 (`http://localhost:3000`). Check the console output for the exact URL.
+    * It does **not** automatically open your browser.
+3.  **File Watching:** The script uses `chokidar` (a reliable file watcher) to monitor your source files:
+    * `index.template.html` (the source HTML for the deploy target)
+    * `js/**/*.js` (all JavaScript files, including `ui-init.js`)
+    * `css/**/*.css` (all CSS files)
+    * `fonts/**/*.*` (all files within the source fonts directory)
 4.  **Automatic Rebuild:**
     * When you **save a change** to a watched source file:
         * `chokidar` detects the change.
-        * After a brief delay (debouncing), `scripts/dev.js` automatically triggers a new build (`scripts/build.js --target=deploy`).
-        * If a non-font file (`js/`, `css/`, `index.html`) changed, the build will use the `--skip-font-regen` flag for speed.
-        * If a file inside the `fonts/` directory changed, the build will run *without* the skip flag, ensuring font metadata (`fonts.json`, `inline-fonts-data.js`, chunks) and CSS (`css/generated-font-classes.css`) are fully regenerated.
+        * After a brief delay (debouncing), `scripts/dev.js` automatically triggers a new build using `scripts/build.js --target=deploy`.
+        * If a non-font file (`js/`, `css/`, `index.template.html`) changed, the build will typically use the `--skip-font-regen` flag for speed (check `dev.js` logic).
+        * If a file inside the `fonts/` directory changed, the build will run *without* the skip flag, ensuring font metadata (`fonts.json`, chunks) and CSS (`css/generated-font-classes.css`) are fully regenerated.
 5.  **Automatic Server Restart:**
     * If the automatic rebuild **completes successfully**, `scripts/dev.js` automatically stops the old `http-server` instance and starts a new one serving the updated files from `dist/github-pages`.
 6.  **Viewing Changes:**
-    * After the server restarts (check the terminal logs), you need to **manually refresh your browser** (F5 or Ctrl+R / Cmd+R) to load the latest changes. *There is no automatic browser injection/refresh.*
+    * After the server restarts (check the terminal logs for "[DEV] ✅ Build #... OK: deploy." and ">>> Starting http-server..."), you need to **manually refresh your browser** (F5 or Ctrl+R / Cmd+R) to load the latest changes. *There is no automatic browser injection/refresh.*
+
+## Important Limitation
+
+The default `npm run dev` command **only builds and serves the `deploy` target**. This means:
+
+* It uses `index.template.html`.
+* It uses the font chunking mechanism.
+* It **does not** load or use `inline-fonts-data.js`.
+* It **cannot** be used to directly test the specific behavior or features of the `portable` build (like verifying that `inline-fonts-data.js` loads correctly before `main.js`).
+
+## Testing the Portable Build
+
+To test the `portable` version (e.g., for Electron or offline use):
+
+1.  Run the specific build command:
+    ```bash
+    npm run build:portable
+    ```
+2.  Load the output:
+    * **For Electron:** Simply run the Electron app, as `electron.js` is configured to load from `dist/portable/index.html`.
+        ```bash
+        npm start
+        ```
+    * **In Browser (Option 1):** Open the generated `dist/portable/index.html` file directly using the `file:///` protocol in your browser.
+    * **In Browser (Option 2):** Serve the directory using a simple HTTP server:
+        ```bash
+        npx http-server dist/portable -p 8080
+        ```
+        Then open `http://localhost:8080` in your browser.
 
 ## Usage
 
-The primary command for development is:
+The primary command for developing the **deploy** target is:
 
 ```bash
 npm run dev

@@ -1,51 +1,67 @@
 /**
- * @file GIFRenderer.js (AnimationExporterUI - v3 - Snapshot/SVG Options)
- * @description Manages the UI and process for exporting animations as a sequence of PNG frames in a ZIP package.
- * Offers two rendering methods: SVG-based (fast, vector) and HTML2Canvas Snapshot (accurate WYSIWYG, requires library, slower).
+ * GIFRenderer.js - v2.0 - Enhanced Animation Export UI
+ * 
+ * A comprehensive solution for exporting animations with multiple options:
+ * - GIF export using gif.js if available
+ * - ZIP package of PNG frames with HTML preview
+ * - Individual PNG frame downloads
+ * 
+ * Features:
+ * - Two rendering methods: SVG-based (fast) and HTML2Canvas (accurate)
+ * - Live animation preview
+ * - Flexible export format options
+ * - Improved error handling and fallbacks
+ * - Windows compatibility fixes
+ * - Better progress reporting
  */
 
 // Core Rendering & Utilities
-import { generateAnimationFrames as generateSvgAnimationFrames, generateConsistentPreview, blobToDataURL } from './RendererCore.js'; // Use core functions for SVG-based frames
+import { generateAnimationFrames, blobToDataURL } from './RendererCore.js'; // SVG-based frame generation
 import { captureLogoWithHTML2Canvas } from '../utils/html2Canvas.js'; // For Snapshot rendering
-import { createSimpleUncompressedZip, downloadZipBlob } from '../utils/zipUtils.js'; // Custom ZIP functions
-import { extractSVGAnimationDetails } from '../utils/svgAnimationInfo.js'; // For metadata
-import { captureAdvancedStyles } from '../captureTextStyles.js'; // For metadata
+import { createZip, downloadZipBlob } from '../utils/zipUtils.js'; // ZIP utilities
+import { generateGIF } from '../utils/gifUtils.js'; // GIF generation utility
+import { extractSVGAnimationDetails } from '../utils/svgAnimationInfo.js'; // For animation metadata
+import { getLogoFilenameBase } from '../utils/utils.js'; // For filename generation
+
+// --- Module Constants ---
+const MODAL_ID = 'gifExporterModal';
+const STYLE_ID = 'gifExporterStylesV2';
+const DIRECT_DOWNLOAD_THRESHOLD = 15; // Frames count for confirmation
 
 // --- Module Scope Variables ---
 let exportCancelled = false;
 let previewInterval = null;
-let previewFramesDataUrls = []; // Store data URLs for preview loop
+let previewFramesDataUrls = [];
 let currentPreviewFrameIndex = 0;
 let isExporting = false;
-let isInitialized = false; // Track if UI is injected and listeners attached
-let html2canvasAvailable = false; // Track if snapshot rendering is possible
-const MODAL_ID = 'gifExporterModal'; // Consistent ID for elements
-const STYLE_ID = 'gifExporterStylesV3'; // Updated Style ID
+let isInitialized = false;
+let html2canvasAvailable = false;
+let handleSettingsUpdateListener = null;
+let gifLibraryAvailable = false; // Track if gif.js is available
 
 // --- DOM Element References ---
-let modal = null, closeBtn = null, cancelBtn = null, exportBtn = null;
-let previewImage = null, loadingIndicator = null, progressText = null;
-let cancelExportBtnModal = null, modalWidthInput = null, modalHeightInput = null;
-let modalFramesInput = null, modalTransparentInput = null, modalFrameRateInput = null;
-let modalFrameRateValue = null, previewLoadingSpinner = null;
-let svgRenderRadio = null, snapshotRenderRadio = null; // <-- New: Render method radios
-let snapshotWarning = null; // <-- New: Warning text for snapshot mode
+let modal, closeBtn, cancelBtn, exportBtn;
+let previewImage, loadingIndicator, progressText;
+let cancelExportBtnModal, modalWidthInput, modalHeightInput;
+let modalFramesInput, modalTransparentInput, modalFrameRateInput;
+let modalFrameRateValue, previewLoadingSpinner;
+let svgRenderRadio, snapshotRenderRadio, snapshotWarning;
+let exportFormatSelect, exportFormatInfo; // Format selection UI
 
-// --- CSS (Updated with radio buttons and snapshot warning) ---
 const MODAL_CSS = `
-/* Styles for GIF Exporter Modal (v3 - Snapshot/SVG Options) */
 :root {
-    --gif-exporter-accent: #ff1493; /* Deep Pink */
-    --gif-exporter-bg-dark: #0f0f1a; /* Darker background */
-    --gif-exporter-bg-medium: #1a1a2e; /* Medium dark */
-    --gif-exporter-text-light: #e8e8ff; /* Light text */
-    --gif-exporter-text-medium: #b0b0e0; /* Muted text */
-    --gif-exporter-border-color: #3a3a4a; /* Softer border */
-    --gif-exporter-warning-color: #ffcc00; /* Yellow for warnings */
+    --exporter-accent: #ff1493; /* Deep Pink */
+    --exporter-bg-dark: #0f0f1a; /* Darker background */
+    --exporter-bg-medium: #1a1a2e; /* Medium dark */
+    --exporter-text-light: #e8e8ff; /* Light text */
+    --exporter-text-medium: #b0b0e0; /* Muted text */
+    --exporter-border-color: #3a3a4a; /* Softer border */
+    --exporter-warning-color: #ffcc00; /* Yellow for warnings */
+    --exporter-success-color: #00cc88; /* Green for success */
 }
 .gif-exporter-modal-overlay {
     position: fixed; inset: 0;
-    background: rgba(10, 10, 20, 0.9); /* Slightly less dark */
+    background: rgba(10, 10, 20, 0.9);
     display: none; /* Modified by JS */
     justify-content: center; align-items: center;
     z-index: 1001; padding: 2vh 2vw; box-sizing: border-box;
@@ -53,144 +69,224 @@ const MODAL_CSS = `
     overflow: hidden;
 }
 .gif-exporter-modal-content {
-    background: linear-gradient(145deg, var(--gif-exporter-bg-medium), var(--gif-exporter-bg-dark));
-    color: var(--gif-exporter-text-light);
-    padding: 25px 35px; /* Adjusted padding */
-    border-radius: 10px; /* Slightly less rounded */
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(var(--gif-exporter-accent), 0.2);
-    width: 100%; height: 100%; max-width: 1100px; max-height: 92vh; /* Adjusted max */
-    position: relative; border: 1px solid var(--gif-exporter-border-color);
+    background: linear-gradient(145deg, var(--exporter-bg-medium), var(--exporter-bg-dark));
+    color: var(--exporter-text-light);
+    padding: 25px 35px;
+    border-radius: 10px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 20, 147, 0.2);
+    width: 100%; height: 100%; max-width: 1100px; max-height: 92vh;
+    position: relative; border: 1px solid var(--exporter-border-color);
     display: flex; flex-direction: column; overflow: hidden;
 }
 .gif-exporter-modal-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 15px; /* Reduced margin */
-    border-bottom: 1px solid var(--gif-exporter-accent);
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--exporter-accent);
     padding-bottom: 12px; flex-shrink: 0;
 }
 .gif-exporter-modal-header h2 {
-    margin: 0; font-size: 1.6em; /* Adjusted size */
-    font-weight: 600; /* Slightly less bold */
-    color: var(--gif-exporter-accent);
+    margin: 0; font-size: 1.6em;
+    font-weight: 600;
+    color: var(--exporter-accent);
     text-shadow: 0 0 4px rgba(255, 20, 147, 0.4);
-    font-family: 'Orbitron', sans-serif; /* Example */
 }
 .gif-exporter-modal-close-btn {
-    background: none; border: none; color: #aaa; font-size: 2.2em; /* Adjusted size */
+    background: none; border: none; color: #aaa; font-size: 2.2em;
     line-height: 1; cursor: pointer; padding: 0 5px; transition: color 0.3s ease, transform 0.3s ease;
 }
-.gif-exporter-modal-close-btn:hover { color: var(--gif-exporter-accent); transform: rotate(90deg); }
+.gif-exporter-modal-close-btn:hover { color: var(--exporter-accent); transform: rotate(90deg); }
 .gif-exporter-modal-body {
-    flex-grow: 1; display: flex; gap: 25px; /* Adjusted gap */
-    overflow: hidden; padding-bottom: 15px; /* Reduced padding */
+    flex-grow: 1; display: flex; gap: 25px;
+    overflow: hidden; padding-bottom: 15px;
 }
 .gif-exporter-preview-area {
-    flex: 1.8; display: flex; /* Adjusted flex ratio */
+    flex: 1.8; display: flex;
     flex-direction: column; justify-content: center; align-items: center;
-    background-color: rgba(0, 0, 0, 0.2); border-radius: 6px; /* Smaller radius */
-    padding: 15px; overflow: hidden; border: 1px solid var(--gif-exporter-border-color);
-    min-height: 280px; position: relative; /* Adjusted height */
+    background-color: rgba(0, 0, 0, 0.2); border-radius: 6px;
+    padding: 15px; overflow: hidden; border: 1px solid var(--exporter-border-color);
+    min-height: 280px; position: relative;
 }
 .gif-exporter-preview-image-container {
     width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
     position: relative;
-    /* Checkerboard background */
+    /* Checkerboard background for transparency */
     background-image: linear-gradient(45deg, #2a2a40 25%, transparent 25%), linear-gradient(-45deg, #2a2a40 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a40 75%), linear-gradient(-45deg, transparent 75%, #2a2a40 75%);
     background-size: 20px 20px;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     border-radius: 4px;
 }
 .gif-exporter-preview-spinner {
-    border: 4px solid rgba(255, 255, 255, 0.15); /* Lighter border */
-    border-left-color: var(--gif-exporter-accent);
-    border-radius: 50%; width: 35px; height: 35px; /* Slightly smaller */
-    animation: gif-exporter-spin 0.8s linear infinite; /* Faster spin */
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-left-color: var(--exporter-accent);
+    border-radius: 50%; width: 35px; height: 35px;
+    animation: gif-exporter-spin 0.8s linear infinite;
     position: absolute; top: calc(50% - 17.5px); left: calc(50% - 17.5px); z-index: 1;
 }
 .gif-exporter-preview-image {
-    max-width: 100%; max-height: 280px; /* Match container min-height */
+    max-width: 100%; max-height: 280px;
     object-fit: contain; background-color: transparent;
     min-height: 50px; display: block; opacity: 1; position: relative; z-index: 2;
-    transition: opacity 0.3s ease; /* Smooth transition */
+    transition: opacity 0.3s ease;
 }
-.gif-exporter-preview-image[src=""] { opacity: 0; } /* Hide if src is empty */
+.gif-exporter-preview-image[src=""] { opacity: 0; }
 
 .gif-exporter-controls-area {
-    flex: 1; display: flex; flex-direction: column; gap: 15px; /* Adjusted gap */
-    overflow-y: auto; padding-right: 10px; padding-left: 15px; /* Adjusted padding */
+    flex: 1; display: flex; flex-direction: column; gap: 15px;
+    overflow-y: auto; padding-right: 10px; padding-left: 15px;
 }
-.gif-exporter-controls-area .control-group { display: flex; flex-direction: column; gap: 6px; } /* Adjusted gap */
-.gif-exporter-controls-area label { font-weight: 500; color: var(--gif-exporter-text-medium); font-size: 0.9em; display: block; margin-bottom: 3px; }
-.gif-exporter-controls-area input[type="number"], .gif-exporter-controls-area input[type="range"] { width: 100%; padding: 8px 10px; background-color: #252535; border: 1px solid #4a4a5a; color: var(--gif-exporter-text-light); border-radius: 4px; font-size: 0.95em; box-sizing: border-box; transition: border-color 0.2s; }
+.gif-exporter-controls-area .control-group { display: flex; flex-direction: column; gap: 6px; }
+.gif-exporter-controls-area label { font-weight: 500; color: var(--exporter-text-medium); font-size: 0.9em; display: block; margin-bottom: 3px; }
+.gif-exporter-controls-area input[type="number"], 
+.gif-exporter-controls-area input[type="range"],
+.gif-exporter-controls-area select {
+    width: 100%; padding: 8px 10px; background-color: #252535; 
+    border: 1px solid #4a4a5a; color: var(--exporter-text-light); 
+    border-radius: 4px; font-size: 0.95em; box-sizing: border-box; 
+    transition: border-color 0.2s;
+}
 .gif-exporter-controls-area input[readonly] {
     background-color: #1e1e2b; color: #888; cursor: not-allowed; border-style: dashed; opacity: 0.7;
 }
-.gif-exporter-controls-area input:focus:not([readonly]) { border-color: var(--gif-exporter-accent); outline: none; }
-.gif-exporter-controls-area input[type="range"] { padding: 0; cursor: pointer; height: 18px; accent-color: var(--gif-exporter-accent); }
+.gif-exporter-controls-area input:focus:not([readonly]),
+.gif-exporter-controls-area select:focus {
+    border-color: var(--exporter-accent); outline: none;
+}
+.gif-exporter-controls-area input[type="range"] { padding: 0; cursor: pointer; height: 18px; accent-color: var(--exporter-accent); }
 .gif-exporter-controls-area .range-container { display: flex; align-items: center; gap: 8px; }
 .gif-exporter-controls-area .range-container input[type="range"] { flex-grow: 1; }
-.gif-exporter-controls-area .range-container span { font-size: 0.8em; color: var(--gif-exporter-text-medium); min-width: 45px; text-align: right; } /* Slightly narrower */
-.gif-exporter-controls-area .checkbox-label { display: flex; align-items: center; cursor: pointer; color: var(--gif-exporter-text-medium); padding: 5px 0; }
-.gif-exporter-controls-area .checkbox-label:hover { color: var(--gif-exporter-text-light); }
-.gif-exporter-controls-area input[type="checkbox"] { width: 15px; height: 15px; margin-right: 8px; accent-color: var(--gif-exporter-accent); vertical-align: middle; cursor: pointer; flex-shrink: 0; }
-.gif-exporter-controls-area .checkbox-label label { margin-bottom: 0; } /* Override potential default label margin */
+.gif-exporter-controls-area .range-container span { font-size: 0.8em; color: var(--exporter-text-medium); min-width: 45px; text-align: right; }
+.gif-exporter-controls-area .checkbox-label { display: flex; align-items: center; cursor: pointer; color: var(--exporter-text-medium); padding: 5px 0; }
+.gif-exporter-controls-area .checkbox-label:hover { color: var(--exporter-text-light); }
+.gif-exporter-controls-area input[type="checkbox"] { width: 15px; height: 15px; margin-right: 8px; accent-color: var(--exporter-accent); vertical-align: middle; cursor: pointer; flex-shrink: 0; }
+.gif-exporter-controls-area .checkbox-label label { margin-bottom: 0; }
 
-/* Styles for Export Method Selection */
-.gif-export-method-selector {
+/* Export Format Selection */
+.export-format-selector {
+    margin-top: 10px;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 6px;
+    border: 1px solid var(--exporter-border-color);
+    padding: 15px;
+}
+.export-format-selector legend {
+    font-weight: 600; padding: 0 5px;
+    font-size: 0.95em; color: var(--exporter-text-light);
+}
+.export-format-option {
+    margin-bottom: 15px;
+}
+.export-format-selector label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--exporter-text-light);
+    font-weight: 500;
+}
+.export-format-selector select {
+    width: 100%;
+    padding: 8px;
+    background-color: #252535;
+    color: var(--exporter-text-light);
+    border: 1px solid #4a4a5a;
+    border-radius: 4px;
+}
+.export-format-info {
+    font-size: 0.85em;
+    color: var(--exporter-text-medium);
+    margin-top: 5px;
+    font-style: italic;
+}
+.format-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+.badge-recommended {
+    background-color: var(--exporter-success-color);
+    color: #000;
+}
+.badge-fallback {
+    background-color: var(--exporter-warning-color);
+    color: #000;
+}
+.badge-unavailable {
+    background-color: #666;
+    color: #ddd;
+}
+
+/* Render Method Selection */
+.render-method-selector {
     margin-top: 10px; padding: 15px;
     background-color: rgba(0,0,0,0.1);
     border-radius: 6px;
-    border: 1px solid var(--gif-exporter-border-color);
+    border: 1px solid var(--exporter-border-color);
 }
-.gif-export-method-selector legend {
+.render-method-selector legend {
     font-weight: 600; padding: 0 5px; margin-bottom: 10px;
-    font-size: 0.95em; color: var(--gif-exporter-text-light);
+    font-size: 0.95em; color: var(--exporter-text-light);
 }
-.gif-export-method-selector .radio-option { display: flex; align-items: flex-start; margin-bottom: 10px; cursor: pointer; }
-.gif-export-method-selector input[type="radio"] { margin-right: 10px; margin-top: 3px; /* Align better with text */ accent-color: var(--gif-exporter-accent); cursor: pointer; flex-shrink: 0; }
-.gif-export-method-selector label { font-size: 0.9em; color: var(--gif-exporter-text-medium); cursor: pointer; line-height: 1.3; }
-.gif-export-method-selector label strong { color: var(--gif-exporter-text-light); font-weight: 500; }
-.gif-export-method-selector label span { font-size: 0.85em; color: var(--gif-exporter-text-medium); display: block; /* Indent description */ }
-.gif-export-method-selector input[type="radio"]:disabled + label { cursor: not-allowed; opacity: 0.6; }
-.gif-export-method-selector .snapshot-warning {
-    font-size: 0.85em; color: var(--gif-exporter-warning-color); margin-top: 5px; padding: 8px;
-    background: rgba(255, 204, 0, 0.1); border-left: 3px solid var(--gif-exporter-warning-color); border-radius: 3px;
+.render-method-selector .radio-option { display: flex; align-items: flex-start; margin-bottom: 10px; cursor: pointer; }
+.render-method-selector input[type="radio"] { margin-right: 10px; margin-top: 3px; accent-color: var(--exporter-accent); cursor: pointer; flex-shrink: 0; }
+.render-method-selector label { font-size: 0.9em; color: var(--exporter-text-medium); cursor: pointer; line-height: 1.3; }
+.render-method-selector label strong { color: var(--exporter-text-light); font-weight: 500; }
+.render-method-selector label span { font-size: 0.85em; color: var(--exporter-text-medium); display: block; }
+.render-method-selector input[type="radio"]:disabled + label { cursor: not-allowed; opacity: 0.6; }
+.render-method-selector .snapshot-warning {
+    font-size: 0.85em; color: var(--exporter-warning-color); margin-top: 5px; padding: 8px;
+    background: rgba(255, 204, 0, 0.1); border-left: 3px solid var(--exporter-warning-color); border-radius: 3px;
     display: none; /* Shown by JS if snapshot is selected */
 }
 
-.gif-exporter-controls-area .info-text-block { /* Specific style for info text */
-    font-size: 0.85em; color: var(--gif-exporter-text-medium); margin-top: 10px; line-height: 1.4;
-    padding: 10px; background: rgba(0,0,0,0.1); border-radius: 4px; border-left: 3px solid var(--gif-exporter-accent);
+.gif-exporter-controls-area .info-text-block {
+    font-size: 0.85em; color: var(--exporter-text-medium); margin-top: 10px; line-height: 1.4;
+    padding: 10px; background: rgba(0,0,0,0.1); border-radius: 4px; border-left: 3px solid var(--exporter-accent);
 }
 
-.gif-exporter-modal-footer { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--gif-exporter-border-color); display: flex; justify-content: flex-end; align-items: center; gap: 12px; flex-shrink: 0; }
+.gif-exporter-modal-footer { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--exporter-border-color); display: flex; justify-content: flex-end; align-items: center; gap: 12px; flex-shrink: 0; }
 .gif-exporter-modal-btn { padding: 9px 20px; font-size: 0.9em; font-weight: 600; border: none; border-radius: 5px; cursor: pointer; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.5px; }
-.gif-exporter-modal-btn-primary { background-color: var(--gif-exporter-accent); color: #fff; box-shadow: 0 2px 6px rgba(255, 20, 147, 0.2); }
+.gif-exporter-modal-btn-primary { background-color: var(--exporter-accent); color: #fff; box-shadow: 0 2px 6px rgba(255, 20, 147, 0.2); }
 .gif-exporter-modal-btn-primary:hover:not(:disabled) { background-color: #ff47a3; box-shadow: 0 3px 10px rgba(255, 20, 147, 0.35); transform: translateY(-1px); }
 .gif-exporter-modal-btn-primary:disabled { background-color: #7a0a47; cursor: not-allowed; opacity: 0.6; }
 .gif-exporter-modal-btn-secondary { background-color: #4a4a5a; color: #ccc; }
 .gif-exporter-modal-btn-secondary:hover { background-color: #5a5a6a; color: #fff; }
-/* Main loading overlay during export */
+
+/* Loading overlay during export */
 .gif-exporter-loading-indicator {
-    position: absolute; inset: 0; background: rgba(10, 10, 20, 0.9); display: none; /* Toggled by JS */ justify-content: center; align-items: center; z-index: 1002; flex-direction: column; gap: 15px; color: var(--gif-exporter-text-light); text-align: center; border-radius: 12px; font-size: 1.1em;
+    position: absolute; inset: 0; background: rgba(10, 10, 20, 0.9); 
+    display: none; justify-content: center; align-items: center; 
+    z-index: 1002; flex-direction: column; gap: 15px; 
+    color: var(--exporter-text-light); text-align: center; 
+    border-radius: 12px; font-size: 1.1em;
 }
 .gif-exporter-loading-indicator .progress-text { font-weight: 500; margin-top: 5px; }
-.gif-exporter-loading-indicator .cancel-export-btn-modal { margin-top: 15px; padding: 8px 18px; background-color: #b71c1c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; transition: background-color 0.2s ease; display: none; /* Shown by JS */ }
+.gif-exporter-loading-indicator .cancel-export-btn-modal { 
+    margin-top: 15px; padding: 8px 18px; background-color: #b71c1c; 
+    color: white; border: none; border-radius: 4px; cursor: pointer; 
+    font-size: 0.9em; transition: background-color 0.2s ease; display: none;
+}
 .gif-exporter-loading-indicator .cancel-export-btn-modal:hover { background-color: #d32f2f; }
-.gif-exporter-loading-indicator .gif-exporter-spinner { border: 4px solid rgba(255, 255, 255, 0.15); border-left-color: var(--gif-exporter-accent); border-radius: 50%; width: 35px; height: 35px; animation: gif-exporter-spin 0.8s linear infinite; }
+.gif-exporter-loading-indicator .gif-exporter-spinner { 
+    border: 4px solid rgba(255, 255, 255, 0.15); 
+    border-left-color: var(--exporter-accent); 
+    border-radius: 50%; width: 35px; height: 35px; 
+    animation: gif-exporter-spin 0.8s linear infinite; 
+}
 @keyframes gif-exporter-spin { to { transform: rotate(360deg); } }
+
 /* Scrollbar */
 .gif-exporter-controls-area::-webkit-scrollbar { width: 8px; }
-.gif-exporter-controls-area::-webkit-scrollbar-track { background: var(--gif-exporter-bg-dark); border-radius: 4px; }
-.gif-exporter-controls-area::-webkit-scrollbar-thumb { background-color: var(--gif-exporter-accent); border-radius: 4px; border: 2px solid var(--gif-exporter-bg-dark); }
+.gif-exporter-controls-area::-webkit-scrollbar-track { background: var(--exporter-bg-dark); border-radius: 4px; }
+.gif-exporter-controls-area::-webkit-scrollbar-thumb { background-color: var(--exporter-accent); border-radius: 4px; border: 2px solid var(--exporter-bg-dark); }
 `;
 
-// --- HTML Structure (Updated with render method selection) ---
+// --- HTML Structure (Updated with export format options) ---
 const MODAL_HTML = `
 <div id="${MODAL_ID}" class="gif-exporter-modal-overlay">
   <div class="gif-exporter-modal-content">
     <div class="gif-exporter-modal-header">
-      <h2>Animation Exporter (PNG Frames ZIP)</h2>
+      <h2>Animation Exporter</h2>
       <button id="${MODAL_ID}CloseBtn" class="gif-exporter-modal-close-btn" title="Close Export Modal">&times;</button>
     </div>
     <div class="gif-exporter-modal-body">
@@ -203,61 +299,85 @@ const MODAL_HTML = `
       <div class="gif-exporter-controls-area">
         <div class="control-group">
           <label for="${MODAL_ID}Width">Width (px)</label>
-          <input type="number" id="${MODAL_ID}Width" value="800" readonly title="Output width is synced from Export settings.">
+          <input type="number" id="${MODAL_ID}Width" value="800"
+                 readonly title="Output width is set in the Advanced tab.">
         </div>
         <div class="control-group">
           <label for="${MODAL_ID}Height">Height (px)</label>
-          <input type="number" id="${MODAL_ID}Height" value="400" readonly title="Output height is synced from Export settings.">
+          <input type="number" id="${MODAL_ID}Height" value="400"
+                 readonly title="Output height is set in the Advanced tab.">
         </div>
-
-        <fieldset class="gif-export-method-selector">
-            <legend>Render Method:</legend>
-            <div class="radio-option">
-                <input type="radio" id="${MODAL_ID}MethodSvg" name="gifExportMethod" value="svgRender" checked>
-                <label for="${MODAL_ID}MethodSvg">
-                    <strong>SVG Render</strong> (Fast, Vector Based)
-                    <span>Generates frames from SVG data. Faster, fully offline, but may not capture all complex CSS effects perfectly.</span>
-                </label>
+        
+        <!-- Export Format Selector -->
+        <fieldset class="export-format-selector">
+          <legend>Export Options</legend>
+          <div class="export-format-option">
+            <label for="${MODAL_ID}ExportFormat">Export Format:</label>
+            <select id="${MODAL_ID}ExportFormat">
+              <option value="auto">Auto (Best Available)</option>
+              <option value="gif">Animated GIF</option>
+              <option value="zip">ZIP Package of PNG Frames</option>
+              <option value="individual">Individual PNG Files</option>
+            </select>
+            <div id="${MODAL_ID}FormatInfo" class="export-format-info">
+              Select the best available format automatically.
             </div>
-            <div class="radio-option">
-                <input type="radio" id="${MODAL_ID}MethodSnapshot" name="gifExportMethod" value="snapshot">
-                <label for="${MODAL_ID}MethodSnapshot">
-                    <strong>Snapshot</strong> (Accurate, WYSIWYG)
-                    <span>Takes a snapshot of the live preview using html2canvas. Captures appearance exactly, but is <strong>much slower</strong> and requires the library to be loaded.</span>
-                    <div id="${MODAL_ID}SnapshotWarning" class="snapshot-warning">
-                        <strong>Warning:</strong> Snapshot rendering can be very slow, especially with many frames. Limit frames for reasonable export times.
-                    </div>
-                </label>
-            </div>
+          </div>
+        </fieldset>
+        
+        <!-- Render Method Selector -->
+        <fieldset class="render-method-selector">
+          <legend>Render Method:</legend>
+          <div class="radio-option">
+            <input type="radio" id="${MODAL_ID}MethodSnapshot" name="gifExportMethod" value="snapshot" checked>
+            <label for="${MODAL_ID}MethodSnapshot">
+              <strong>Snapshot</strong> (Accurate, WYSIWYG)
+              <span>Takes a snapshot of the live preview using html2canvas. Captures appearance exactly, but is <strong>much slower</strong> and requires the library to be loaded.</span>
+              <div id="${MODAL_ID}SnapshotWarning" class="snapshot-warning">
+                <strong>Warning:</strong> Snapshot rendering can be very slow, especially with many frames. Limit frames for reasonable export times.
+              </div>
+            </label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="${MODAL_ID}MethodSvg" name="gifExportMethod" value="svgRender">
+            <label for="${MODAL_ID}MethodSvg">
+              <strong>SVG Render</strong> (Fast, Vector Based)
+              <span>Generates frames from SVG data. Faster, fully offline, but may not capture all complex CSS effects perfectly.</span>
+            </label>
+          </div>
         </fieldset>
 
         <div class="control-group">
           <label for="${MODAL_ID}Frames">Frames (SVG: 1-60, Snapshot: 1-30)</label>
-          <input type="number" id="${MODAL_ID}Frames" min="1" max="60" value="15" title="Number of PNG frames. Max 60 for SVG, Max 30 for Snapshot recommended.">
+          <input type="number" id="${MODAL_ID}Frames" min="1" max="60" value="15" title="Number of animation frames to generate">
         </div>
-         <div class="control-group">
-            <label for="${MODAL_ID}FrameRate">Preview Speed (FPS)</label>
-            <div class="range-container">
-              <input type="range" id="${MODAL_ID}FrameRate" min="1" max="30" value="10" step="1" title="Adjust ONLY the speed of THIS preview animation. Does not affect exported frames.">
-              <span id="${MODAL_ID}FrameRateValue" class="range-value-display">10 FPS</span>
-            </div>
+        <div class="control-group">
+          <label for="${MODAL_ID}FrameRate">Preview Speed (FPS)</label>
+          <div class="range-container">
+            <input type="range" id="${MODAL_ID}FrameRate" min="1" max="30" value="10" step="1" title="Adjust the speed of this preview animation.">
+            <span id="${MODAL_ID}FrameRateValue" class="range-value-display">10 FPS</span>
           </div>
+        </div>
         <label class="checkbox-label control-group">
-             <input type="checkbox" id="${MODAL_ID}Transparent">
-             <label for="${MODAL_ID}Transparent" title="Export frames with transparent background instead of current style.">Transparent Background</label>
+          <input type="checkbox" id="${MODAL_ID}Transparent">
+          <label for="${MODAL_ID}Transparent" title="Export frames with transparent background instead of current style.">Transparent Background</label>
         </label>
         <div class="control-group info-text-block">
-             <p>
-                <strong>Note:</strong> This exports a <strong>ZIP file containing individual PNG frames</strong> and an HTML preview file.<br>
-                Choose <strong>SVG Render</strong> for speed and basic animations, or <strong>Snapshot</strong> for capturing complex CSS effects accurately (slower, requires html2canvas).<br>
-                Use external tools (e.g., ezgif.com) to combine frames into a GIF/APNG/Video.
-             </p>
+          <p>
+            <strong>Export options:</strong>
+            <ul>
+              <li><strong>GIF:</strong> Creates an animated GIF file if the library is available</li>
+              <li><strong>ZIP Package:</strong> Contains all PNG frames + HTML preview</li>
+              <li><strong>Individual PNGs:</strong> Downloads each frame separately</li>
+            </ul>
+            <strong>Note:</strong> Choose <strong>SVG Render</strong> for speed and basic animations, or <strong>Snapshot</strong> for capturing complex CSS effects accurately (slower).
+          </p>
         </div>
       </div>
     </div>
     <div class="gif-exporter-modal-footer">
       <button id="${MODAL_ID}CancelBtn" class="gif-exporter-modal-btn gif-exporter-modal-btn-secondary">Close</button>
-      <button id="${MODAL_ID}ExportBtn" class="gif-exporter-modal-btn gif-exporter-modal-btn-primary">Export Frames as ZIP</button>
+      <button id="${MODAL_ID}ExportBtn" class="gif-exporter-modal-btn gif-exporter-modal-btn-primary">Export Animation</button>
     </div>
     <div id="${MODAL_ID}LoadingIndicator" class="gif-exporter-loading-indicator">
       <div class="gif-exporter-spinner"></div>
@@ -267,964 +387,964 @@ const MODAL_HTML = `
   </div>
 </div>`;
 
-// --- Internal Functions ---
+// --- Core Utility Functions ---
 
-/** Check if html2canvas dependency is met */
-function checkDependencies() {
-    if (typeof captureLogoWithHTML2Canvas === 'function') {
-        html2canvasAvailable = true;
-        console.log('[GIF UI] Dependency Check: html2canvas (via captureLogoWithHTML2Canvas) FOUND.');
-    } else {
-        html2canvasAvailable = false;
-        console.warn('[GIF UI] Dependency Check: html2canvas (via captureLogoWithHTML2Canvas) NOT FOUND. Snapshot method will be disabled.');
-    }
-}
-
-function injectStyles() {
-    if (!document.getElementById(STYLE_ID) && MODAL_CSS) {
-        const styleElement = document.createElement('style');
-        styleElement.id = STYLE_ID;
-        styleElement.textContent = MODAL_CSS;
-        document.head.appendChild(styleElement);
-        console.log('[GIF UI] Styles Injected.');
-    }
-}
-
-function injectModalHTML() {
-    if (document.getElementById(MODAL_ID)) return;
-    const container = document.createElement('div');
-    container.innerHTML = MODAL_HTML.trim();
-    const modalElement = container.firstChild;
-    if (modalElement instanceof Node) {
-        document.body.appendChild(modalElement);
-        console.log('[GIF UI] Modal HTML Injected.');
-    } else { throw new Error("Failed to create modal element from HTML string."); }
-}
-
-function queryModalElements() {
-    modal = document.getElementById(MODAL_ID); if (!modal) return false;
-    closeBtn = document.getElementById(`${MODAL_ID}CloseBtn`); if (!closeBtn) return false;
-    cancelBtn = document.getElementById(`${MODAL_ID}CancelBtn`); if (!cancelBtn) return false;
-    exportBtn = document.getElementById(`${MODAL_ID}ExportBtn`); if (!exportBtn) return false;
-    previewImage = document.getElementById(`${MODAL_ID}PreviewImage`); if (!previewImage) return false;
-    loadingIndicator = document.getElementById(`${MODAL_ID}LoadingIndicator`); if (!loadingIndicator) return false;
-    progressText = document.getElementById(`${MODAL_ID}ProgressText`); if (!progressText) return false;
-    cancelExportBtnModal = document.getElementById(`${MODAL_ID}CancelExportBtn`); if (!cancelExportBtnModal) return false;
-    modalWidthInput = document.getElementById(`${MODAL_ID}Width`); if (!modalWidthInput) return false;
-    modalHeightInput = document.getElementById(`${MODAL_ID}Height`); if (!modalHeightInput) return false;
-    modalFramesInput = document.getElementById(`${MODAL_ID}Frames`); if (!modalFramesInput) return false;
-    modalTransparentInput = document.getElementById(`${MODAL_ID}Transparent`); if (!modalTransparentInput) return false;
-    modalFrameRateInput = document.getElementById(`${MODAL_ID}FrameRate`); if (!modalFrameRateInput) return false;
-    modalFrameRateValue = document.getElementById(`${MODAL_ID}FrameRateValue`); if (!modalFrameRateValue) return false;
-    previewLoadingSpinner = document.getElementById(`${MODAL_ID}PreviewSpinner`); if (!previewLoadingSpinner) return false;
-    // New elements
-    svgRenderRadio = document.getElementById(`${MODAL_ID}MethodSvg`); if (!svgRenderRadio) return false;
-    snapshotRenderRadio = document.getElementById(`${MODAL_ID}MethodSnapshot`); if (!snapshotRenderRadio) return false;
-    snapshotWarning = document.getElementById(`${MODAL_ID}SnapshotWarning`); if (!snapshotWarning) return false;
-
-    console.log('[GIF UI] Modal elements queried successfully.');
-    return true;
-}
-
-function openModal() {
-    if (!isInitialized || !modal) { const msg = "Animation exporter UI not ready or missing."; console.error(`[GIF UI] ${msg}`); if (typeof showAlert === 'function') showAlert(msg, "error"); throw new Error(msg); }
-    console.log("[GIF UI] Opening Modal...");
-    resetCancelFlag(); isExporting = false; exportBtn.disabled = false; cancelBtn.disabled = false; cancelExportBtnModal.style.display = 'none'; hideModalProgress();
-
-    // Update UI based on html2canvas availability
-    if (snapshotRenderRadio) {
-        snapshotRenderRadio.disabled = !html2canvasAvailable;
-        const label = snapshotRenderRadio.nextElementSibling; // Assuming label follows input
-        if (label && !html2canvasAvailable) {
-           label.title = "Snapshot rendering requires the html2canvas library, which was not found.";
-           // Ensure SVG is selected if snapshot is disabled
-           if(svgRenderRadio) svgRenderRadio.checked = true;
-        } else if (label) {
-            label.title = ""; // Clear title if available
-        }
-        updateSnapshotWarningVisibility(); // Initial check
-        updateFramesInputLimit(); // Update frame limit based on default method
-    }
-
-    syncExportSettings(); // Sync read-only settings & defaults
-    modal.style.display = 'flex';
-    requestAnimationFrame(() => modal.classList.add('active'));
-    document.body.style.overflow = 'hidden';
-    startPreviewLoop(); // Start preview (generates frames internally based on selected method)
-}
-
-function closeModal() {
-    if (!modal) return;
-    stopPreview(); // Stop animation loop
-    hideModalProgress();
-    modal.classList.remove('active');
-    modal.addEventListener('transitionend', () => {
-        if (!modal.classList.contains('active')) modal.style.display = 'none'; document.body.style.overflow = '';
-    }, { once: true });
-    setTimeout(() => { if (!modal.classList.contains('active')) { modal.style.display = 'none'; document.body.style.overflow = ''; }}, 500);
-    if (isExporting) cancelExport(); // Attempt to cancel if closing during export
-    console.log("[GIF UI] Modal closed.");
-}
-
-/** Reset the cancellation flag */
-function resetCancelFlag() { exportCancelled = false; console.log('[GIF UI] Cancel flag reset.'); }
-/** Show the modal's loading overlay with a message */
-function updateModalProgress(message) { if (loadingIndicator && progressText) { loadingIndicator.style.display = 'flex'; progressText.textContent = message; } }
-/** Hide the modal's loading overlay */
-function hideModalProgress() { if (loadingIndicator) loadingIndicator.style.display = 'none'; }
-/** Convert a Blob to a Data URL string */
-// async function blobToDataURL(blob) { ... } // Already imported from RendererCore
-
-/** Debounce function */
-function debounce(func, wait) {
+/**
+ * Simple debounce function for UI updates
+ * @param {Function} fn - Function to debounce
+ * @param {number} ms - Debounce delay in milliseconds
+ * @returns {Function} - Debounced function
+ */
+function debounce(fn, ms) {
     let timeout;
-    return function executedFunction(...args) {
-        const later = () => { clearTimeout(timeout); func.apply(this, args); };
+    return (...args) => {
         clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+        timeout = setTimeout(() => fn(...args), ms);
     };
 }
 
-/** Update visibility of the snapshot performance warning */
-function updateSnapshotWarningVisibility() {
-    if (!snapshotWarning || !snapshotRenderRadio) return;
-    snapshotWarning.style.display = snapshotRenderRadio.checked ? 'block' : 'none';
+/**
+ * Check if the necessary dependencies are available
+ * Updates module scope variables accordingly
+ */
+function checkDependencies() {
+    // Check for html2canvas (for snapshot mode)
+    html2canvasAvailable = typeof captureLogoWithHTML2Canvas === 'function';
+    if (!html2canvasAvailable) {
+        console.warn('[Animation Exporter] html2canvas not found - snapshot method will be disabled');
+    }
+    
+    // Check for gif.js library
+    gifLibraryAvailable = typeof GIFEncoder !== 'undefined';
+    console.log(`[Animation Exporter] GIF library available: ${gifLibraryAvailable}`);
 }
 
-/** Update max attribute of frames input based on selected method */
-function updateFramesInputLimit() {
-    if (!modalFramesInput || !snapshotRenderRadio) return;
-    const isSnapshot = snapshotRenderRadio.checked;
-    const maxFrames = isSnapshot ? 30 : 60;
-    const currentVal = parseInt(modalFramesInput.value);
-
-    modalFramesInput.max = maxFrames;
-    modalFramesInput.title = `Number of PNG frames. Max ${maxFrames} for ${isSnapshot ? 'Snapshot' : 'SVG'} method.`;
-
-    // Adjust current value if it exceeds the new max
-    if (currentVal > maxFrames) {
-        modalFramesInput.value = maxFrames;
-        console.log(`[GIF UI] Frame count adjusted to new max: ${maxFrames}`);
-    }
-
-    const label = modalFramesInput.previousElementSibling; // Assuming label is previous sibling
-    if (label) {
-        label.textContent = `Frames (1-${maxFrames})`;
+/**
+ * Inject the CSS styles into the document head
+ */
+function injectStyles() {
+    if (!document.getElementById(STYLE_ID)) {
+        const styleEl = document.createElement('style');
+        styleEl.id = STYLE_ID;
+        styleEl.textContent = MODAL_CSS;
+        document.head.appendChild(styleEl);
     }
 }
 
+/**
+ * Inject the modal HTML into the document body
+ */
+function injectModalHTML() {
+    if (document.getElementById(MODAL_ID)) return;
+    
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = MODAL_HTML.trim();
+    const modalElement = wrapper.firstChild;
+    document.body.appendChild(modalElement);
+}
 
-/** Generate frames specifically for the preview loop, considering render method */
-async function generatePreviewFrames() {
-    const selectedMethod = snapshotRenderRadio?.checked ? 'snapshot' : 'svg';
-    console.log(`[GIF UI] Generating preview frames using: ${selectedMethod}...`);
+/**
+ * Query and store references to all modal DOM elements
+ * @returns {boolean} True if all elements were found
+ */
+function queryModalElements() {
+    modal = document.getElementById(MODAL_ID);
+    if (!modal) return false;
+    
+    // Query all DOM elements needed for interaction
+    closeBtn = document.getElementById(`${MODAL_ID}CloseBtn`);
+    cancelBtn = document.getElementById(`${MODAL_ID}CancelBtn`);
+    exportBtn = document.getElementById(`${MODAL_ID}ExportBtn`);
+    previewImage = document.getElementById(`${MODAL_ID}PreviewImage`);
+    loadingIndicator = document.getElementById(`${MODAL_ID}LoadingIndicator`);
+    progressText = document.getElementById(`${MODAL_ID}ProgressText`);
+    cancelExportBtnModal = document.getElementById(`${MODAL_ID}CancelExportBtn`);
+    modalWidthInput = document.getElementById(`${MODAL_ID}Width`);
+    modalHeightInput = document.getElementById(`${MODAL_ID}Height`);
+    modalFramesInput = document.getElementById(`${MODAL_ID}Frames`);
+    modalTransparentInput = document.getElementById(`${MODAL_ID}Transparent`);
+    modalFrameRateInput = document.getElementById(`${MODAL_ID}FrameRate`);
+    modalFrameRateValue = document.getElementById(`${MODAL_ID}FrameRateValue`);
+    previewLoadingSpinner = document.getElementById(`${MODAL_ID}PreviewSpinner`);
+    svgRenderRadio = document.getElementById(`${MODAL_ID}MethodSvg`);
+    snapshotRenderRadio = document.getElementById(`${MODAL_ID}MethodSnapshot`);
+    snapshotWarning = document.getElementById(`${MODAL_ID}SnapshotWarning`);
+    exportFormatSelect = document.getElementById(`${MODAL_ID}ExportFormat`);
+    exportFormatInfo = document.getElementById(`${MODAL_ID}FormatInfo`);
+    
+    // Ensure all critical elements were found
+    return !!(
+        closeBtn && cancelBtn && exportBtn && previewImage &&
+        loadingIndicator && progressText && cancelExportBtnModal &&
+        modalWidthInput && modalHeightInput && modalFramesInput &&
+        modalTransparentInput && modalFrameRateInput && modalFrameRateValue &&
+        previewLoadingSpinner && svgRenderRadio && snapshotRenderRadio &&
+        snapshotWarning && exportFormatSelect && exportFormatInfo
+    );
+}
 
-    previewFramesDataUrls = [];
-    stopPreview(); // Stop existing loop
-    if (previewLoadingSpinner) previewLoadingSpinner.style.display = 'block';
-    if (previewImage) previewImage.style.opacity = 0;
+// --- Initialize the UI ---
 
-    // Limit preview frames MORE for snapshot due to performance
-    const maxPreviewFrames = selectedMethod === 'snapshot' ? 8 : 15;
-    const frameCount = Math.min(parseInt(modalFramesInput?.value || 15), maxPreviewFrames);
-    const transparent = modalTransparentInput?.checked || false;
-    const width = parseInt(modalWidthInput?.value || 400); // Use synced dimensions for consistency
-    const height = parseInt(modalHeightInput?.value || 300);
-
+/**
+ * Initialize the Animation Exporter UI
+ * @returns {Promise<boolean>} True if initialization succeeded
+ */
+function initializeUI() {
+    if (isInitialized) return Promise.resolve(true);
+    
     try {
-        console.log(`[GIF UI] Preview Params: Method=${selectedMethod}, ${frameCount} frames, ${width}x${height}, Transparent: ${transparent}`);
-
-        let frameBlobs = [];
-
-        if (selectedMethod === 'snapshot') {
-            if (!html2canvasAvailable) {
-                throw new Error("Snapshot preview failed: html2canvas function not found.");
-            }
-            // --- Snapshot Preview Generation (Simplified - No Animation State Change) ---
-            // This is a *massive* simplification for preview performance. It captures the *current* state N times.
-            // A true preview would need to apply animation delay/state before each capture, which is too slow here.
-            // We'll just capture the first frame N times to give *a* preview image.
-             console.warn("[GIF UI] Snapshot Preview: Capturing static frame multiple times for preview due to performance constraints.");
-             const elementToSnapshot = document.querySelector('#previewContainer'); // Or the appropriate element
-             if (!elementToSnapshot) throw new Error("Snapshot preview failed: Preview container not found.");
-
-             // Use smaller dimensions/scale for snapshot preview to keep it fast
-             const snapshotOptions = {
-                width, height, transparentBackground: transparent,
-                scale: window.devicePixelRatio // Lower scale for preview?
-             };
-             updateModalProgress(`Generating snapshot preview (1 frame)...`); // Update progress text
-             const canvas = await captureLogoWithHTML2Canvas(elementToSnapshot, snapshotOptions);
-             const singleBlob = await new Promise((resolve, reject) => {
-                 canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas toBlob failed for preview')), 'image/png');
-              });
-             // Fill the array with the same blob
-             frameBlobs = Array(frameCount).fill(singleBlob);
-             console.log("[GIF UI] Snapshot preview generated (static frame replicated).");
-            // --- End Snapshot Preview ---
-
-        } else {
-            // --- SVG Preview Generation (Uses existing Core function) ---
-             updateModalProgress(`Generating SVG preview frames (0%)...`); // Update progress text
-             frameBlobs = await generateSvgAnimationFrames({ // Use imported SVG version
-                 width, height, frameCount, transparent,
-                 onProgress: (prog, msg) => {
-                     updateModalProgress(msg || `Generating preview frames (${Math.round(prog*100)}%)...`);
-                 }
-             });
-            // --- End SVG Preview ---
+        // Check dependencies first
+        checkDependencies();
+        
+        // Inject CSS and modal HTML
+        injectStyles();
+        injectModalHTML();
+        
+        // Query modal elements
+        const elementsFound = queryModalElements();
+        if (!elementsFound) {
+            return Promise.reject(new Error("Failed to find Animation Exporter modal elements"));
         }
-
-        if (!frameBlobs || frameBlobs.length === 0) throw new Error("No preview frames generated");
-
-        console.log(`[GIF UI] Converting ${frameBlobs.length} preview blobs to data URLs...`);
-        previewFramesDataUrls = await Promise.all(frameBlobs.map(blob => blobToDataURL(blob)));
-        console.log(`[GIF UI] Generated ${previewFramesDataUrls.length} preview frame data URLs.`);
-
+        
+        // Update export format options
+        updateFormatOptions();
+        
+        // Set initialization flag
+        isInitialized = true;
+        return Promise.resolve(true);
     } catch (error) {
-        console.error("[GIF UI] Preview frame generation error:", error);
-        previewFramesDataUrls = [];
-        if (typeof showAlert === 'function') showAlert(`Preview failed (${selectedMethod}): ${error.message}`, 'warning');
-        updateModalProgress(`Preview Failed!`); // Show error in progress text
-    } finally {
-        if (previewLoadingSpinner) previewLoadingSpinner.style.display = 'none';
-        if (previewImage) previewImage.style.opacity = 1; // Show image area again
-        // Don't hide modal progress here, let the caller handle final state
-        console.log("[GIF UI] Preview frame generation finished.");
+        console.error("[Animation Exporter] Initialization error:", error);
+        return Promise.reject(error);
     }
 }
 
-/** Start the preview animation loop */
-async function startPreviewLoop() {
-    console.log('[GIF UI] Attempting to start preview loop...');
-    stopPreview();
-    hideModalProgress(); // Hide any previous progress messages before generating new preview
-    await generatePreviewFrames(); // Generate/Re-generate frames based on current settings
+/**
+ * Updates the export format options based on available libraries
+ */
+function updateFormatOptions() {
+    if (!exportFormatSelect) return;
+    
+    // Clear existing options
+    exportFormatSelect.innerHTML = "";
+    
+    // Always add the auto option
+    const autoOption = document.createElement("option");
+    autoOption.value = "auto";
+    autoOption.textContent = "Auto (Best Available)";
+    exportFormatSelect.appendChild(autoOption);
+    
+    // Add GIF option (with status indicator)
+    const gifOption = document.createElement("option");
+    gifOption.value = "gif";
+    gifOption.textContent = "Animated GIF";
+    if (!gifLibraryAvailable) {
+        gifOption.textContent += " (Library Not Found)";
+        gifOption.disabled = true;
+    }
+    exportFormatSelect.appendChild(gifOption);
+    
+    // Add ZIP option
+    const zipOption = document.createElement("option");
+    zipOption.value = "zip";
+    zipOption.textContent = "ZIP Package of PNG Frames";
+    exportFormatSelect.appendChild(zipOption);
+    
+    // Add individual files option
+    const individualOption = document.createElement("option");
+    individualOption.value = "individual";
+    individualOption.textContent = "Individual PNG Files";
+    exportFormatSelect.appendChild(individualOption);
+    
+    // Set initial selection based on availability
+    exportFormatSelect.value = "auto";
+    
+    // Set initial format info text
+    updateFormatInfoText();
+}
 
-    if (!previewImage || previewFramesDataUrls.length === 0) {
-        console.error("[GIF UI] No preview frames or image element available. Cannot start loop.");
-        if (previewImage) { previewImage.src = ''; previewImage.alt = "Preview unavailable"; }
+/**
+ * Updates the format info text based on the selected format
+ */
+function updateFormatInfoText() {
+    if (!exportFormatInfo || !exportFormatSelect) return;
+    
+    const selectedFormat = exportFormatSelect.value;
+    let infoText = "";
+    
+    switch (selectedFormat) {
+        case "auto":
+            if (gifLibraryAvailable) {
+                infoText = "Will create an animated GIF using the best available method.";
+            } else {
+                infoText = "Will create a ZIP package of PNG frames (GIF library not available).";
+            }
+            break;
+        case "gif":
+            if (gifLibraryAvailable) {
+                infoText = "Creates a single animated GIF file.";
+            } else {
+                infoText = "GIF creation requires the gif.js library which is not available.";
+            }
+            break;
+        case "zip":
+            infoText = "Creates a ZIP package containing all PNG frames and an HTML preview file.";
+            break;
+        case "individual":
+            infoText = "Downloads each frame as a separate PNG file plus an HTML preview.";
+            break;
+    }
+    
+    exportFormatInfo.textContent = infoText;
+}
+
+// --- Modal Control Functions ---
+
+/**
+ * Opens the animation exporter modal dialog
+ */
+function openModal() {
+    if (!isInitialized || !modal) {
+        console.error("[Animation Exporter] UI not initialized or modal element not found");
+        if (typeof showAlert === 'function') {
+            showAlert("Cannot open Animation Exporter: UI not ready.", "error");
+        }
+        return;
+    }
+    
+    resetCancelFlag();
+    isExporting = false;
+    exportBtn.disabled = false;
+    cancelBtn.disabled = false;
+    cancelExportBtnModal.style.display = 'none';
+    hideModalProgress();
+
+    // Configure render method options based on availability
+    if (!html2canvasAvailable && snapshotRenderRadio) {
+        console.log("[Animation Exporter] html2canvas unavailable, disabling snapshot radio");
+        snapshotRenderRadio.disabled = true;
+        snapshotRenderRadio.checked = false;
+        if (svgRenderRadio) svgRenderRadio.checked = true;
+    } else if (snapshotRenderRadio) {
+        snapshotRenderRadio.disabled = false;
+    }
+
+    // Update UI elements
+    updateSnapshotWarningVisibility();
+    updateFramesInputLimit();
+    updateFormatOptions();
+    syncExportSettings();
+    attachModalEventListeners();
+
+    // Make modal visible
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+        document.body.style.overflow = 'hidden';
+        // Start preview generation after modal is displayed
+        requestAnimationFrame(() => {
+            startPreviewLoop();
+        });
+    });
+}
+
+/**
+ * Closes the animation exporter modal dialog
+ */
+function closeModal() {
+    if (!modal) return;
+    
+    stopPreview();
+    hideModalProgress();
+    detachModalEventListeners();
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+
+    if (isExporting) {
+        cancelExport();
+    }
+}
+
+/**
+ * Shows or updates the progress overlay during export
+ * @param {string} message - Status message to display
+ */
+function updateModalProgress(message) {
+    if (loadingIndicator && progressText) {
+        loadingIndicator.style.display = 'flex';
+        progressText.textContent = message;
+    }
+}
+
+/**
+ * Hides the progress overlay
+ */
+function hideModalProgress() {
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+    if (progressText) {
+        progressText.textContent = '';
+    }
+}
+
+/**
+ * Cancels the current export operation
+ */
+function cancelExport() {
+    if (isExporting && !exportCancelled) {
+        console.log("[Animation Exporter] User initiated export cancellation");
+        exportCancelled = true;
+        
+        if (progressText) {
+            progressText.textContent = "Cancelling export, please wait...";
+        }
+        if (cancelExportBtnModal) {
+            cancelExportBtnModal.disabled = true;
+        }
+    }
+}
+
+/**
+ * Resets the cancellation flag
+ */
+function resetCancelFlag() {
+    exportCancelled = false;
+    window.exportCancelled = false; // Also set global flag for utilities
+}
+
+// --- Preview Functions ---
+
+/**
+ * Starts or restarts the animation preview loop
+ */
+async function startPreviewLoop() {
+    stopPreview(); // Stop any existing preview
+    
+    if (!previewImage || !previewLoadingSpinner) {
+        console.error("[Animation Exporter] Preview image or spinner element missing");
         return;
     }
 
-    currentPreviewFrameIndex = 0;
-    previewImage.src = previewFramesDataUrls[0];
-    previewImage.alt = "Animation Preview";
-    previewImage.style.opacity = 1; // Ensure visible
+    // Show spinner and hide previous image
+    previewLoadingSpinner.style.display = 'block';
+    previewImage.style.opacity = '0';
+    previewImage.removeAttribute('src');
 
-    const fr = parseInt(modalFrameRateInput?.value || 10);
-    const intervalTime = 1000 / Math.max(1, fr);
-    console.log(`[GIF UI] Starting preview loop interval (${fr} FPS -> ${intervalTime.toFixed(1)}ms)`);
+    try {
+        // Generate preview frames
+        await generatePreviewFrames();
+        
+        // Check if frames were successfully generated
+        if (previewFramesDataUrls.length === 0) {
+            console.warn("[Animation Exporter] No preview frames were generated");
+            previewImage.src = '';
+            previewImage.alt = "Preview unavailable";
+            previewImage.style.opacity = '1';
+            previewLoadingSpinner.style.display = 'none';
+            return;
+        }
 
-    previewInterval = setInterval(() => {
-        if (!previewImage || previewFramesDataUrls.length === 0) { stopPreview(); return; }
-        currentPreviewFrameIndex = (currentPreviewFrameIndex + 1) % previewFramesDataUrls.length;
-        previewImage.src = previewFramesDataUrls[currentPreviewFrameIndex];
-    }, intervalTime);
+        // Start animation with first frame
+        currentPreviewFrameIndex = 0;
+        previewImage.src = previewFramesDataUrls[0];
+        previewImage.alt = "Animation Preview";
+        
+        // Handle image load events
+        previewImage.onload = () => {
+            previewImage.style.opacity = '1';
+            previewLoadingSpinner.style.display = 'none';
+            previewImage.onload = null;
+        };
+        
+        previewImage.onerror = () => {
+            console.error("[Animation Exporter] Failed to load preview frame");
+            previewImage.alt = "Preview failed to load";
+            previewImage.style.opacity = '1';
+            previewLoadingSpinner.style.display = 'none';
+            previewImage.onerror = null;
+        };
+
+        // Start animation interval if more than one frame
+        if (previewFramesDataUrls.length > 1) {
+            const fps = Math.max(1, parseInt(modalFrameRateInput?.value || '10'));
+            const intervalMs = 1000 / fps;
+            
+            previewInterval = setInterval(() => {
+                if (!previewImage || previewFramesDataUrls.length === 0) {
+                    stopPreview();
+                    return;
+                }
+                currentPreviewFrameIndex = (currentPreviewFrameIndex + 1) % previewFramesDataUrls.length;
+                previewImage.src = previewFramesDataUrls[currentPreviewFrameIndex];
+            }, intervalMs);
+        }
+    } catch (error) {
+        console.error("[Animation Exporter] Error during preview generation:", error);
+        previewLoadingSpinner.style.display = 'none';
+        
+        if (previewImage) {
+            previewImage.src = '';
+            previewImage.alt = "Preview failed to load";
+            previewImage.style.opacity = '1';
+        }
+        
+        if (typeof showAlert === 'function') {
+            showAlert(`Preview generation failed: ${error.message}`, 'warning');
+        }
+    }
 }
 
-
-/** Stop the preview animation loop */
+/**
+ * Stops the preview animation loop
+ */
 function stopPreview() {
     if (previewInterval) {
         clearInterval(previewInterval);
         previewInterval = null;
-        console.log('[GIF UI] Preview loop stopped.');
     }
 }
 
-/** Core logic for generating export frames via SVG Render method */
-async function internalExportFramesSVG(options = {}) {
-    const { width=800, height=400, frameCount=15, transparent=false, onProgress } = options;
-    console.log(`[GIF Core SVG] Generating ${frameCount} export frames (${width}x${height}). Transparent: ${transparent}`);
-    if (exportCancelled) throw new Error("Export cancelled");
+/**
+ * Generates preview frames based on selected render method
+ */
+async function generatePreviewFrames() {
+    // Clear previous frames
+    previewFramesDataUrls = [];
+
+    // Determine rendering method
+    const useSnapshotMethod = snapshotRenderRadio?.checked && html2canvasAvailable;
+    const renderMethod = useSnapshotMethod ? 'Snapshot' : 'SVG Render';
+    
+    console.log(`[Animation Exporter] Generating preview using ${renderMethod} method`);
+
+    // Get parameters from UI
+    const width = parseInt(modalWidthInput?.value) || 400;
+    const height = parseInt(modalHeightInput?.value) || 300;
+    const transparent = modalTransparentInput?.checked || false;
+    const frameCount = Math.min(
+        parseInt(modalFramesInput?.value) || 15,
+        useSnapshotMethod ? 10 : 20 // Fewer frames for preview
+    );
+
+    if (frameCount <= 0) {
+        console.warn("[Animation Exporter] Preview frame count is zero or less, skipping generation");
+        return;
+    }
+
+    let frameBlobs = [];
+
     try {
-        // Directly use the core SVG-based frame generation function
-        const frames = await generateSvgAnimationFrames({ width, height, frameCount, transparent, onProgress }); // Use imported SVG version
-        if (exportCancelled) throw new Error("Export cancelled");
-        if (!frames || frames.length === 0) throw new Error("Frame generation yielded no results");
-        console.log(`[GIF Core SVG] Generated ${frames.length} export frame blobs.`);
-        return frames;
+        if (useSnapshotMethod) {
+            // Generate frames using Snapshot method
+            frameBlobs = await generateSnapshotFrames({
+                width, height, frameCount, transparent
+            });
+        } else {
+            // Generate frames using SVG method
+            frameBlobs = await generateAnimationFrames({
+                width, height, frameCount, transparent,
+                onProgress: () => {} // Empty progress handler for preview
+            });
+        }
+
+        // Convert blobs to data URLs for preview
+        if (frameBlobs.length > 0) {
+            previewFramesDataUrls = await Promise.all(
+                frameBlobs.map(blob => blobToDataURL(blob))
+            );
+            console.log(`[Animation Exporter] Generated ${previewFramesDataUrls.length} preview frames`);
+        } else {
+            console.warn("[Animation Exporter] Frame generation resulted in zero frame blobs");
+        }
     } catch (error) {
-        console.error('[GIF Core SVG] Error generating export frames:', error);
-        if (error.message === "Export cancelled") throw error;
-        throw new Error(`SVG Frame Generation Failed: ${error.message}`);
+        console.error(`[Animation Exporter] Preview frame generation failed:`, error);
+        previewFramesDataUrls = [];
+        throw error;
     }
 }
 
-/** Core logic for generating export frames via Snapshot method */
-async function internalExportFramesSnapshot(options = {}) {
-    const { width=800, height=400, frameCount=15, transparent=false, onProgress } = options;
-    console.log(`[GIF Core Snapshot] Generating ${frameCount} export frames (${width}x${height}). Transparent: ${transparent}`);
-    if (exportCancelled) throw new Error("Export cancelled");
-    if (!html2canvasAvailable) throw new Error("Snapshot export failed: html2canvas library not found.");
-
-    const frames = [];
-    const baseAnimationMetadata = extractSVGAnimationDetails(); // Get details once
-    const elementToSnapshot = document.querySelector('#previewContainer'); // Target element
-    const logoTextElement = elementToSnapshot?.querySelector('.logo-text'); // Target for animation delay
-
-    if (!elementToSnapshot || !logoTextElement) {
-         throw new Error("Snapshot export failed: Could not find necessary elements (#previewContainer or .logo-text).");
+/**
+ * Generates animation frames using the Snapshot method
+ * @param {Object} options - Generation options
+ * @returns {Promise<Array<Blob>>} Array of frame blobs
+ */
+async function generateSnapshotFrames(options) {
+    const { width, height, frameCount, transparent, onProgress } = options;
+    
+    if (!html2canvasAvailable) {
+        throw new Error("Snapshot method unavailable (html2canvas dependency missing)");
     }
-    if (!baseAnimationMetadata || !baseAnimationMetadata.durationMs || baseAnimationMetadata.durationMs <= 0) {
-        console.warn('[GIF Core Snapshot] No animation duration found. Capturing static frame only.');
-        // Capture single frame
-        const snapshotOptions = { width, height, transparentBackground: transparent, scale: window.devicePixelRatio * 2 };
-        const canvas = await captureLogoWithHTML2Canvas(elementToSnapshot, snapshotOptions);
-        const blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('Canvas toBlob failed')), 'image/png'));
-        if (onProgress) onProgress(1, `Generated 1 static frame (Snapshot)`);
+    
+    // Find preview container and logo text element
+    const previewEl = document.querySelector('#previewContainer');
+    const logoTextEl = previewEl?.querySelector('.logo-text');
+    
+    if (!previewEl || !logoTextEl) {
+        throw new Error("Cannot find #previewContainer or .logo-text required for snapshot");
+    }
+    
+    // Get animation details
+    const animData = extractSVGAnimationDetails();
+    const durationMs = animData?.durationMs || 1000;
+    
+    // Handle static case (no animation)
+    if (!durationMs || durationMs <= 0) {
+        console.warn("[Animation Exporter] No animation detected or duration is zero, capturing static frame");
+        
+        if (onProgress) onProgress(0, "Capturing static frame...");
+        
+        const canvas = await captureLogoWithHTML2Canvas(previewEl, {
+            width, height, 
+            transparentBackground: transparent, 
+            scale: window.devicePixelRatio * 1.5
+        });
+        
+        const blob = await new Promise((resolve, reject) => 
+            canvas.toBlob(b => b ? resolve(b) : reject(new Error("Static snapshot canvas toBlob failed")), 'image/png')
+        );
+        
+        if (onProgress) onProgress(1, "Captured single static frame");
         return [blob];
     }
-
-    // Store original animation style to restore later
-    const originalAnimation = logoTextElement.style.animation || '';
-    const originalAnimPlayState = logoTextElement.style.animationPlayState || '';
-    const originalAnimDelay = logoTextElement.style.animationDelay || '';
-
-
-    for (let i = 0; i < frameCount; i++) {
-        if (exportCancelled) throw new Error("Export cancelled");
-
-        const progress = frameCount <= 1 ? 0 : i / frameCount;
-        const percent = Math.round((i / frameCount) * 100);
-        if (onProgress) {
-            onProgress(percent / 100, `Snapshot Frame ${i + 1}/${frameCount} (${percent}%)...`);
-        }
-
-        // --- Apply Specific Animation State via inline style for this frame ---
-        // We pause the animation and set a negative delay to seek to the desired frame.
-        const delayMs = -(progress * baseAnimationMetadata.durationMs);
-        // logoTextElement.style.animation = 'none'; // Temporarily disable class-based animation
-        logoTextElement.style.animationPlayState = 'paused';
-        logoTextElement.style.animationDelay = `${delayMs.toFixed(0)}ms`;
-        // Force reflow/repaint might be needed? Usually a small timeout or rAF is enough
-        await new Promise(resolve => requestAnimationFrame(resolve)); // Wait for next frame paint
-        // await new Promise(resolve => setTimeout(resolve, 10)); // Alternative small delay
-
-        // --- Capture Frame ---
-        try {
-            // Pass animation metadata to ensure onclone potentially uses it if needed (though delay is set directly here)
-             const frameAnimationMetadata = { ...baseAnimationMetadata, progress: progress };
-            const snapshotOptions = {
-                width, height, transparentBackground: transparent,
-                scale: window.devicePixelRatio * 2, // Use higher scale for export quality
-                // Pass animationDelay for onclone just in case? Not strictly needed as we set it above.
-                // animationDelayMs: delayMs
-                // Ensure the onclone function in captureLogoWithHTML2Canvas handles applying styles correctly
-            };
-
-            const canvas = await captureLogoWithHTML2Canvas(elementToSnapshot, snapshotOptions);
-            const pngBlob = await new Promise((resolve, reject) => {
-                canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Canvas toBlob failed')), 'image/png');
+    
+    // Animated case - save original animation state
+    const originalAnimPlayState = logoTextEl.style.animationPlayState;
+    const originalAnimDelay = logoTextEl.style.animationDelay;
+    const snapshotScale = Math.max(1, Math.min(2, window.devicePixelRatio * 1.5));
+    const frames = [];
+    
+    try {
+        // Pause animation for frame control
+        logoTextEl.style.animationPlayState = 'paused';
+        
+        for (let i = 0; i < frameCount; i++) {
+            // Check for cancellation
+            if (exportCancelled) {
+                throw new Error("Export cancelled");
+            }
+            
+            // Calculate animation progress (0 to 1)
+            const progress = frameCount === 1 ? 0 : i / (frameCount - 1);
+            
+            // Update progress
+            if (onProgress) {
+                const percent = Math.round((i / frameCount) * 100);
+                onProgress(i / frameCount, `Capturing snapshot frame ${i + 1}/${frameCount} (${percent}%)...`);
+            }
+            
+            // Set animation to specific point in time
+            const negativeDelayMs = -(progress * durationMs);
+            logoTextEl.style.animationDelay = `${negativeDelayMs}ms`;
+            
+            // Force reflow/repaint to apply style change
+            await new Promise(resolve => 
+                requestAnimationFrame(() => setTimeout(resolve, 5))
+            );
+            
+            // Capture the frame
+            const canvas = await captureLogoWithHTML2Canvas(previewEl, {
+                width, height,
+                transparentBackground: transparent,
+                scale: snapshotScale,
+                logging: false
             });
-            frames.push(pngBlob);
-        } catch (error) {
-            console.error(`[GIF Core Snapshot] Error generating frame ${i + 1}:`, error);
-            // Restore original animation before throwing
-            logoTextElement.style.animationPlayState = originalAnimPlayState;
-            logoTextElement.style.animationDelay = originalAnimDelay;
-            // logoTextElement.style.animation = originalAnimation; // Restore fully? Might interfere with cleanup
-             throw new Error(`Snapshot Frame Generation Failed (Frame ${i + 1}): ${error.message}`); // Stop on error
+            
+            const blob = await new Promise((resolve, reject) =>
+                canvas.toBlob(b => b ? resolve(b) : reject(new Error(`Snapshot Frame ${i} canvas toBlob failed`)), 'image/png')
+            );
+            
+            frames.push(blob);
         }
+    } finally {
+        // Restore original animation state
+        logoTextEl.style.animationPlayState = originalAnimPlayState;
+        logoTextEl.style.animationDelay = originalAnimDelay;
     }
-
-     // Restore original animation state after loop
-     logoTextElement.style.animationPlayState = originalAnimPlayState;
-     logoTextElement.style.animationDelay = originalAnimDelay;
-     // logoTextElement.style.animation = originalAnimation;
-
-    console.log(`[GIF Core Snapshot] Generated ${frames.length} export frame blobs.`);
-    if (onProgress) onProgress(1, `Generated ${frames.length} frames (Snapshot).`);
+    
+    if (onProgress) {
+        onProgress(1, `Finished capturing ${frames.length} snapshot frames`);
+    }
+    
     return frames;
 }
 
+// --- Export Functionality ---
 
-/** Creates the content for the info.txt file included in the ZIP. (Updated) */
-function createInfoText(logoText, width, height, frameCount, renderMethod) {
-     const date = new Date();
-     const safeLogoText = (typeof window.Utils?.getLogoFilenameBase === 'function' ? window.Utils.getLogoFilenameBase() : logoText.toLowerCase().replace(/[^a-z0-9]+/g, "-").substring(0, 30) || 'logo');
-     const dateString = new Intl.DateTimeFormat('en-US', { dateStyle: 'long', timeStyle: 'short' }).format(date);
-
-     return `LOGO ANIMATION EXPORT INFO
-=========================
-
-Logo Text: ${logoText}
-Export Date: ${dateString}
-Resolution: ${width}x${height}
-Frame Count: ${frameCount}
-Render Method: ${renderMethod.toUpperCase()} ${renderMethod === 'snapshot' ? '(WYSIWYG via html2canvas)' : '(Vector via SVG Render)'}
-Source Frame Rate (approx): The animation speed set in Logomaker.
-Preview HTML Rate: ~10 FPS (Adjustable in preview.html controls)
-
-Created with Logomaker by Manic.agency
-https://manicinc.github.io/logomaker
-
-PACKAGE CONTENTS:
-- Individual frames as PNG files (e.g., ${safeLogoText}-frame-###.png)
-- An interactive HTML preview file (${safeLogoText}-preview.html).
-- This info text file.
-
-USAGE INSTRUCTIONS:
-- Unzip the downloaded file.
-- Open the HTML file in your browser to preview the frame sequence and scrub through frames.
-- Import the sequence of PNG frames into video editing software (Premiere, DaVinci Resolve, After Effects, Final Cut Pro, etc.). Set frame duration appropriately based on the original animation speed (e.g., 0.1s per frame for 10 FPS).
-- Use an online tool (like ezgif.com's "PNG Sequence to GIF" or "APNG Maker") or desktop software (GIMP, Photoshop, FFmpeg) to combine the PNG frames into an animated GIF or APNG. Adjust frame delay as needed (e.g., 100ms for 10 FPS corresponds to 0.1s duration per frame).
-
-Made with ♥ by Manic.agency
-`;
- }
-
-/** Creates the content for the detailed preview.html file */
-function createDetailedHTMLPreview(options) {
-    // ... (Keep existing implementation, maybe add render method to metadata?) ...
-    const { logoName = 'logo', frameCount = 15, width = 800, height = 400, frameRate = 10, renderMethod = 'svg' } = options;
-      console.log(`[GIF UI] Creating detailed HTML preview. Name: ${logoName}, Frames: ${frameCount}, Method: ${renderMethod}`);
-      let exportInfo = { exportDate: new Date().toLocaleString(), renderMethod: renderMethod };
-      try {
-          // ... (Gather other metadata as before) ...
-           const styles = captureAdvancedStyles();
-           const animationMetadata = extractSVGAnimationDetails();
-           const settings = window.SettingsManager?.getCurrentSettings?.() || {};
-           exportInfo = {
-              exportDate: new Date().toLocaleString(),
-              renderMethod: renderMethod,
-              sourceSettings: { /* Add relevant settings */ },
-              animationDetails: animationMetadata,
-              styleDetails: { /* Add relevant styles */ }
-          };
-      } catch (e) { console.error("Error gathering metadata for HTML preview:", e); }
-      const exportInfoJson = JSON.stringify(exportInfo, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const safeLogoName = logoName.toLowerCase().replace(/[^a-z0-9-]/g, '-').substring(0, 30) || 'logo';
-      // Simplified frame list generation
-      let frameItemsHTML = '';
-       for (let i = 0; i < frameCount; i++) {
-            const frameNumber = String(i).padStart(3, '0');
-            frameItemsHTML += `<img src="${safeLogoName}-frame-${frameNumber}.png" alt="Frame ${i + 1}" loading="lazy" style="display:none; max-width:100%; height:auto;">`;
-        }
-
-
-    // Full HTML content (condensed for brevity, use your existing full HTML here)
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animation Preview: ${safeLogoName}</title>
-    <style>
-        body { font-family: sans-serif; background-color: #f0f0f0; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .preview-container { border: 1px solid #ccc; margin-bottom: 20px; background-color: #fff; position: relative; max-width: ${width}px; aspect-ratio: ${width} / ${height}; }
-        .preview-image { display: block; max-width: 100%; height: auto; position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.05s linear; }
-        .preview-image.active { opacity: 1; z-index: 1; }
-        .controls { background-color: #eee; padding: 15px; border-radius: 5px; text-align: center; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .controls label { margin: 0 10px; font-size: 0.9em; }
-        .controls input[type="range"], .controls input[type="number"] { margin-left: 5px; vertical-align: middle; }
-        .controls button { padding: 5px 10px; margin: 0 5px; cursor: pointer; }
-        .frame-info { font-size: 0.9em; color: #555; margin-top: 5px; min-height: 1.2em;}
-        .metadata { margin-top: 20px; background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 5px; width: 90%; max-width: 800px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .metadata h3 { margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .metadata pre { background-color: #f8f8f8; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.85em; }
-        /* Add simple loading indicator */
-        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; z-index: 10; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; display: none; /* Initially hidden */ }
-        /* Ensure container has correct aspect ratio */
-        .preview-container::before { content: ""; display: block; padding-top: ${(height / width * 100)}%; } /* Aspect ratio */
-        .preview-container img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; } /* Make images fill container */
-    </style>
-</head>
-<body>
-
-    <h2>Animation Preview: ${safeLogoName}</h2>
-
-    <div class="preview-container" id="previewContainer" style="width:${Math.min(width, 800)}px;">
-        <div id="loading">Loading frames...</div>
-        ${frameItemsHTML}
-    </div>
-
-    <div class="controls">
-        <button id="playBtn">&#9658; Play</button>
-        <button id="pauseBtn">❚❚ Pause</button>
-        <label>Speed (FPS): <input type="range" id="fpsSlider" min="1" max="30" value="${frameRate}" step="1"><span id="fpsValue">${frameRate}</span></label>
-        <label>Frame: <input type="range" id="frameSlider" min="0" max="${frameCount - 1}" value="0" step="1"><span id="frameValue">1</span> / ${frameCount}</label>
-        <div class="frame-info" id="frameInfo">Frame 1 / ${frameCount}</div>
-    </div>
-
-    <div class="metadata">
-        <h3>Export Details</h3>
-        <pre id="exportInfoJson">${exportInfoJson}</pre>
-    </div>
-
-    <script>
-        const images = document.querySelectorAll('#previewContainer img');
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const fpsSlider = document.getElementById('fpsSlider');
-        const fpsValue = document.getElementById('fpsValue');
-        const frameSlider = document.getElementById('frameSlider');
-        const frameValue = document.getElementById('frameValue');
-        const frameInfo = document.getElementById('frameInfo');
-        const loadingIndicator = document.getElementById('loading');
-        const totalFrames = images.length;
-        let currentFrame = 0;
-        let intervalId = null;
-        let frameRate = ${frameRate};
-        let loadedCount = 0;
-
-        function showFrame(index) {
-            if (index < 0 || index >= totalFrames) return;
-            images.forEach((img, i) => {
-                img.classList.toggle('active', i === index);
-            });
-            currentFrame = index;
-            frameSlider.value = index;
-            frameValue.textContent = index + 1;
-            frameInfo.textContent = \`Frame \${index + 1} / \${totalFrames}\`;
-        }
-
-        function play() {
-            if (intervalId) clearInterval(intervalId);
-            const delay = 1000 / frameRate;
-            intervalId = setInterval(() => {
-                const nextFrame = (currentFrame + 1) % totalFrames;
-                showFrame(nextFrame);
-            }, delay);
-            playBtn.textContent = 'Playing...';
-            pauseBtn.textContent = '❚❚ Pause';
-        }
-
-        function pause() {
-            if (intervalId) clearInterval(intervalId);
-            intervalId = null;
-            playBtn.textContent = '▶ Play';
-            pauseBtn.textContent = 'Paused';
-        }
-
-        fpsSlider.addEventListener('input', () => {
-            frameRate = parseInt(fpsSlider.value);
-            fpsValue.textContent = frameRate;
-            if (intervalId) { // If playing, restart with new speed
-                play();
-            }
-        });
-
-        frameSlider.addEventListener('input', () => {
-            pause(); // Pause when scrubbing
-            showFrame(parseInt(frameSlider.value));
-        });
-
-        playBtn.addEventListener('click', play);
-        pauseBtn.addEventListener('click', pause);
-
-        // Preload images and show the first frame
-        function checkAllLoaded() {
-             loadedCount++;
-             if (loadedCount === totalFrames) {
-                 loadingIndicator.style.display = 'none';
-                 showFrame(0); // Show first frame
-                 console.log('All frames loaded');
-             } else {
-                 loadingIndicator.textContent = \`Loading frame \${loadedCount} / \${totalFrames}...\`;
-             }
-         }
-
-         if (images.length > 0) {
-             loadingIndicator.style.display = 'block'; // Show loading
-             images.forEach(img => {
-                 if (img.complete) {
-                    checkAllLoaded();
-                 } else {
-                    img.onload = checkAllLoaded;
-                    img.onerror = () => { console.error('Failed to load frame:', img.src); checkAllLoaded(); }; // Count errors too
-                 }
-             });
-         } else {
-             loadingIndicator.textContent = 'No frames found.';
-         }
-
-    </script>
-</body>
-</html>`;
-}
-
-
-/** Helper to confirm export size, considering render method */
-function confirmExportSize(frameCount, renderMethod) {
-    const isSnapshot = renderMethod === 'snapshot';
-    let warningThreshold = isSnapshot ? 15 : 45; // Lower threshold for snapshot
-    let message = '';
-
-    if (frameCount > warningThreshold) {
-        message = `Generating ${frameCount} frames using the ${renderMethod.toUpperCase()} method`;
-        if (isSnapshot) {
-            message += ` may take a <strong>very long time</strong> and consume significant memory/CPU due to repeated screen captures.`;
-        } else {
-            message += ` may take some time and memory, especially for complex logos or slower devices.`;
-        }
-        message += ` Continue?`;
-
-        // Use custom modal if available, otherwise fallback to confirm
-        if (typeof window.showModal === 'function') {
-             // Assuming showModal returns a promise that resolves true/false
-            return window.showModal({
-                 title: 'Large Export Warning',
-                 message: message, // Allow HTML in message
-                 type: 'warning',
-                 confirmText: 'Continue Export',
-                 cancelText: 'Cancel',
-             }); // Needs showModal to support confirm/cancel promises
-        } else {
-            // Basic confirm (won't render HTML)
-             return Promise.resolve(confirm(message.replace(/<strong>|<\/strong>/g, ''))); // Strip HTML for basic confirm
-        }
-    }
-    return Promise.resolve(true); // Proceed if below threshold
-}
-/** Handle the main export process (ADDED DEBUG LOGGING at start) */
+/**
+ * Handles the export button click
+ * Main entry point for export functionality
+ */
 async function handleExport() {
-    // --- DEBUG: Log entry ---
-    console.log('[GIF UI DEBUG] handleExport function entered.');
-
-    // --- DEBUG: Check isExporting flag ---
-    console.log(`[GIF UI DEBUG] Checking isExporting flag. Value: ${isExporting}`);
+    // Check if export is already in progress
     if (isExporting) {
-        console.warn('[GIF UI DEBUG] Exiting handleExport because isExporting is true.');
-        if (typeof showAlert === 'function') showAlert("Export already in progress.", "warning");
+        console.warn("[Animation Exporter] Export already in progress");
         return;
     }
-
-    // --- DEBUG: Check required elements right away ---
-    if (!snapshotRenderRadio || !svgRenderRadio || !modalWidthInput || !modalHeightInput || !modalFramesInput || !modalTransparentInput || !exportBtn || !cancelBtn || !cancelExportBtnModal || !loadingIndicator || !progressText) {
-        console.error('[GIF UI DEBUG] CRITICAL ERROR: One or more required modal elements are missing in handleExport!');
-        console.error({ snapshotRenderRadio, svgRenderRadio, modalWidthInput, modalHeightInput, modalFramesInput, modalTransparentInput, exportBtn, cancelBtn, cancelExportBtnModal, loadingIndicator, progressText });
-        if (typeof showAlert === 'function') showAlert("Critical error: UI elements missing for export. Cannot proceed.", "error");
-        isExporting = false; // Ensure flag is reset if we exit here
+    
+    // Validate required elements
+    if (!modalWidthInput || !modalHeightInput || !modalFramesInput) {
+        console.error("[Animation Exporter] Required UI elements not found");
         return;
     }
-     console.log('[GIF UI DEBUG] All checked elements seem to exist.');
-
-    // --- Original logic starts here ---
+    
+    // Get export parameters from UI
     const renderMethod = snapshotRenderRadio.checked ? 'snapshot' : 'svg';
-    const width = parseInt(modalWidthInput.value);
-    const height = parseInt(modalHeightInput.value);
-    const frameCount = parseInt(modalFramesInput.value);
-    const transparent = modalTransparentInput.checked;
-    const maxFrames = renderMethod === 'snapshot' ? 30 : 60; // Enforce limits
-
-    console.log("[GIF UI] Starting Export Process. Settings:", { renderMethod, width, height, frameCount, transparent, maxFrames });
-
-    if (isNaN(width) || isNaN(height) || isNaN(frameCount) || width <= 0 || height <= 0 || frameCount <= 0 || frameCount > maxFrames) {
-        console.error('[GIF UI DEBUG] Invalid export settings detected.');
-        if (typeof showAlert === 'function') showAlert(`Invalid export settings (Width/Height > 0, Frames: 1-${maxFrames} for ${renderMethod}).`, "error");
-        isExporting = false; // Ensure flag is reset
+    const width = parseInt(modalWidthInput.value) || 800;
+    const height = parseInt(modalHeightInput.value) || 400;
+    const frameCount = parseInt(modalFramesInput.value) || 15;
+    const transparent = modalTransparentInput?.checked || false;
+    const fps = parseInt(modalFrameRateInput?.value || '10');
+    const delay = fps > 0 ? Math.round(1000 / fps) : 100;
+    const exportFormat = exportFormatSelect?.value || 'auto';
+    
+    // Validate frame count
+    const maxFrames = (renderMethod === 'snapshot') ? 30 : 60;
+    if (frameCount <= 0 || frameCount > maxFrames) {
+        if (typeof showAlert === 'function') {
+            showAlert(`Invalid frame count. Please use 1-${maxFrames} frames.`, 'warning');
+        }
         return;
     }
-
-    // Await confirmation if needed
-    console.log('[GIF UI DEBUG] Awaiting export size confirmation...');
+    
+    // Confirm large export
     const proceed = await confirmExportSize(frameCount, renderMethod);
-    if (!proceed) {
-        console.log('[GIF UI DEBUG] Export cancelled by user size confirmation.');
-        // No need to set isExporting = true if cancelled here
-        return;
-    }
-    console.log('[GIF UI DEBUG] User confirmed export.');
-
-    // --- Set Exporting State ---
-    isExporting = true; // Set flag *after* confirmation and checks
-    console.log(`[GIF UI DEBUG] isExporting flag set to true.`);
+    if (!proceed) return;
+    
+    // Initialize export state
+    isExporting = true;
     resetCancelFlag();
-    updateModalProgress(`Starting ${renderMethod} export...`);
-    if (exportBtn) exportBtn.disabled = true;
-    if (cancelBtn) cancelBtn.disabled = true;
-    if (cancelExportBtnModal) { cancelExportBtnModal.disabled = false; cancelExportBtnModal.style.display = 'inline-block'; }
-    stopPreview(); // Stop preview loop during export
-
-    let filesToZip = []; // Declare here to access in error handling
-
+    updateModalProgress(`Starting ${renderMethod.toUpperCase()} export... (0%)`);
+    exportBtn.disabled = true;
+    cancelBtn.disabled = true;
+    cancelExportBtnModal.style.display = 'inline-block';
+    cancelExportBtnModal.disabled = false;
+    stopPreview();
+    
+    let exportSuccess = false;
+    let resultMessage = '';
+    
     try {
-        // Get filename base (ensure Utils is available)
-        const getFilenameFunc = typeof window.Utils?.getLogoFilenameBase === 'function' ? window.Utils.getLogoFilenameBase : () => 'logo';
-        const safeLogoText = getFilenameFunc();
-        const logoText = document.querySelector('.logo-text')?.textContent || safeLogoText;
-        console.log(`[GIF UI DEBUG] Filename base: ${safeLogoText}`);
-
-        // --- 1. Generate Export Frames ---
-        updateModalProgress(`Generating ${frameCount} frames (${renderMethod}, 0%)...`);
-        let frames = [];
-        const exportOptions = {
-            width, height, frameCount, transparent,
-            onProgress: (progress, message) => {
-                if (exportCancelled) throw new Error("Export cancelled"); // Propagate cancellation
-                // Update progress text using the correct ID
-                const progressTextElement = document.getElementById(`${MODAL_ID}ProgressText`);
-                if (progressTextElement) {
-                     progressTextElement.textContent = message || `Generating frames (${renderMethod}, ${Math.round(progress * 100)}%)...`;
-                }
-            }
-        };
-        console.log('[GIF UI DEBUG] Calling frame generation function...');
+        // 1. Generate PNG frame blobs
+        updateModalProgress('Generating animation frames...');
+        let frameBlobs;
+        
         if (renderMethod === 'snapshot') {
-            frames = await internalExportFramesSnapshot(exportOptions);
+            frameBlobs = await generateSnapshotFrames({
+                width, height, frameCount, transparent,
+                onProgress: (progress, msg) => {
+                    if (exportCancelled) throw new Error("Export cancelled by user");
+                    const percent = Math.round(progress * 50); // First 50% of progress
+                    updateModalProgress(msg || `Generating frames: ${percent}%`);
+                }
+            });
         } else {
-            frames = await internalExportFramesSVG(exportOptions);
+            frameBlobs = await generateAnimationFrames({
+                width, height, frameCount, transparent,
+                onProgress: (progress, msg) => {
+                    if (exportCancelled) throw new Error("Export cancelled by user");
+                    const percent = Math.round(progress * 50); // First 50% of progress
+                    updateModalProgress(msg || `Generating frames: ${percent}%`);
+                }
+            });
         }
-        console.log(`[GIF UI DEBUG] Frame generation function returned ${frames.length} frames.`);
-        if (exportCancelled) throw new Error('Export cancelled'); // Check again
-        console.log(`[GIF UI] Successfully generated ${frames.length} frames.`);
-        await new Promise(resolve => setTimeout(resolve, 50)); // UI update pause
-
-        // --- 2. Prepare files for ZIP ---
-        updateModalProgress("Preparing files for ZIP package...");
-        console.log('[GIF UI DEBUG] Preparing filesToZip array...');
-        // filesToZip = []; // Already declared outside try
-        frames.forEach((frameBlob, index) => {
-            if (frameBlob instanceof Blob) {
-                filesToZip.push({
-                    blob: frameBlob,
-                    name: `${safeLogoText}-frame-${String(index).padStart(3, '0')}.png`
-                });
-            } else {
-                 console.warn(`[GIF UI DEBUG] Frame ${index} is not a valid Blob, skipping.`);
+        
+        if (exportCancelled) throw new Error("Export cancelled by user");
+        if (!frameBlobs || frameBlobs.length === 0) {
+            throw new Error("Frame generation failed or returned no frames");
+        }
+        
+        // 2. Determine filename base
+        const logoTextContent = document.querySelector('.logo-text')?.textContent || 'animation';
+        const filenameBase = typeof getLogoFilenameBase === 'function' ? 
+            getLogoFilenameBase() : 
+            logoTextContent.toLowerCase().replace(/[^a-z0-9-_]/gi, '-').substring(0, 30);
+        
+        // 3. Create and export animation using appropriate method
+        updateModalProgress('Processing animation output...');
+        
+        const exportResult = await generateGIF(frameBlobs, {
+            width,
+            height,
+            delay,
+            quality: 10,
+            filenameBase,
+            transparent,
+            exportFormat,
+            onProgress: (msg) => {
+                if (exportCancelled) throw new Error("Export cancelled by user");
+                updateModalProgress(msg);
             }
         });
-
-        // --- 3. Create HTML Preview and Info Text ---
-        console.log('[GIF UI DEBUG] Creating HTML/TXT info files...');
-        const previewHTML = createDetailedHTMLPreview({ logoName: safeLogoText, frameCount: filesToZip.length, width, height, renderMethod });
-        const infoTXT = createInfoText(logoText, width, height, filesToZip.length, renderMethod);
-        filesToZip.push({ blob: new Blob([previewHTML], { type: 'text/html' }), name: `${safeLogoText}-preview.html` });
-        filesToZip.push({ blob: new Blob([infoTXT], { type: 'text/plain' }), name: `${safeLogoText}-info.txt` });
-        console.log(`[GIF UI DEBUG] Prepared ${filesToZip.length} total files for zipping.`);
-        await new Promise(resolve => setTimeout(resolve, 30));
-        if (exportCancelled) throw new Error('Export cancelled');
-
-        // --- 4. Create ZIP and Trigger Download ---
-        const zipFilename = `${safeLogoText}-animation-frames-${renderMethod}.zip`;
-        updateModalProgress("Creating ZIP package... (JSZip if available, else fallback)");
-        console.log(`[GIF UI DEBUG] >>>>>>>> Calling createZip... Filename: ${zipFilename}`);
-        await new Promise(resolve => setTimeout(resolve, 50)); // UI update pause
-
-        const zipSuccess = await createZip(filesToZip, zipFilename, (percent) => {
-            // Update UI progress via callback from zipUtils
-            const progressTextElement = document.getElementById(`${MODAL_ID}ProgressText`);
-            if (progressTextElement) {
-                progressTextElement.textContent = `Creating ZIP package... ${percent}%`;
-                console.log(`[GIF UI DEBUG] ZIP Progress Callback: ${percent}%`);
+        
+        // 4. Process result
+        if (exportResult.success) {
+            console.log(`[Animation Exporter] Export successful, type: ${exportResult.type}`);
+            exportSuccess = true;
+            
+            // Customize success message based on export type
+            switch (exportResult.type) {
+                case 'gif':
+                    resultMessage = `Exported animated GIF: ${exportResult.filename}`;
+                    break;
+                case 'zip':
+                    resultMessage = `Exported ZIP package: ${exportResult.filename}`;
+                    break;
+                case 'individual':
+                    resultMessage = `Exported ${exportResult.downloadedCount} individual PNG frames`;
+                    break;
+                default:
+                    resultMessage = 'Export completed successfully';
             }
-        });
-
-        console.log(`[GIF UI DEBUG] <<<<<<<< createZip call finished. Success: ${zipSuccess}`);
-        if (exportCancelled) throw new Error('Export cancelled after zip attempt');
-
-        if (!zipSuccess) {
-            console.error("[GIF UI DEBUG] createZip returned false, indicating failure.");
-            throw new Error("ZIP/Fallback export process failed. Check console and browser download settings.");
+        } else {
+            throw new Error(exportResult.error || "Export failed with unknown error");
         }
-
-        // --- 5. Success Notification & Cleanup ---
-        console.log("[GIF UI DEBUG] Export process successful. Notifying and closing modal.");
-        const notifyFunc = typeof window.notifyExportSuccess === 'function' ? window.notifyExportSuccess : (f, fn) => showAlert(`${f} Export Complete! File: ${fn}`, 'success');
-        notifyFunc(`Animation Frames Export (${renderMethod})`, zipFilename); // Notify with intended ZIP name
-        closeModal(); // Close the modal on success
-
+        
     } catch (error) {
-        // --- Error Handling ---
-        console.error("[GIF UI DEBUG] Caught error in handleExport:", error); // Log the full error
-        hideModalProgress(); // Hide spinner on error
-        if (error.message && error.message.toLowerCase().includes('export cancelled')) {
-            if (typeof showAlert === 'function') showAlert('Export cancelled by user.', 'info');
-            console.log('[GIF UI DEBUG] Export process was cancelled.');
+        console.error("[Animation Exporter] Export error:", error);
+        
+        if (error.message.includes('cancelled')) {
+            updateModalProgress('Export cancelled.');
+            if (typeof showAlert === 'function') {
+                showAlert('Export cancelled by user.', 'info');
+            }
         } else {
-            // Log specific error details if available
-            console.error(`[GIF UI] Export process failed (${renderMethod}):`, error.message, error.cause ? `\nCause: ${error.cause}` : '');
-            if (typeof showAlert === 'function') showAlert(`Animation Export failed (${renderMethod}): ${error.message || 'Unknown error'}`, 'error');
-            // Check if fallback might have been triggered before the error
-            if (!isJSZipAvailable() && filesToZip && filesToZip.length > 0) {
-                 if (typeof showAlert === 'function') showAlert(`ZIP creation may have failed. Direct frame downloads might have been attempted. Check your downloads folder.`, 'warning');
-                 console.warn('[GIF UI DEBUG] Error occurred, but direct download fallback might have been initiated.');
+            updateModalProgress(`Export failed: ${error.message}`);
+            if (typeof showAlert === 'function') {
+                showAlert(`Animation export failed: ${error.message}`, 'error');
             }
         }
     } finally {
-        // --- Cleanup ---
-        console.log("[GIF UI DEBUG] Entering finally block.");
-        isExporting = false; // Reset the flag ALWAYS
-        console.log(`[GIF UI DEBUG] isExporting flag reset to false.`);
-        // Re-enable buttons
-        if (exportBtn) exportBtn.disabled = false;
-        if (cancelBtn) cancelBtn.disabled = false;
-        if (cancelExportBtnModal) cancelExportBtnModal.style.display = 'none';
-        resetCancelFlag(); // Reset cancellation flag
-        // Ensure progress indicator is hidden unless an error message is needed
-        // hideModalProgress(); // Already called in catch, potentially hide again just in case?
-        console.log("[GIF UI DEBUG] Export handle finished.");
+        // Reset UI state
+        isExporting = false;
+        exportBtn.disabled = false;
+        cancelBtn.disabled = false;
+        cancelExportBtnModal.style.display = 'none';
+        
+        // Show final result or close modal on success
+        if (exportSuccess) {
+            if (typeof showAlert === 'function') {
+                showAlert(resultMessage, 'success');
+            }
+            closeModal();
+        }
     }
 }
 
-/** Cancel the ongoing export */
-function cancelExport() {
-    if (isExporting && !exportCancelled) {
-         console.log('[GIF UI] Cancel export requested.');
-         exportCancelled = true; // Set the flag
-         updateModalProgress("Attempting to cancel export...");
-         if(cancelExportBtnModal) cancelExportBtnModal.disabled = true;
+/**
+ * Confirm potentially slow/large export with the user
+ * @param {number} frameCount - Number of frames to be exported
+ * @param {string} renderMethod - Rendering method ('snapshot' or 'svg')
+ * @returns {Promise<boolean>} True if user confirms, false otherwise
+ */
+async function confirmExportSize(frameCount, renderMethod) {
+    const warningThreshold = (renderMethod === 'snapshot') ? 15 : 40;
+    
+    if (frameCount <= warningThreshold) {
+        return true; // No confirmation needed for smaller exports
+    }
+    
+    const message = `
+        You are about to export <strong>${frameCount} frames</strong> using the
+        <strong>${renderMethod.toUpperCase()} method</strong>.<br><br>
+        Exports with many frames, especially using the Snapshot method, can be <strong>very slow</strong> and generate large files.<br><br>
+        Are you sure you want to continue?`;
+    
+    // Use modal system if available
+    if (typeof window.showModal === 'function' && typeof window.showModal.ModalType === 'object') {
+        return window.showModal({
+            title: 'Large Export Warning',
+            message: message,
+            type: window.showModal.ModalType.WARNING,
+            confirmText: 'Continue Export',
+            cancelText: 'Cancel'
+        });
     } else {
-         console.log('[GIF UI] No export in progress or already cancelling.');
+        // Fallback to basic confirm
+        const plainMsg = message.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+        return confirm(plainMsg);
     }
 }
 
-/** Attach event listeners (Updated) */
+// --- UI Helper Functions ---
+
+/**
+ * Shows or hides the warning text for Snapshot mode
+ */
+function updateSnapshotWarningVisibility() {
+    if (!snapshotWarning || !snapshotRenderRadio) return;
+    
+    snapshotWarning.style.display = (snapshotRenderRadio.checked && html2canvasAvailable) ? 'block' : 'none';
+}
+
+/**
+ * Adjusts maximum frames and label based on selected render method
+ */
+function updateFramesInputLimit() {
+    if (!modalFramesInput || !snapshotRenderRadio || !svgRenderRadio) return;
+    
+    const isSnapshot = snapshotRenderRadio.checked;
+    const maxFrames = isSnapshot ? 30 : 60;
+    const minFrames = 1;
+    
+    modalFramesInput.max = maxFrames;
+    modalFramesInput.min = minFrames;
+    
+    // Update label text
+    const label = modalFramesInput.closest('.control-group')?.querySelector('label');
+    if (label) {
+        label.textContent = `Frames (${minFrames} - ${maxFrames})`;
+    }
+    
+    // Clamp current value if needed
+    let currentValue = parseInt(modalFramesInput.value);
+    if (isNaN(currentValue) || currentValue < minFrames) {
+        modalFramesInput.value = minFrames;
+    } else if (currentValue > maxFrames) {
+        modalFramesInput.value = maxFrames;
+    }
+}
+
+/**
+ * Syncs read-only fields (Width/Height) with global settings
+ */
+function syncExportSettings() {
+    try {
+        // Sync dimensions from main UI
+        const mainWidth = document.getElementById('exportWidth')?.value || '800';
+        const mainHeight = document.getElementById('exportHeight')?.value || '400';
+        
+        if (modalWidthInput) modalWidthInput.value = mainWidth;
+        if (modalHeightInput) modalHeightInput.value = mainHeight;
+        
+        // Update UI after sync
+        updateFramesInputLimit();
+        updateSnapshotWarningVisibility();
+        updateFormatInfoText();
+    } catch (error) {
+        console.error("[Animation Exporter] Error syncing settings:", error);
+    }
+}
+
+// --- Event Listeners ---
+
+/**
+ * Attach event listeners to modal elements
+ */
 function attachModalEventListeners() {
     if (!modal || modal.dataset.listenersAttached === 'true') return;
-    console.log('[GIF UI] Attaching event listeners...');
+    
+    const handleMethodChange = () => {
+        updateSnapshotWarningVisibility();
+        updateFramesInputLimit();
+        startPreviewLoop();
+    };
+    
+    const handleFormatChange = () => {
+        updateFormatInfoText();
+    };
+    
+    // Attach core UI event listeners
     closeBtn?.addEventListener('click', closeModal);
     cancelBtn?.addEventListener('click', closeModal);
     exportBtn?.addEventListener('click', handleExport);
     cancelExportBtnModal?.addEventListener('click', cancelExport);
     modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-    // Debounced preview restart triggered by frame count, transparency, OR render method change
-    const debouncedPreviewRestart = debounce(startPreviewLoop, 450); // Slightly longer delay?
+    
+    // Input control listeners
+    const debouncedPreviewRestart = debounce(startPreviewLoop, 400);
     modalFramesInput?.addEventListener('input', debouncedPreviewRestart);
     modalTransparentInput?.addEventListener('change', debouncedPreviewRestart);
-
-    // Render Method Change Listener
-    const handleMethodChange = () => {
-        console.log('[GIF UI] Render method changed.');
-        updateSnapshotWarningVisibility();
-        updateFramesInputLimit();
-        debouncedPreviewRestart(); // Regenerate preview for the new method
-    };
     svgRenderRadio?.addEventListener('change', handleMethodChange);
     snapshotRenderRadio?.addEventListener('change', handleMethodChange);
-
-
-    // FPS slider updates interval speed directly without regenerating frames
+    exportFormatSelect?.addEventListener('change', handleFormatChange);
+    
+    // Frame rate control
     modalFrameRateInput?.addEventListener('input', () => {
-         if(modalFrameRateValue) modalFrameRateValue.textContent = `${modalFrameRateInput.value} FPS`;
-         if (previewInterval) { // If preview is running, restart interval with new speed
-             console.log('[GIF UI] Restarting preview loop with new FPS.');
-             // Restarting the loop is necessary to apply the new interval time correctly
-             startPreviewLoop(); // This stops the old one and starts new with current FPS
-         }
+        if (modalFrameRateValue) {
+            modalFrameRateValue.textContent = `${modalFrameRateInput.value} FPS`;
+        }
+        if (previewInterval) {
+            startPreviewLoop();
+        }
     });
-
+    
+    // Global settings listener
+    handleSettingsUpdateListener = () => {
+        if (modal.style.display === 'flex') {
+            syncExportSettings();
+            startPreviewLoop();
+        }
+    };
+    document.addEventListener('logomaker-settings-updated', handleSettingsUpdateListener);
+    
+    // Escape key handler
     document.addEventListener('keydown', handleEscapeKey);
+    
     modal.dataset.listenersAttached = 'true';
-    console.log('[GIF UI] Event listeners attached.');
 }
 
-/** Remove event listeners */
-function removeModalEventListeners() {
+/**
+ * Detach event listeners from modal elements
+ */
+function detachModalEventListeners() {
     if (!modal || modal.dataset.listenersAttached !== 'true') return;
-    console.log('[GIF UI] Removing event listeners...');
+    
     closeBtn?.removeEventListener('click', closeModal);
     cancelBtn?.removeEventListener('click', closeModal);
     exportBtn?.removeEventListener('click', handleExport);
     cancelExportBtnModal?.removeEventListener('click', cancelExport);
     modal?.removeEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-    // Need to store references to handlers to remove them if they are complex
-    // For simple debounce, re-attaching on open might be easier than tracking/removing
-    modalFramesInput?.removeEventListener('input', startPreviewLoop); // Need debounced version ref
-    modalTransparentInput?.removeEventListener('change', startPreviewLoop); // Need debounced version ref
-    svgRenderRadio?.removeEventListener('change', startPreviewLoop); // Need handler ref
-    snapshotRenderRadio?.removeEventListener('change', startPreviewLoop); // Need handler ref
-    modalFrameRateInput?.removeEventListener('input', startPreviewLoop); // Need handler ref
-
-    document.removeEventListener('keydown', handleEscapeKey);
-    modal.removeAttribute('data-listeners-attached');
-    console.log('[GIF UI] Event listeners removed (Note: May need references for full removal).');
-}
-
-/** Handle escape key press */
-function handleEscapeKey(event) {
-     if (event.key === 'Escape' && modal?.classList.contains('active')) {
-         console.log("[GIF UI] Escape key pressed, closing modal.");
-         closeModal();
-     }
-}
-
-/** Sync settings from main UI to modal (only read-only ones) */
-function syncExportSettings() {
-    if (!isInitialized || !modal) { console.warn('[GIF UI] Cannot sync settings, UI not ready.'); return; }
-    console.log('[GIF UI] Syncing settings from main UI...');
-    try {
-        // Read relevant settings from main export controls (if they exist)
-        const mainWidth = document.getElementById('exportWidth')?.value || '800';
-        const mainHeight = document.getElementById('exportHeight')?.value || '400';
-        // Read potential defaults from other UI elements if available
-        const mainTransparent = document.getElementById('exportTransparent')?.checked ?? modalTransparentInput?.checked ?? false;
-        const mainFrames = document.getElementById('exportFrames')?.value || modalFramesInput?.value || '15';
-        const mainFrameRate = document.getElementById('exportFrameRate')?.value || modalFrameRateInput?.value ||'10';
-
-        // Apply to read-only inputs
-        if (modalWidthInput) modalWidthInput.value = mainWidth;
-        if (modalHeightInput) modalHeightInput.value = mainHeight;
-
-        // Apply defaults to the interactive inputs
-        if (modalFramesInput) {
-            // Respect current max limit when setting value
-            const currentMax = parseInt(modalFramesInput.max);
-            modalFramesInput.value = Math.min(parseInt(mainFrames), currentMax);
-        }
-        if (modalTransparentInput) modalTransparentInput.checked = mainTransparent;
-        if (modalFrameRateInput) {
-             modalFrameRateInput.value = mainFrameRate;
-             if (modalFrameRateValue) modalFrameRateValue.textContent = `${mainFrameRate} FPS`;
-        }
-        // Default to SVG render unless previously set otherwise
-        // if (svgRenderRadio && !snapshotRenderRadio?.checked) {
-        //    svgRenderRadio.checked = true;
-        // }
-        updateSnapshotWarningVisibility(); // Update warning based on synced state
-        updateFramesInputLimit(); // Update frame limit based on synced state
-
-        console.log(`[GIF UI] Settings synced: W=${mainWidth}, H=${mainHeight}, Frames=${modalFramesInput?.value}, Rate=${mainFrameRate}, T=${mainTransparent}, Method=${snapshotRenderRadio?.checked ? 'snapshot' : 'svg'}`);
-    } catch (e) {
-        console.error(`[GIF UI] Error syncing settings:`, e);
+    
+    modalFramesInput?.removeEventListener('input', startPreviewLoop);
+    modalTransparentInput?.removeEventListener('change', startPreviewLoop);
+    svgRenderRadio?.removeEventListener('change', startPreviewLoop);
+    snapshotRenderRadio?.removeEventListener('change', startPreviewLoop);
+    exportFormatSelect?.removeEventListener('change', updateFormatInfoText);
+    
+    if (handleSettingsUpdateListener) {
+        document.removeEventListener('logomaker-settings-updated', handleSettingsUpdateListener);
+        handleSettingsUpdateListener = null;
     }
+    
+    document.removeEventListener('keydown', handleEscapeKey);
+    
+    modal.removeAttribute('data-listeners-attached');
 }
-
-/** Initialize the UI (inject, query, attach listeners) */
-function initializeUI() {
-    if (isInitialized) return Promise.resolve(true);
-    console.log('[GIF UI] Initializing...');
-    // Define fallbacks if necessary
-    if (typeof showAlert === 'undefined') { window.showAlert = (m, t='error')=>console[t](`[Alert]${m}`); }
-    if (typeof notifyExportSuccess === 'undefined') { window.notifyExportSuccess = (f, fn) => showAlert(`${f} Complete: ${fn}`, 'success'); }
-
-    return new Promise((resolve, reject) => {
-         try {
-             checkDependencies(); // Check for html2canvas first
-             injectStyles();
-             injectModalHTML();
-             if (queryModalElements()) {
-                 attachModalEventListeners();
-                 isInitialized = true;
-                 console.log('[GIF UI] Initialization complete.');
-                 resolve(true);
-             } else { throw new Error("Failed to find all necessary modal elements after injection."); }
-         } catch (error) {
-             console.error("[GIF UI] Initialization failed:", error); isInitialized = false; reject(error);
-         }
-    });
-}
-
-// --- PUBLIC EXPORTED FUNCTION ---
 
 /**
- * Initializes and displays the Animation export UI modal.
- * @returns {Promise<void>} Resolves when the modal is shown, rejects on init error.
+ * Handles Escape key press to close modal
+ * @param {KeyboardEvent} e - Keyboard event
  */
-export async function exportGIFWithUI() {
-    console.log('[GIF Exporter V3] exportGIFWithUI() called...');
-    try {
-        await initializeUI(); // Ensure UI is ready
-        if (isInitialized) { openModal(); } // Open the modal
-        else { throw new Error("GIF UI could not be initialized."); }
-        return Promise.resolve();
-    } catch (error) {
-        console.error("[GIF Exporter V3] Cannot proceed with export:", error);
-        if(typeof showAlert === 'function') showAlert(`Cannot open Animation exporter: ${error.message}`, 'error');
-        return Promise.reject(error);
+function handleEscapeKey(e) {
+    if (e.key === 'Escape' && modal?.style.display === 'flex') {
+        closeModal();
     }
 }
+
+// --- Main Export Function ---
+
+/**
+ * Main entry point: Opens the Animation Exporter UI
+ * @returns {Promise<void>}
+ */
+export async function exportGIFWithUI() {
+    try {
+        await initializeUI();
+        openModal();
+    } catch (error) {
+        console.error("[Animation Exporter] Cannot open UI:", error);
+        if (typeof showAlert === 'function') {
+            showAlert(`Cannot open Animation Exporter: ${error.message}`, 'error');
+        }
+    }
+}
+
+// For backwards compatibility
+export const handleGIFExport = exportGIFWithUI;
+
+// Export utility functions for testing/external access
+export {
+    generateSnapshotFrames,
+    generatePreviewFrames,
+    initializeUI
+};
+

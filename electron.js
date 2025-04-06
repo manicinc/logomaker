@@ -94,7 +94,7 @@ function createWindow() {
             nodeIntegration: false,
             webSecurity: false, // Keep for file://
         },
-        icon: path.join(__dirname, 'assets', 'icon.png') // Ensure this path is correct
+        icon: path.join(__dirname, 'assets', 'favicon-large.png') // Ensure this path is correct
     });
     logger.info('[createWindow] BrowserWindow created.');
 
