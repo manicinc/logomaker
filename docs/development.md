@@ -2,6 +2,10 @@
 
 For easier development, Logomaker provides a development server environment powered by Node.js and managed via npm scripts. This mode automatically rebuilds the application when you save changes to source code.
 
+## Contributing
+
+Please follow our [contributing.md](./docs/contributing.md) guidelines, and follow the [code-of-conduct.md](./docs/code-of-conduct.md).
+
 ## Prerequisites
 
 * [Git](https://git-scm.com/downloads) & [Git LFS](https://git-lfs.com)
@@ -71,3 +75,6 @@ The primary command for developing the **deploy** target is:
 
 ```bash
 npm run dev
+```
+
+The repository is set up to automatically build and deploy on GitHub Pages with only the required assets for running the web app and no other dev dependencies through the `.github/workflows/deploy-gh-pages.yml`. We also have auto-tagging / drafting of Electron releases. The GitHub Pages files will always live here: [https://github.com/manicinc/logomaker/tree/gh-pages](https://github.com/manicinc/logomaker/tree/gh-pages).
