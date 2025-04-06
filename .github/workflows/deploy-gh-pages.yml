@@ -1,0 +1,79 @@
+# .github/workflows/deploy-gh-pages.yml
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - master # Trigger deployment when master is updated
+  workflow_dispatch: # Allow manual trigger as well
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write # Required to push to the gh-pages branch
+  pages: write      # Required for certain deployment methods/APIs
+  id-token: write   # Required for certain deployment methods/APIs
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }} # Output the deployment URL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true # Make sure LFS files are available if needed for build
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # Use the same Node version as your other workflows
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci # Use 'ci' for reproducible installs in CI
+
+      # --- IMPORTANT: Build the DEPLOY target ---
+      - name: Build GitHub Pages static site
+        run: npm run build:deploy # Use the command that outputs to ./dist/github-pages/
+
+      # --- Deploy to gh-pages branch ---
+      - name: Deploy to GitHub Pages Branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Specify the directory that contains your built website files
+          publish_dir: ./dist/github-pages
+          # The branch the action should deploy to. Default is gh-pages
+          # publish_branch: gh-pages
+          # Optional: Configure the commit user
+          # user_name: 'github-actions[bot]'
+          # user_email: 'github-actions[bot]@users.noreply.github.com'
+          # Optional: Configure the commit message
+          # commit_message: Deploy ${{ github.sha }} to GitHub Pages
+
+      # This step is sometimes needed depending on your Pages setup method
+      # - name: Setup Pages (Optional, may not be needed with direct branch deployment)
+      #   uses: actions/configure-pages@v4
+
+      # If using artifacts instead of direct push:
+      # - name: Upload artifact (Alternative approach)
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     path: './dist/github-pages' # Path to upload
+
+      # - name: Deploy to GitHub Pages (Alternative approach)
+      #   id: deployment
+      #   uses: actions/deploy-pages@v4
