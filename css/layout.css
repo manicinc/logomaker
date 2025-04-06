@@ -146,82 +146,86 @@ header {
 
 /* --- Preview Area --- */
 /* --- Preview Area --- */
-/* In layout.css */
 .preview-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-lg);
-  overflow: hidden; /* Keep overflow hidden */
+  position: relative; /* For absolute positioning of size indicator */
+  display: flex; /* Use flex to center logo-container */
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
+  padding: var(--space-lg); /* Base padding around the logo-container */
+  overflow: hidden; /* Prevent content spillover */
   border-radius: var(--border-radius-md);
-  /* --- FIX: Ensure transparent background base --- */
-  background-color: transparent; /* Let JS/classes handle background */
-  background-image: none; /* Ensure no base image */
-  /* --- Keep other layout/transition styles --- */
+  /* --- REMOVE background properties here --- */
+  /* background-color: transparent; */ /* Let effects.css handle this */
+  /* background-image: none; */
   transition: opacity var(--transition-base), min-height var(--transition-base), border-color var(--transition-base);
-  box-shadow: var(--box-shadow-inset); /* Keep inset shadow if desired */
-  border: 1px solid var(--border-color); /* Keep base border, border-* classes override style/color */
+  box-shadow: var(--box-shadow-inset); /* Optional: Keep subtle inset shadow */
+  border: 1px solid var(--border-color); /* Base border, effects.css overrides */
   min-height: 300px; /* Default medium size */
   width: 100%;
   max-width: 100%;
 }
 
-/* Preview container background overlay */
+/* Preview container background overlay (Keep this as it applies the dynamic bg-* styles) */
 .preview-container::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: inherit; /* Inherits the background set by BG classes */
-  background-size: cover; /* Ensure pattern/gradient covers */
-  background-position: center;
-  z-index: 0;
+  /* background: inherit; */ /* Let effects.css classes define the background */
+  background-color: var(--dynamic-bg-color, #000); /* Fallback solid color */
+  background-image: var(--dynamic-bg-gradient, none); /* Fallback gradient */
+  /* background-size, background-position etc. should be set by specific bg-* classes in effects.css */
+  z-index: 0; /* Behind logo-container */
   border-radius: inherit;
-  pointer-events: none; /* Allow interaction with logo */
+  pointer-events: none;
   opacity: var(--bg-opacity, 1); /* Use CSS variable for opacity */
   transition: opacity var(--transition-base);
 }
 
 
-/* Logo Container (Direct child for alignment & BORDER TARGET) */
+/* Logo Container (Direct child for alignment & BORDER/PADDING TARGET) */
 .logo-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
+  position: relative; /* For potential pseudo-elements if needed directly */
+  display: flex; /* Align text */
+  align-items: center; /* Vertical align */
+  justify-content: center; /* Horizontal align (controlled by JS via style) */
+  /* Let width/height be determined by content or preview-container */
+  /* width: 100%; */ /* Remove fixed width/height */
+  /* height: 100%; */
   z-index: 2; /* Above background overlay */
-  overflow: hidden;
-  /* --- FIX: Remove default border/shadow here, let effects.css handle it --- */
-  border: none; /* Remove base border */
-  box-shadow: none; /* Remove base shadow */
-  /* Make sure background is transparent so preview shows through */
-  background-color: transparent;
+  overflow: visible; /* Allow effects like shadows to extend slightly */
+  /* --- Base styles for border/padding target --- */
+  border: none; /* Base is borderless */
+  box-shadow: none; /* Base has no shadow */
+  background-color: transparent; /* Ensure container itself is transparent */
+  padding: var(--dynamic-border-padding, 10px); /* Apply dynamic padding */
+  border-radius: var(--dynamic-border-radius, 0); /* Apply dynamic radius */
+  /* Transitions applied via .dynamic-border in effects.css */
 }
 
 /* Actual Logo Text Element */
 .logo-text {
-  /* --- Keep Essential Layout/Text Styles --- */
-  font-size: clamp(48px, 12vw, 150px);
-  letter-spacing: 0.03em; /* JS controls this */
-  text-align: center; /* JS controls this */
-  position: relative;
-  display: inline-block; /* Keep this - important for effects/sizing */
-  padding: var(--space-sm);
+  /* Base layout/text styles */
+  font-size: var(--dynamic-font-size, clamp(48px, 12vw, 150px)); /* Use dynamic var */
+  letter-spacing: var(--dynamic-letter-spacing, 0.03em); /* Use dynamic var */
+  transform: rotate(var(--dynamic-rotation, 0deg)); /* Use dynamic var */
+  position: relative; /* For potential pseudo-elements */
+  display: inline-block; /* Crucial for sizing and effects */
+  /* padding: var(--space-sm); */ /* Padding is now on logo-container */
   margin: 0;
-  max-width: 100%;
+  max-width: 100%; /* Prevent overflow within its container */
   transform-origin: center center;
-  transition: all var(--transition-base); /* Keep transition */
-  will-change: transform, opacity, color, text-shadow, background-image; /* Updated will-change */
+  transition: all var(--transition-base);
+  will-change: transform, opacity, color, text-shadow, background-image;
   cursor: default;
   user-select: none;
-  line-height: 1.1;
+  line-height: 1.1; /* Adjust as needed */
   overflow-wrap: break-word;
   word-break: break-word;
+  text-align: center; /* Default alignment, JS overrides via logo-container justify-content */
+  /* Color/background applied by effects.css */
 }
 
-/* Size indicator */
+/* Size indicator (Keep as is) */
 .size-indicator {
   position: absolute;
   bottom: var(--space-sm);
@@ -231,7 +235,7 @@ header {
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-xs);
-  font-family: var(--font-family-code); /* Monospace for numbers */
+  font-family: var(--font-family-code);
   pointer-events: none;
   z-index: 10;
   user-select: none;
@@ -239,12 +243,60 @@ header {
   -webkit-backdrop-filter: blur(2px);
 }
 
-/* Preview container size classes */
+/* Preview container size classes (Keep as is) */
 .preview-size-small { min-height: 200px; }
 .preview-size-medium { min-height: 300px; }
 .preview-size-large { min-height: 450px; }
 .preview-size-x-large { min-height: 600px; }
 
+
+/* Add this to components.css or layout.css */
+
+.dimension-controls {
+  display: grid;
+  /* Create 3 columns: Width, Height, Lock */
+  grid-template-columns: repeat(2, 1fr) auto; /* Width, Height take space, Lock takes auto */
+  gap: var(--space-lg);
+  align-items: end; /* Align items to the bottom */
+  margin-bottom: var(--space-md); /* Space before quality slider */
+}
+
+/* Ensure control groups within take full height */
+.dimension-controls .control-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Align label/input to bottom */
+    height: 100%;
+}
+
+.aspect-lock-control {
+  /* Specific alignment for the checkbox */
+  padding-bottom: 10px; /* Align baseline with number inputs */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.aspect-lock-control .checkbox-label {
+    margin-bottom: 0; /* Remove default margin */
+}
+
+/* Responsive adjustments for the dimension controls */
+@media (max-width: 767px) {
+  .dimension-controls {
+    grid-template-columns: 1fr; /* Stack on mobile */
+    gap: var(--space-lg); /* Increase gap */
+    align-items: stretch;
+  }
+  .aspect-lock-control {
+      padding-bottom: 0;
+      justify-content: flex-start; /* Align checkbox left */
+      margin-top: var(--space-xs); /* Add some space */
+  }
+    /* Ensure labels are above inputs */
+    .dimension-controls .control-group label:not(.checkbox-label) {
+        margin-bottom: var(--space-xs);
+    }
+}
+      
 
 /* --- Footer --- */
 footer {

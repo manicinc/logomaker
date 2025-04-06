@@ -11,7 +11,7 @@ const chokidar = require('chokidar'); // Use chokidar
 // --- Configuration ---
 const projectRoot = path.resolve(__dirname, '..');
 const WATCH_TARGETS_DEV = [ // Paths relative to projectRoot for chokidar
-    'index.html',
+    'index.template.html', // <<<--- NEW VALUE (Watch the deploy template)
     'js/**/*.js',
     'css/**/*.css',
     'fonts/**/*.*' // Watch all files within fonts recursively
@@ -37,7 +37,7 @@ const BASE_BUILD_ARGS = ['scripts/build.js'];
 const TARGET_TO_BUILD = 'deploy';
 const BUILD_TARGET_ARG = `--target=${TARGET_TO_BUILD}`;
 const SERVER_COMMAND = 'npx'; // Or just 'http-server' if PATH is set
-const SERVER_ARGS = ['http-server', '', '-p', '', '-o', '--cors', '-c-1'];
+const SERVER_ARGS = ['http-server', '', '-p', '', '--cors', '-c-1']; // Removed '-o' to avoid auto-opening browser
 const DEFAULT_DEV_PORT = 3000;
 const DEFAULT_PROD_PREVIEW_PORT = 3001;
 const SKIP_FONT_REGEN_ARG = '--skip-font-regen';
