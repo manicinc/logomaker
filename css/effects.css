@@ -91,7 +91,6 @@
 .font-weight-950 { font-weight: 950; } /* Extra Black, if font supports */
 
 /* Text Case Classes - Applied by SettingsManager._applyTextCase */
-/* REMOVED !important */
 .text-case-none { text-transform: none; }
 .text-case-uppercase { text-transform: uppercase; }
 .text-case-lowercase { text-transform: lowercase; }
@@ -100,10 +99,10 @@
 /* --- 3. Text Alignment Classes --- */
 /* Applied by SettingsManager._applyTextAlign */
 /* REMOVED !important - Ensure these don't conflict with components.css */
-/* .text-align-left { text-align: left; }
+.text-align-left { text-align: left; }
 .text-align-center { text-align: center; }
-.text-align-right { text-align: right; } */
-/* .text-align-justify { text-align: justify; } */ /* Justify might look odd for logos */
+.text-align-right { text-align: right; }
+/* .text-align-justify { text-align: justify; } */ /* Justify might look odd for logos
 
 
 /* ============================================================= */
