@@ -100,9 +100,9 @@
 /* --- 3. Text Alignment Classes --- */
 /* Applied by SettingsManager._applyTextAlign */
 /* REMOVED !important - Ensure these don't conflict with components.css */
-.text-align-left { text-align: left; }
+/* .text-align-left { text-align: left; }
 .text-align-center { text-align: center; }
-.text-align-right { text-align: right; }
+.text-align-right { text-align: right; } */
 /* .text-align-justify { text-align: justify; } */ /* Justify might look odd for logos */
 
 
@@ -538,6 +538,16 @@ background-size: 200% auto;
 /* Or handle animation combination logic in JS */
 }
 
+/* Ensure text alignment */
+.logo-text.text-align-left {
+  text-align: left !important;
+}
+.logo-text.text-align-center {
+  text-align: center !important;
+}
+.logo-text.text-align-right {
+  text-align: right !important;
+}
 
 /* ============================================================ */
 /* == 8. Background Patterns & Effects (using bg-*)         == */

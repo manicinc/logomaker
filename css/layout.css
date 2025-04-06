@@ -202,17 +202,6 @@ header {
 
 /* Actual Logo Text Element */
 .logo-text {
-  /* --- FIX: Remove default styles that JS should control --- */
-  /* font-family: var(--font-family-logo); */ /* Let JS set font-family */
-  /* font-weight: var(--font-weight-bold); */ /* Let JS set font-weight */
-  /* background-image: var(--primary-gradient); */ /* Let JS set background-image */
-  /* -webkit-background-clip: text; */ /* Let JS handle this */
-  /* background-clip: text; */ /* Let JS handle this */
-  /* color: transparent; */ /* Let JS handle color/fill */
-  /* -webkit-text-fill-color: transparent; */ /* Let JS handle color/fill */
-  /* border: var(--dynamic-border-width, 2px) solid transparent; */ /* Let .logo-container handle border */
-  /* box-shadow: none; */
-
   /* --- Keep Essential Layout/Text Styles --- */
   font-size: clamp(48px, 12vw, 150px);
   letter-spacing: 0.03em; /* JS controls this */

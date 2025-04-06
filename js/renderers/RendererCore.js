@@ -287,6 +287,7 @@ function createBackgroundGradientDef(styles, id) {
 // ==========================================================================
 
 /** Generate embedded CSS including font face and animations */
+
 function generateEmbeddedCSS(styleData, animationMetadata) {
     console.log('[Core CSS] Generating embedded CSS. Animation Metadata:', animationMetadata);
     let css = "/* Embedded CSS - Logomaker Core v2.6 */\n";
@@ -308,8 +309,7 @@ function generateEmbeddedCSS(styleData, animationMetadata) {
             css += `  src: url(${fontEmbedData.file})${formatHint};\n`; // Data URL
             css += `  font-weight: ${fontEmbedData.weight || '400'};\n`;
             css += `  font-style: ${fontEmbedData.style || 'normal'};\n`;
-            // Consider adding font-display: swap;? Might not be relevant for export.
-            // css += `  font-display: swap;\n`;
+            css += `  font-display: swap;\n`; // Add this for better font loading behavior
             css += `}\n\n`;
             console.log(`[Core CSS] SUCCESS: Embedded font ${primaryFont} (Weight: ${fontEmbedData.weight}, Style: ${fontEmbedData.style}, Format: ${fontEmbedData.format})`);
             hasContent = true;
@@ -319,11 +319,19 @@ function generateEmbeddedCSS(styleData, animationMetadata) {
     } else {
         console.warn('[Core CSS] No embeddable font data found or data is invalid.');
         if (styleData?.font?.family) {
-            css += `/* WARNING: Font "${styleData.font.family.split(',')[0].trim()}" could not be embedded. Rendering depends on system availability. */\n`;
+            const primaryFont = styleData.font.family.split(',')[0].trim().replace(/['"]/g, '');
+            css += `/* System Font Declaration for "${primaryFont}" */\n`;
+            css += `@font-face {\n`;
+            css += `  font-family: "${primaryFont}";\n`;
+            css += `  src: local("${primaryFont}");\n`; // Try to use local font
+            css += `  font-weight: ${styleData.font.weight || '400'};\n`;
+            css += `  font-style: ${styleData.font.style || 'normal'};\n`;
+            css += `}\n\n`;
+            hasContent = true;
         }
     }
 
-    // --- Animation Embedding ---
+    // --- Animation Embedding with clearer values ---
     if (animationMetadata?.name && animationMetadata.name !== 'none' && animationMetadata.name !== 'anim-none') {
         const keyframesCSS = styleData?.animation?.activeKeyframes; // Get captured keyframes
         if (keyframesCSS) {
@@ -336,8 +344,17 @@ function generateEmbeddedCSS(styleData, animationMetadata) {
                  console.warn(`[Core CSS] Could not extract keyframe name from CSS for ${animationMetadata.name}. Using base name.`);
             }
 
-            // Add the @keyframes rule
-            css += `/* Animation Keyframes: ${keyframeRuleName} */\n${keyframesCSS}\n\n`;
+            // Add the @keyframes rule with explicit transform values
+            // This adds clarity to the animation, especially for pulse
+            if (keyframeRuleName === 'pulse') {
+                css += `/* Animation Keyframes: ${keyframeRuleName} - Adjusted for SVG */\n`;
+                css += `@keyframes ${keyframeRuleName} { 
+  0%, 100% { transform: scale(1); opacity: 1; } 
+  50% { transform: scale(1.06); opacity: 0.92; } 
+}\n\n`;
+            } else {
+                css += `/* Animation Keyframes: ${keyframeRuleName} */\n${keyframesCSS}\n\n`;
+            }
 
             // Add the class rule to apply the animation
             const animClass = styleData?.animation?.class || `anim-${animationMetadata.name}`; // e.g., .anim-shake
@@ -350,31 +367,12 @@ function generateEmbeddedCSS(styleData, animationMetadata) {
             css += `  animation-duration: ${duration};\n`;
             css += `  animation-timing-function: ${timingFunc};\n`;
             css += `  animation-iteration-count: ${iterCount};\n`;
-            // Add other properties like fill-mode, direction if captured/needed
-
-             // Add styles needed specifically for certain animations
-             if (animClass === 'anim-glitch') {
-                 // Glitch often relies on pseudo-elements which don't exist in SVG text.
-                 // The core SVG structure needs modification for a pure SVG glitch.
-                 // This CSS won't fully replicate it on a single <text> element.
-                  console.warn("[Core CSS] Glitch animation CSS embedded, but may not render correctly on SVG <text> without specific structure (e.g., multiple text copies).");
-             } else if (animClass === 'anim-typing') {
-                  css += `  /* Styles potentially needed for typing animation */\n`;
-                  css += `  white-space: pre;\n`; // Prevent wrapping
-                  // Caret simulation via border might not work well in SVG text
-             }
-             if (styleData?.color?.mode === 'gradient') {
-                 css += `  /* Ensure gradient fill works with animation if needed */\n`;
-                 css += `  -webkit-background-clip: text; background-clip: text;\n`;
-                 css += `  color: transparent; -webkit-text-fill-color: transparent;\n`;
-            }
-
             css += `}\n\n`;
             console.log(`[Core CSS] Embedded animation "${keyframeRuleName}" applied via class ".${animClass}".`);
             hasContent = true;
         } else {
-             console.warn(`[Core CSS] No keyframes CSS found for animation: ${animationMetadata.name}. Animation will likely not work.`);
-             css += `/* WARNING: Keyframes for animation "${animationMetadata.name}" could not be found or embedded. */\n`;
+            console.warn(`[Core CSS] No keyframes CSS found for animation: ${animationMetadata.name}. Animation will likely not work.`);
+            css += `/* WARNING: Keyframes for animation "${animationMetadata.name}" could not be found or embedded. */\n`;
         }
     } else {
         console.log(`[Core CSS] No active animation detected for embedding.`);
@@ -568,27 +566,31 @@ function createBorderRect(styles, config) {
     
     return borderRect;
 }
-
 /**
- * Creates the SVG text element (v2.6 - Corrected Transform Call & Filter Logic)
+ * Creates the SVG text element (v2.6.1 - Fixed options/config passing)
  * @param {string} textContent - The final text to display.
  * @param {object} styles - The captured styles object from captureAdvancedStyles.
  * @param {string|null} textGradientId - The ID of the text gradient definition.
  * @param {string|null} textFilterId - The ID of the text effect filter.
  * @param {object|null} animationMetadata - Animation details (may include progress).
+ * @param {object} config - The configuration object containing width, height, etc. // <-- ADDED PARAMETER
  * @returns {string} The generated SVG <text> element string.
  */
-function generateSVGTextElement(textContent, styles, textGradientId, textFilterId, animationMetadata) {
+function generateSVGTextElement(textContent, styles, textGradientId, textFilterId, animationMetadata, config) { // <-- ADDED config PARAMETER
     // --- Validation and Setup ---
-    console.log("[Core SVG Text v2.6] Generating SVG text element. Text:", textContent);
+    console.log("[Core SVG Text v2.6.1] Generating SVG text element. Text:", textContent);
     if (!styles?.font) {
-        console.error("[Core SVG Text v2.6] Cannot generate text element: Missing font styles");
+        console.error("[Core SVG Text v2.6.1] Cannot generate text element: Missing font styles");
         return '';
     }
-    // Ensure helpers are available (could be moved outside if always present)
-    if (typeof normalizeColor !== 'function' || typeof extractOpacityFromColor !== 'function' || typeof escapeSVGAttribute !== 'function' || typeof escapeXML !== 'function' || typeof normalizeCSSTransformForSVG !== 'function') {
-        console.error("[Core SVG Text v2.6] CRITICAL: One or more helper functions (normalizeColor, etc.) are missing!");
-        return ``;
+     // Make sure config is available
+     if (!config || typeof config.width !== 'number' || typeof config.height !== 'number') {
+         console.error("[Core SVG Text v2.6.1] Cannot generate text element: Missing or invalid config object with width/height");
+         // Provide fallback dimensions if absolutely necessary, though this indicates a problem upstream
+         config = config || {};
+         config.width = config.width || 800;
+         config.height = config.height || 400;
+         console.warn(`[Core SVG Text v2.6.1] Using fallback dimensions: ${config.width}x${config.height}`);
     }
 
     const font = styles.font;
@@ -601,10 +603,28 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
     // --- Text Positioning & Alignment ---
     let xPosition = '50%';
     let textAnchor = styles.textAnchor || 'middle';
-     if (styles.textAlign === 'left') { textAnchor = 'start'; xPosition = '5%'; }
-     else if (styles.textAlign === 'right') { textAnchor = 'end'; xPosition = '95%'; }
-     else { textAnchor = 'middle'; xPosition = '50%'; }
-    console.log(`[Core SVG Text v2.6] Alignment: CSS='${styles.textAlign || 'center'}', SVG Anchor='${textAnchor}', X='${xPosition}'`);
+    if (styles.textAlign === 'left') { textAnchor = 'start'; xPosition = '5%'; }
+    else if (styles.textAlign === 'right') { textAnchor = 'end'; xPosition = '95%'; }
+    else { textAnchor = 'middle'; xPosition = '50%'; }
+
+    // --- Font size adjustment - ensure it matches container ---
+    // *** FIXED: Use the passed config object ***
+    const containerSize = Math.min(config.width, config.height); // <-- USE config.width / config.height
+    let fontSize = font.size;
+    if (typeof fontSize === 'string' && fontSize.endsWith('px')) {
+        fontSize = parseInt(fontSize);
+    } else if (typeof fontSize === 'string') {
+        fontSize = parseInt(fontSize) || 60; // Default if parse fails
+    } else if (typeof fontSize !== 'number') {
+         fontSize = 60; // Fallback if not a number or parsable string
+    }
+
+    // Scale font size proportionally to the container size
+     // *** FIXED: Use the passed config object ***
+    const scaleFactor = Math.min(config.width / 800, config.height / 400); // <-- USE config
+    fontSize = Math.round(fontSize * scaleFactor);
+    // Ensure minimum font size to prevent it becoming invisible
+    fontSize = Math.max(fontSize, 10); // e.g., minimum 10px
 
     // --- Build <text> Element ---
     let textElement = `<text x="${xPosition}" y="50%" dominant-baseline="middle" text-anchor="${textAnchor}" `;
@@ -612,12 +632,12 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
     // --- Font Attributes ---
     const fontFamilyAttr = font.family ? escapeSVGAttribute(font.family) : 'sans-serif';
     textElement += `font-family="${fontFamilyAttr}" `;
-    textElement += `font-size="${font.size || '60px'}" `;
+    textElement += `font-size="${fontSize}px" `; // Use calculated font size
     if (font.weight && font.weight !== '400' && font.weight !== 'normal') textElement += `font-weight="${font.weight}" `;
     if (font.style && font.style !== 'normal') textElement += `font-style="${font.style}" `;
     if (font.letterSpacing && font.letterSpacing !== 'normal') {
         const spacingValue = font.letterSpacing;
-        console.log(`[Core SVG Text v2.6] Applying letter-spacing: "${spacingValue}"`);
+        console.log(`[Core SVG Text v2.6.1] Applying letter-spacing: "${spacingValue}"`);
         textElement += `letter-spacing="${spacingValue}" `;
     }
 
@@ -625,16 +645,16 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
     let fillOpacity = 1.0;
     if (color.mode === 'gradient' && textGradientId && typeof textGradientId === 'string') {
         textElement += `fill="url(#${textGradientId})" `;
-        console.log(`[Core SVG Text v2.6] Applied gradient fill: url(#${textGradientId})`);
+        console.log(`[Core SVG Text v2.6.1] Applied gradient fill: url(#${textGradientId})`);
     } else {
         const fillColor = normalizeColor(color.value || '#ffffff', 'text fill');
         if (fillColor) {
             textElement += `fill="${fillColor}" `;
             fillOpacity = extractOpacityFromColor(color.value);
-            console.log(`[Core SVG Text v2.6] Applied solid fill: ${fillColor} (Opacity from color: ${fillOpacity.toFixed(3)})`);
+            console.log(`[Core SVG Text v2.6.1] Applied solid fill: ${fillColor} (Opacity from color: ${fillOpacity.toFixed(3)})`);
         } else {
             textElement += `fill="none" `;
-            console.log(`[Core SVG Text v2.6] Text fill color is transparent or invalid.`);
+            console.log(`[Core SVG Text v2.6.1] Text fill color is transparent or invalid.`);
         }
     }
 
@@ -642,7 +662,7 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
     const finalOpacity = Math.max(0, Math.min(1, isNaN(textOpacity) ? 1 : textOpacity)) * fillOpacity;
     if (finalOpacity < 1) {
         textElement += `opacity="${finalOpacity.toFixed(3)}" `;
-        console.log(`[Core SVG Text v2.6] Applied combined opacity: ${finalOpacity.toFixed(3)}`);
+        console.log(`[Core SVG Text v2.6.1] Applied combined opacity: ${finalOpacity.toFixed(3)}`);
     }
 
     // --- Text Stroke ---
@@ -654,18 +674,18 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
             textElement += `stroke="${strokeColor}" stroke-width="${strokeWidth}" `;
             const strokeOpacity = extractOpacityFromColor(textStroke.color);
             if (strokeOpacity < 1) { textElement += `stroke-opacity="${strokeOpacity.toFixed(3)}" `; }
-            console.log(`[Core SVG Text v2.6] Applied TEXT stroke: Color=${strokeColor}, Width=${strokeWidth}, Opacity=${strokeOpacity.toFixed(3)}`);
-        } else { console.log(`[Core SVG Text v2.6] Text stroke color/width invalid or zero.`); }
-    } else { console.log(`[Core SVG Text v2.6] No direct text stroke detected in styles.`); }
+            console.log(`[Core SVG Text v2.6.1] Applied TEXT stroke: Color=${strokeColor}, Width=${strokeWidth}, Opacity=${strokeOpacity.toFixed(3)}`);
+        } else { console.log(`[Core SVG Text v2.6.1] Text stroke color/width invalid or zero.`); }
+    } else { console.log(`[Core SVG Text v2.6.1] No direct text stroke detected in styles.`); }
 
     // --- Filter (Text Effect) ---
     if (textFilterId && typeof textFilterId === 'string') {
         textElement += `filter="url(#${textFilterId})" `;
-        console.log(`[Core SVG Text v2.6] Applied text effect filter: url(#${textFilterId})`);
+        console.log(`[Core SVG Text v2.6.1] Applied text effect filter: url(#${textFilterId})`);
     } else {
-        console.log(`[Core SVG Text v2.6] No valid textFilterId provided.`);
+        console.log(`[Core SVG Text v2.6.1] No valid textFilterId provided.`);
         if (styles.textEffect?.type && styles.textEffect.type !== 'none') {
-            console.warn(`[Core SVG Text v2.6] Text effect (${styles.textEffect.type}) was captured, but textFilterId was missing or invalid!`);
+            console.warn(`[Core SVG Text v2.6.1] Text effect (${styles.textEffect.type}) was captured, but textFilterId was missing or invalid!`);
         }
     }
 
@@ -674,26 +694,29 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
         const normalizedTransform = normalizeCSSTransformForSVG(transform.cssValue); // Call the helper
         if (normalizedTransform) {
             textElement += `transform="${escapeSVGAttribute(normalizedTransform)}" `;
-            console.log(`[Core SVG Text v2.6] Applied normalized transform: "${normalizedTransform}" (Original CSS: "${transform.cssValue}")`);
+            console.log(`[Core SVG Text v2.6.1] Applied normalized transform: "${normalizedTransform}" (Original CSS: "${transform.cssValue}")`);
         } else {
-            console.warn(`[Core SVG Text v2.6] Transform normalization failed for CSS: "${transform.cssValue}". Omitting transform.`);
+            console.warn(`[Core SVG Text v2.6.1] Transform normalization failed for CSS: "${transform.cssValue}". Omitting transform.`);
         }
-    } else { console.log(`[Core SVG Text v2.6] No transform detected in styles.`); }
+    } else { console.log(`[Core SVG Text v2.6.1] No transform detected in styles.`); }
 
     // --- Animation ---
     const animClass = anim.class;
     if (animClass && animClass !== 'anim-none') {
         textElement += `class="${escapeSVGAttribute(animClass)}" `;
-        console.log(`[Core SVG Text v2.6] Applied animation class: ${animClass}`);
-    }
+        console.log(`[Core SVG Text v2.6.1] Applied animation class: ${animClass}`);
 
-    // --- Animation Frame Override (Inline Style) ---
-    let animationStyleOverride = '';
-    if (animationMetadata?.progress !== undefined && anim.durationMs > 0) {
-        const delayMs = -(animationMetadata.progress * anim.durationMs);
-        animationStyleOverride = `animation-name: ${anim.type || 'none'}; animation-duration: ${anim.duration || '0s'}; animation-delay: ${delayMs.toFixed(0)}ms; animation-play-state: paused;`;
-        console.log(`[Core SVG Text v2.6] Applied animation override for progress ${animationMetadata.progress.toFixed(2)}`);
-        textElement += `style="${escapeSVGAttribute(animationStyleOverride)}" `;
+        // Add additional inline style to tone down animation intensity
+        let animStyleMods = '';
+        if (animClass === 'anim-pulse') {
+            animStyleMods = 'animation-duration: 2s; animation-timing-function: ease-in-out;';
+        } else if (animClass === 'anim-bounce') {
+            animStyleMods = 'animation-duration: 2.5s; animation-timing-function: ease-in-out;';
+        }
+
+        if (animStyleMods) {
+            textElement += `style="${escapeSVGAttribute(animStyleMods)}" `;
+        }
     }
 
     // --- Final Text Content ---
@@ -705,7 +728,7 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
     textElement += escapedText;
     textElement += `</text>`;
 
-    console.log("[Core SVG Text v2.6] Finished generating text element.");
+    console.log("[Core SVG Text v2.6.1] Finished generating text element.");
     return textElement;
 }
 
@@ -713,20 +736,21 @@ function generateSVGTextElement(textContent, styles, textGradientId, textFilterI
 // ==========================================================================
 // === Main Export Functions ================================================
 // ==========================================================================
-
 /**
- * Main function to generate the SVG Blob (v2.6).
+/**
+ * Main function to generate the SVG Blob (v2.6.3 - Revised Padding Fix).
+ * Uses nested <svg> correctly positioned *inside* the border group.
  * @param {object} options - Export options like width, height, text, etc.
  * @returns {Promise<Blob>} A promise resolving with the SVG Blob.
  */
 export async function generateSVGBlob(options = {}) {
-    console.log("[Core SVG Gen v2.6] generateSVGBlob called. Options:", JSON.stringify(options));
+    console.log("[Core SVG Gen v2.6.3] generateSVGBlob called (Revised Padding Fix). Options:", JSON.stringify(options));
 
     try {
         // --- 1. Capture Styles ---
         const styles = captureAdvancedStyles();
         if (!styles) throw new Error('Failed to capture styles for SVG generation');
-        console.log("[Core SVG Gen v2.6] Styles Captured.");
+        console.log("[Core SVG Gen v2.6.3] Styles Captured:", styles);
 
         // --- 2. Determine Configuration ---
         const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
@@ -740,9 +764,12 @@ export async function generateSVGBlob(options = {}) {
         };
         const config = { ...defaults, ...options };
 
-        if (!config.width || config.width <= 0) config.width = 800;
-        if (!config.height || config.height <= 0) config.height = 400;
-        console.log("[Core SVG Gen v2.6] Final Config:", config);
+        config.width = Number(config.width) || 800;
+        config.height = Number(config.height) || 400;
+        if (config.width <= 0) config.width = 800;
+        if (config.height <= 0) config.height = 400;
+
+        console.log("[Core SVG Gen v2.6.3] Final Config:", config);
 
         // --- 3. Build SVG String ---
         let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n`;
@@ -758,107 +785,156 @@ export async function generateSVGBlob(options = {}) {
         if (styles.color?.mode === 'gradient') {
             textGradientId = 'svgTextGradient';
             const gradientDef = createGradientDef(styles, textGradientId);
-            if (gradientDef) { svg += `  ${gradientDef}\n`; console.log("[Core SVG Gen v2.6] Added Text Gradient Definition."); }
-            else { textGradientId = null; } // Nullify if creation failed
+            if (gradientDef) { svg += `  ${gradientDef}\n`; console.log("[Core SVG Gen v2.6.3] Added Text Gradient Definition."); }
+            else { textGradientId = null; }
         }
 
         // Text Effect Filter Def
         if (styles.textEffect?.type && styles.textEffect.type !== 'none') {
-            textFilterId = 'svgTextEffect'; // Consistent ID
+            textFilterId = 'svgTextEffect';
             const filterDef = createFilterDef(styles, textFilterId);
-            if (filterDef) { svg += `  ${filterDef}\n`; console.log(`[Core SVG Gen v2.6] Added Text Effect Filter (ID: ${textFilterId}).`); }
-            else { textFilterId = null; } // Nullify if creation failed
+            if (filterDef) { svg += `  ${filterDef}\n`; console.log(`[Core SVG Gen v2.6.3] Added Text Effect Filter (ID: ${textFilterId}).`); }
+            else { textFilterId = null; }
         }
 
-        // Background Gradient Def (only if background is gradient and not transparent)
+        // Background Gradient Def (using styles.background which prefers previewContainer)
         if (config.includeBackground && !config.transparentBackground && (styles.background?.type?.includes('gradient') || styles.background?.gradient)) {
             backgroundGradientId = 'svgBgGradient';
             const bgGradientDef = createBackgroundGradientDef(styles, backgroundGradientId);
-            if (bgGradientDef) { svg += `  ${bgGradientDef}\n`; console.log("[Core SVG Gen v2.6] Added Background Gradient Definition."); }
+            if (bgGradientDef) { svg += `  ${bgGradientDef}\n`; console.log("[Core SVG Gen v2.6.3] Added Background Gradient Definition."); }
             else { backgroundGradientId = null; }
         }
-
-        // TODO: Add SVG Pattern Definitions here if styles.background.patternClass exists
-
         svg += `</defs>\n`;
 
         // --- 5. Embedded CSS (`<style>`) ---
         const embeddedCSS = generateEmbeddedCSS(styles, config.animationMetadata);
         if (embeddedCSS) {
             svg += `<style type="text/css"><![CDATA[\n${embeddedCSS}\n]]></style>\n`;
-            console.log("[Core SVG Gen v2.6] Embedded CSS added.");
+            console.log("[Core SVG Gen v2.6.3] Embedded CSS added.");
         }
 
         // --- 6. Background Rectangle (`<rect>`) ---
+        // Drawn first, fills the whole SVG canvas, uses styles from #previewContainer (via styles.background)
         const bgRect = createBackgroundRect(styles, backgroundGradientId, config);
         if (bgRect) { svg += bgRect; }
 
-        // --- 7. Main Content Group (for Container Opacity) ---
+        // --- 7. Parse Padding and Border Width (from .logo-container styles) ---
+        const paddingValue = parsePadding(styles.borderPadding); // Uniform padding
+        let strokeWidth = 0;
+        // Check if border styles actually exist and apply
+        const hasVisibleBorder = styles.border &&
+                                styles.border.style &&
+                                styles.border.style !== 'none' &&
+                                styles.border.style !== 'hidden' &&
+                                normalizeColor(styles.border.color, 'border check') &&
+                                (parseFloat(styles.border.width) || 0) > 0;
+
+        if (hasVisibleBorder && !styles.stroke?.isTextStroke) {
+             strokeWidth = parseFloat(styles.border.width) || 0;
+             strokeWidth = Math.max(0, strokeWidth); // Ensure non-negative
+        } else {
+             strokeWidth = 0; // Treat as no border if style/color/width invalid
+             console.log("[Core SVG Gen v2.6.3] No visible container border detected or border is text stroke. Stroke width set to 0.");
+        }
+        console.log(`[Core SVG Gen v2.6.3] Parsed Padding: ${paddingValue}px, Stroke Width: ${strokeWidth}px`);
+
+        // --- 8. Create Group for `.logo-container` Content (Border + Padded Text) ---
+        // Apply opacity captured from .logo-container
         const containerOpacity = parseFloat(styles.containerOpacity || '1');
         const finalContainerOpacity = Math.max(0, Math.min(1, isNaN(containerOpacity) ? 1 : containerOpacity));
-        svg += `<g id="logo-content-group" opacity="${finalContainerOpacity.toFixed(3)}">\n`;
-        console.log(`[Core SVG Gen v2.6] Added content group with opacity: ${finalContainerOpacity.toFixed(3)}`);
+        // This group represents the .logo-container visually filling the export area
+        svg += `<g id="logo-container-group" opacity="${finalContainerOpacity.toFixed(3)}">\n`;
+        console.log(`[Core SVG Gen v2.6.3] Added logo-container-group with opacity: ${finalContainerOpacity.toFixed(3)}`);
 
-        // --- 8. Container Border Rectangle ---
-        // Add if styles.border exists AND it's NOT a text stroke
-        if (styles.border && !styles.stroke?.isTextStroke) {
-            const border = styles.border;
-            const strokeColor = normalizeColor(border.color, 'container border');
-            let strokeWidth = 0;
-             if (typeof border.width === 'string' || typeof border.width === 'number') {
-                 strokeWidth = parseFloat(border.width) || 0;
+        // --- 9. Draw Container Border (Inside the Group) ---
+        // createBorderRect uses config.width/height and strokeWidth to draw near edges of its container (the group)
+        if (hasVisibleBorder) {
+             const borderRect = createBorderRect(styles, config);
+             if (borderRect) {
+                 svg += borderRect; // Adds the <rect...> tag
              }
+        }
 
-            if (strokeColor && strokeWidth > 0) {
-                let borderRect = `  <rect id="container-border-rect" x="${strokeWidth / 2}" y="${strokeWidth / 2}" `;
-                borderRect += `width="${config.width - strokeWidth}" height="${config.height - strokeWidth}" `;
-                borderRect += `fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" `;
+        // --- 10. Calculate Inner Padded Area Dimensions ---
+        // Relative to the group's 0,0 (which is the main SVG's 0,0)
+        const borderOffset = strokeWidth / 2; // Stroke is centered
+        const innerX = borderOffset + paddingValue;
+        const innerY = borderOffset + paddingValue;
+        // Subtract stroke width (x1, because offset handles the other half) and padding (x2)
+        const innerWidth = Math.max(0, config.width - strokeWidth - 2 * paddingValue);
+        const innerHeight = Math.max(0, config.height - strokeWidth - 2 * paddingValue);
+        console.log(`[Core SVG Gen v2.6.3] Inner Area: x=${innerX.toFixed(2)}, y=${innerY.toFixed(2)}, w=${innerWidth.toFixed(2)}, h=${innerHeight.toFixed(2)}`);
 
-                const strokeOpacity = extractOpacityFromColor(border.color);
-                if (strokeOpacity < 1) { borderRect += `stroke-opacity="${strokeOpacity.toFixed(3)}" `; }
-                if (border.dasharray) { borderRect += `stroke-dasharray="${border.dasharray}" `; }
+        // --- 11. Nested <svg> for Padded Content (Inside the Group) ---
+        if (innerWidth > 0 && innerHeight > 0) {
+            svg += `  <svg id="inner-content-area" x="${innerX.toFixed(3)}" y="${innerY.toFixed(3)}" width="${innerWidth.toFixed(3)}" height="${innerHeight.toFixed(3)}" viewBox="0 0 ${innerWidth.toFixed(3)} ${innerHeight.toFixed(3)}" overflow="visible">\n`;
 
-                 // WARNING: Border glow filter application is complex in pure SVG, often omitted.
-                 if (border.isGlow) {
-                      console.warn(`[Core SVG Gen v2.6] Container border glow detected but not rendered in SVG.`);
-                      // Potentially apply a filter ID here if a suitable border filter was defined
-                      // borderRect += `filter="url(#svgBorderGlowFilter)" `; // Example
-                 }
+            // --- 12. Text Element (`<text>`) inside Nested SVG ---
+            // Use config based on inner dimensions for text scaling/positioning
+            const textElementConfig = { ...config, width: innerWidth, height: innerHeight };
 
-                borderRect += `/>\n`;
-                svg += borderRect;
-                console.log(`[Core SVG Gen v2.6] Added container border rect: ${border.style}, ${border.color}, ${border.width}`);
+            const textElement = generateSVGTextElement(
+                config.text,
+                styles,
+                textGradientId,
+                textFilterId,
+                config.animationMetadata,
+                textElementConfig // Pass config based on inner dimensions
+            );
+
+            if (textElement) {
+                svg += `    ${textElement}\n`; // Indent text within inner SVG
+                console.log("[Core SVG Gen v2.6.3] Text element generated inside nested SVG.");
+            } else {
+                console.error("[Core SVG Gen v2.6.3] Failed to generate text element!");
+                throw new Error("Failed to generate the core SVG text element.");
             }
+
+            // Close the nested SVG
+            svg += `  </svg>\n`;
+        } else {
+             console.warn("[Core SVG Gen v2.6.3] Inner width or height is zero or negative due to padding/border width. Skipping text rendering.");
         }
 
-        // --- 9. Text Element (`<text>`) ---
-        const textElement = generateSVGTextElement(
-            config.text, styles, textGradientId, textFilterId, config.animationMetadata // Pass correct IDs
-        );
-        if (textElement) {
-            svg += `  ${textElement}\n`; // Indent for readability
-            console.log("[Core SVG Gen v2.6] Text element generated.");
-        }
-        else { console.error("[Core SVG Gen v2.6] Failed to generate text element!"); }
+        // --- 13. Close `.logo-container` Group ---
+        svg += `</g>\n`; // Closes #logo-container-group
 
-        // --- 10. Close Content Group ---
-        svg += `</g>\n`;
+        // --- 14. Close Main SVG ---
+        svg += `</svg>`; // Closes main <svg>
 
-        // --- 11. Close SVG ---
-        svg += `</svg>`;
-
-        // --- 12. Create Blob ---
+        // --- 15. Create Blob ---
         const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-        console.log(`[Core SVG Gen v2.6] SVG Blob generated successfully. Size: ${(blob.size / 1024).toFixed(1)} KB`);
+        console.log(`[Core SVG Gen v2.6.3] SVG Blob generated successfully. Size: ${(blob.size / 1024).toFixed(1)} KB`);
         return blob;
 
     } catch (error) {
-        console.error('[Core SVG Gen v2.6] SVG Blob Generation Failed:', error);
+        console.error('[Core SVG Gen v2.6.3] SVG Blob Generation Failed:', error);
         const errMsg = error instanceof Error ? error.message : String(error);
-        throw new Error(`SVG Generation Failed: ${errMsg}`); // Re-throw for upstream handling
+        let detailedErrMsg = `SVG Generation Failed: ${errMsg}`;
+        if (error instanceof Error && error.stack) {
+            detailedErrMsg += `\nStack: ${error.stack}`;
+        }
+        throw new Error(detailedErrMsg);
     }
 }
 
+/**
+ * Parses a CSS padding string (simple version).
+ * Assumes uniform padding and extracts the first pixel value.
+ * Returns 0 if parsing fails or padding is invalid.
+ * @param {string|null} paddingString - e.g., "10px", "10px 20px", "0".
+ * @returns {number} The parsed padding value in pixels, or 0.
+ */
+function parsePadding(paddingString) {
+    if (!paddingString || typeof paddingString !== 'string') {
+        return 0;
+    }
+    // Extract the first numerical value, assuming pixels for simplicity
+    const match = paddingString.match(/^(-?[\d.]+)/);
+    const value = match ? parseFloat(match[1]) : 0;
+    // Ensure padding is not negative
+    return Math.max(0, value);
+}
 
 /**
  * Converts an SVG Blob to a PNG Blob using Canvas.

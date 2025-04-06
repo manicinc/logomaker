@@ -741,11 +741,11 @@ export function initializeRandomizeShortcut() {
 // --- Example Usage (in your main app initialization) ---
 // import { initializeRandomizeShortcut } from './randomizer'; // Adjust path
 //
-// document.addEventListener('DOMContentLoaded', () => {
-//   // ... other initializations ...
-//   initializeRandomizeShortcut();
-//   // ...
-// });
+document.addEventListener('DOMContentLoaded', () => {
+  // ... other initializations ...
+  initializeRandomizeShortcut();
+  // ...
+});
 
 // --- Tooltip Setup (Placeholder) ---
 export function setupTooltips() { // EXPORTED

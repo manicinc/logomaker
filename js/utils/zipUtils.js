@@ -1,606 +1,448 @@
 /**
- * zipUtils.js - Enhanced version with robust ZIP creation and fallbacks
- * Handles ZIP creation for animation frames export in Logomaker
+ * zipUtils.js - v1.1 - Enhanced ZIP creation with JSZip preference and fallback.
+ * Handles ZIP creation for animation frames export in Logomaker.
+ * Includes dependency-free fallback for basic ZIP creation (no compression, no CRC32).
  */
 
+// --- Configuration ---
+const JSZIP_COMPRESSION_LEVEL = 6; // 0-9 (0 = store, 9 = best but slow)
+
+// --- Helper Functions ---
+
 /**
- * Creates a ZIP file containing the provided files and triggers download
- * @param {Array<{blob: Blob, name: string}>} files - Array of file objects
- * @param {string} zipFilename - Name for the ZIP file
+ * Tries to get the JSZip constructor/class from various possible locations.
+ * @returns {Object|null} JSZip class/constructor or null if not found.
  */
-export async function createZip(files, zipFilename) {
-    console.log('[ZipUtils] Creating ZIP with', files.length, 'files');
-    
-    // Try to detect JSZip in different ways
-    const jsZip = getJSZipInstance();
-    
-    if (jsZip) {
-      try {
-        // Use JSZip if available
-        const result = await createZipWithJSZip(files, zipFilename, jsZip);
-        return result;
-      } catch (error) {
-        console.error('[ZipUtils] JSZip creation failed:', error);
-        console.log('[ZipUtils] Falling back to direct downloads');
-        await downloadFilesDirectly(files);
-        return true;
-      }
-    } else {
-      console.log('[ZipUtils] JSZip not available, using direct downloads');
-      // Otherwise fall back to direct downloads
-      await downloadFilesDirectly(files);
-      return true;
+function getJSZipInstance() {
+    // Check standard locations first
+    if (typeof window !== 'undefined') {
+        if (typeof window.JSZip === 'function') return window.JSZip;
+        if (typeof window.jszip === 'function') return window.jszip; // Handle lowercase case
     }
-  }
-  
-  /**
-   * Tries to get JSZip from various possible locations
-   * @returns {Object|null} JSZip object or null if not available
-   */
-  function getJSZipInstance() {
-    // Check global JSZip
-    if (typeof JSZip !== 'undefined') return JSZip;
-    
-    // Check window.JSZip
-    if (typeof window !== 'undefined' && window.JSZip) return window.JSZip;
-    
-    // Check if it's in a different case (jszip, Jszip, etc)
-    if (typeof jszip !== 'undefined') return jszip;
-    if (typeof window !== 'undefined' && window.jszip) return window.jszip;
-    
+    // Check global scope as fallback
+    if (typeof JSZip === 'function') return JSZip;
+    if (typeof jszip === 'function') return jszip;
+
     // Not found
     return null;
-  }
-  
-  /**
-   * Creates a ZIP file using JSZip
-   * @param {Array<{blob: Blob, name: string}>} files - Array of file objects
-   * @param {string} zipFilename - Name for the ZIP file
-   * @param {Object} JSZipInstance - The JSZip constructor
-   */
-  async function createZipWithJSZip(files, zipFilename, JSZipInstance) {
-    try {
-      console.log('[ZipUtils] Creating ZIP using JSZip');
-      // Create a new JSZip instance
-      const zip = new JSZipInstance();
-      
-      // Add all files to the ZIP
-      files.forEach(file => {
-        console.log('[ZipUtils] Adding file to ZIP:', file.name);
-        zip.file(file.name, file.blob);
-      });
-      
-      // Generate the ZIP file with progress
-      console.log('[ZipUtils] Generating ZIP blob...');
-      const zipBlob = await zip.generateAsync({ 
-        type: 'blob',
-        compression: "DEFLATE",
-        compressionOptions: {
-          level: 6 // Balanced between size and speed
-        }
-      }, (metadata) => {
-        // Update progress if there's a UI element for it
-        const progress = metadata.percent.toFixed(0);
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        if (loadingIndicator && loadingIndicator.querySelector) {
-          const progressEl = loadingIndicator.querySelector('.export-progress');
-          if (progressEl) {
-            progressEl.textContent = `Creating ZIP: ${progress}%`;
-          }
-        }
-      });
-      
-      console.log('[ZipUtils] ZIP blob created, size:', zipBlob.size, 'bytes');
-      
-      // Download the ZIP
-      const url = URL.createObjectURL(zipBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = zipFilename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      // Clean up
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      
-      console.log('[ZipUtils] ZIP download triggered successfully');
-      return true;
-    } catch (error) {
-      console.error("[ZipUtils] JSZip creation error:", error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Downloads files one by one as a fallback
-   * @param {Array<{blob: Blob, name: string}>} files - Array of file objects
-   */
-  export async function downloadFilesDirectly(files) {
-    // Notify the user about multiple downloads
-    if (typeof showAlert === 'function') {
-      showAlert(`ZIP creation failed. You will receive ${files.length} separate download prompts for the animation frames.`, 'warning');
-    } else {
-      alert(`ZIP creation failed. You will receive ${files.length} separate download prompts for the animation frames.`);
-    }
-    
-    console.log('[ZipUtils] Downloading', files.length, 'files directly');
-    
-    // Download HTML preview and info text first if they exist
-    const htmlFile = files.find(file => file.name.endsWith('.html'));
-    const infoFile = files.find(file => file.name.endsWith('.txt'));
-    
-    const priorityFiles = [];
-    if (htmlFile) priorityFiles.push(htmlFile);
-    if (infoFile) priorityFiles.push(infoFile);
-    
-    // Then get all PNG files
-    const pngFiles = files.filter(file => 
-      file.name.endsWith('.png') && 
-      !priorityFiles.includes(file)
-    );
-    
-    // Download priority files first
-    for (const file of priorityFiles) {
-      await downloadSingleFile(file);
-      // Short delay between downloads
-      await new Promise(resolve => setTimeout(resolve, 300));
-    }
-    
-    // Ask user if they want to download all the PNG frames
-    let downloadAll = true;
-    if (pngFiles.length > 5) {
-      downloadAll = confirm(`Do you want to download all ${pngFiles.length} image frames? Click Cancel to download just the first and last frames instead.`);
-    }
-    
-    // Download PNG files
-    if (downloadAll) {
-      // Download all frames with progress updates
-      for (let i = 0; i < pngFiles.length; i++) {
-        const file = pngFiles[i];
-        console.log(`[ZipUtils] Downloading file ${i+1}/${pngFiles.length}: ${file.name}`);
-        
-        // Update loading indicator if available
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        if (loadingIndicator && loadingIndicator.querySelector) {
-          const progressEl = loadingIndicator.querySelector('.export-progress');
-          if (progressEl) {
-            progressEl.textContent = `Downloading frame ${i+1}/${pngFiles.length}`;
-          }
-        }
-        
-        await downloadSingleFile(file);
-        
-        // Short delay between downloads to prevent browser blocking
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-    } else {
-      // Download just first and last frame
-      if (pngFiles.length > 0) {
-        await downloadSingleFile(pngFiles[0]);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        if (pngFiles.length > 1) {
-          await downloadSingleFile(pngFiles[pngFiles.length - 1]);
-        }
-      }
-    }
-    
-    console.log('[ZipUtils] All downloads completed');
-    return true;
-  }
-  
-  /**
-   * Download a single file
-   * @param {Object} file - File object with blob and name
-   */
-  async function downloadSingleFile(file) {
-    return new Promise((resolve) => {
-      // Create a download link
-      const url = URL.createObjectURL(file.blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      // Clean up after a short delay
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-        resolve();
-      }, 100);
-    });
-  }
-  
-  /**
-   * Check if JSZip is available
-   * @returns {boolean} True if JSZip is available
-   */
-  export function isJSZipAvailable() {
-    return getJSZipInstance() !== null;
-  }
-  
-  /**
-   * Get estimated ZIP size based on file sizes
-   * @param {Array<{blob: Blob, name: string}>} files - Array of file objects
-   * @returns {string} Estimated size in KB or MB
-   */
-  export function getEstimatedZipSize(files) {
-    // Sum up all file sizes
-    const totalBytes = files.reduce((sum, file) => sum + file.blob.size, 0);
-    
-    // Apply rough compression estimate (ZIP typically compresses by ~30-60%)
-    const estimatedCompressedBytes = totalBytes * 0.7; // Assuming 30% compression
-    
-    // Format size
-    if (estimatedCompressedBytes < 1024 * 1024) {
-      return `${Math.round(estimatedCompressedBytes / 1024)} KB`;
-    } else {
-      return `${(estimatedCompressedBytes / (1024 * 1024)).toFixed(1)} MB`;
-    }
-  }
-
-  // ADD to the bottom of zipUtils.js - a minimal ZIP implementation
-/**
- * Create a basic ZIP file with no external dependencies
- * @param {Array<{blob: Blob, name: string}>} files - Files to include
- * @param {string} filename - Output filename
- */
-export async function createBasicZip(files, filename) {
-  // Warning: This is a very basic ZIP implementation
-  // It won't handle compression but will create a valid ZIP structure
-  
-  console.log("[BasicZip] Creating ZIP with", files.length, "files");
-  
-  // Constants for ZIP format
-  const LOCAL_FILE_HEADER_SIGNATURE = new Uint8Array([0x50, 0x4B, 0x03, 0x04]);
-  const CENTRAL_DIRECTORY_SIGNATURE = new Uint8Array([0x50, 0x4B, 0x01, 0x02]);
-  const END_OF_CENTRAL_DIR_SIGNATURE = new Uint8Array([0x50, 0x4B, 0x05, 0x06]);
-  
-  // Helpers
-  const textEncoder = new TextEncoder();
-  function encodeString(str) {
-    return textEncoder.encode(str);
-  }
-  
-  function writeUint16LE(value) {
-    const buffer = new ArrayBuffer(2);
-    new DataView(buffer).setUint16(0, value, true);
-    return new Uint8Array(buffer);
-  }
-  
-  function writeUint32LE(value) {
-    const buffer = new ArrayBuffer(4);
-    new DataView(buffer).setUint32(0, value, true);
-    return new Uint8Array(buffer);
-  }
-  
-  // Create parts for the ZIP
-  const localFileHeaders = [];
-  const fileData = [];
-  const centralDirectoryHeaders = [];
-  let offset = 0;
-  
-  // Process each file
-  for (const file of files) {
-    const filenameBytes = encodeString(file.name);
-    const fileContent = await file.blob.arrayBuffer().then(buf => new Uint8Array(buf));
-    const fileSize = fileContent.length;
-    
-    // Local file header
-    const localHeader = new Uint8Array([
-      ...LOCAL_FILE_HEADER_SIGNATURE,              // Signature
-      ...writeUint16LE(10),                        // Version needed
-      ...writeUint16LE(0),                         // Flags
-      ...writeUint16LE(0),                         // Compression method (0 = stored)
-      ...writeUint16LE(0),                         // Modification time
-      ...writeUint16LE(0),                         // Modification date
-      ...writeUint32LE(0),                         // CRC-32 (not calculated)
-      ...writeUint32LE(fileSize),                  // Compressed size
-      ...writeUint32LE(fileSize),                  // Uncompressed size
-      ...writeUint16LE(filenameBytes.length),      // Filename length
-      ...writeUint16LE(0),                         // Extra field length
-      ...filenameBytes                             // Filename
-    ]);
-    
-    // Store header and update offset
-    localFileHeaders.push(localHeader);
-    fileData.push(fileContent);
-    
-    // Central directory header
-    const centralDirHeader = new Uint8Array([
-      ...CENTRAL_DIRECTORY_SIGNATURE,              // Signature
-      ...writeUint16LE(0),                         // Version made by
-      ...writeUint16LE(10),                        // Version needed
-      ...writeUint16LE(0),                         // Flags
-      ...writeUint16LE(0),                         // Compression method
-      ...writeUint16LE(0),                         // Modification time
-      ...writeUint16LE(0),                         // Modification date
-      ...writeUint32LE(0),                         // CRC-32
-      ...writeUint32LE(fileSize),                  // Compressed size
-      ...writeUint32LE(fileSize),                  // Uncompressed size
-      ...writeUint16LE(filenameBytes.length),      // Filename length
-      ...writeUint16LE(0),                         // Extra field length
-      ...writeUint16LE(0),                         // File comment length
-      ...writeUint16LE(0),                         // Disk number
-      ...writeUint16LE(0),                         // Internal attributes
-      ...writeUint32LE(0),                         // External attributes
-      ...writeUint32LE(offset),                    // Local header offset
-      ...filenameBytes                             // Filename
-    ]);
-    
-    centralDirectoryHeaders.push(centralDirHeader);
-    offset += localHeader.length + fileContent.length;
-  }
-  
-  // End of central directory record
-  const centralDirSize = centralDirectoryHeaders.reduce((sum, header) => sum + header.length, 0);
-  const endOfCentralDir = new Uint8Array([
-    ...END_OF_CENTRAL_DIR_SIGNATURE,               // Signature
-    ...writeUint16LE(0),                           // Disk number
-    ...writeUint16LE(0),                           // Disk with central directory
-    ...writeUint16LE(files.length),                // Number of entries (this disk)
-    ...writeUint16LE(files.length),                // Number of entries (total)
-    ...writeUint32LE(centralDirSize),              // Central directory size
-    ...writeUint32LE(offset),                      // Central directory offset
-    ...writeUint16LE(0)                            // Comment length
-  ]);
-  
-  // Combine all parts into a single array
-  const zipParts = [];
-  for (let i = 0; i < files.length; i++) {
-    zipParts.push(localFileHeaders[i]);
-    zipParts.push(fileData[i]);
-  }
-  
-  centralDirectoryHeaders.forEach(header => zipParts.push(header));
-  zipParts.push(endOfCentralDir);
-  
-  // Create the final ZIP blob
-  const blob = new Blob(zipParts, { type: 'application/zip' });
-  
-  // Download the ZIP
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 100);
-  
-  return true;
 }
 
 /**
- * Simple ZIP Creation Utility for Browser-based ZIP Package Generation
- * Supports creating ZIP files without external libraries
+ * Downloads a Blob object by creating a temporary link.
+ * @param {Blob} blob - The Blob to download.
+ * @param {string} filename - The desired filename for the download.
  */
+export function downloadZipBlob(blob, filename = 'archive.zip') {
+    if (!blob || !(blob instanceof Blob)) {
+        console.error('[ZipUtils Download] Invalid Blob provided for download.');
+        return;
+    }
+    if (!filename || typeof filename !== 'string') {
+        filename = 'archive.zip';
+    }
+    console.log(`[ZipUtils Download] Triggering download for '${filename}', size: ${(blob.size / 1024).toFixed(1)} KB`);
+    try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
-// ZIP Local File Header signature
+        // Clean up the object URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(url), 250);
+         console.log('[ZipUtils Download] Download link clicked.');
+    } catch (err) {
+        console.error('[ZipUtils Download] Error triggering download:', err);
+        // Optionally notify the user via showAlert if available
+        if (typeof showAlert === 'function') {
+             showAlert(`Download failed: ${err.message}`, 'error');
+        }
+    }
+}
+
+
+/**
+ * Creates a ZIP file using JSZip library.
+ * @param {Array<{blob: Blob, name: string}>} files - Array of file objects { blob, name }.
+ * @param {string} zipFilename - Desired name for the output ZIP file.
+ * @param {Object} JSZipConstructor - The JSZip constructor function.
+ * @param {function(number):void} [progressCallback] - Optional callback for progress (0-100).
+ * @returns {Promise<boolean>} Promise resolving true on success, false on failure (triggers fallback).
+ */
+async function createZipWithJSZip(files, zipFilename, JSZipConstructor, progressCallback) {
+    console.log('[ZipUtils JSZip] Attempting ZIP creation using JSZip...');
+    try {
+        const zip = new JSZipConstructor();
+
+        // Add files to the zip
+        files.forEach(file => {
+            if (file.blob instanceof Blob && typeof file.name === 'string') {
+                zip.file(file.name, file.blob);
+            } else {
+                 console.warn('[ZipUtils JSZip] Skipping invalid file entry:', file);
+            }
+        });
+
+        console.log('[ZipUtils JSZip] Generating ZIP blob...');
+        const zipBlob = await zip.generateAsync({
+            type: 'blob',
+            compression: "DEFLATE",
+            compressionOptions: {
+                level: JSZIP_COMPRESSION_LEVEL
+            },
+            streamFiles: true // Helps with memory for many/large files
+        }, (metadata) => {
+            // Call the external progress callback if provided
+            if (typeof progressCallback === 'function') {
+                const percent = metadata.percent ? metadata.percent.toFixed(0) : 0;
+                // Avoid flooding caller with updates
+                if (percent % 5 === 0 || percent == 100) {
+                    try {
+                         progressCallback(parseInt(percent));
+                    } catch(cbError) {
+                         console.warn('[ZipUtils JSZip] Progress callback error:', cbError);
+                    }
+                }
+            }
+            // Check for cancellation flag if passed/accessible
+            // if (window.exportCancelled) { throw new Error("Export cancelled during JSZip generation"); }
+        });
+
+        console.log('[ZipUtils JSZip] ZIP blob generated successfully. Size:', zipBlob.size);
+        downloadZipBlob(zipBlob, zipFilename); // Trigger download directly
+        return true; // Indicate success
+
+    } catch (error) {
+        console.error("[ZipUtils JSZip] JSZip creation failed:", error);
+        return false; // Indicate failure to trigger fallback
+    }
+}
+
+// --- Dependency-Free Fallback ZIP Creation (No Compression, No CRC32) ---
+
+// Constants for manual ZIP format
 const LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50;
-// ZIP Central Directory File Header signature
 const CENTRAL_DIRECTORY_HEADER_SIGNATURE = 0x02014b50;
-// ZIP End of Central Directory signature
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
 
-/**
- * Convert number to little-endian 4-byte array
- * @param {number} num - Number to convert
- * @returns {Uint8Array} Little-endian byte representation
- */
-function numberToLittleEndian4Bytes(num) {
-    const arr = new Uint8Array(4);
-    arr[0] = num & 0xFF;
-    arr[1] = (num >> 8) & 0xFF;
-    arr[2] = (num >> 16) & 0xFF;
-    arr[3] = (num >> 24) & 0xFF;
-    return arr;
+// Helper to write Uint16 Little Endian
+function writeUint16LE(value, buffer, offset) {
+    new DataView(buffer).setUint16(offset, value, true);
+}
+// Helper to write Uint32 Little Endian
+function writeUint32LE(value, buffer, offset) {
+    new DataView(buffer).setUint32(offset, value, true);
 }
 
-/**
- * Convert number to little-endian 2-byte array
- * @param {number} num - Number to convert
- * @returns {Uint8Array} Little-endian byte representation
- */
-function numberToLittleEndian2Bytes(num) {
-    const arr = new Uint8Array(2);
-    arr[0] = num & 0xFF;
-    arr[1] = (num >> 8) & 0xFF;
-    return arr;
-}
-
-/**
- * Get current timestamp for ZIP file
- * @returns {number} DOS-style date/time
- */
+// Get DOS Date/Time for ZIP headers
 function getDOSDateTime() {
     const date = new Date();
-    const year = date.getFullYear() - 1980; // DOS year starts from 1980
+    const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const hours = date.getHours();
     const minutes = date.getMinutes();
-    const seconds = date.getSeconds() / 2; // DOS seconds are stored in 2-second intervals
+    const seconds = Math.floor(date.getSeconds() / 2); // DOS resolution is 2 seconds
 
-    return (
-        (year << 25) | 
-        (month << 21) | 
-        (day << 16) | 
-        (hours << 11) | 
-        (minutes << 5) | 
-        seconds
-    );
+    if (year < 1980) return 0x2100; // Default if date is before 1980
+
+    const dosTime = (hours << 11) | (minutes << 5) | seconds;
+    const dosDate = ((year - 1980) << 9) | (month << 5) | day;
+    return (dosDate << 16) | dosTime;
 }
 
-/**
- * Calculate CRC32 checksum for a Uint8Array
- * @param {Uint8Array} data - Data to checksum
- * @returns {number} CRC32 checksum
- */
-function calculateCRC32(data) {
-    const table = new Uint32Array(256);
-    
-    // Generate CRC32 lookup table
-    for (let i = 0; i < 256; i++) {
-        let c = i;
-        for (let j = 0; j < 8; j++) {
-            c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-        }
-        table[i] = c >>> 0;
-    }
-    
-    let crc = 0xFFFFFFFF;
-    
-    for (let i = 0; i < data.length; i++) {
-        crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xFF];
-    }
-    
-    return (crc ^ 0xFFFFFFFF) >>> 0;
-}
-
-/**
- * Convert a Blob to Uint8Array
- * @param {Blob} blob - Blob to convert
- * @returns {Promise<Uint8Array>} Converted blob data
- */
+// Helper to convert Blob to Uint8Array
 function blobToUint8Array(blob) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-            const arrayBuffer = reader.result;
-            resolve(new Uint8Array(arrayBuffer));
+            if (reader.result instanceof ArrayBuffer) {
+                resolve(new Uint8Array(reader.result));
+            } else {
+                 reject(new Error("FileReader did not return ArrayBuffer"));
+            }
         };
-        reader.onerror = reject;
+        reader.onerror = (event) => reject(new Error(`FileReader error: ${event?.target?.error || 'Unknown'}`));
         reader.readAsArrayBuffer(blob);
     });
 }
 
 /**
- * Create a simple ZIP file from an array of files
- * @param {Array<{name: string, blob: Blob}>} files - Files to zip
- * @returns {Promise<Blob>} ZIP file blob
+ * Creates a very basic, uncompressed ZIP file blob without external dependencies.
+ * Skips CRC32 calculation for performance.
+ * @param {Array<{blob: Blob, name: string}>} files - Array of file objects { blob, name }.
+ * @returns {Promise<Blob>} Promise resolving with the generated ZIP Blob.
  */
-export async function createSimpleZip(files, zipFilename = 'archive.zip') {
-    // Validate inputs
-    if (!files || files.length === 0) {
-        throw new Error('No files provided for ZIP creation');
+export async function createSimpleUncompressedZip(files) {
+    console.warn("[ZipUtils Simple] Creating UNCOMPRESSED ZIP (No CRC32) as fallback...");
+    if (!files || files.length === 0) throw new Error('No files provided for simple ZIP creation');
+
+    const zipParts = [];
+    const centralDirectoryHeaders = [];
+    let currentOffset = 0;
+    const textEncoder = new TextEncoder();
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!(file.blob instanceof Blob) || typeof file.name !== 'string') {
+            console.warn(`[ZipUtils Simple] Skipping invalid file entry at index ${i}:`, file);
+            continue;
+        }
+
+        const fileData = await blobToUint8Array(file.blob);
+        const filename = file.name.replace(/\\/g, '/'); // Sanitize path separators
+        const filenameBytes = textEncoder.encode(filename);
+        const fileSize = fileData.length;
+        const crc32 = 0; // Set CRC32 to 0 for uncompressed data (performance)
+        const dosDateTime = getDOSDateTime();
+
+        // --- Local File Header (30 bytes + filename length) ---
+        const localHeaderBuffer = new ArrayBuffer(30);
+        const localHeaderView = new DataView(localHeaderBuffer);
+        writeUint32LE(LOCAL_FILE_HEADER_SIGNATURE, localHeaderBuffer, 0);  // Signature
+        writeUint16LE(20, localHeaderBuffer, 4);   // Version needed (2.0 for DEFLATE/Stored)
+        writeUint16LE(0, localHeaderBuffer, 6);    // General Purpose Flag (Bit 3=0 => sizes/CRC are in header)
+        writeUint16LE(0, localHeaderBuffer, 8);    // Compression Method (0 = Stored)
+        writeUint32LE(dosDateTime, localHeaderBuffer, 10); // Last Mod Time/Date
+        writeUint32LE(crc32, localHeaderBuffer, 14); // CRC-32 (0)
+        writeUint32LE(fileSize, localHeaderBuffer, 18); // Compressed Size (same as uncompressed)
+        writeUint32LE(fileSize, localHeaderBuffer, 22); // Uncompressed Size
+        writeUint16LE(filenameBytes.length, localHeaderBuffer, 26); // Filename Length
+        writeUint16LE(0, localHeaderBuffer, 28);   // Extra Field Length
+
+        zipParts.push(new Uint8Array(localHeaderBuffer)); // Add header part
+        zipParts.push(filenameBytes); // Add filename part
+        zipParts.push(fileData);      // Add file data part
+
+        // --- Central Directory Header (46 bytes + filename length) ---
+        const centralHeaderBuffer = new ArrayBuffer(46);
+        const centralHeaderView = new DataView(centralHeaderBuffer);
+        writeUint32LE(CENTRAL_DIRECTORY_HEADER_SIGNATURE, centralHeaderBuffer, 0); // Signature
+        writeUint16LE(20, centralHeaderBuffer, 4);    // Version Made By
+        writeUint16LE(20, centralHeaderBuffer, 6);    // Version Needed
+        writeUint16LE(0, centralHeaderBuffer, 8);     // General Purpose Flag
+        writeUint16LE(0, centralHeaderBuffer, 10);    // Compression Method
+        writeUint32LE(dosDateTime, centralHeaderBuffer, 12); // Last Mod Time/Date
+        writeUint32LE(crc32, centralHeaderBuffer, 16); // CRC-32 (0)
+        writeUint32LE(fileSize, centralHeaderBuffer, 20); // Compressed Size
+        writeUint32LE(fileSize, centralHeaderBuffer, 24); // Uncompressed Size
+        writeUint16LE(filenameBytes.length, centralHeaderBuffer, 28); // Filename Length
+        writeUint16LE(0, centralHeaderBuffer, 30);    // Extra Field Length
+        writeUint16LE(0, centralHeaderBuffer, 32);    // File Comment Length
+        writeUint16LE(0, centralHeaderBuffer, 34);    // Disk Number Start
+        writeUint16LE(0, centralHeaderBuffer, 36);    // Internal Attributes
+        writeUint32LE(0, centralHeaderBuffer, 38);    // External Attributes
+        writeUint32LE(currentOffset, centralHeaderBuffer, 42); // Relative Offset of Local Header
+
+        const centralHeaderFull = new Uint8Array(46 + filenameBytes.length);
+        centralHeaderFull.set(new Uint8Array(centralHeaderBuffer));
+        centralHeaderFull.set(filenameBytes, 46);
+        centralDirectoryHeaders.push(centralHeaderFull); // Store full central header
+
+        // Update offset for the next local file header
+        currentOffset += 30 + filenameBytes.length + fileSize;
     }
 
-    // Prepare central directory and local file headers
-    const centralDirectoryHeaders = [];
-    const localFileHeaders = [];
-    let totalSize = 0;
-    
-    // Process each file
-    const processedFiles = await Promise.all(files.map(async (file, index) => {
-        const fileData = await blobToUint8Array(file.blob);
-        const filename = file.name.replace(/\\/g, '/');
-        const crc32 = calculateCRC32(fileData);
-        
-        // Create local file header
-        const localHeader = new Uint8Array([
-            ...numberToLittleEndian4Bytes(LOCAL_FILE_HEADER_SIGNATURE), // Signature
-            0x14, 0x00, // Version needed to extract
-            0x00, 0x00, // General Purpose Flag
-            0x00, 0x00, // Compression Method (0 = no compression)
-            ...numberToLittleEndian4Bytes(getDOSDateTime()), // Last Modified Time
-            ...numberToLittleEndian4Bytes(crc32), // CRC-32
-            ...numberToLittleEndian4Bytes(fileData.length), // Compressed Size
-            ...numberToLittleEndian4Bytes(fileData.length), // Uncompressed Size
-            ...numberToLittleEndian2Bytes(filename.length), // Filename Length
-            0x00, 0x00, // Extra Field Length
-        ]);
-        
-        // Add filename to local header
-        const filenameBytes = new TextEncoder().encode(filename);
-        const localHeaderWithFilename = new Uint8Array([
-            ...localHeader,
-            ...filenameBytes
-        ]);
-        
-        // Create central directory file header
-        const centralHeader = new Uint8Array([
-            ...numberToLittleEndian4Bytes(CENTRAL_DIRECTORY_HEADER_SIGNATURE), // Signature
-            0x14, 0x00, // Version Made By
-            0x14, 0x00, // Version Needed to Extract
-            0x00, 0x00, // General Purpose Flag
-            0x00, 0x00, // Compression Method
-            ...numberToLittleEndian4Bytes(getDOSDateTime()), // Last Modified Time
-            ...numberToLittleEndian4Bytes(crc32), // CRC-32
-            ...numberToLittleEndian4Bytes(fileData.length), // Compressed Size
-            ...numberToLittleEndian4Bytes(fileData.length), // Uncompressed Size
-            ...numberToLittleEndian2Bytes(filename.length), // Filename Length
-            0x00, 0x00, // Extra Field Length
-            0x00, 0x00, // File Comment Length
-            0x00, 0x00, // Disk Number Start
-            0x00, 0x00, // Internal File Attributes
-            0x00, 0x00, 0x00, 0x00, // External File Attributes
-            ...numberToLittleEndian4Bytes(totalSize) // Relative Offset of Local Header
-        ]);
-        
-        // Add filename to central header
-        const centralHeaderWithFilename = new Uint8Array([
-            ...centralHeader,
-            ...filenameBytes
-        ]);
-        
-        // Calculate total size for next iteration
-        const completeFileSize = localHeaderWithFilename.length + fileData.length;
-        totalSize += completeFileSize;
-        
-        return {
-            localHeader: localHeaderWithFilename,
-            centralHeader: centralHeaderWithFilename,
-            fileData,
-            index
-        };
-    }));
-    
-    // Prepare end of central directory record
-    const centralDirectorySize = processedFiles.reduce((sum, file) => sum + file.centralHeader.length, 0);
-    const centralDirectoryOffset = processedFiles.reduce((sum, file) => sum + file.localHeader.length + file.fileData.length, 0);
-    
-    const endOfCentralDirectoryRecord = new Uint8Array([
-        ...numberToLittleEndian4Bytes(END_OF_CENTRAL_DIRECTORY_SIGNATURE), // Signature
-        0x00, 0x00, // Number of this Disk
-        0x00, 0x00, // Disk where Central Directory starts
-        ...numberToLittleEndian2Bytes(processedFiles.length), // Number of Central Directory Records on this Disk
-        ...numberToLittleEndian2Bytes(processedFiles.length), // Total Number of Central Directory Records
-        ...numberToLittleEndian4Bytes(centralDirectorySize), // Size of Central Directory
-        ...numberToLittleEndian4Bytes(centralDirectoryOffset), // Offset of Central Directory
-        0x00, 0x00, // ZIP file comment length
-    ]);
-    
-    // Combine all parts
-    const zipParts = [];
-    processedFiles.forEach(file => {
-        zipParts.push(file.localHeader, file.fileData);
-    });
-    
-    processedFiles.forEach(file => {
-        zipParts.push(file.centralHeader);
-    });
-    
-    zipParts.push(endOfCentralDirectoryRecord);
-    
-    // Create final ZIP blob
+    // --- End of Central Directory Record (22 bytes) ---
+    const centralDirSize = centralDirectoryHeaders.reduce((sum, h) => sum + h.length, 0);
+    const centralDirOffset = currentOffset; // Offset is where CD starts
+
+    const eocdBuffer = new ArrayBuffer(22);
+    const eocdView = new DataView(eocdBuffer);
+    writeUint32LE(END_OF_CENTRAL_DIRECTORY_SIGNATURE, eocdBuffer, 0); // Signature
+    writeUint16LE(0, eocdBuffer, 4);  // Disk number
+    writeUint16LE(0, eocdBuffer, 6);  // Disk where CD starts
+    writeUint16LE(centralDirectoryHeaders.length, eocdBuffer, 8);  // Entries on this disk
+    writeUint16LE(centralDirectoryHeaders.length, eocdBuffer, 10); // Total entries
+    writeUint32LE(centralDirSize, eocdBuffer, 12); // Size of Central Directory
+    writeUint32LE(centralDirOffset, eocdBuffer, 16); // Offset of Central Directory
+    writeUint16LE(0, eocdBuffer, 20); // Comment length
+
+    // Add central directory headers and EOCD record to the parts
+    centralDirectoryHeaders.forEach(h => zipParts.push(h));
+    zipParts.push(new Uint8Array(eocdBuffer));
+
+    // Create the final Blob
+    console.log("[ZipUtils Simple] Assembling final Blob...");
     const zipBlob = new Blob(zipParts, { type: 'application/zip' });
-    
+    console.log("[ZipUtils Simple] Blob assembled, size:", zipBlob.size);
     return zipBlob;
 }
 
-// Fallback download function if no global download utility exists
-export function downloadZipBlob(blob, filename = 'archive.zip') {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    // Clean up
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+// --- Fallback: Direct Downloads ---
+
+/**
+ * Downloads files individually as a fallback if ZIP creation fails.
+ * @param {Array<{blob: Blob, name: string}>} files - Array of file objects { blob, name }.
+ * @returns {Promise<boolean>} Always resolves true after attempting downloads.
+ */
+async function downloadFilesDirectly(files) {
+    console.warn('[ZipUtils Fallback] Initiating direct file downloads.');
+    if (typeof showAlert === 'function') {
+        showAlert(`Automatic ZIP creation failed. You may receive multiple download prompts (${files.length} files). Please check your browser settings if downloads are blocked.`, 'warning');
+    } else {
+        alert(`Automatic ZIP creation failed. You will receive ${files.length} separate download prompts.`);
+    }
+
+    // Prioritize HTML/TXT files
+    const priorityFiles = files.filter(f => f.name.endsWith('.html') || f.name.endsWith('.txt'));
+    const otherFiles = files.filter(f => !priorityFiles.includes(f));
+
+    const downloadQueue = [...priorityFiles, ...otherFiles];
+
+    // Ask user confirmation for large number of files
+    let confirmed = true;
+    const fileThreshold = 10; // Ask if more than 10 files
+    if (downloadQueue.length > fileThreshold) {
+        confirmed = confirm(`ZIP failed. Download all ${downloadQueue.length} files individually? (Click Cancel to skip)`);
+    }
+
+    if (!confirmed) {
+        console.log('[ZipUtils Fallback] User cancelled direct downloads.');
+        if (typeof showAlert === 'function') showAlert('Direct downloads skipped by user.', 'info');
+        return true; // Indicate fallback process finished (by cancellation)
+    }
+
+    // Download with delays
+    for (let i = 0; i < downloadQueue.length; i++) {
+        const file = downloadQueue[i];
+        console.log(`[ZipUtils Fallback] Downloading file ${i + 1}/${downloadQueue.length}: ${file.name}`);
+        // Update UI progress if possible
+         const progressTextElement = document.getElementById('gifExporterModalProgressText');
+         if (progressTextElement) {
+              progressTextElement.textContent = `Fallback: Downloading file ${i + 1}/${downloadQueue.length}...`;
+         }
+
+        try {
+             await downloadSingleFile(file); // Use separate helper
+        } catch (dlError) {
+             console.error(`[ZipUtils Fallback] Error downloading ${file.name}:`, dlError);
+             // Optionally inform user about specific file failure
+             if (typeof showAlert === 'function') showAlert(`Failed to download ${file.name}. You may need to try exporting again.`, 'error');
+             // Decide whether to continue or stop on error
+             // continue; // Continue with next file
+             return true; // Stop fallback on first error? Return true as process "finished"
+        }
+
+        // Short delay between downloads to avoid browser blocking issues
+        await new Promise(resolve => setTimeout(resolve, 350)); // 350ms delay
+    }
+
+    console.log('[ZipUtils Fallback] All direct downloads attempted.');
+     if (typeof showAlert === 'function') showAlert('Direct downloads initiated. Check your downloads folder.', 'info');
+    return true; // Indicate fallback process finished
 }
+
+/**
+ * Helper to download a single file using createObjectURL.
+ * @param {{blob: Blob, name: string}} file - The file object.
+ */
+async function downloadSingleFile(file) {
+    return new Promise((resolve, reject) => {
+        try {
+            downloadZipBlob(file.blob, file.name); // Reuse the export helper
+            // Resolve slightly after click to allow download to initiate
+             setTimeout(resolve, 100);
+         } catch(err) {
+             reject(err);
+         }
+    });
+}
+
+// --- Main Exported Function ---
+
+/**
+ * Creates a ZIP file containing the provided files.
+ * Prefers using JSZip if available, falls back to simple uncompressed ZIP,
+ * and finally falls back to downloading files individually.
+ * @param {Array<{blob: Blob, name: string}>} files - Array of file objects { blob, name }.
+ * @param {string} zipFilename - Desired name for the output ZIP file.
+ * @param {function(number):void} [progressCallbackUI] - Optional callback for UI progress (0-100).
+ * @returns {Promise<boolean>} Promise resolving true if download was initiated (either ZIP or fallback), false otherwise.
+ */
+export async function createZip(files, zipFilename, progressCallbackUI) {
+    console.log(`[ZipUtils] createZip called for ${files.length} files. Filename: ${zipFilename}`);
+    const JSZip = getJSZipInstance();
+
+    if (JSZip) {
+        console.log('[ZipUtils] JSZip detected. Attempting JSZip creation...');
+        const success = await createZipWithJSZip(files, zipFilename, JSZip, (percent) => {
+            // Call the UI progress callback if it exists
+             if (typeof progressCallbackUI === 'function') {
+                 try {
+                      progressCallbackUI(percent);
+                 } catch (e) { console.warn("UI Progress callback error:", e); }
+             }
+        });
+
+        if (success) {
+            console.log('[ZipUtils] JSZip creation and download successful.');
+            return true;
+        } else {
+            console.warn('[ZipUtils] JSZip creation failed. Attempting simple uncompressed ZIP fallback...');
+            // Fall through to simple ZIP if JSZip failed but didn't throw catastrophically
+        }
+    } else {
+        console.log('[ZipUtils] JSZip not detected. Attempting simple uncompressed ZIP fallback...');
+    }
+
+    // --- Fallback 1: Simple Uncompressed ZIP ---
+    try {
+        const simpleZipBlob = await createSimpleUncompressedZip(files);
+        if (simpleZipBlob) {
+            console.log('[ZipUtils] Simple uncompressed ZIP created successfully.');
+            downloadZipBlob(simpleZipBlob, zipFilename);
+            return true; // Indicate success
+        } else {
+            throw new Error("Simple ZIP creation returned no blob.");
+        }
+    } catch (simpleZipError) {
+        console.error('[ZipUtils] Simple uncompressed ZIP creation failed:', simpleZipError);
+        console.warn('[ZipUtils] Falling back to downloading files individually.');
+        // Fall through to direct downloads
+    }
+
+    // --- Fallback 2: Direct Downloads ---
+    try {
+        // This function now handles user notification and download triggers
+        await downloadFilesDirectly(files);
+        return true; // Indicate direct downloads were attempted
+    } catch (fallbackError) {
+        console.error('[ZipUtils] Direct download fallback failed catastrophically:', fallbackError);
+         if (typeof showAlert === 'function') showAlert(`Critical error during export fallback: ${fallbackError.message}`, 'error');
+        return false; // Indicate complete failure
+    }
+}
+
+// --- Utility Exports ---
+
+/**
+ * Check if JSZip library is likely available.
+ * @returns {boolean} True if JSZip seems available.
+ */
+export function isJSZipAvailable() {
+    return getJSZipInstance() !== null;
+}
+
+/**
+ * Get estimated ZIP size based on raw file sizes (simple approximation).
+ * @param {Array<{blob: Blob}>} files - Array of file objects.
+ * @returns {string} Estimated size string (e.g., "1.2 MB").
+ */
+export function getEstimatedZipSize(files) {
+    if (!files || files.length === 0) return "0 KB";
+    const totalBytes = files.reduce((sum, file) => sum + (file?.blob?.size || 0), 0);
+
+    // Simple guess: Assume ~10-20% reduction if JSZip is used, otherwise ~0% for simple zip.
+    const compressionFactor = isJSZipAvailable() ? 0.85 : 1.0;
+    const estimatedBytes = totalBytes * compressionFactor;
+
+    if (estimatedBytes < 1024) return `${Math.round(estimatedBytes)} B`;
+    if (estimatedBytes < 1024 * 1024) return `${Math.round(estimatedBytes / 1024)} KB`;
+    return `${(estimatedBytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+console.log('[ZipUtils v1.1] Module Loaded.');

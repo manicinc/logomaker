@@ -262,67 +262,112 @@ function delay(ms) {
  * Core PNG export logic via direct canvas snapshot. (v2.3)
  * Uses enhanced HTML2Canvas implementation for better text and style handling.
  */
+/**
+ * Core PNG export logic via direct canvas snapshot. (v2.3)
+ * Uses enhanced HTML2Canvas implementation for better text and style handling.
+ */
+/**
+ * Core PNG export logic via direct canvas snapshot. (v2.4 - Fixed canvas variable name)
+ * Uses enhanced HTML2Canvas implementation for better text and style handling.
+ */
 async function exportViaSnapshotCore(options = {}) {
-    console.log('[PNG Core Snapshot v2.3] Attempting export with enhanced HTML2Canvas. Options:', options);
-    const { width = 800, height = 400, quality = 0.95, transparentBackground = false } = options;
+    console.log('[PNG Core Snapshot v2.4] Attempting export with enhanced HTML2Canvas. Options:', options);
+    const { width = 800, height = 400, quality = 0.95, transparentBackground = false } = options; // Note: quality affects toBlob compression hint
 
-    if (typeof html2canvas !== 'function') {
-        console.error("[PNG Core Snapshot] html2canvas library is not loaded or available.");
-        throw new Error("Snapshotting requires the 'html2canvas.js' library, which was not found. Ensure it's included locally or use the SVG Render method.");
+    // Check if the necessary function (either global or wrapper) exists
+    const captureFunctionAvailable = typeof captureLogoWithHTML2Canvas === 'function';
+    const html2canvasGlobalAvailable = typeof html2canvas === 'function';
+
+    if (!captureFunctionAvailable && !html2canvasGlobalAvailable) {
+        console.error("[PNG Core Snapshot] html2canvas library or wrapper function is not available.");
+        throw new Error("Snapshotting requires the 'html2canvas.js' library or the 'captureLogoWithHTML2Canvas' wrapper function, which was not found. Ensure html2canvas is included locally or use the SVG Render method.");
     }
+    // Prefer the wrapper if available, otherwise use global html2canvas directly
+    const useWrapper = captureFunctionAvailable;
+    console.log(`[PNG Core Snapshot] Using ${useWrapper ? 'captureLogoWithHTML2Canvas wrapper' : 'global html2canvas directly'}.`);
+
 
     const elementToSnapshot = document.querySelector('#previewContainer');
     if (!elementToSnapshot) throw new Error("Could not find '#previewContainer' to snapshot.");
-    
-    console.log('[PNG Core Snapshot] Using enhanced HTML2Canvas implementation...');
+
+    // Store original style to restore later
+    const originalStyle = {
+        width: elementToSnapshot.style.width,
+        height: elementToSnapshot.style.height,
+        transform: elementToSnapshot.style.transform,
+        // Store others if needed
+    };
 
     try {
-        // Use our improved HTML2Canvas implementation
+        // Temporarily adjust the previewContainer for capture
+        console.log(`[PNG Core Snapshot] Temporarily resizing element to ${width}x${height} for capture.`);
+        elementToSnapshot.style.width = `${width}px`;
+        elementToSnapshot.style.height = `${height}px`;
+        elementToSnapshot.style.transform = 'none'; // Ensure no scaling/rotation affects capture boundaries
+
+        // Force repaint/reflow - important for styles & dimensions to apply before capture
+        elementToSnapshot.getBoundingClientRect();
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))); // Wait two frames
+
+        // Prepare options for html2canvas/wrapper
         const captureOptions = {
             width: width,
             height: height,
-            scale: window.devicePixelRatio * 2, // Higher quality
-            backgroundColor: transparentBackground ? null : undefined,
+            scale: 2, // Capture at higher resolution for better quality
+            backgroundColor: transparentBackground ? null : (window.getComputedStyle(elementToSnapshot).backgroundColor || '#ffffff'), // Use computed background or default white if not transparent
             useCORS: true,
-            allowTaint: true
+            allowTaint: true, // May be needed for external resources if useCORS fails
+            logging: false, // Disable html2canvas internal logging unless debugging it
+            // Pass ignoreElements logic if using global html2canvas directly
+            ignoreElements: useWrapper ? undefined : (element) => {
+                return element.classList && (element.classList.contains('size-indicator') || element.classList.contains('loading-spinner'));
+             }
+            // The onclone logic is handled within captureLogoWithHTML2Canvas if useWrapper is true
         };
-        
-        // This uses our enhanced implementation
-        const canvas = await captureLogoWithHTML2Canvas(elementToSnapshot, captureOptions);
-        console.log(`[PNG Core Snapshot] Enhanced capture successful. Canvas size: ${canvas.width}x${canvas.height}`);
 
-        // Handle resizing if needed
-        let finalCanvas = canvas;
-        if (canvas.width !== width || canvas.height !== height) {
-             console.warn(`[PNG Core Snapshot] Resizing snapshot canvas from ${canvas.width}x${canvas.height} to target ${width}x${height}.`);
-             finalCanvas = document.createElement('canvas'); 
-             finalCanvas.width = width; 
-             finalCanvas.height = height;
-             const ctx = finalCanvas.getContext('2d'); 
-             if (!ctx) throw new Error("Failed to get canvas context");
-             ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, width, height);
-        }
+        console.log('[PNG Core Snapshot] Starting capture...');
+        // Use the appropriate capture function
+        const canvas = useWrapper
+            ? await captureLogoWithHTML2Canvas(elementToSnapshot, captureOptions)
+            : await html2canvas(elementToSnapshot, captureOptions); // Use global directly if wrapper missing
 
-        // Convert to blob
+        console.log(`[PNG Core Snapshot] Capture successful. Canvas dimensions: ${canvas.width}x${canvas.height}`);
+
+        // Restore original styling immediately after capture
+        console.log('[PNG Core Snapshot] Restoring original element styles...');
+        elementToSnapshot.style.width = originalStyle.width;
+        elementToSnapshot.style.height = originalStyle.height;
+        elementToSnapshot.style.transform = originalStyle.transform;
+        // Force repaint to see restoration quickly
+        elementToSnapshot.getBoundingClientRect();
+
+
+        // Convert captured canvas to blob
+        console.log('[PNG Core Snapshot] Converting canvas to Blob...');
         return new Promise((resolve, reject) => {
-            finalCanvas.toBlob(blob => { 
-                if (blob) resolve(blob); 
-                else reject(new Error('Canvas toBlob failed')); 
-            }, 'image/png', quality);
+             // *** FIX: Use the 'canvas' variable that holds the result ***
+             canvas.toBlob(blob => { // <<< CORRECTED: Use 'canvas' variable
+                 if (blob) {
+                     console.log('[PNG Core Snapshot] Blob created successfully.');
+                     resolve(blob);
+                 } else {
+                     console.error('[PNG Core Snapshot] canvas.toBlob failed, returned null.');
+                     reject(new Error('Canvas toBlob conversion failed'));
+                 }
+             }, 'image/png', quality); // Pass quality hint to toBlob
         });
 
     } catch (error) {
-        console.error('[PNG Core Snapshot] Enhanced HTML2Canvas execution failed:', error);
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        if (errorMsg.includes('SecurityError')) { 
-            throw new Error("Snapshot failed: Cross-origin security restriction (fonts/images?)."); 
+        console.error('[PNG Core Snapshot] Snapshot capture or processing failed:', error);
+        // Ensure styles are restored even on error
+        if (elementToSnapshot) {
+            console.log('[PNG Core Snapshot] Restoring original element styles after error...');
+            elementToSnapshot.style.width = originalStyle.width;
+            elementToSnapshot.style.height = originalStyle.height;
+            elementToSnapshot.style.transform = originalStyle.transform;
         }
-        else if (errorMsg.includes('Timeout')) { 
-            throw new Error("Snapshot timed out. Logo might be too complex."); 
-        }
-        else { 
-            throw new Error(`Snapshot failed: ${errorMsg}`); 
-        }
+        // Re-throw the error to be caught by handleExport
+        throw new Error(`Snapshot Failed: ${error.message || error}`, { cause: error });
     }
 }
 
