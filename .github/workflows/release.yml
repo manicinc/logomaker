@@ -1,0 +1,58 @@
+# .github/workflows/release.yml (Manual Trigger Version)
+
+name: Build & Release Electron App (Manual Trigger)
+
+on:
+  workflow_dispatch: # ONLY allow manual trigger from Actions tab
+
+permissions:
+  contents: write # Still needed for electron-builder to create release/tag
+
+jobs:
+  build_and_publish: # Combined job is fine for manual trigger
+    # Prevent multiple concurrent release builds triggered manually close together
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest] # Build on all platforms
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # Checkout code at the specific ref the workflow was triggered on (usually master/main)
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+          git lfs pull
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # Build the portable web content needed for Electron
+      # Reads version from package.json checked out at workflow start
+      - name: Build Portable Web App Content
+        run: npm run build:portable
+
+      # Build and Publish the Electron App for the current matrix OS
+      - name: Build and Publish Electron Application
+        run: npm run release:electron # This runs 'electron-builder --publish always'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # electron-builder will:
+          # 1. Read the version from the checked-out package.json.
+          # 2. Build the package for matrix.os.
+          # 3. Create a Git tag AND a Draft GitHub Release for that version.
+          # 4. Upload the package as an asset to the Draft Release.

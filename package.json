@@ -7,7 +7,6 @@
     "private": true,
     "main": "electron.js",
     "scripts": {
-        "start": "electron .",
         "dev": "node scripts/dev.js --mode=dev",
         "preview": "node scripts/dev.js --mode=prod-preview --port=3001",
         "build": "npm run build:deploy",
@@ -22,7 +21,8 @@
         "commit": "cz",
         "release": "standard-version",
         "release:first": "standard-version --first-release",
-        "release:dryrun": "standard-version --dry-run"
+        "release:dryrun": "standard-version --dry-run",
+        "start": "npx electron electron.js"
     },
     "devDependencies": {
         "chokidar": "^3.5.3",

@@ -14,6 +14,7 @@ console.log("[CaptureStyles] Enhanced Module v17 loaded.");
  * Main function to capture all computed styles from the logo elements.
  * @returns {object|null} Complete style object or null on critical failure.
  */
+
 export function captureAdvancedStyles() {
     console.log("[Style Capture v17] ========== STARTING ENHANCED STYLE CAPTURE ==========");
     
@@ -24,9 +25,9 @@ export function captureAdvancedStyles() {
     }
     
     // --- Element Finding ---
+    const previewContainer = document.getElementById('previewContainer');
     const logoContainer = document.querySelector('.logo-container');
     const logoText = document.querySelector('.logo-text');
-    const previewContainer = document.getElementById('previewContainer');
 
     if (!logoContainer || !logoText) {
         console.error("[Style Capture] CRITICAL ERROR: Failed to find logo elements in DOM");
@@ -37,12 +38,19 @@ export function captureAdvancedStyles() {
     }
     console.log("[Style Capture] Found elements: logoContainer, logoText", previewContainer ? '& previewContainer' : '(previewContainer NOT found)');
 
+    // --- Get Container Size for Scaling ---
+    const containerRect = previewContainer ? previewContainer.getBoundingClientRect() : logoContainer.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+    
     // --- Get Computed Styles & Settings FIRST ---
     const containerStyle = window.getComputedStyle(logoContainer);
     const textStyle = window.getComputedStyle(logoText);
     const previewContainerStyle = previewContainer ? window.getComputedStyle(previewContainer) : {};
     const rootStyle = window.getComputedStyle(document.documentElement);
     const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
+
+
 
     // --- Initialize Result Object ---
     // Declare the main 'styles' object FIRST
@@ -113,6 +121,7 @@ export function captureAdvancedStyles() {
 
     // --- Text Alignment ---
     const textAlign = textStyle.textAlign.trim().toLowerCase();
+    styles.textAlign = textAlign; // Explicitly capture this
     if (textAlign === 'left') {
         styles.textAnchor = 'start';
         styles.textAlign = 'left';
@@ -122,6 +131,27 @@ export function captureAdvancedStyles() {
     } else {
         styles.textAnchor = 'middle';
         styles.textAlign = 'center';
+    }
+    console.log(`[Style Capture] Text alignment: CSS=${styles.textAlign}, SVG=${styles.textAnchor}`);
+
+    // Also ensure we capture the relevant classes:
+    if (logoText.classList) {
+        styles.textClassList = Array.from(logoText.classList);
+        
+        // Explicitly check for text alignment classes
+        const alignmentClasses = ['text-align-left', 'text-align-center', 'text-align-right'];
+        const hasAlignmentClass = alignmentClasses.some(cls => logoText.classList.contains(cls));
+        
+        if (!hasAlignmentClass) {
+            // Add appropriate class if missing
+            if (styles.textAlign === 'left') {
+                styles.textClassList.push('text-align-left');
+            } else if (styles.textAlign === 'right') {
+                styles.textClassList.push('text-align-right');
+            } else {
+                styles.textClassList.push('text-align-center');
+            }
+        }
     }
     console.log(`[Style Capture] Text alignment: CSS=${styles.textAlign}, SVG=${styles.textAnchor}`);
 

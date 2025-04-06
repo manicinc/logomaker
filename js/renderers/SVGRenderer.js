@@ -281,6 +281,7 @@ const updatePreview = debounce(() => {
 
 
 /** Update the metadata display area */
+
 function updateMetadataInfo() {
     if (!metadataInfoDiv) return;
     console.log("[SVG UI] Updating metadata info display...");
@@ -297,9 +298,10 @@ function updateMetadataInfo() {
 
         let infoHTML = '<h4>SVG Export Details</h4><ul>';
 
-        // Font info
+        // Font info with better system font detection
         const fontName = styles.font.family?.split(',')[0].trim().replace(/['"]/g, '') || 'N/A';
-        infoHTML += `<li>Font: <code>${fontName}</code> (${styles.font.weight || 'N/A'})</li>`;
+        const isSystemFont = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'Tahoma', 'Impact'].includes(fontName);
+        infoHTML += `<li>Font: <code>${fontName}</code> (${styles.font.weight || 'N/A'})${isSystemFont ? ' (System Font)' : ''}</li>`;
 
         // Color mode
         if (styles.color?.mode === 'gradient' && styles.color.gradient?.colors?.length) {
@@ -457,22 +459,22 @@ function attachModalEventListeners() {
     console.log('[SVG UI] Event listeners attached.');
 }
 
-/** Remove event listeners */
-function removeModalEventListeners() {
-     if (!modal || modal.dataset.listenersAttached !== 'true') return;
-     console.log('[SVG UI] Removing event listeners...');
-    closeBtn?.removeEventListener('click', closeModal);
-    cancelBtn?.removeEventListener('click', closeModal);
-    exportBtn?.removeEventListener('click', handleExport);
-    modal?.removeEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-    widthInput?.removeEventListener('input', updatePreview);
-    heightInput?.removeEventListener('input', updatePreview);
-    transparentCheckbox?.removeEventListener('change', updatePreview);
-     document.removeEventListener('keydown', handleEscapeKey);
+// /** Remove event listeners */
+// function removeModalEventListeners() {
+//      if (!modal || modal.dataset.listenersAttached !== 'true') return;
+//      console.log('[SVG UI] Removing event listeners...');
+//     closeBtn?.removeEventListener('click', closeModal);
+//     cancelBtn?.removeEventListener('click', closeModal);
+//     exportBtn?.removeEventListener('click', handleExport);
+//     modal?.removeEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+//     widthInput?.removeEventListener('input', updatePreview);
+//     heightInput?.removeEventListener('input', updatePreview);
+//     transparentCheckbox?.removeEventListener('change', updatePreview);
+//      document.removeEventListener('keydown', handleEscapeKey);
 
-    modal.removeAttribute('data-listeners-attached');
-     console.log('[SVG UI] Event listeners removed.');
-}
+//     modal.removeAttribute('data-listeners-attached');
+//      console.log('[SVG UI] Event listeners removed.');
+// }
 
 /** Handle escape key press */
 function handleEscapeKey(event) {
