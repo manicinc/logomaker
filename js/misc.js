@@ -701,12 +701,24 @@ export function randomizeStyle() {
 
 /**
  * Handles keydown events for global shortcuts like Randomize (R).
+ * Prevents randomization if Ctrl or Cmd key is pressed (allows browser refresh).
  * @param {KeyboardEvent} event The keyboard event.
  */
 function handleGlobalKeyPress(event) {
     // Check if 'R' key is pressed (case-insensitive)
     if (event.key === 'r' || event.key === 'R') {
+
+        // --- FIX: Check for Ctrl or Cmd Key ---
+        // If Ctrl (for Windows/Linux) or Meta (Cmd for Mac) is pressed,
+        // let the browser handle it (e.g., for Refresh). Do nothing here.
+        if (event.ctrlKey || event.metaKey) {
+            console.log("[Shortcut] Ctrl/Cmd + R detected. Allowing default browser action.");
+            return; // Exit the function, don't prevent default or randomize
+        }
+        // --- END FIX ---
+
         // Check if the event originates from an input field, textarea, select, or contenteditable element
+        // (This check now only runs if Ctrl/Cmd are NOT pressed)
         const target = event.target;
         const isInputFocused = target && (
             target.tagName === 'INPUT' ||
@@ -715,15 +727,19 @@ function handleGlobalKeyPress(event) {
             target.isContentEditable // Handles contenteditable divs/spans etc.
         );
 
-        // If not focused on an input, trigger randomization
+        // If R is pressed WITHOUT Ctrl/Cmd and not focused on an input, trigger randomization
         if (!isInputFocused) {
-            console.log("[Shortcut] 'R' key pressed outside input field. Triggering Randomize.");
-            event.preventDefault(); // Prevent default 'r' character input if needed (e.g., if focus is weird)
+            console.log("[Shortcut] 'R' key pressed outside input field (without Ctrl/Cmd). Triggering Randomize.");
+            // Prevent default action ONLY when we are handling the key ourselves
+            // (e.g., prevent typing 'r' if focus isn't on an input)
+            event.preventDefault();
             randomizeStyle();
         } else {
-            console.log("[Shortcut] 'R' key pressed IN input field. Ignoring.");
+            console.log("[Shortcut] 'R' key pressed IN input field. Ignoring randomization trigger.");
+            // No preventDefault() here, allow 'r' to be typed into the input
         }
     }
+    // You could add checks for other shortcuts here using else if
 }
 
 /**

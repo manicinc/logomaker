@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logomaker v3: Make free logos anywhere</title>
+    <title>Logomaker: Free Design Playground</title>
+    
     <meta name="description" content="Instantly craft unique text logos with Logomaker v3 by Manic Agency. Featuring optimized loading, border controls, and enhanced export fidelity! Explore fonts, dynamic effects, gradients, animations, and export SVG, PNG, or frames. Free, open-source, offline-capable.">
     <meta name="keywords" content="logo maker, logo generator, free logo tool, text logo, animated logo, svg logo export, png logo export, brand identity, design tool, web tool, open source, offline tool, portable app, font chunking, manic agency, ai generated code, border radius, border padding">
     <meta name="author" content="Manic.agency">
@@ -14,7 +15,10 @@
     <meta property="og:url" content="https://manicinc.github.io/logomaker"> <meta property="og:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png"> <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Logomaker v3 by Manic - Free, Optimized, Offline Logo Creator with Borders">
     <meta name="twitter:description" content="Generate unique text logos instantly. Optimized loading, offline capability. Customize fonts, effects, borders, animations & export SVG/PNG.">
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png"> <link rel="icon" href="https://manic.agency/favicon.ico" type="image/x-icon"> <link rel="canonical" href="https://manicinc.github.io/logomaker"> <script async src="https://www.googletagmanager.com/gtag/js?id=G-YHJWW58FJ7"></script>
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png"> 
+    <!-- <link rel="icon" href="https://manic.agency/favicon.ico" type="image/x-icon">  -->
+    <link rel="canonical" href="https://manicinc.github.io/logomaker"> 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YHJWW58FJ7"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -22,9 +26,14 @@
       gtag('config', 'G-YHJWW58FJ7');
     </script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Audiowide&family=Press+Start+2P&family=Russo+One&display=swap" rel="stylesheet">
-
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"> -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Audiowide&family=Press+Start+2P&family=Russo+One&display=swap" rel="stylesheet"> -->
+    <!-- Our site fonts are now offline -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+    <link rel="manifest" href="/assets/site.webmanifest">
+    <link rel="stylesheet" href="./css/google-fonts.css">
     <link rel="stylesheet" href="./css/variables.css">
     <link rel="stylesheet" href="./css/base.css">
     <link rel="stylesheet" href="./css/components.css">
@@ -89,8 +98,11 @@
                      <h3>✨ Project Genesis & AI Collaboration</h3>
                      <ul>
                          <li>Logomaker is an experimental project from <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a> exploring Human+AI collaborative development.</li>
+                         <li>In other words, Logomaker was built with <strong>✨ vibe coding ✨</strong>. How well do you think the LLMs performed with our instructions?</li>
+                         <li>See and judge the code for <a href="https://github.com/manicinc/logomaker">yourself</a></li>.
                          <li>~90% of the code structure/boilerplate/functions were generated or assisted by LLMs (GPT-4o, Claude 3, Gemini Pro families, circa early 2025) under human direction.</li>
-                         <li>It demonstrates rapid prototyping potential but underscores the need for human oversight, architecture, and rigorous testing (like the font loading optimizations we just did!).</li>
+                         <li>It demonstrates rapid prototyping potential but underscores the need for human oversight, architecture, and rigorous testing / continual iterative refinement.</li>
+                         <li>A logo creator app was the perfect scope for our agency to conduct this test! See more about in-guide development process <a href="https://manic.agency/blog" target="_blank">here</a>(coming soon).</li>
                      </ul>
                  </div>
                  <div class="info-content" id="svg-animations-info" role="tabpanel" aria-labelledby="info-tab-svg-animations">
@@ -138,10 +150,18 @@
                                 </select>
                         </div>
                         <div id="fontLicenseContainer" class="control-group hidden full-width">
-                            <details class="font-license-details">
-                                <summary>Font License Information</summary>
-                                <pre id="fontLicenseText">No license information available for this font.</pre>
-                            </details>
+                            <div class="license-display-wrapper">
+                                <button id="fontLicenseToggle" type="button" class="license-toggle-button" aria-expanded="false" aria-controls="fontLicenseFullText">
+                                    <span id="fontLicenseSummary" class="license-summary">License Information</span>
+                                    <svg class="disclosure-arrow" aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M1 1 L5 5 L9 1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                                </button>
+                                <div id="fontLicenseFullText" class="license-full-text" hidden>
+                                    <pre><code id="fontLicenseContent"></code></pre>
+                                    <p id="fontLicenseLinkContainer" style="display: none; margin-top: 5px;">
+                                        <a id="fontLicenseFileLink" href="#" target="_blank" rel="noopener noreferrer" class="info-link">View original license file</a>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                         <div class="control-group">
                             <label id="fontSizeLabel" for="fontSize">Font Size (px)</label>
@@ -318,6 +338,14 @@
                                  </select>
                          </div>
                          <div class="control-group">
+                            <label id="customBorderRadiusLabel" for="customBorderRadius">Custom Radius (px)
+                                <span class="tooltip-trigger" data-tooltip="Enter a specific pixel value (e.g., 15). Overrides the shape dropdown unless empty.">?</span>
+                            </label>
+                            <div class="number-input-wrapper">
+                                <input type="number" id="customBorderRadius" value="" min="0" max="500" step="1" placeholder="e.g., 15" title="Set custom border radius in pixels. Overrides shape dropdown." aria-labelledby="customBorderRadiusLabel">
+                            </div>
+                        </div>
+                         <div class="control-group">
                              <label id="borderPaddingLabel" for="borderPadding">Padding Inside Border (px)</label>
                              <div class="number-input-wrapper">
                                  <input type="number" id="borderPadding" value="10" min="0" max="100" step="1" title="Adjust space between border and text" aria-labelledby="borderPaddingLabel">
@@ -429,121 +457,159 @@
 
                 <div class="tab-content" id="advanced-tab" role="tabpanel" aria-labelledby="tab-advanced">
                     <div class="controls-container">
-                         <div class="control-group">
-                             <label id="previewSizeLabel" for="previewSize">Preview Area Size</label>
-                             <select id="previewSize" title="Change the display size of the preview container" aria-labelledby="previewSizeLabel">
-                                 <option value="preview-size-small">Small</option>
-                                 <option value="preview-size-medium" selected>Medium</option>
-                                 <option value="preview-size-large">Large</option>
-                                 <option value="preview-size-x-large">Extra Large</option>
-                             </select>
+
+                        <div class="control-group">
+                            <label id="previewSizeLabel" for="previewSize">Preview Area Size</label>
+                            <select id="previewSize" title="Change the display size of the preview container" aria-labelledby="previewSizeLabel">
+                                <option value="preview-size-small">Small</option>
+                                <option value="preview-size-medium" selected>Medium</option>
+                                <option value="preview-size-large">Large</option>
+                                <option value="preview-size-x-large">Extra Large</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group size-indicator-container">
+                            <label>Rendered Text Size</label>
+                            <div class="size-indicator" title="Approximate rendered size of the text element (pixels)">
+                                W: <span id="logoWidth">--</span>px , H: <span id="logoHeight">--</span>px
+                            </div>
                          </div>
+
                          <hr class="section-divider full-width">
-                         <h4 class="full-width" style="margin-bottom: var(--space-xs);">Export Settings</h4>
-                         <div class="control-group">
-                             <label id="exportWidthLabel" for="exportWidth">Export Width (px)</label>
-                             <div class="number-input-wrapper">
-                                 <input type="number" id="exportWidth" min="50" max="8000" value="800" title="Pixel width of the exported PNG/SVG/Frames" aria-labelledby="exportWidthLabel">
+
+                         <h4 class="full-width" style="margin-bottom: var(--space-xs);">Export Dimensions</h4>
+                        <div class="dimension-controls full-width">
+                            <div class="control-group">
+                                <label id="exportWidthLabel" for="exportWidth">Width (px)</label>
+                                <div class="number-input-wrapper">
+                                    <input type="number" id="exportWidth" min="10" max="8000" value="800" title="Pixel width of the exported PNG/SVG/Frames" aria-labelledby="exportWidthLabel">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label id="exportHeightLabel" for="exportHeight">Height (px)</label>
+                                <div class="number-input-wrapper">
+                                    <input type="number" id="exportHeight" min="10" max="8000" value="400" title="Pixel height of the exported PNG/SVG/Frames" aria-labelledby="exportHeightLabel">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label id="aspectRatioPresetLabel" for="aspectRatioPreset">Aspect Ratio</label>
+                                <select id="aspectRatioPreset" title="Select a standard aspect ratio or use current" aria-labelledby="aspectRatioPresetLabel">
+                                    <option value="auto" data-ratio="0" selected>Auto (Current)</option>
+                                    <option value="1" data-ratio="1">1:1 (Square)</option>
+                                    <option value="1.77778" data-ratio="1.77778">16:9 (Landscape)</option>
+                                    <option value="0.5625" data-ratio="0.5625">9:16 (Portrait)</option>
+                                    <option value="1.33333" data-ratio="1.33333">4:3 (Standard)</option>
+                                    <option value="1.5" data-ratio="1.5">3:2 (Photo)</option>
+                                    </select>
+                            </div>
+                            <div class="control-group aspect-lock-control">
+                                 <label class="checkbox-label" for="aspectRatioLock" title="Maintain current aspect ratio when changing width or height">
+                                     <input type="checkbox" id="aspectRatioLock">
+                                     <span>Lock Aspect Ratio</span>
+                                     <span class="tooltip-trigger" data-tooltip="Locks the Width/Height ratio based on the current preview dimensions or selected preset. Changing one will update the other.">?</span>
+                                 </label>
                              </div>
-                         </div>
-                         <div class="control-group">
-                             <label id="exportHeightLabel" for="exportHeight">Export Height (px)</label>
-                             <div class="number-input-wrapper">
-                                 <input type="number" id="exportHeight" min="50" max="8000" value="400" title="Pixel height of the exported PNG/SVG/Frames" aria-labelledby="exportHeightLabel">
-                             </div>
-                         </div>
-                         <div class="control-group">
-                             <label id="exportQualityLabel" for="exportQuality">PNG Quality (%)
-                                  <span class="tooltip-trigger" data-tooltip="Affects PNG file size/compression (10-100). Higher means better quality, larger file. 90-95 is often good. Does not affect SVG.">?</span>
+                        </div>
+
+                         <div class="control-group full-width"> <label id="exportQualityLabel" for="exportQuality">PNG Quality (%)
+                                 <span class="tooltip-trigger" data-tooltip="Affects PNG file size/compression (10-100). Higher means better quality, larger file. 90-95 is often good. Does not affect SVG.">?</span>
                              </label>
                              <div class="range-container">
                                  <input type="range" id="exportQuality" min="10" max="100" value="95" step="5" title="Adjust PNG compression quality (lower quality = smaller file)" aria-labelledby="exportQualityLabel">
                                  <span class="range-value-display" aria-live="polite">95%</span>
                              </div>
                          </div>
-                         <label class="checkbox-label control-group" style="margin-top: 5px;">
-                             <input type="checkbox" id="exportTransparent">
+                         <label class="checkbox-label control-group full-width" style="margin-top: 5px;"> <input type="checkbox" id="exportTransparent">
                              <span>Export with Transparent Background</span>
                          </label>
-                         <hr class="section-divider full-width">
-                         <h4 class="full-width" style="margin-bottom: var(--space-xs);">Animation Export (Frames ZIP)</h4>
-                         <div class="control-group">
-                             <label id="exportFramesLabel" for="exportFrames">Number of Frames
-                                  <span class="tooltip-trigger" data-tooltip="Frames (1-60) for the 'Export Frames (ZIP)' package. More frames = smoother animation & larger ZIP file.">?</span>
-                             </label>
-                             <div class="number-input-wrapper">
-                                 <input type="number" id="exportFrames" min="1" max="60" value="15" title="Number of PNG frames for animation ZIP export" aria-labelledby="exportFramesLabel">
-                             </div>
-                         </div>
-                         <div class="control-group">
-                             <label id="exportFrameRateLabel" for="exportFrameRate">Modal Preview Speed (FPS)
-                                  <span class="tooltip-trigger" data-tooltip="Adjusts Frames Per Second ONLY for the preview animation inside the 'Export Frames' modal. Does not affect exported files.">?</span>
-                             </label>
-                             <div class="range-container">
-                                 <input type="range" id="exportFrameRate" min="1" max="30" value="10" step="1" title="Adjust speed of animation preview modal" aria-labelledby="exportFrameRateLabel">
-                                 <span class="range-value-display" aria-live="polite">10 FPS</span>
-                             </div>
-                         </div>
-                         <hr class="section-divider full-width">
-                          <div class="control-group full-width">
-                             <label id="cssCodeLabel" for="cssCode">Generated CSS Snippet
-                                 <span class="tooltip-trigger" data-tooltip="CSS reflecting current styles. Useful for embedding in web projects, but may need adjustments (especially font paths or complex effects). Includes key variables.">?</span>
-                             </label>
-                             <textarea id="cssCode" rows="6" readonly title="CSS code representing the current logo styles" aria-labelledby="cssCodeLabel"></textarea>
-                         </div>
-                         <hr class="section-divider full-width">
-                        <div class="control-group full-width">
-                            <h4>Font Management</h4>
-                            <div class="font-management-controls">
-                                <button id="loadAllFontsBtn" class="button secondary-button" title="Download all fonts at once (100MB+)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                        <polyline points="7 10 12 15 17 10"></polyline>
-                                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                                    </svg>
-                                    Load All Fonts
-                                </button>
-                                <div class="font-management-info">
-                                    <span class="label">Current loading mode: </span>
-                                    <span id="fontLoadingMode" class="value">-</span>
-                                </div>
-                                <p class="warning-text">
-                                    <strong>Warning:</strong> Loading all fonts will download up to 100MB of data and may slow down your browser temporarily.
-                                    Use this option if you want to work completely offline or avoid font-loading delays when Browse fonts.
-                                </p>
-                            </div>
-                        </div>
-                        <details class="info-details-section">
-                             <summary>ℹ️ About Logomaker & Features</summary>
-                             <div class="info-details-content">
-                                 <h4>Forge Your Mark with Logomaker 🎨</h4>
-                                 <p>Logomaker is a free, open-source creative tool by <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a>, designed for crafting striking text-based logos with ease, portability, and optimized loading.</p>
-                                 <p><strong>Core Magic:</strong> Extensive font support (chunked loading online, embedded offline!), text styling, gradients, borders, effects, animations, customizable backgrounds. Export PNGs, scalable SVGs (with animations!), or animation frame sequences (ZIP). Share instantly with unique URLs.</p>
-                                  <p><strong>Genesis Note:</strong> An experimental venture into Human+AI collaboration. (<a href="#" onclick="document.getElementById('infoButton').click(); document.getElementById('info-tab-ai-collab').click(); return false;">More Info</a>)</p>
-                                 <p><strong>Source & Freedom:</strong> <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">GitHub (MIT License)</a> - Use it, fork it, enhance it!</p>
-                             </div>
-                         </details>
-                         <details class="info-details-section">
-                             <summary>✨ Manic Agency: Pro Platform Horizon</summary>
-                             <div class="info-details-content">
-                                <h4>Manic Agency is architecting a next-generation professional design platform.</h4>
-                                <p>Envisioned features: Vast libraries, AI generation, cutting-edge text graphics, media kits, collaboration & more.</p>
-                                <p><a href="https://manic.agency/" target="_blank" class="info-link" rel="noopener noreferrer">Stay Tuned at Manic.agency »</a></p>
-                             </div>
-                         </details>
-                    </div>
-                </div>
 
-            </div> <div class="preview-container bg-solid preview-size-medium" id="previewContainer">
+                         <hr class="section-divider full-width">
+
+                         <h4 class="full-width" style="margin-bottom: var(--space-xs);">Animation Export (Frames ZIP)</h4>
+                          <div class="controls-container nested-controls">
+                              <div class="control-group">
+                                  <label for="exportFrames">Number of Frames</label>
+                                  <div class="number-input-wrapper">
+                                       <input type="number" id="exportFrames" value="15" min="2" max="60" step="1" title="Total frames for animation ZIP">
+                                  </div>
+                              </div>
+                              <div class="control-group">
+                                  <label for="exportFrameRate">Frames Per Second (FPS)</label>
+                                  <div class="range-container">
+                                       <input type="range" id="exportFrameRate" min="1" max="30" value="10" step="1" title="Animation frame rate">
+                                       <span class="range-value-display" aria-live="polite">10 FPS</span>
+                                  </div>
+                              </div>
+                          </div>
+
+                        <hr class="section-divider full-width">
+
+                        <div class="control-group full-width">
+                             <label id="cssCodeLabel" for="cssCode">Generated CSS Snippet
+                                 <span class="tooltip-trigger" data-tooltip="CSS reflecting current styles. Useful for embedding...">?</span>
+                             </label>
+                             <textarea id="cssCode" rows="6" readonly title="CSS code representing current logo styles" aria-labelledby="cssCodeLabel"></textarea>
+                         </div>
+
+                         <hr class="section-divider full-width">
+
+                         <div class="control-group full-width">
+                             <h4>Font Management</h4>
+                             <div class="font-management-controls">
+                                 <button id="loadAllFontsBtn" class="button secondary-button" title="Download all fonts at once (100MB+)">
+                                     Load All Fonts
+                                 </button>
+                                 <div class="font-management-info">
+                                     <span class="label">Loading mode: </span>
+                                     <span id="fontLoadingMode" class="value">-</span>
+                                 </div>
+                                 <p class="warning-text"><strong>Warning:</strong> Loading all fonts...</p>
+                             </div>
+                         </div>
+
+                         <hr class="section-divider full-width">
+                         <div class="control-group full-width">
+                            <h4>Cache Management (Troubleshooting)</h4>
+                            <div class="cache-controls">
+                                 <button id="clearLocalStorageBtn" class="button danger-button" title="Removes saved UI settings (colors, fonts, etc.) from your browser's local storage for this site.">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                     Clear Saved Settings
+                                 </button>
+                                 <button id="clearFontCacheBtn" class="button danger-button" title="Removes cached font data (chunks) from IndexedDB. May help with font loading issues but requires re-downloading chunks.">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H6M12 5l-7 7 7 7"/></svg>
+                                     Clear Font Cache
+                                 </button>
+                            </div>
+                             <p class="info-text" style="font-size: var(--font-size-sm);">Use these if you suspect outdated settings or font data are causing issues.</p>
+                         </div>
+                         <details class="info-details-section">
+                            <summary>ℹ️ About Logomaker & Features</summary>
+                            <div class="info-details-content">
+                                <h4>Forge Your Mark with Logomaker 🎨</h4>
+                                <p>Logomaker is a free, open-source creative tool by <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a>, designed for crafting striking text-based logos with ease, portability, and optimized loading.</p>
+                                <p><strong>Core Magic:</strong> Extensive font support (chunked loading online, embedded offline!), text styling, gradients, borders, effects, animations, customizable backgrounds. Export PNGs, scalable SVGs (with animations!), or animation frame sequences (ZIP). Share instantly with unique URLs.</p>
+                                 <p><strong>Genesis Note:</strong> An experimental venture into Human+AI collaboration. (<a href="#" onclick="document.getElementById('infoButton').click(); document.getElementById('info-tab-ai-collab').click(); return false;">More Info</a>)</p>
+                                <p><strong>Source & Freedom:</strong> <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">GitHub (MIT License)</a> - Use it, fork it, enhance it!</p>
+                            </div>
+                        </details>
+                        <details class="info-details-section">
+                            <summary>✨ Manic Agency: Pro Platform Horizon</summary>
+                            <div class="info-details-content">
+                               <h4>Manic Agency is architecting a next-generation professional design platform.</h4>
+                               <p>Envisioned features: Vast libraries, AI generation, cutting-edge text graphics, media kits, collaboration & more.</p>
+                               <p><a href="https://manic.agency/" target="_blank" class="info-link" rel="noopener noreferrer">Stay Tuned at Manic.agency »</a></p>
+                            </div>
+                        </details>
+                    </div>
+            </div>
+            </div> 
+            <div class="preview-container bg-solid preview-size-medium" id="previewContainer">
                 <div class="logo-container">
                     <div class="logo-text" data-text="Manic">Manic</div>
                 </div>
 
             </div>
-            <div class="size-indicator" title="Approximate rendered size of the text element (pixels)">
-                <span id="logoWidth">0</span>×<span id="logoHeight">0</span>px
-            </div>
+
             <div class="button-container main-actions">
                 <button id="randomizeStyleBtn" class="randomize-btn" title="Apply Random Style Settings (Keeps Text & Font)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
@@ -718,168 +784,33 @@
 
 
     </div> 
+
+    <!-- Online dependencies not required but offer fuller functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
     <script src="./js/utils/loading.js"></script>
     <script type="module" src="./js/utils/utils.js"></script>
     <script type="module" src="./js/utils/cssUtils.js"></script>
-    <script type="module" src="./js/utils/html2Canvas.js"></script> <script type="module" src="./js/utils/svgAnimationInfo.js"></script>
+
     <script type="module" src="./js/fontManager.js"></script>
-    <script type="module" src="./js/settingsManager.js"></script>
-    <script type="module" src="./js/utils/tabs.js"></script>
+    <script type="module" src="./js/settingsManager.js"></script> <script type="module" src="./js/utils/tabs.js"></script>
     <script type="module" src="./js/utils/numInputControls.js"></script>
     <script type="module" src="./js/utils/resetConfirmation.js"></script>
     <script type="module" src="./js/utils/mobile.js"></script>
     <script type="module" src="./js/notificationsDropInAlerts.js"></script>
-    <script type="module" src="./js/captureTextStyles.js"></script>
-    <script type="module" src="./js/renderers/RendererCore.js"></script>
+
+    <script type="module" src="./js/captureTextStyles.js"></script> <script type="module" src="./js/renderers/RendererCore.js"></script>
     <script type="module" src="./js/renderers/SVGRenderer.js"></script>
     <script type="module" src="./js/renderers/PNGRenderer.js"></script>
-    <script type="module" src="./js/renderers/GIFRenderer.js"></script> <script type="module" src="./js/exportHandler.js"></script>
-    <script type="module" src="./js/urlParamsHandler.js"></script>
+    <script type="module" src="./js/renderers/GIFRenderer.js"></script>
+    <script type="module" src="./js/exportHandler.js"></script> <script type="module" src="./js/urlParamsHandler.js"></script> <script type="module" src="./js/utils/html2Canvas.js"></script> <script type="module" src="./js/utils/svgAnimationInfo.js"></script>
+    <script type="module" src="./js/misc.js"></script> 
+    <!-- Reqruired for "portable" usage -->
+    <script src="inline-fonts-data.js"></script>
     <script type="module" src="./js/main.js"></script>
-
-    <script>
-        // Info Notice Show/Hide/Tabs Logic (Self-contained)
-        (function() { /* Keep unchanged */
-          function initInfoNotice() {
-             const infoNotice = document.getElementById('info-notice');
-             const hideNoticeBtn = document.getElementById('hideNoticeBtn');
-             const infoButton = document.getElementById('infoButton');
-             const infoTabs = infoNotice?.querySelectorAll('.info-tab');
-             const infoContents = infoNotice?.querySelectorAll('.info-content');
-
-             if (!infoNotice || !hideNoticeBtn || !infoButton || !infoTabs || !infoContents) {
-                 console.warn('Info notice elements missing.'); return;
-             }
-
-             const noticeStorageKey = 'logomakerHasSeenNotice_v2'; // Increment version if notice changes significantly
-             const hasSeenNotice = localStorage.getItem(noticeStorageKey);
-
-             if (hasSeenNotice) {
-                 infoNotice.style.display = 'none';
-                 infoButton.classList.add('info-button-visible');
-                 infoButton.setAttribute('aria-expanded', 'false');
-             } else {
-                 infoNotice.style.display = 'block'; // Show by default
-                 infoButton.classList.remove('info-button-visible');
-                 infoButton.setAttribute('aria-expanded', 'true');
-                 // Ensure first tab/content is active
-                 const firstTab = infoNotice.querySelector('.info-tab');
-                 const firstContent = infoNotice.querySelector('.info-content');
-                 if(firstTab && !firstTab.classList.contains('active')) {
-                      infoTabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
-                      infoContents.forEach(c => c.classList.remove('active'));
-                      firstTab.classList.add('active'); firstTab.setAttribute('aria-selected', 'true');
-                      if(firstContent) firstContent.classList.add('active');
-                 } else if (firstTab) {
-                      firstTab.setAttribute('aria-selected', 'true');
-                 }
-             }
-
-             hideNoticeBtn.onclick = () => {
-                 infoNotice.classList.add('info-notice-hidden');
-                 localStorage.setItem(noticeStorageKey, 'true');
-                 setTimeout(() => {
-                      infoNotice.style.display = 'none'; infoButton.classList.add('info-button-visible');
-                      infoButton.setAttribute('aria-expanded', 'false'); infoNotice.classList.remove('info-notice-hidden');
-                 }, 300); // Match CSS transition
-             };
-
-             infoButton.onclick = () => {
-                 const isVisible = infoNotice.style.display === 'block';
-                 if (isVisible) {
-                     hideNoticeBtn.onclick(); // Use existing hide logic
-                 } else {
-                     infoNotice.style.display = 'block'; infoNotice.classList.remove('info-notice-hidden');
-                     infoButton.classList.remove('info-button-visible'); infoButton.setAttribute('aria-expanded', 'true');
-                 }
-             };
-
-             // Info Tabs Logic
-             infoTabs.forEach(tab => {
-                 tab.addEventListener('click', () => {
-                      const targetId = tab.dataset.infotab;
-                      infoTabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
-                      infoContents.forEach(c => c.classList.remove('active'));
-                      tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
-                      const contentEl = document.getElementById(`${targetId}-info`);
-                      if (contentEl) contentEl.classList.add('active');
-                 });
-             });
-          }
-          // Run after DOM is ready
-          if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initInfoNotice); }
-          else { initInfoNotice(); }
-        })();
-
-        // GitHub stars fetch (Keep unchanged)
-        fetch('https://api.github.com/repos/manicinc/logomaker')
-          .then(response => response.ok ? response.json() : Promise.reject('Network error'))
-          .then(data => {
-             const starCount = document.getElementById('github-star-count');
-             if (starCount && data.stargazers_count !== undefined) {
-                 starCount.textContent = data.stargazers_count > 999 ? (data.stargazers_count/1000).toFixed(1) + 'k' : data.stargazers_count;
-             }
-          })
-          .catch(err => console.warn('Could not fetch GitHub stars:', err));
-
-        // Set current year in footer copyright (Keep unchanged)
-        const currentYear = new Date().getFullYear();
-        const startYear = 2024;
-        document.getElementById('copyright-year').textContent = currentYear > startYear ? `-${currentYear % 100}` : '';
-
-        // Modal Accessibility (Keep unchanged)
-         try {
-             const modalOverlays = document.querySelectorAll('.modal-overlay');
-             if (modalOverlays.length > 0) {
-                 const observer = new MutationObserver(mutations => {
-                     mutations.forEach(mutation => {
-                          if (mutation.type === 'attributes' && (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
-                              const targetElement = mutation.target;
-                              const isVisible = targetElement.style.display !== 'none' && !targetElement.classList.contains('hidden');
-                              const ariaHiddenValue = !isVisible;
-                              if (targetElement.getAttribute('aria-hidden') !== String(ariaHiddenValue)) {
-                                  targetElement.setAttribute('aria-hidden', ariaHiddenValue);
-                              }
-                          }
-                     });
-                 });
-                 modalOverlays.forEach(overlay => {
-                      const isInitiallyVisible = overlay.style.display !== 'none' && !overlay.classList.contains('hidden');
-                      overlay.setAttribute('aria-hidden', !isInitiallyVisible);
-                      observer.observe(overlay, { attributes: true, attributeFilter: ['class', 'style'] });
-                 });
-                 console.log(`[Accessibility] ARIA observers attached to ${modalOverlays.length} modal overlays.`);
-             }
-         } catch (error) { console.error("[Accessibility] Error setting up modal ARIA handling:", error); }
-
-         // Font License Display Logic (Keep unchanged)
-         document.addEventListener('DOMContentLoaded', () => {
-             setTimeout(() => {
-                 const fontSelect = document.getElementById('fontFamily');
-                 const licenseContainer = document.getElementById('fontLicenseContainer');
-                 const licenseTextEl = document.getElementById('fontLicenseText');
-                 if (!fontSelect || !licenseContainer || !licenseTextEl) return;
-                 const displayLicense = async () => {
-                      const selectedFontName = fontSelect.value;
-                      if (!selectedFontName || typeof window.getFontDataAsync !== 'function') {
-                           licenseContainer.classList.add('hidden'); return;
-                      }
-                      try {
-                          const fontData = await window.getFontDataAsync(selectedFontName);
-                          let licenseInfo = "No license information available for this font."; let foundLicense = false;
-                          if (fontData && fontData.licenseText) { licenseInfo = fontData.licenseText; foundLicense = true; }
-                          licenseTextEl.textContent = licenseInfo; licenseContainer.classList.toggle('hidden', !foundLicense);
-                      } catch (err) {
-                          console.error("[License Display] Error getting font data:", err);
-                          licenseTextEl.textContent = "Error retrieving license information."; licenseContainer.classList.add('hidden');
-                      }
-                 };
-                 fontSelect.addEventListener('change', displayLicense); displayLicense();
-             }, 500);
-        });
-
-    </script>
+    <script src="./js/uiInit.js"></script>
 
 </body>
 </html>

@@ -933,6 +933,8 @@ textarea[readonly]:focus {
 .info-details-content li { margin-bottom: var(--space-xs); opacity: 0.9; }
 .info-link { display: inline-block; margin-top: var(--space-sm); font-weight: var(--font-weight-medium); }
 
+/* Adjust spacing, colors, borders etc. to match your theme */
+
 /* --- Banners --- */
 .promo-banner {
   background: var(--primary-gradient);
@@ -990,6 +992,7 @@ textarea[readonly]:focus {
 .contact-button:hover { background-color: var(--input-bg); color: var(--accent-color); border-color: var(--accent-color); transform: translateY(-1px); }
 
 
+
 /* 3. High contrast mode improvements for border visibility */
 @media (prefers-contrast: high) {
   .logo-container.dynamic-border {
@@ -1007,9 +1010,9 @@ textarea[readonly]:focus {
 }
 
 /* 4. Add transition to text-align to make changes smoother */
-/* .logo-text { */
-  /* transition: text-align 0.2s ease-out; */
-/* } */
+.logo-text {
+  transition: text-align 0.2s ease-out;
+}
 
 /* 5. Improved focus indicators for better accessibility */
 select:focus-visible,
@@ -1095,3 +1098,4 @@ input:focus-visible {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+

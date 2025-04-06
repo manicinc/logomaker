@@ -88,6 +88,8 @@ npm run build:portable # Build portable target -> ./dist/portable/ (directory)
 
 See [development.md](./docs/development.md) for more info on development mode.
 
+See [release.md](./docs/release.md) for more info on the release process for the Electron app.
+
 ### 🛠️ Building the Project
 
 Logomaker offers two build targets: a web-optimized version with chunked font loading and a fully portable offline build. The project uses a lightweight build process with no external dependencies, allowing for easy deployment across different environments. Simply run `node scripts/build.js` to generate the default web version, or use `node scripts/build.js --target=portable` for an offline, single-file application. For detailed build instructions and advanced configuration, check out our [comprehensive build documentation](docs/build.md).

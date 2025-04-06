@@ -21,23 +21,23 @@
     gap: var(--space-md);
   }
   .logo-text {
-    font-size: clamp(42px, 10vw, 120px); /* Adjust clamp */
+    /* font-size: clamp(42px, 10vw, 120px); */ /* Let dynamic font size handle it */
   }
   .preview-container {
-      min-height: 250px; /* Adjust default height */
+    min-height: 250px; /* Adjust default height */
   }
-   .preview-size-small { min-height: 180px; }
-   .preview-size-medium { min-height: 250px; }
-   .preview-size-large { min-height: 380px; }
-   .preview-size-x-large { min-height: 500px; }
+  .preview-size-small { min-height: 180px; }
+  .preview-size-medium { min-height: 250px; }
+  .preview-size-large { min-height: 380px; }
+  .preview-size-x-large { min-height: 500px; }
 
-   .footer-content {
-       gap: var(--space-md);
-       justify-content: center; /* Center items on smaller screens */
-       text-align: center;
-   }
-   .manic-logo { width: 100%; text-align: center; justify-content: center; }
-   .footer-links { justify-content: center; width: 100%; }
+  .footer-content {
+      gap: var(--space-md);
+      justify-content: center; /* Center items on smaller screens */
+      text-align: center;
+  }
+  .manic-logo { width: 100%; text-align: center; justify-content: center; }
+  .footer-links { justify-content: center; width: 100%; }
 
 }
 
@@ -47,37 +47,36 @@
     /* Further reduce base font size */
     font-size: 14px;
     /* Further reduce spacing */
-    --space-md: 0.75rem;
-    --space-lg: 1rem;
-    --space-xl: 1.5rem;
+    --space-md: 0.85rem; /* Slightly increased from 0.75 */
+    --space-lg: 1.1rem; /* Slightly increased from 1 */
+    --space-xl: 1.6rem; /* Slightly increased */
   }
   body {
-      padding-top: var(--space-sm);
-      padding-bottom: var(--space-sm);
+    padding-top: var(--space-sm);
+    padding-bottom: var(--space-sm);
   }
   .container {
-     padding: 0 var(--space-xs);
-     gap: var(--space-md);
+    padding: 0 var(--space-md); /* Use slightly larger padding */
+    gap: var(--space-md);
   }
   header {
-      gap: var(--space-sm);
-      padding-bottom: var(--space-sm);
-      justify-content: center; /* Center header items */
-      text-align: center;
+    gap: var(--space-sm);
+    padding-bottom: var(--space-sm);
+    justify-content: center; /* Center header items */
+    text-align: center;
   }
   .logo-brand { text-align: center; flex-basis: 100%; }
   .brand-links { text-align: center; flex-basis: 100%; }
 
   .controls-wrapper {
-      border-radius: 0; /* Remove radius for edge-to-edge */
-      margin-left: calc(-1 * var(--space-xs)); /* Bleed to edge */
-      margin-right: calc(-1 * var(--space-xs));
-      border-left: none;
-      border-right: none;
+    border-radius: 0; /* Remove radius for edge-to-edge */
+    /* --- REMOVE NEGATIVE MARGINS --- */
+    /* margin-left: calc(-1 * var(--space-md)); */ /* Bleed to edge */
+    /* margin-right: calc(-1 * var(--space-md)); */
+    border-left: none;
+    border-right: none;
+    box-shadow: none; /* Remove shadow if edge-to-edge */
   }
-
-  /* Tab scrolling adjustments */
- 
 
   /* --- Tabs - Vertical Stack Layout --- */
   .tabs {
@@ -96,7 +95,7 @@
     padding: 12px var(--space-md); /* Adjust padding */
     border-bottom: 1px solid var(--border-color); /* Separator line */
     border-left: 3px solid transparent; /* Space for active indicator */
-    border-bottom-color: transparent; /* Remove bottom border indicator */
+    /* border-bottom-color: transparent; */ /* Let default border show */
     margin-bottom: 0; /* Remove margin */
     flex-shrink: 1; /* Allow shrinking if somehow needed */
     white-space: normal; /* Allow text wrapping if needed */
@@ -106,11 +105,6 @@
     border-bottom: none; /* No separator after the last tab */
   }
 
-  /* Remove padding added previously for scrolling mask */
-  .tab:first-child {
-      padding-left: var(--space-md);
-  }
-
   /* Active state for vertical tabs */
   .tab.active {
     color: var(--accent-color);
@@ -118,83 +112,109 @@
     background-color: var(--hover-bg-strong); /* Highlight background */
     border-bottom-color: var(--border-color); /* Ensure bottom border shows if not last */
   }
-    .tab.active:last-child {
-        border-bottom-color: transparent;
-    }
+  .tab.active:last-child {
+    border-bottom-color: transparent;
+  }
 
   .tab:hover,
   .tab:focus-visible {
-    border-bottom-color: var(--border-color); /* Keep bottom border on hover */
+    /* border-bottom-color: var(--border-color); */ /* Keep bottom border on hover */
     border-left-color: var(--border-highlight); /* Indicate hover on left */
+    background-color: var(--hover-bg-subtle);
   }
-  .tab:last-child:hover, .tab:last-child:focus-visible {
-      border-bottom-color: transparent;
-  }
+  /* .tab:last-child:hover, .tab:last-child:focus-visible { */
+  /* border-bottom-color: transparent; */
+  /* } */
   .tab.active:hover,
   .tab.active:focus-visible {
-      border-left-color: var(--accent-color); /* Keep active color */
+    border-left-color: var(--accent-color); /* Keep active color */
   }
   .tab.active::after {
-      opacity: 0 !important; /* Ensure no bottom line pseudo element */
+    opacity: 0 !important; /* Ensure no bottom line pseudo element */
   }
 
-   /* Show info button on mobile */
-   .info-button {
-       display: flex; /* Use display directly */
-   }
-   .info-button-visible { /* Ensure it stays flex if already visible */
-       display: flex;
-   }
+  /* Show info button on mobile */
+  .info-button {
+    display: flex; /* Use display directly */
+    top: 6px; /* Adjust position */
+    right: 6px;
+    transform: none; /* Remove translateY */
+  }
+  .info-button-visible { /* Ensure it stays flex if already visible */
+    display: flex;
+  }
 
   .tab-content {
-      padding: var(--space-md);
+    padding: var(--space-md);
   }
   .controls-container {
     /* Force single column */
     grid-template-columns: 1fr;
-    gap: var(--space-md);
+    gap: var(--space-lg); /* Increase gap slightly for touch */
   }
-   /* Specific controls needing adjustment */
-   .range-container { flex-wrap: wrap; } /* Allow value to wrap below slider */
-   .range-value-display { min-width: 45px; text-align: center; flex-basis: 100%; margin-top: var(--space-xs); }
-   .button-container {
-       gap: var(--space-sm);
-       /* Stack buttons vertically */
-       flex-direction: column;
-       align-items: stretch; /* Make buttons full width */
-   }
-   button, .button { width: 100%; } /* Full width buttons */
+  /* Specific controls needing adjustment */
+  .range-container { flex-wrap: wrap; } /* Allow value to wrap below slider */
+  .range-value-display { min-width: 45px; text-align: center; flex-basis: 100%; margin-top: var(--space-sm); }
+
+  /* --- MOBILE INPUT ZOOM FIX --- */
+  input[type="text"],
+  input[type="number"],
+  input[type="color"],
+  select,
+  textarea {
+      font-size: 16px !important; /* Prevent iOS zoom */
+  }
+  /* Adjust padding if 16px makes them too tall */
+  input[type="text"],
+  input[type="number"],
+  select {
+      padding-top: 8px;
+      padding-bottom: 8px;
+      height: auto; /* Allow height to adjust */
+      min-height: 42px; /* Ensure minimum touch size */
+  }
+  textarea {
+       min-height: 80px;
+  }
+
+  .button-container {
+    gap: var(--space-md); /* Increase gap */
+    /* Stack buttons vertically */
+    flex-direction: column;
+    align-items: stretch; /* Make buttons full width */
+  }
+  button, .button { width: 100%; padding: 12px 20px; /* Increase padding for touch */ }
 
   /* --- ADJUSTED Preview Container Styles --- */
   .preview-container {
     padding: var(--space-md);
-    /* Slightly reduce default min-height */
-    min-height: 180px;
+    min-height: 200px; /* Increase default min-height slightly */
     border-left: none;
     border-right: none;
-    margin-left: calc(-1 * var(--space-xs)); /* Bleed to edge */
-    margin-right: calc(-1 * var(--space-xs));
+    /* --- REMOVE NEGATIVE MARGINS --- */
+    /* margin-left: calc(-1 * var(--space-md)); */
+    /* margin-right: calc(-1 * var(--space-md)); */
     border-radius: 0; /* Remove radius */
+    box-shadow: none; /* Remove shadow if edge-to-edge */
   }
   /* Adjust specific size classes */
-  .preview-size-small { min-height: 140px; } /* Was 150px */
-  .preview-size-medium { min-height: 180px; } /* Was 200px - now matches default */
-  .preview-size-large { min-height: 280px; } /* Was 300px */
-  .preview-size-x-large { min-height: 360px; } /* Was 400px */
+  .preview-size-small { min-height: 160px; }
+  .preview-size-medium { min-height: 200px; }
+  .preview-size-large { min-height: 300px; }
+  .preview-size-x-large { min-height: 400px; }
 
   .logo-text {
-    /* Adjust clamp: lower min/max slightly, reduce vw scaling */
-    font-size: clamp(32px, 13vw, 85px); /* Was clamp(36px, 15vw, 90px) */
+    /* Adjust clamp for smaller screens */
+    font-size: var(--dynamic-font-size, clamp(36px, 14vw, 100px)); /* Adjusted clamp */
     padding: var(--space-xs);
-    /* Add max-width just in case text content is extremely long */
-    max-width: calc(100% - var(--space-xs) * 2); /* Ensure padding isn't overcome */
+    max-width: calc(100% - var(--space-xs) * 2);
   }
 
   .size-indicator {
-      bottom: var(--space-xs);
-      right: var(--space-xs);
-      font-size: calc(var(--font-size-xs) * 0.9);
-      padding: 2px 5px;
+    bottom: var(--space-xs);
+    right: var(--space-xs);
+    font-size: calc(var(--font-size-xs) * 0.9);
+    padding: 2px 5px;
   }
 
   footer { margin-top: var(--space-lg); padding-top: var(--space-md); }

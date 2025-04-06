@@ -17,18 +17,23 @@ console.log("[CaptureStyles] Enhanced Module v17 loaded.");
 
 export function captureAdvancedStyles() {
     console.log("[Style Capture v17] ========== STARTING ENHANCED STYLE CAPTURE ==========");
-    
+
     // Check helper
     if (typeof window.normalizeColor !== 'function') {
         console.error("[Style Capture] CRITICAL: window.normalizeColor is not available!");
         return null;
     }
-    
+
     // --- Element Finding ---
     const previewContainer = document.getElementById('previewContainer');
-    const logoContainer = document.querySelector('.logo-container');
+    const logoContainer = document.querySelector('.logo-container'); // <-- Keep this
     const logoText = document.querySelector('.logo-text');
 
+    if (!logoContainer || !logoText) {
+        console.error("[Style Capture] CRITICAL ERROR: Failed to find logo elements in DOM");
+        return null;
+    }
+    
     if (!logoContainer || !logoText) {
         console.error("[Style Capture] CRITICAL ERROR: Failed to find logo elements in DOM");
         return null;
@@ -39,10 +44,15 @@ export function captureAdvancedStyles() {
     console.log("[Style Capture] Found elements: logoContainer, logoText", previewContainer ? '& previewContainer' : '(previewContainer NOT found)');
 
     // --- Get Container Size for Scaling ---
-    const containerRect = previewContainer ? previewContainer.getBoundingClientRect() : logoContainer.getBoundingClientRect();
-    const containerWidth = containerRect.width;
-    const containerHeight = containerRect.height;
-    
+    const containerRect = logoContainer.getBoundingClientRect();
+    const originalWidth = containerRect.width;
+    const originalHeight = containerRect.height;
+    let originalAspectRatio = 1; // Default aspect ratio
+    if (originalHeight > 0 && originalWidth > 0) {
+        originalAspectRatio = originalWidth / originalHeight;
+    }
+    console.log(`[Style Capture] Captured Original Dimensions: ${originalWidth.toFixed(2)}x${originalHeight.toFixed(2)}, Aspect Ratio: ${originalAspectRatio.toFixed(4)}`);
+
     // --- Get Computed Styles & Settings FIRST ---
     const containerStyle = window.getComputedStyle(logoContainer);
     const textStyle = window.getComputedStyle(logoText);
@@ -51,10 +61,14 @@ export function captureAdvancedStyles() {
     const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
 
 
-
     // --- Initialize Result Object ---
     // Declare the main 'styles' object FIRST
     const styles = {
+        originalDimensions: {
+            width: originalWidth,
+            height: originalHeight,
+            aspectRatio: originalAspectRatio
+        },
         containerOpacity: containerStyle.opacity || '1',
         exportConfig: {
             width: parseInt(document.getElementById('exportWidth')?.value || currentSettings.exportWidth || '800'),
