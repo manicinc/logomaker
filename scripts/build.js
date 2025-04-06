@@ -1,9 +1,7 @@
 /**
- * scripts/build.js (v3.2 - Fixed CSS Path Check & Copy, Removed Portapack)
+ * scripts/build.js (v3.3 - Fixed portable build check)
  * Performs the build steps for Logomaker.
- * Copies generated CSS from css/ to dist/css/.
- * Contains NO development watcher or server code.
- * Removed external dependency 'portapack'.
+ * Checks for inline-fonts-data.js existence for portable target.
  */
 
 const fs = require('fs');
@@ -79,12 +77,12 @@ try {
     const generatedCssSourceFilename = 'generated-font-classes.css';
     const generatedCssSourcePath = path.join(projectRoot, 'css', generatedCssSourceFilename);
     const fontsJsonPath = path.join(projectRoot, 'fonts.json');
-    const inlineFontsJsPath = path.join(projectRoot, 'inline-fonts-data.js');
+    const inlineFontsJsPath = path.join(projectRoot, 'inline-fonts-data.js'); // <-- Path to the crucial file for portable
 
     // 2. Generate Font Assets (if not skipped)
     if (!skipFontRegen) {
         console.log('Running generate-fonts-json.js...');
-        // Portable target requires base64 data according to docs
+        // Pass --base64 flag ONLY IF target is portable
         const fontArgs = (target === 'portable') ? ['--base64'] : [];
         const fontGenCmd = 'node';
         const fontGenScript = path.join(__dirname, 'generate-fonts-json.js');
@@ -97,7 +95,7 @@ try {
         // Check if essential generated files exist if skipping (warn if missing)
         if (!fs.existsSync(generatedCssSourcePath)) { console.warn(`WARNING: Skipping font regen, but '${generatedCssSourceFilename}' not found at project root's css directory!`); }
         if (!fs.existsSync(fontsJsonPath)) { console.warn("WARNING: Skipping font regen, but 'fonts.json' not found at project root!"); }
-        if (target === 'portable' && !fs.existsSync(inlineFontsJsPath)) { console.warn("WARNING: Skipping font regen for portable target, but 'inline-fonts-data.js' not found!"); }
+        if (target === 'portable' && !fs.existsSync(inlineFontsJsPath)) { console.warn("WARNING: Skipping font regen for portable target, but 'inline-fonts-data.js' not found! Build might fail."); }
     }
 
     // 3. Process & Copy Assets (HTML, CSS, JS, etc.)
@@ -143,31 +141,28 @@ try {
     console.log(`Copying JS from ${jsSourceDir} to ${jsDestDir}...`);
     copyDirRecursive(jsSourceDir, jsDestDir);
 
-    // 4. Handle Target-Specific Steps based on docs
+    // 4. Handle Target-Specific Steps
     if (target === 'deploy') {
         console.log('Performing deploy-specific steps (chunking)...');
 
         // Ensure inline-fonts-data.js exists before running split-fonts
-        if (!skipFontRegen && !fs.existsSync(inlineFontsJsPath)) {
+        if (!fs.existsSync(inlineFontsJsPath)) {
            // This can happen if generate-fonts-json failed silently or didn't run when expected
-           throw new Error(`Required file 'inline-fonts-data.js' not found at project root. Cannot run split-fonts.js.`);
-        } else if (skipFontRegen && !fs.existsSync(inlineFontsJsPath)) {
-            console.warn(`WARNING: Skipping font regen, and 'inline-fonts-data.js' not found at project root. Chunk splitting might fail or use old data.`);
-            // Allow build to continue but warn heavily
+           const errorMsg = `'inline-fonts-data.js' not found at project root. Cannot run split-fonts.js. Ensure generate-fonts ran correctly.`;
+           console.error(`ERROR: ${errorMsg}`);
+           throw new Error(errorMsg);
         }
 
-        // Only run split if the source file exists
-        if (fs.existsSync(inlineFontsJsPath)) {
-           console.log('Running split-fonts.js...');
-           const splitCmd = 'node';
-           const splitScript = path.join(__dirname, 'split-fonts.js');
-           console.log(`Executing: ${splitCmd} ${splitScript}`);
-           const splitResult = spawnSync(splitCmd, [splitScript], { stdio: 'inherit', cwd: projectRoot });
-           if (splitResult.status !== 0 || splitResult.error) { throw new Error(`split-fonts.js failed. Status: ${splitResult.status}, Error: ${splitResult.error || 'Unknown error'}`); }
-        } else {
-           console.warn(`Skipping split-fonts.js because ${inlineFontsJsPath} was not found.`);
+        // Run split-fonts.js
+        console.log('Running split-fonts.js...');
+        const splitCmd = 'node';
+        const splitScript = path.join(__dirname, 'split-fonts.js');
+        console.log(`Executing: ${splitCmd} ${splitScript}`);
+        const splitResult = spawnSync(splitCmd, [splitScript], { stdio: 'inherit', cwd: projectRoot });
+        // Check status code from split-fonts explicitly
+        if (splitResult.status !== 0 || splitResult.error) {
+             throw new Error(`split-fonts.js failed. Status: ${splitResult.status}, Error: ${splitResult.error || 'Unknown error'}`);
         }
-
 
         // Copy font chunks (if they exist after splitting)
         const chunkSourceDir = path.join(projectRoot, 'font-chunks');
@@ -176,9 +171,9 @@ try {
             console.log(`Copying font chunks from ${chunkSourceDir} to ${chunkDestDir}...`);
             copyDirRecursive(chunkSourceDir, chunkDestDir);
         } else {
-            console.warn("Font chunks directory not found after split script ran (or was skipped). Skipping copy.");
+            // This might happen if split-fonts failed silently before, but should be caught above now.
+            console.warn("Font chunks directory not found after split script. Skipping copy.");
         }
-
 
         // Copy source fonts directory (actual .woff2 etc files are needed for non-base64 builds)
         const fontSourceDir = path.join(projectRoot, FONT_DIR_NAME); // Use constant
@@ -199,28 +194,31 @@ try {
 
     } else if (target === 'portable') {
         console.log('Performing portable-specific steps (embedding)...');
-        // Ensure generate-fonts used --base64 if not skipped
-        if (!skipFontRegen && !args.includes('--base64')) {
-           // Make this an error for portable build, as base64 is required
-           throw new Error("Portable target build requires base64 font data. Run build without --skip-font-regen or ensure generate-fonts-json.js was run with --base64.");
-        }
 
-        // Copy inline-fonts-data.js (should contain base64 data)
-        const inlineJsDest = path.join(distDir, 'inline-fonts-data.js');
-        if (fs.existsSync(inlineFontsJsPath)) {
-            console.log("Copying inline-fonts-data.js for portable build...");
-            fs.copyFileSync(inlineFontsJsPath, inlineJsDest);
+        // <<< --- CORRECTED CHECK --- >>>
+        // Check if the required output file ('inline-fonts-data.js') exists.
+        // This file should have been generated with Base64 data by the generate-fonts step
+        // (either run explicitly before this script or as part of this script if skipFontRegen is false).
+        if (!fs.existsSync(inlineFontsJsPath)) {
+            // This is the critical failure condition for portable build.
+            console.error(`ERROR: Required input file 'inline-fonts-data.js' not found at ${inlineFontsJsPath}!`);
+            console.error("This file should contain Base64 font data.");
+            console.error("Ensure 'scripts/generate-fonts-json.js --base64' ran successfully before this script, or run 'npm run build:portable' which handles both steps.");
+            throw new Error("inline-fonts-data.js missing for portable build.");
         } else {
-            // This is critical for portable build to function
-            console.error(`ERROR: inline-fonts-data.js not found at ${inlineFontsJsPath}! Portable build requires this.`);
-            throw new Error("inline-fonts-data.js missing");
+             // If the file exists, we assume it has the necessary Base64 data.
+             console.log(`Found required '${path.basename(inlineFontsJsPath)}'. Proceeding with portable build.`);
         }
+        // <<< --- END CORRECTED CHECK --- >>>
 
-        // --- REMOVED PORTAPACK ---
-        console.log("--- NOTE: 'portapack' step removed due to no-external-dependency requirement. ---");
-        console.log("--- Portable build output is now a directory containing all assets. ---");
-        console.log("--- You can zip the 'dist/portable' directory for distribution. ---");
-        // --- END REMOVAL ---
+
+        // Copy inline-fonts-data.js (which should contain base64 data)
+        const inlineJsDest = path.join(distDir, 'inline-fonts-data.js');
+        console.log(`Copying '${path.basename(inlineFontsJsPath)}' for portable build...`);
+        fs.copyFileSync(inlineFontsJsPath, inlineJsDest); // Copy the verified file
+
+        // --- REMOVED PORTAPACK --- (Keep removed)
+        console.log("--- NOTE: 'portapack' step removed. Output is a directory. ---");
     }
 
     console.log(`\n✅ Build successful for target '${target}'! Output in: ${distDir}`);

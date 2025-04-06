@@ -5,17 +5,77 @@
     "author": "Manic.agency",
     "license": "MIT",
     "private": true,
+    "main": "electron.js",
     "scripts": {
-      "dev": "node scripts/dev.js --mode=dev",
-      "preview": "node scripts/dev.js --mode=prod-preview --port=3001",
-      "build": "npm run build:deploy",
-      "build:deploy": "node scripts/build.js --target=deploy",
-      "build:portable": "node scripts/generate-fonts-json.js --base64 && node scripts/build.js --target=portable",
-      "generate-fonts": "node scripts/generate-fonts-json.js",
-      "generate-fonts:base64": "node scripts/generate-fonts-json.js --base64"
+        "start": "electron .",
+        "dev": "node scripts/dev.js --mode=dev",
+        "preview": "node scripts/dev.js --mode=prod-preview --port=3001",
+        "build": "npm run build:deploy",
+        "build:deploy": "node scripts/build.js --target=deploy",
+        "build:portable": "node scripts/generate-fonts-json.js --base64 && node scripts/build.js --target=portable",
+        "generate-fonts": "node scripts/generate-fonts-json.js",
+        "generate-fonts:base64": "node scripts/generate-fonts-json.js --base64",
+        "pack": "electron-builder --dir",
+        "dist": "npm run build:portable && electron-builder",
+        "release:electron": "npm run build:portable && electron-builder --publish always",
+        "comment": "--- Versioning & Release ---",
+        "commit": "cz",
+        "release": "standard-version",
+        "release:first": "standard-version --first-release",
+        "release:dryrun": "standard-version --dry-run"
     },
     "devDependencies": {
-      "chokidar": "^3.5.3",
-      "http-server": "^14.1.1" 
+        "chokidar": "^3.5.3",
+        "commitizen": "^4.3.1",
+        "conventional-changelog-cli": "^5.0.0",
+        "cz-conventional-changelog": "^3.3.0",
+        "electron": "^29.1.5",
+        "electron-builder": "^24.13.3",
+        "electron-log": "^5.3.3",
+        "electron-updater": "^6.1.8",
+        "http-server": "^14.1.1",
+        "standard-version": "^9.5.0"
+    },
+    "config": {
+        "commitizen": {
+            "path": "./node_modules/cz-conventional-changelog"
+        }
+    },
+    "standard-version": {
+        "skip": {}
+    },
+    "build": {
+        "appId": "agency.manic.logomaker",
+        "productName": "Logomaker",
+        "directories": {
+            "output": "release/",
+            "buildResources": "assets"
+        },
+        "files": [
+            "dist/portable/**/*",
+            "electron.js",
+            "preload.js",
+            "node_modules/electron-updater/**/*",
+            "node_modules/electron-log/**/*"
+        ],
+        "win": {
+            "target": "nsis",
+            "icon": "assets/icon.ico"
+        },
+        "mac": {
+            "target": "dmg",
+            "category": "public.app-category.graphics-design",
+            "icon": "assets/icon.icns"
+        },
+        "linux": {
+            "target": "AppImage",
+            "category": "Graphics",
+            "icon": "assets/icons"
+        },
+        "publish": {
+            "provider": "github",
+            "owner": "manicinc",
+            "repo": "logomaker"
+        }
     }
-  }
+}
