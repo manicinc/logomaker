@@ -1,0 +1,378 @@
+/* css/layout.css */
+/* REVAMPED - v1.0 */
+/* Main page structure: Container, Header, Footer, Preview, Controls Wrapper */
+
+.container {
+  max-width: var(--container-width-desktop);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: 0 var(--space-md); /* Horizontal padding */
+  margin: 0 auto; /* Center container */
+  flex-grow: 1; /* Allow container to grow if body is flex */
+}
+
+/* --- Header --- */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  padding: var(--space-sm) 0 var(--space-md) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-md);
+}
+
+.logo-brand {
+  text-align: left; /* Align left by default */
+  flex-grow: 1;
+}
+
+.logo-brand h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-black); /* Use black weight if available */
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  margin-bottom: 0;
+  font-family: var(--font-family-logo);
+  user-select: none; /* Prevent text selection */
+  line-height: 1.1; /* Adjust line height for logo font */
+}
+
+.logo-brand h1 span {
+  font-family: var(--font-family-base); /* Use base font */
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  font-weight: var(--font-weight-normal);
+  color: var(--text-color-muted); /* Use muted color */
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  margin-left: var(--space-xs);
+  display: inline; /* Keep inline */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.brand-links {
+  text-align: right; /* Align right by default */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.brand-links a {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+  color: var(--text-color-muted); /* Muted color */
+  display: inline-flex; /* Align icon */
+  align-items: center;
+  gap: var(--space-xs);
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+.brand-links a:hover {
+  opacity: 1;
+  color: var(--accent-color);
+  text-decoration: none;
+}
+.brand-links svg { /* Style external link icon */
+  width: 0.9em;
+  height: 0.9em;
+  opacity: 0.7;
+}
+
+/* --- Controls Wrapper --- */
+.controls-wrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--panel-bg);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  width: 100%;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--box-shadow-md);
+  /* >> Add/Ensure this line << */
+  position: relative; /* Needed for absolute positioning of info button on mobile */
+}
+
+/* Tab Content Area */
+.tab-content {
+  display: none; /* Handled by JS */
+  padding: var(--space-lg);
+  animation: fadeIn 0.3s ease forwards; /* Use forwards to keep state */
+  width: 100%;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Active Tab Content */
+.tab-content.active {
+  display: block;
+}
+
+/* Controls Container Grid */
+.controls-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjust min size */
+  gap: var(--space-lg) var(--space-lg); /* Consistent gap */
+  width: 100%;
+}
+
+/* Nested Controls */
+.nested-controls {
+  padding: var(--space-md);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-sm);
+  border: 1px dashed var(--border-color);
+  margin-top: var(--space-sm);
+}
+.nested-controls .control-group {
+    gap: var(--space-xs); /* Reduce gap inside nested */
+}
+
+/* Specific Full-Width Sections */
+#customGradientControls,
+#backgroundGradientControls,
+#fontLicenseContainer {
+  grid-column: 1 / -1; /* Span full width */
+}
+
+/* --- Preview Area --- */
+/* --- Preview Area --- */
+.preview-container {
+  position: relative; /* For absolute positioning of size indicator */
+  display: flex; /* Use flex to center logo-container */
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
+  padding: var(--space-lg); /* Base padding around the logo-container */
+  overflow: hidden; /* Prevent content spillover */
+  border-radius: var(--border-radius-md);
+  /* --- REMOVE background properties here --- */
+  /* background-color: transparent; */ /* Let effects.css handle this */
+  /* background-image: none; */
+  transition: opacity var(--transition-base), min-height var(--transition-base), border-color var(--transition-base);
+  box-shadow: var(--box-shadow-inset); /* Optional: Keep subtle inset shadow */
+  border: 1px solid var(--border-color); /* Base border, effects.css overrides */
+  min-height: 300px; /* Default medium size */
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Preview container background overlay (Keep this as it applies the dynamic bg-* styles) */
+.preview-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* background: inherit; */ /* Let effects.css classes define the background */
+  background-color: var(--dynamic-bg-color, #000); /* Fallback solid color */
+  background-image: var(--dynamic-bg-gradient, none); /* Fallback gradient */
+  /* background-size, background-position etc. should be set by specific bg-* classes in effects.css */
+  z-index: 0; /* Behind logo-container */
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--bg-opacity, 1); /* Use CSS variable for opacity */
+  transition: opacity var(--transition-base);
+}
+
+
+/* Logo Container (Direct child for alignment & BORDER/PADDING TARGET) */
+.logo-container {
+  position: relative; /* For potential pseudo-elements if needed directly */
+  display: flex; /* Align text */
+  align-items: center; /* Vertical align */
+  justify-content: center; /* Horizontal align (controlled by JS via style) */
+  /* Let width/height be determined by content or preview-container */
+  /* width: 100%; */ /* Remove fixed width/height */
+  /* height: 100%; */
+  z-index: 2; /* Above background overlay */
+  overflow: visible; /* Allow effects like shadows to extend slightly */
+  /* --- Base styles for border/padding target --- */
+  border: none; /* Base is borderless */
+  box-shadow: none; /* Base has no shadow */
+  background-color: transparent; /* Ensure container itself is transparent */
+  padding: var(--dynamic-border-padding, 10px); /* Apply dynamic padding */
+  border-radius: var(--dynamic-border-radius, 0); /* Apply dynamic radius */
+  /* Transitions applied via .dynamic-border in effects.css */
+}
+
+/* Actual Logo Text Element */
+.logo-text {
+  /* Base layout/text styles */
+  font-size: var(--dynamic-font-size, clamp(48px, 12vw, 150px)); /* Use dynamic var */
+  letter-spacing: var(--dynamic-letter-spacing, 0.03em); /* Use dynamic var */
+  transform: rotate(var(--dynamic-rotation, 0deg)); /* Use dynamic var */
+  position: relative; /* For potential pseudo-elements */
+  display: inline-block; /* Crucial for sizing and effects */
+  /* padding: var(--space-sm); */ /* Padding is now on logo-container */
+  margin: 0;
+  max-width: 100%; /* Prevent overflow within its container */
+  transform-origin: center center;
+  transition: all var(--transition-base);
+  will-change: transform, opacity, color, text-shadow, background-image;
+  cursor: default;
+  user-select: none;
+  line-height: 1.1; /* Adjust as needed */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-align: center; /* Default alignment, JS overrides via logo-container justify-content */
+  /* Color/background applied by effects.css */
+}
+
+/* Size indicator (Keep as is) */
+.size-indicator {
+  position: absolute;
+  bottom: var(--space-sm);
+  right: var(--space-sm);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--text-color-strong);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-code);
+  pointer-events: none;
+  z-index: 10;
+  user-select: none;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Preview container size classes (Keep as is) */
+.preview-size-small { min-height: 200px; }
+.preview-size-medium { min-height: 300px; }
+.preview-size-large { min-height: 450px; }
+.preview-size-x-large { min-height: 600px; }
+
+
+/* Add this to components.css or layout.css */
+
+.dimension-controls {
+  display: grid;
+  /* Create 3 columns: Width, Height, Lock */
+  grid-template-columns: repeat(2, 1fr) auto; /* Width, Height take space, Lock takes auto */
+  gap: var(--space-lg);
+  align-items: end; /* Align items to the bottom */
+  margin-bottom: var(--space-md); /* Space before quality slider */
+}
+
+/* Ensure control groups within take full height */
+.dimension-controls .control-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Align label/input to bottom */
+    height: 100%;
+}
+
+.aspect-lock-control {
+  /* Specific alignment for the checkbox */
+  padding-bottom: 10px; /* Align baseline with number inputs */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.aspect-lock-control .checkbox-label {
+    margin-bottom: 0; /* Remove default margin */
+}
+
+/* Responsive adjustments for the dimension controls */
+@media (max-width: 767px) {
+  .dimension-controls {
+    grid-template-columns: 1fr; /* Stack on mobile */
+    gap: var(--space-lg); /* Increase gap */
+    align-items: stretch;
+  }
+  .aspect-lock-control {
+      padding-bottom: 0;
+      justify-content: flex-start; /* Align checkbox left */
+      margin-top: var(--space-xs); /* Add some space */
+  }
+    /* Ensure labels are above inputs */
+    .dimension-controls .control-group label:not(.checkbox-label) {
+        margin-bottom: var(--space-xs);
+    }
+}
+      
+
+/* --- Footer --- */
+footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: var(--space-lg) 0 var(--space-md) 0;
+  margin-top: var(--space-xl);
+  width: 100%; /* Ensure footer spans width within container */
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; /* Allow wrapping */
+  gap: var(--space-lg);
+  padding: 0 var(--space-sm); /* Match container padding */
+}
+
+.manic-logo a {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+.manic-logo a:hover {
+  opacity: 0.85;
+  text-decoration: none;
+}
+
+.logo-text-animated { /* Specific style for footer logo */
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-black);
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% auto;
+  animation: gradientMove 4s infinite alternate ease-in-out;
+  font-family: var(--font-family-logo);
+}
+
+@keyframes gradientMove {
+  from { background-position: 0% center; }
+  to { background-position: 100% center; }
+}
+
+.logo-agency {
+  font-size: var(--font-size-xs);
+  color: var(--text-color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end; /* Align links to the right */
+}
+
+.footer-links a {
+  color: var(--text-color-muted);
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+.footer-links a:hover {
+  color: var(--accent-color);
+  opacity: 1;
+}
+
+.copyright {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-color-muted);
+  opacity: 0.7;
+  margin-top: var(--space-lg);
+}

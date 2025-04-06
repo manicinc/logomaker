@@ -1,0 +1,216 @@
+/* Font Loading Styles */
+/* Loading Overlay Enhancements */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 30, 50, 0.9);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+  color: #eee;
+  font-family: 'Inter', sans-serif;
+}
+
+.loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-content {
+  background: #1c2030;
+  padding: 30px 40px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+  max-width: 90%;
+  width: 450px;
+}
+
+.loading-content h3 {
+  margin-top: 0;
+  color: #00f2ea;
+  margin-bottom: 15px;
+  font-size: 1.4em;
+}
+
+.loading-content p {
+  margin-bottom: 20px;
+  line-height: 1.6;
+  color: #ccc;
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-left-color: #00f2ea;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Loading Progress Bar */
+.loading-progress-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin: 15px 0;
+  overflow: hidden;
+}
+
+.loading-progress-bar {
+  height: 100%;
+  width: 5%; /* Initial width */
+  background: #00f2ea;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+#loading-status {
+  font-style: italic;
+  color: #aaa;
+  min-height: 1.2em;
+  display: block;
+}
+
+/* Font Loading Visualization within the editor */
+.logo-text.font-loading {
+  position: relative;
+  animation: font-loading-pulse 1.5s infinite;
+  opacity: 0.7;
+}
+
+@keyframes font-loading-pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Font Loading Toast notification */
+.font-loading-toast {
+  z-index: 10000 !important;
+}
+
+.font-loading-toast .loading-progress {
+  margin-top: 5px;
+  height: 4px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.font-loading-toast .loading-bar {
+  height: 100%;
+  width: 40%;
+  background: currentColor;
+  border-radius: 2px;
+  animation: loading-bar-animation 1.5s infinite ease-in-out;
+  transform-origin: left center;
+}
+
+@keyframes loading-bar-animation {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.font-loading-toast .success-icon {
+  color: #2ecc71;
+  margin-left: 5px;
+}
+
+.font-loading-toast.error .loading-progress {
+  background: rgba(231, 76, 60, 0.2);
+}
+
+.font-loading-toast.error .loading-bar {
+  background: #e74c3c;
+  animation: none;
+  width: 100%;
+}
+
+/* Integration from loading.css */
+.loading-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30, 30, 50, 0.9); /* Updated to match overlay color */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-indicator-content {
+  background-color: #1c2030; /* Updated to match content background */
+  color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4); /* Updated to match content shadow */
+  max-width: 80%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.export-progress {
+  font-size: 14px;
+  margin: 10px 0;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  width: 100%;
+}
+
+.export-tip {
+  font-size: 12px;
+  color: #00f2ea; /* Updated to match accent color */
+  margin: 0;
+}
+
+.cancel-export-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.2s;
+}
+
+.cancel-export-btn:hover {
+  background-color: #d32f2f;
+}
+
+@media (max-width: 768px) {
+  .loading-content,
+  .loading-indicator-content {
+    width: 90%;
+    padding: 15px;
+  }
+}

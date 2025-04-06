@@ -1,0 +1,3665 @@
+[
+  {
+    "familyName": "Aachen Std",
+    "displayName": "Aachen Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Adobe Caslon Pro",
+    "displayName": "Adobe Caslon Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Adobe Garamond Pro",
+    "displayName": "Adobe Garamond Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Adobe Wood Type Ornaments Std",
+    "displayName": "Adobe Wood Type Ornaments Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Albertus MT Std",
+    "displayName": "Albertus MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Aldus LT Std",
+    "displayName": "Aldus LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Alexa Std",
+    "displayName": "Alexa Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Americana Std",
+    "displayName": "Americana Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Andreas Std",
+    "displayName": "Andreas Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Antique Olive Std",
+    "displayName": "Antique Olive Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 9
+  },
+  {
+    "familyName": "Apollo MT Std",
+    "displayName": "Apollo MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Arcadia LT Std",
+    "displayName": "Arcadia LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Arcana GMM Std",
+    "displayName": "Arcana GMM Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Ariadne LT Std",
+    "displayName": "Ariadne LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Arnold Boecklin Std",
+    "displayName": "Arnold Boecklin Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Ashley Script MT Std",
+    "displayName": "Ashley Script MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Auriol LT Std",
+    "displayName": "Auriol LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Avenir LT Std",
+    "displayName": "Avenir LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 12
+  },
+  {
+    "familyName": "Balzano Std",
+    "displayName": "Balzano Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Banco Std",
+    "displayName": "Banco Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Banshee Std",
+    "displayName": "Banshee Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Baskerville Cyrillic LT Std",
+    "displayName": "Baskerville Cyrillic LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Bauer Bodoni Std",
+    "displayName": "Bauer Bodoni Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Bauhaus Std",
+    "displayName": "Bauhaus Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Bell Centennial Std",
+    "displayName": "Bell Centennial Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Bell Gothic Std",
+    "displayName": "Bell Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Bell MT Std",
+    "displayName": "Bell MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Belwe Std",
+    "displayName": "Belwe Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Bembo Std",
+    "displayName": "Bembo Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Berling LT Std",
+    "displayName": "Berling LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Bermuda LP Std",
+    "displayName": "Bermuda LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Bernhard Modern Std",
+    "displayName": "Bernhard Modern Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Bernhard Std",
+    "displayName": "Bernhard Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Bickham Script Std",
+    "displayName": "Bickham Script Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Biffo MT Std",
+    "displayName": "Biffo MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Birch Std",
+    "displayName": "Birch Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Blackoak Std",
+    "displayName": "Blackoak Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Blue Island Std",
+    "displayName": "Blue Island Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Bodoni Std",
+    "displayName": "Bodoni Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Border Pi Std",
+    "displayName": "Border Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Bossa Nova MVB Std",
+    "displayName": "Bossa Nova MVB Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Briem Akademi Std",
+    "displayName": "Briem Akademi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 12
+  },
+  {
+    "familyName": "Briem Script Std",
+    "displayName": "Briem Script Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Bruno JB Std",
+    "displayName": "Bruno JB Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Brush Script Std",
+    "displayName": "Brush Script Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Bulmer MT Std",
+    "displayName": "Bulmer MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Bundesbahn Pi Std",
+    "displayName": "Bundesbahn Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Caflisch Script Pro",
+    "displayName": "Caflisch Script Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Calcite Pro",
+    "displayName": "Calcite Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Caliban Std",
+    "displayName": "Caliban Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Calvert MT Std",
+    "displayName": "Calvert MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Candida Std",
+    "displayName": "Candida Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Cantoria MT Std",
+    "displayName": "Cantoria MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Caravan LT Std",
+    "displayName": "Caravan LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Carolina LT Std",
+    "displayName": "Carolina LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Carta Std",
+    "displayName": "Carta Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Cascade Script LT Std",
+    "displayName": "Cascade Script LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Caslon 3 LT Std",
+    "displayName": "Caslon 3 LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Caslon 540 LT Std",
+    "displayName": "Caslon 540 LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Caslon Open Face LT Std",
+    "displayName": "Caslon Open Face LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Castellar MT Std",
+    "displayName": "Castellar MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Caxton Std",
+    "displayName": "Caxton Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Celestia Antiqua Std",
+    "displayName": "Celestia Antiqua Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Centaur MT Std",
+    "displayName": "Centaur MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Century Expanded LT Std",
+    "displayName": "Century Expanded LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Century Old Style Std",
+    "displayName": "Century Old Style Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Charlemagne Std",
+    "displayName": "Charlemagne Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Charme Std",
+    "displayName": "Charme Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Cheq Std",
+    "displayName": "Cheq Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Clairvaux LT Std",
+    "displayName": "Clairvaux LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Clarendon LT Std",
+    "displayName": "Clarendon LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Clearface Gothic LT Std",
+    "displayName": "Clearface Gothic LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Cloister Std",
+    "displayName": "Cloister Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Club Type Mercurius Std",
+    "displayName": "Club Type Mercurius Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Cochin LT Std",
+    "displayName": "Cochin LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Conga Brava Std",
+    "displayName": "Conga Brava Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Conga Brava Stencil Std",
+    "displayName": "Conga Brava Stencil Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Cooper Black Std",
+    "displayName": "Cooper Black Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Copal Std",
+    "displayName": "Copal Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Copperplate Gothic Std",
+    "displayName": "Copperplate Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 9
+  },
+  {
+    "familyName": "Coriander Std",
+    "displayName": "Coriander Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Corona LT Std",
+    "displayName": "Corona LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Coronet LT Std",
+    "displayName": "Coronet LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Cottonwood Std",
+    "displayName": "Cottonwood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Courier Std",
+    "displayName": "Courier Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Critter Std",
+    "displayName": "Critter Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Cutout Std",
+    "displayName": "Cutout Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Dante MT Std",
+    "displayName": "Dante MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Delphin LT Std",
+    "displayName": "Delphin LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "DIN Std",
+    "displayName": "DIN Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Diotima LT Std",
+    "displayName": "Diotima LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Diskus LT Std",
+    "displayName": "Diskus LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Dom Casual Std",
+    "displayName": "Dom Casual Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Dorchester Script MT Std",
+    "displayName": "Dorchester Script MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Doric LT Std",
+    "displayName": "Doric LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Duc De Berry LT Std",
+    "displayName": "Duc De Berry LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Eccentric Std",
+    "displayName": "Eccentric Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Egyptienne F LT Std",
+    "displayName": "Egyptienne F LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Ehrhardt MT Std",
+    "displayName": "Ehrhardt MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Electra LT Std",
+    "displayName": "Electra LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Ellington MT Std",
+    "displayName": "Ellington MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Else NPL Std",
+    "displayName": "Else NPL Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Emmascript MVB Std",
+    "displayName": "Emmascript MVB Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Engravers LT Std",
+    "displayName": "Engravers LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Euro Mono Std",
+    "displayName": "Euro Mono Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Euro Sans Std",
+    "displayName": "Euro Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Euro Serif Std",
+    "displayName": "Euro Serif Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "European Pi Std",
+    "displayName": "European Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Eurostile LT Std",
+    "displayName": "Eurostile LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Ex Ponto Pro",
+    "displayName": "Ex Ponto Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Excelsior LT Std",
+    "displayName": "Excelsior LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Fairfield LT Std",
+    "displayName": "Fairfield LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 12
+  },
+  {
+    "familyName": "Falstaff MT Std",
+    "displayName": "Falstaff MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Fette Fraktur LT Std",
+    "displayName": "Fette Fraktur LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Flood Std",
+    "displayName": "Flood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Florens LP Std",
+    "displayName": "Florens LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Flyer LT Std",
+    "displayName": "Flyer LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Folio Std",
+    "displayName": "Folio Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Forte MT Std",
+    "displayName": "Forte MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Fournier MT Std",
+    "displayName": "Fournier MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Franklin Gothic Std",
+    "displayName": "Franklin Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Freestyle Script Std",
+    "displayName": "Freestyle Script Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Friz Quadrata Std",
+    "displayName": "Friz Quadrata Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Frutiger LT Std",
+    "displayName": "Frutiger LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 14
+  },
+  {
+    "familyName": "Fusaka Std",
+    "displayName": "Fusaka Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Futura Std",
+    "displayName": "Futura Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 20
+  },
+  {
+    "familyName": "Galahad Std",
+    "displayName": "Galahad Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Garamond 3 LT Std",
+    "displayName": "Garamond 3 LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Gazette LT Std",
+    "displayName": "Gazette LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Giddyup Std",
+    "displayName": "Giddyup Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Gill Floriated Caps MT Std",
+    "displayName": "Gill Floriated Caps MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Gill Sans Std",
+    "displayName": "Gill Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 15
+  },
+  {
+    "familyName": "Glypha LT Std",
+    "displayName": "Glypha LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Gothic Thirteen Std",
+    "displayName": "Gothic Thirteen Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Goudy Heavyface Std",
+    "displayName": "Goudy Heavyface Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Goudy Modern MT Std",
+    "displayName": "Goudy Modern MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Goudy Std",
+    "displayName": "Goudy Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Goudy Text MT Std",
+    "displayName": "Goudy Text MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Granjon LT Std",
+    "displayName": "Granjon LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Graphite Std",
+    "displayName": "Graphite Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 9
+  },
+  {
+    "familyName": "Greymantle MVB Std",
+    "displayName": "Greymantle MVB Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Grotesque MT Std",
+    "displayName": "Grotesque MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Guardi LT Std",
+    "displayName": "Guardi LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Hardwood LP Std",
+    "displayName": "Hardwood LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Helvetica Inserat LT Std",
+    "displayName": "Helvetica Inserat LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Helvetica LT Std",
+    "displayName": "Helvetica LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 21
+  },
+  {
+    "familyName": "Helvetica Neue LT Std",
+    "displayName": "Helvetica Neue LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 51
+  },
+  {
+    "familyName": "Helvetica Rounded LT Std",
+    "displayName": "Helvetica Rounded LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Herculanum LT Std",
+    "displayName": "Herculanum LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Hiroshige Std",
+    "displayName": "Hiroshige Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Hobo Std",
+    "displayName": "Hobo Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Horley Old Style MT Std",
+    "displayName": "Horley Old Style MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Immi Five O Five Std",
+    "displayName": "Immi Five O Five Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Impact LT Std",
+    "displayName": "Impact LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Impressum Std",
+    "displayName": "Impressum Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Industria LT Std",
+    "displayName": "Industria LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Inflex MT Std",
+    "displayName": "Inflex MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Insignia LT Std",
+    "displayName": "Insignia LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Ironwood Std",
+    "displayName": "Ironwood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Isabella Std",
+    "displayName": "Isabella Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Italia Std",
+    "displayName": "Italia Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Italian Old Style MT Std",
+    "displayName": "Italian Old Style MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "ITC American Typewriter Std",
+    "displayName": "ITC American Typewriter Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Anna Std",
+    "displayName": "ITC Anna Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "ITC Avant Garde Gothic Std",
+    "displayName": "ITC Avant Garde Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 20
+  },
+  {
+    "familyName": "ITC Beesknees Std",
+    "displayName": "ITC Beesknees Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "ITC Benguiat Gothic Std",
+    "displayName": "ITC Benguiat Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Benguiat Std",
+    "displayName": "ITC Benguiat Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Berkeley Std",
+    "displayName": "ITC Berkeley Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Bookman Std",
+    "displayName": "ITC Bookman Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Caslon 224 Std",
+    "displayName": "ITC Caslon 224 Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Century Handtooled Std",
+    "displayName": "ITC Century Handtooled Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 2
+  },
+  {
+    "familyName": "ITC Century Std",
+    "displayName": "ITC Century Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 16
+  },
+  {
+    "familyName": "ITC Cerigo Std",
+    "displayName": "ITC Cerigo Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Cheltenham Handtooled Std",
+    "displayName": "ITC Cheltenham Handtooled Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "ITC Cheltenham Std",
+    "displayName": "ITC Cheltenham Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 16
+  },
+  {
+    "familyName": "ITC Clearface Std",
+    "displayName": "ITC Clearface Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Cushing Std",
+    "displayName": "ITC Cushing Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Eras Std",
+    "displayName": "ITC Eras Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Esprit Std",
+    "displayName": "ITC Esprit Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Fenice Std",
+    "displayName": "ITC Fenice Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Flora Std",
+    "displayName": "ITC Flora Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 2
+  },
+  {
+    "familyName": "ITC Franklin Gothic Std",
+    "displayName": "ITC Franklin Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 20
+  },
+  {
+    "familyName": "ITC Galliard Std",
+    "displayName": "ITC Galliard Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Garamond Handtooled Std",
+    "displayName": "ITC Garamond Handtooled Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "ITC Garamond Std",
+    "displayName": "ITC Garamond Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 24
+  },
+  {
+    "familyName": "ITC Giovanni Std",
+    "displayName": "ITC Giovanni Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Goudy Sans Std",
+    "displayName": "ITC Goudy Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Highlander Std",
+    "displayName": "ITC Highlander Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Isadora Std",
+    "displayName": "ITC Isadora Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "ITC Kabel Std",
+    "displayName": "ITC Kabel Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "ITC Korinna Std",
+    "displayName": "ITC Korinna Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "ITC Leawood Std",
+    "displayName": "ITC Leawood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Legacy Sans Std",
+    "displayName": "ITC Legacy Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 7
+  },
+  {
+    "familyName": "ITC Legacy Serif Std",
+    "displayName": "ITC Legacy Serif Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 7
+  },
+  {
+    "familyName": "ITC Lubalin Graph Std",
+    "displayName": "ITC Lubalin Graph Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "ITC Machine Std",
+    "displayName": "ITC Machine Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "ITC Mendoza Roman Std",
+    "displayName": "ITC Mendoza Roman Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Mona Lisa Std",
+    "displayName": "ITC Mona Lisa Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "ITC New Baskerville Std",
+    "displayName": "ITC New Baskerville Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "ITC Novarese Std",
+    "displayName": "ITC Novarese Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 7
+  },
+  {
+    "familyName": "ITC Officina Sans Std",
+    "displayName": "ITC Officina Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "ITC Officina Serif Std",
+    "displayName": "ITC Officina Serif Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "ITC Ozwald Std",
+    "displayName": "ITC Ozwald Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "ITC Quorum Std",
+    "displayName": "ITC Quorum Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "ITC Serif Gothic Std",
+    "displayName": "ITC Serif Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Slimbach Std",
+    "displayName": "ITC Slimbach Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Souvenir Std",
+    "displayName": "ITC Souvenir Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Stone Informal Std",
+    "displayName": "ITC Stone Informal Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Stone Sans Std",
+    "displayName": "ITC Stone Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 7
+  },
+  {
+    "familyName": "ITC Stone Serif Std",
+    "displayName": "ITC Stone Serif Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 7
+  },
+  {
+    "familyName": "ITC Symbol Std",
+    "displayName": "ITC Symbol Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Tiepolo Std",
+    "displayName": "ITC Tiepolo Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Tiffany Std",
+    "displayName": "ITC Tiffany Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Usherwood Std",
+    "displayName": "ITC Usherwood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Veljovic Std",
+    "displayName": "ITC Veljovic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "ITC Zapf Chancery Std",
+    "displayName": "ITC Zapf Chancery Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "ITC Zapf Dingbats Std",
+    "displayName": "ITC Zapf Dingbats Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Janson Text LT Std",
+    "displayName": "Janson Text LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Jimbo Std",
+    "displayName": "Jimbo Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 9
+  },
+  {
+    "familyName": "Joanna MT Std",
+    "displayName": "Joanna MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 7
+  },
+  {
+    "familyName": "Juniper Std",
+    "displayName": "Juniper Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Kabel LT Std",
+    "displayName": "Kabel LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Kaufmann Std",
+    "displayName": "Kaufmann Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Khaki Std",
+    "displayName": "Khaki Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Kigali Std",
+    "displayName": "Kigali Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Kinesis Std",
+    "displayName": "Kinesis Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Kino MT Std",
+    "displayName": "Kino MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Klang MT Std",
+    "displayName": "Klang MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Koch Antiqua LT Std",
+    "displayName": "Koch Antiqua LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Kolo LP Std",
+    "displayName": "Kolo LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Kompakt LT Std",
+    "displayName": "Kompakt LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Kuenstler Script LT Std",
+    "displayName": "Kuenstler Script LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Latin MT Std",
+    "displayName": "Latin MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Legault Std",
+    "displayName": "Legault Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Letter Gothic Std",
+    "displayName": "Letter Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Life LT Std",
+    "displayName": "Life LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "LinoLetter Std",
+    "displayName": "Lino Letter Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Linoscript Std",
+    "displayName": "Linoscript Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Linotext Std",
+    "displayName": "Linotext Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Linotype Astrology Pi Std",
+    "displayName": "Linotype Astrology Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Linotype Audio Pi Std",
+    "displayName": "Linotype Audio Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Linotype Centennial Std",
+    "displayName": "Linotype Centennial Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Linotype Decoration Pi Std",
+    "displayName": "Linotype Decoration Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Linotype Didot LT Std",
+    "displayName": "Linotype Didot LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Linotype Game Pi Std",
+    "displayName": "Linotype Game Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Linotype Holiday Pi Std",
+    "displayName": "Linotype Holiday Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Linotype Warning Pi Std",
+    "displayName": "Linotype Warning Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Lithos Pro",
+    "displayName": "Lithos Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Lucida Math Std",
+    "displayName": "Lucida Math Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Lucida Sans Std",
+    "displayName": "Lucida Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Lucida Sans Typewriter Std",
+    "displayName": "Lucida Sans Typewriter Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Lucida Std",
+    "displayName": "Lucida Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Lucida Typewriter Std",
+    "displayName": "Lucida Typewriter Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Madrone Std",
+    "displayName": "Madrone Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Magnesium MVB Std",
+    "displayName": "Magnesium MVB Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Magnolia MVB Std",
+    "displayName": "Magnolia MVB Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Manito LP Std",
+    "displayName": "Manito LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Mathematical Pi LT Std",
+    "displayName": "Mathematical Pi LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Matura MT Std",
+    "displayName": "Matura MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Maximus LT Std",
+    "displayName": "Maximus LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Medici Script LT Std",
+    "displayName": "Medici Script LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Melior LT Std",
+    "displayName": "Melior LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Memphis LT Std",
+    "displayName": "Memphis LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 7
+  },
+  {
+    "familyName": "Mercurius MT Std",
+    "displayName": "Mercurius MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Meridien LT Std",
+    "displayName": "Meridien LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Mesquite Std",
+    "displayName": "Mesquite Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Mezz Std",
+    "displayName": "Mezz Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "MICR Std",
+    "displayName": "MICR Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Minion Std",
+    "displayName": "Minion Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Minister Std",
+    "displayName": "Minister Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Mistral Std",
+    "displayName": "Mistral Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Mojo Std",
+    "displayName": "Mojo Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Monoline Script MT Std",
+    "displayName": "Monoline Script MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Monotype Modern Std",
+    "displayName": "Monotype Modern Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Monotype Old Style MT Std",
+    "displayName": "Monotype Old Style MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Montara Std",
+    "displayName": "Montara Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Moonglow Std",
+    "displayName": "Moonglow Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 12
+  },
+  {
+    "familyName": "Motter Corpus Std",
+    "displayName": "Motter Corpus Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Myriad Pro",
+    "displayName": "Myriad Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 40
+  },
+  {
+    "familyName": "Myriad Std",
+    "displayName": "Myriad Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Mythos Std",
+    "displayName": "Mythos Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "National Code Pi Std",
+    "displayName": "National Code Pi Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Neue Hammer Unziale LT Std",
+    "displayName": "Neue Hammer Unziale LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Neuland LT Std",
+    "displayName": "Neuland LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Neuzeit S LT Std",
+    "displayName": "Neuzeit S LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "New Aster LT Std",
+    "displayName": "New Aster LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "New Berolina MT Std",
+    "displayName": "New Berolina MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "New Caledonia LT Std",
+    "displayName": "New Caledonia LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "New Century Schoolbook LT Std",
+    "displayName": "New Century Schoolbook LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "News Gothic Std",
+    "displayName": "News Gothic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Notre Dame LT Std",
+    "displayName": "Notre Dame LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Nueva Std",
+    "displayName": "Nueva Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 18
+  },
+  {
+    "familyName": "Nuptial Script LT Std",
+    "displayName": "Nuptial Script LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Nyx Std",
+    "displayName": "Nyx Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Ocean Sans Std",
+    "displayName": "Ocean Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 24
+  },
+  {
+    "familyName": "OCRA Std",
+    "displayName": "OCRA Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "OCRB Std",
+    "displayName": "OCRB Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Octavian MT Std",
+    "displayName": "Octavian MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Old Claude LP Std",
+    "displayName": "Old Claude LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Old Style 7 Std",
+    "displayName": "Old Style 7 Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Olympian LT Std",
+    "displayName": "Olympian LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Omnia LT Std",
+    "displayName": "Omnia LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Ondine LT Std",
+    "displayName": "Ondine LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Onyx MT Std",
+    "displayName": "Onyx MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Optima LT Std",
+    "displayName": "Optima LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 12
+  },
+  {
+    "familyName": "Orator Std",
+    "displayName": "Orator Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Organica GMM Std",
+    "displayName": "Organica GMM Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Origami Std",
+    "displayName": "Origami Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Ouch Std",
+    "displayName": "Ouch Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Palace Script MT Std",
+    "displayName": "Palace Script MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Palatino LT Std",
+    "displayName": "Palatino LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Parisian Std",
+    "displayName": "Parisian Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Park Avenue Std",
+    "displayName": "Park Avenue Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Peignot LT Std",
+    "displayName": "Peignot LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Penumbra Flare Std",
+    "displayName": "Penumbra Flare Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Penumbra Half Serif Std",
+    "displayName": "Penumbra Half Serif Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Penumbra Sans Std",
+    "displayName": "Penumbra Sans Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Penumbra Serif Std",
+    "displayName": "Penumbra Serif Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Pepita MT Std",
+    "displayName": "Pepita MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Pepperwood Std",
+    "displayName": "Pepperwood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Perpetua Std",
+    "displayName": "Perpetua Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Photina MT Std",
+    "displayName": "Photina MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Plantin Std",
+    "displayName": "Plantin Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 9
+  },
+  {
+    "familyName": "PMN Caecilia LT Std",
+    "displayName": "PMN Caecilia LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Poetica Std",
+    "displayName": "Poetica Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Pompeia Std",
+    "displayName": "Pompeia Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Pompeijana LT Std",
+    "displayName": "Pompeijana LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Ponderosa Std",
+    "displayName": "Ponderosa Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Poplar Std",
+    "displayName": "Poplar Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Postino Std",
+    "displayName": "Postino Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Present LT Std",
+    "displayName": "Present LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Prestige Elite Std",
+    "displayName": "Prestige Elite Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Quake Std",
+    "displayName": "Quake Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Rad Std",
+    "displayName": "Rad Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Raleigh LT Std",
+    "displayName": "Raleigh LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Raphael Std",
+    "displayName": "Raphael Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Reliq Std",
+    "displayName": "Reliq Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 12
+  },
+  {
+    "familyName": "Reporter LT Std",
+    "displayName": "Reporter LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Revue Std",
+    "displayName": "Revue Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Rockwell Std",
+    "displayName": "Rockwell Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 9
+  },
+  {
+    "familyName": "Romic Std",
+    "displayName": "Romic Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Rosewood Std",
+    "displayName": "Rosewood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Rotation LT Std",
+    "displayName": "Rotation LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Ruling Script LT Std",
+    "displayName": "Ruling Script LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Runic MT Std",
+    "displayName": "Runic MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Russell Oblique Std",
+    "displayName": "Russell Oblique Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Rusticana LT Std",
+    "displayName": "Rusticana LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Ruzicka Freehand LT Std",
+    "displayName": "Ruzicka Freehand LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Sabon LT Std",
+    "displayName": "Sabon LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "San Marco LT Std",
+    "displayName": "San Marco LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Sassafras Std",
+    "displayName": "Sassafras Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Scotch Roman MT Std",
+    "displayName": "Scotch Roman MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Script MT Std",
+    "displayName": "Script MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Serifa Std",
+    "displayName": "Serifa Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Serlio LT Std",
+    "displayName": "Serlio LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Shelley Script LT Std",
+    "displayName": "Shelley Script LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Sho LT Std",
+    "displayName": "Sho LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Shuriken Boy Std",
+    "displayName": "Shuriken Boy Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Silentium Pro",
+    "displayName": "Silentium Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Simoncini Garamond Std",
+    "displayName": "Simoncini Garamond Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Smaragd LT Std",
+    "displayName": "Smaragd LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Snell Roundhand LT Std",
+    "displayName": "Snell Roundhand LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Sonata Std",
+    "displayName": "Sonata Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Spartan LT Std",
+    "displayName": "Spartan LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Spectrum MT Std",
+    "displayName": "Spectrum MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Spring LP Std",
+    "displayName": "Spring LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Spumoni LP Std",
+    "displayName": "Spumoni LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Stempel Garamond LT Std",
+    "displayName": "Stempel Garamond LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Stempel Schneidler Std",
+    "displayName": "Stempel Schneidler Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 10
+  },
+  {
+    "familyName": "Stencil Std",
+    "displayName": "Stencil Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Strayhorn MT Std",
+    "displayName": "Strayhorn MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Strumpf Std",
+    "displayName": "Strumpf Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Studz Std",
+    "displayName": "Studz Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Symbol Std",
+    "displayName": "Symbol Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Syntax LT Std",
+    "displayName": "Syntax LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 5
+  },
+  {
+    "familyName": "Tekton Pro",
+    "displayName": "Tekton Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 18
+  },
+  {
+    "familyName": "Tempo Std",
+    "displayName": "Tempo Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Times Europa LT Std",
+    "displayName": "Times Europa LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Times LT Std",
+    "displayName": "Times LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Times New Roman MT Std",
+    "displayName": "Times New Roman MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 7
+  },
+  {
+    "familyName": "Times Ten LT Std",
+    "displayName": "Times Ten LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Toolbox Std",
+    "displayName": "Toolbox Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Trade Gothic LT Std",
+    "displayName": "Trade Gothic LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 14
+  },
+  {
+    "familyName": "Trajan Pro",
+    "displayName": "Trajan Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Trump Mediaeval LT Std",
+    "displayName": "Trump Mediaeval LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Umbra Std",
+    "displayName": "Umbra Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Univers LT Std",
+    "displayName": "Univers LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 27
+  },
+  {
+    "familyName": "Universal Std",
+    "displayName": "Universal Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "University Roman Std",
+    "displayName": "University Roman Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "VAG Rounded Std",
+    "displayName": "VAG Rounded Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Vectora LT Std",
+    "displayName": "Vectora LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Versailles LT Std",
+    "displayName": "Versailles LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Verve Std",
+    "displayName": "Verve Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Viva Std",
+    "displayName": "Viva Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 9
+  },
+  {
+    "familyName": "Voluta Script Pro",
+    "displayName": "Voluta Script Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Waters Titling Pro",
+    "displayName": "Waters Titling Pro",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 12
+  },
+  {
+    "familyName": "Weidemann Std",
+    "displayName": "Weidemann Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 8
+  },
+  {
+    "familyName": "Weiss Std",
+    "displayName": "Weiss Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 4
+  },
+  {
+    "familyName": "Wendy LP Std",
+    "displayName": "Wendy LP Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": false,
+    "fontCount": 3
+  },
+  {
+    "familyName": "Wiesbaden Swing LT Std",
+    "displayName": "Wiesbaden Swing LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Wilhelm Klingspor Gothic LT Std",
+    "displayName": "Wilhelm Klingspor Gothic LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Wilke LT Std",
+    "displayName": "Wilke LT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 6
+  },
+  {
+    "familyName": "Willow Std",
+    "displayName": "Willow Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  },
+  {
+    "familyName": "Wittenberger Fraktur MT Std",
+    "displayName": "Wittenberger Fraktur MT Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Zebrawood Std",
+    "displayName": "Zebrawood Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 2
+  },
+  {
+    "familyName": "Zipty Do Std",
+    "displayName": "Zipty Do Std",
+    "formats": [
+      "woff2"
+    ],
+    "hasDefaultFont": true,
+    "fontCount": 1
+  }
+]

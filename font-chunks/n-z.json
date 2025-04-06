@@ -1,0 +1,5541 @@
+{
+  "fonts": [
+    {
+      "displayName": "National Code Pi Std",
+      "familyName": "National Code Pi Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 21528,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NationalCodePiStd-Universal",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21528,
+          "url": "fonts/National Code Pi Std/NationalCodePiStd-Universal.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Neue Hammer Unziale LT Std",
+      "familyName": "Neue Hammer Unziale LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 39312,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NeueHammerUnzialeLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 39312,
+          "url": "fonts/Neue Hammer Unziale LT Std/NeueHammerUnzialeLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Neuland LT Std",
+      "familyName": "Neuland LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 17500,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NeulandLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17500,
+          "url": "fonts/Neuland LT Std/NeulandLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Neuzeit S LT Std",
+      "familyName": "Neuzeit S LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 31456,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NeuzeitSLTStd-Book",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15584,
+          "url": "fonts/Neuzeit S LT Std/NeuzeitSLTStd-Book.woff2"
+        },
+        {
+          "name": "NeuzeitSLTStd-BookHeavy",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15872,
+          "url": "fonts/Neuzeit S LT Std/NeuzeitSLTStd-BookHeavy.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "New Aster LT Std",
+      "familyName": "New Aster LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 164356,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NewAsterLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20344,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd.woff2"
+        },
+        {
+          "name": "NewAsterLTStd-It",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21060,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd-It.woff2"
+        },
+        {
+          "name": "NewAsterLTStd-SemiBold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20252,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd-SemiBold.woff2"
+        },
+        {
+          "name": "NewAsterLTStd-SemiBoldIt",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20696,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd-SemiBoldIt.woff2"
+        },
+        {
+          "name": "NewAsterLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20212,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd-Bold.woff2"
+        },
+        {
+          "name": "NewAsterLTStd-BoldIt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20948,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd-BoldIt.woff2"
+        },
+        {
+          "name": "NewAsterLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20112,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd-Black.woff2"
+        },
+        {
+          "name": "NewAsterLTStd-BlackIt",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20732,
+          "url": "fonts/New Aster LT Std/NewAsterLTStd-BlackIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "New Berolina MT Std",
+      "familyName": "New Berolina MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 25872,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NewBerolinaMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 25872,
+          "url": "fonts/New Berolina MT Std/NewBerolinaMTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "New Caledonia LT Std",
+      "familyName": "New Caledonia LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 197208,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NewCaledoniaLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28456,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd.woff2"
+        },
+        {
+          "name": "NewCaledoniaLTStd-It",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24752,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd-It.woff2"
+        },
+        {
+          "name": "NewCaledoniaLTStd-SemiBd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22068,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd-SemiBd.woff2"
+        },
+        {
+          "name": "NewCaledoniaLTStd-SemiBdIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22800,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd-SemiBdIt.woff2"
+        },
+        {
+          "name": "NewCaledoniaLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28848,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd-Bold.woff2"
+        },
+        {
+          "name": "NewCaledoniaLTStd-BoldIt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 25164,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd-BoldIt.woff2"
+        },
+        {
+          "name": "NewCaledoniaLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21636,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd-Black.woff2"
+        },
+        {
+          "name": "NewCaledoniaLTStd-BlackIt",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23484,
+          "url": "fonts/New Caledonia LT Std/NewCaledoniaLTStd-BlackIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "New Century Schoolbook LT Std",
+      "familyName": "New Century Schoolbook LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 6,
+      "totalSize": 98960,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NewCenturySchlbkLTStd-Bd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19736,
+          "url": "fonts/New Century Schoolbook LT Std/NewCenturySchlbkLTStd-Bd.woff2"
+        },
+        {
+          "name": "NewCenturySchlbkLTStd-BdIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20764,
+          "url": "fonts/New Century Schoolbook LT Std/NewCenturySchlbkLTStd-BdIt.woff2"
+        },
+        {
+          "name": "NewCenturySchlbkLTStd-Fra",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 8768,
+          "url": "fonts/New Century Schoolbook LT Std/NewCenturySchlbkLTStd-Fra.woff2"
+        },
+        {
+          "name": "NewCenturySchlbkLTStd-FraBd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 8900,
+          "url": "fonts/New Century Schoolbook LT Std/NewCenturySchlbkLTStd-FraBd.woff2"
+        },
+        {
+          "name": "NewCenturySchlbkLTStd-It",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20888,
+          "url": "fonts/New Century Schoolbook LT Std/NewCenturySchlbkLTStd-It.woff2"
+        },
+        {
+          "name": "NewCenturySchlbkLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19904,
+          "url": "fonts/New Century Schoolbook LT Std/NewCenturySchlbkLTStd-Roman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "News Gothic Std",
+      "familyName": "News Gothic Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 61040,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NewsGothicStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14452,
+          "url": "fonts/News Gothic Std/NewsGothicStd.woff2"
+        },
+        {
+          "name": "NewsGothicStd-Oblique",
+          "weight": 400,
+          "style": "oblique",
+          "format": "woff2",
+          "fileSize": 15988,
+          "url": "fonts/News Gothic Std/NewsGothicStd-Oblique.woff2"
+        },
+        {
+          "name": "NewsGothicStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14728,
+          "url": "fonts/News Gothic Std/NewsGothicStd-Bold.woff2"
+        },
+        {
+          "name": "NewsGothicStd-BoldOblique",
+          "weight": 700,
+          "style": "oblique",
+          "format": "woff2",
+          "fileSize": 15872,
+          "url": "fonts/News Gothic Std/NewsGothicStd-BoldOblique.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Notre Dame LT Std",
+      "familyName": "Notre Dame LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 30552,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NotreDameLTStd-Ornaments",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 3544,
+          "url": "fonts/Notre Dame LT Std/NotreDameLTStd-Ornaments.woff2"
+        },
+        {
+          "name": "NotreDameLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27008,
+          "url": "fonts/Notre Dame LT Std/NotreDameLTStd-Roman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Nueva Std",
+      "familyName": "Nueva Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 18,
+      "totalSize": 573152,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NuevaStd-LightCondItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 30648,
+          "url": "fonts/Nueva Std/NuevaStd-LightCondItalic.woff2"
+        },
+        {
+          "name": "NuevaStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 32184,
+          "url": "fonts/Nueva Std/NuevaStd-LightItalic.woff2"
+        },
+        {
+          "name": "NuevaStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32308,
+          "url": "fonts/Nueva Std/NuevaStd-Light.woff2"
+        },
+        {
+          "name": "NuevaStd-LightCond",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30800,
+          "url": "fonts/Nueva Std/NuevaStd-LightCond.woff2"
+        },
+        {
+          "name": "NuevaStd-LightExtended",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32096,
+          "url": "fonts/Nueva Std/NuevaStd-LightExtended.woff2"
+        },
+        {
+          "name": "NuevaStd-LightExtendedItal",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32200,
+          "url": "fonts/Nueva Std/NuevaStd-LightExtendedItal.woff2"
+        },
+        {
+          "name": "NuevaStd-CondItalic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 31132,
+          "url": "fonts/Nueva Std/NuevaStd-CondItalic.woff2"
+        },
+        {
+          "name": "NuevaStd-ExtendedItalic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 32796,
+          "url": "fonts/Nueva Std/NuevaStd-ExtendedItalic.woff2"
+        },
+        {
+          "name": "NuevaStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 32472,
+          "url": "fonts/Nueva Std/NuevaStd-Italic.woff2"
+        },
+        {
+          "name": "NuevaStd-Cond",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 31500,
+          "url": "fonts/Nueva Std/NuevaStd-Cond.woff2"
+        },
+        {
+          "name": "NuevaStd-Extended",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32384,
+          "url": "fonts/Nueva Std/NuevaStd-Extended.woff2"
+        },
+        {
+          "name": "NuevaStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32328,
+          "url": "fonts/Nueva Std/NuevaStd-Regular.woff2"
+        },
+        {
+          "name": "NuevaStd-BoldCondItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 30984,
+          "url": "fonts/Nueva Std/NuevaStd-BoldCondItalic.woff2"
+        },
+        {
+          "name": "NuevaStd-BoldExtendedItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 32052,
+          "url": "fonts/Nueva Std/NuevaStd-BoldExtendedItalic.woff2"
+        },
+        {
+          "name": "NuevaStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 32280,
+          "url": "fonts/Nueva Std/NuevaStd-BoldItalic.woff2"
+        },
+        {
+          "name": "NuevaStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32092,
+          "url": "fonts/Nueva Std/NuevaStd-Bold.woff2"
+        },
+        {
+          "name": "NuevaStd-BoldCond",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30756,
+          "url": "fonts/Nueva Std/NuevaStd-BoldCond.woff2"
+        },
+        {
+          "name": "NuevaStd-BoldExtended",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32140,
+          "url": "fonts/Nueva Std/NuevaStd-BoldExtended.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Nuptial Script LT Std",
+      "familyName": "Nuptial Script LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 23000,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NuptialScriptLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23000,
+          "url": "fonts/Nuptial Script LT Std/NuptialScriptLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Nyx Std",
+      "familyName": "Nyx Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 20644,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "NyxStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20644,
+          "url": "fonts/Nyx Std/NyxStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Ocean Sans Std",
+      "familyName": "Ocean Sans Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 24,
+      "totalSize": 419600,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OceanSansStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16160,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-Light.woff2"
+        },
+        {
+          "name": "OceanSansStd-LightExt",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16560,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-LightExt.woff2"
+        },
+        {
+          "name": "OceanSansStd-LightExtIta",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17232,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-LightExtIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-LightIta",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17308,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-LightIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-Book",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17028,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-Book.woff2"
+        },
+        {
+          "name": "OceanSansStd-BookExt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17204,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BookExt.woff2"
+        },
+        {
+          "name": "OceanSansStd-BookExtIta",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18208,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BookExtIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-BookIta",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18156,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BookIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-BookSemiExt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17456,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BookSemiExt.woff2"
+        },
+        {
+          "name": "OceanSansStd-BookSemiExtIta",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18604,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BookSemiExtIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-Semibold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17300,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-Semibold.woff2"
+        },
+        {
+          "name": "OceanSansStd-SemiboldExt",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17240,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-SemiboldExt.woff2"
+        },
+        {
+          "name": "OceanSansStd-SemiboldExtIta",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18352,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-SemiboldExtIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-SemiboldIta",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18452,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-SemiboldIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17080,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-Bold.woff2"
+        },
+        {
+          "name": "OceanSansStd-BoldExt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17336,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BoldExt.woff2"
+        },
+        {
+          "name": "OceanSansStd-BoldExtIta",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18548,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BoldExtIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-BoldIta",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18036,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BoldIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-BoldSemiExt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17280,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BoldSemiExt.woff2"
+        },
+        {
+          "name": "OceanSansStd-BoldSemiExtIta",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18476,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-BoldSemiExtIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-XBold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16364,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-XBold.woff2"
+        },
+        {
+          "name": "OceanSansStd-XBoldExt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16516,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-XBoldExt.woff2"
+        },
+        {
+          "name": "OceanSansStd-XBoldExtIta",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17416,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-XBoldExtIta.woff2"
+        },
+        {
+          "name": "OceanSansStd-XBoldIta",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17288,
+          "url": "fonts/Ocean Sans Std/OceanSansStd-XBoldIta.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "OCRA Std",
+      "familyName": "OCRA Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 14644,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OCRAStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14644,
+          "url": "fonts/OCRA Std/OCRAStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "OCRB Std",
+      "familyName": "OCRB Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 14992,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OCRBStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14992,
+          "url": "fonts/OCRB Std/OCRBStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Octavian MT Std",
+      "familyName": "Octavian MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 65372,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OctavianMTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 30520,
+          "url": "fonts/Octavian MT Std/OctavianMTStd-Italic.woff2"
+        },
+        {
+          "name": "OctavianMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 34852,
+          "url": "fonts/Octavian MT Std/OctavianMTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Old Claude LP Std",
+      "familyName": "Old Claude LP Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 74084,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OldClaudeLPStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 74084,
+          "url": "fonts/Old Claude LP Std/OldClaudeLPStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Old Style 7 Std",
+      "familyName": "Old Style 7 Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 47604,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OldStyle7Std-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22128,
+          "url": "fonts/Old Style 7 Std/OldStyle7Std-Italic.woff2"
+        },
+        {
+          "name": "OldStyle7Std",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 25476,
+          "url": "fonts/Old Style 7 Std/OldStyle7Std.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Olympian LT Std",
+      "familyName": "Olympian LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 80984,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OlympianLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20628,
+          "url": "fonts/Olympian LT Std/OlympianLTStd-Italic.woff2"
+        },
+        {
+          "name": "OlympianLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19840,
+          "url": "fonts/Olympian LT Std/OlympianLTStd.woff2"
+        },
+        {
+          "name": "OlympianLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20528,
+          "url": "fonts/Olympian LT Std/OlympianLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "OlympianLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19988,
+          "url": "fonts/Olympian LT Std/OlympianLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Omnia LT Std",
+      "familyName": "Omnia LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 16540,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OmniaLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16540,
+          "url": "fonts/Omnia LT Std/OmniaLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Ondine LT Std",
+      "familyName": "Ondine LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 23648,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OndineLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23648,
+          "url": "fonts/Ondine LT Std/OndineLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Onyx MT Std",
+      "familyName": "Onyx MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 21444,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OnyxMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21444,
+          "url": "fonts/Onyx MT Std/OnyxMTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Optima LT Std",
+      "familyName": "Optima LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 12,
+      "totalSize": 262804,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OptimaLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21372,
+          "url": "fonts/Optima LT Std/OptimaLTStd-Italic.woff2"
+        },
+        {
+          "name": "OptimaLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20008,
+          "url": "fonts/Optima LT Std/OptimaLTStd.woff2"
+        },
+        {
+          "name": "OptimaLTStd-MediumItalic",
+          "weight": 500,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22948,
+          "url": "fonts/Optima LT Std/OptimaLTStd-MediumItalic.woff2"
+        },
+        {
+          "name": "OptimaLTStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22884,
+          "url": "fonts/Optima LT Std/OptimaLTStd-Medium.woff2"
+        },
+        {
+          "name": "OptimaLTStd-DemiBoldItalic",
+          "weight": 600,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22456,
+          "url": "fonts/Optima LT Std/OptimaLTStd-DemiBoldItalic.woff2"
+        },
+        {
+          "name": "OptimaLTStd-DemiBold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22416,
+          "url": "fonts/Optima LT Std/OptimaLTStd-DemiBold.woff2"
+        },
+        {
+          "name": "OptimaLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22076,
+          "url": "fonts/Optima LT Std/OptimaLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "OptimaLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19976,
+          "url": "fonts/Optima LT Std/OptimaLTStd-Bold.woff2"
+        },
+        {
+          "name": "OptimaLTStd-BlackItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21928,
+          "url": "fonts/Optima LT Std/OptimaLTStd-BlackItalic.woff2"
+        },
+        {
+          "name": "OptimaLTStd-XBlackItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22240,
+          "url": "fonts/Optima LT Std/OptimaLTStd-XBlackItalic.woff2"
+        },
+        {
+          "name": "OptimaLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22412,
+          "url": "fonts/Optima LT Std/OptimaLTStd-Black.woff2"
+        },
+        {
+          "name": "OptimaLTStd-ExtraBlack",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22088,
+          "url": "fonts/Optima LT Std/OptimaLTStd-ExtraBlack.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Orator Std",
+      "familyName": "Orator Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 41900,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OratorStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20364,
+          "url": "fonts/Orator Std/OratorStd.woff2"
+        },
+        {
+          "name": "OratorStd-Slanted",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21536,
+          "url": "fonts/Orator Std/OratorStd-Slanted.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Organica GMM Std",
+      "familyName": "Organica GMM Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 17984,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OrganicaGMMStd-SmSerifRoman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17984,
+          "url": "fonts/Organica GMM Std/OrganicaGMMStd-SmSerifRoman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Origami Std",
+      "familyName": "Origami Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 236580,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OrigamiStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 29568,
+          "url": "fonts/Origami Std/OrigamiStd-Italic.woff2"
+        },
+        {
+          "name": "OrigamiStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28908,
+          "url": "fonts/Origami Std/OrigamiStd-Regular.woff2"
+        },
+        {
+          "name": "OrigamiStd-MediumItalic",
+          "weight": 500,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 30200,
+          "url": "fonts/Origami Std/OrigamiStd-MediumItalic.woff2"
+        },
+        {
+          "name": "OrigamiStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 29568,
+          "url": "fonts/Origami Std/OrigamiStd-Medium.woff2"
+        },
+        {
+          "name": "OrigamiStd-SemiBoldItalic",
+          "weight": 600,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 30316,
+          "url": "fonts/Origami Std/OrigamiStd-SemiBoldItalic.woff2"
+        },
+        {
+          "name": "OrigamiStd-SemiBold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30016,
+          "url": "fonts/Origami Std/OrigamiStd-SemiBold.woff2"
+        },
+        {
+          "name": "OrigamiStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 29012,
+          "url": "fonts/Origami Std/OrigamiStd-BoldItalic.woff2"
+        },
+        {
+          "name": "OrigamiStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28992,
+          "url": "fonts/Origami Std/OrigamiStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Ouch Std",
+      "familyName": "Ouch Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 30668,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "OuchStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30668,
+          "url": "fonts/Ouch Std/OuchStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Palace Script MT Std",
+      "familyName": "Palace Script MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 51392,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PalaceScriptMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26036,
+          "url": "fonts/Palace Script MT Std/PalaceScriptMTStd.woff2"
+        },
+        {
+          "name": "PalaceScriptMTStd-SemiBold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 25356,
+          "url": "fonts/Palace Script MT Std/PalaceScriptMTStd-SemiBold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Palatino LT Std",
+      "familyName": "Palatino LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 10,
+      "totalSize": 239668,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PalatinoLTStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24180,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-LightItalic.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22584,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-Light.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24412,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-Italic.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 29256,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-Roman.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-MediumItalic",
+          "weight": 500,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23300,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-MediumItalic.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22532,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-Medium.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24688,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22428,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-Bold.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-BlackItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23304,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-BlackItalic.woff2"
+        },
+        {
+          "name": "PalatinoLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22984,
+          "url": "fonts/Palatino LT Std/PalatinoLTStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Parisian Std",
+      "familyName": "Parisian Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 18228,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ParisianStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18228,
+          "url": "fonts/Parisian Std/ParisianStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Park Avenue Std",
+      "familyName": "Park Avenue Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 22704,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ParkAvenueStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22704,
+          "url": "fonts/Park Avenue Std/ParkAvenueStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Peignot LT Std",
+      "familyName": "Peignot LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 3,
+      "totalSize": 45520,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PeignotLTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15172,
+          "url": "fonts/Peignot LT Std/PeignotLTStd-Light.woff2"
+        },
+        {
+          "name": "PeignotLTStd-Demi",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15432,
+          "url": "fonts/Peignot LT Std/PeignotLTStd-Demi.woff2"
+        },
+        {
+          "name": "PeignotLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14916,
+          "url": "fonts/Peignot LT Std/PeignotLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Penumbra Flare Std",
+      "familyName": "Penumbra Flare Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 75728,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PenumbraFlareStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18212,
+          "url": "fonts/Penumbra Flare Std/PenumbraFlareStd-Light.woff2"
+        },
+        {
+          "name": "PenumbraFlareStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19360,
+          "url": "fonts/Penumbra Flare Std/PenumbraFlareStd-Regular.woff2"
+        },
+        {
+          "name": "PenumbraFlareStd-Semibold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19192,
+          "url": "fonts/Penumbra Flare Std/PenumbraFlareStd-Semibold.woff2"
+        },
+        {
+          "name": "PenumbraFlareStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18964,
+          "url": "fonts/Penumbra Flare Std/PenumbraFlareStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Penumbra Half Serif Std",
+      "familyName": "Penumbra Half Serif Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 79816,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PenumbraHalfSerifStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19404,
+          "url": "fonts/Penumbra Half Serif Std/PenumbraHalfSerifStd-Light.woff2"
+        },
+        {
+          "name": "PenumbraHalfSerifStd-Reg",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20308,
+          "url": "fonts/Penumbra Half Serif Std/PenumbraHalfSerifStd-Reg.woff2"
+        },
+        {
+          "name": "PenumbraHalfSerifStd-SeBd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20292,
+          "url": "fonts/Penumbra Half Serif Std/PenumbraHalfSerifStd-SeBd.woff2"
+        },
+        {
+          "name": "PenumbraHalfSerifStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19812,
+          "url": "fonts/Penumbra Half Serif Std/PenumbraHalfSerifStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Penumbra Sans Std",
+      "familyName": "Penumbra Sans Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 70716,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PenumbraSansStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16800,
+          "url": "fonts/Penumbra Sans Std/PenumbraSansStd-Light.woff2"
+        },
+        {
+          "name": "PenumbraSansStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18116,
+          "url": "fonts/Penumbra Sans Std/PenumbraSansStd-Regular.woff2"
+        },
+        {
+          "name": "PenumbraSansStd-Semibold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18256,
+          "url": "fonts/Penumbra Sans Std/PenumbraSansStd-Semibold.woff2"
+        },
+        {
+          "name": "PenumbraSansStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17544,
+          "url": "fonts/Penumbra Sans Std/PenumbraSansStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Penumbra Serif Std",
+      "familyName": "Penumbra Serif Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 78700,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PenumbraSerifStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18812,
+          "url": "fonts/Penumbra Serif Std/PenumbraSerifStd-Light.woff2"
+        },
+        {
+          "name": "PenumbraSerifStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20396,
+          "url": "fonts/Penumbra Serif Std/PenumbraSerifStd-Regular.woff2"
+        },
+        {
+          "name": "PenumbraSerifStd-Semibold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20348,
+          "url": "fonts/Penumbra Serif Std/PenumbraSerifStd-Semibold.woff2"
+        },
+        {
+          "name": "PenumbraSerifStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19144,
+          "url": "fonts/Penumbra Serif Std/PenumbraSerifStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Pepita MT Std",
+      "familyName": "Pepita MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 25048,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PepitaMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 25048,
+          "url": "fonts/Pepita MT Std/PepitaMTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Pepperwood Std",
+      "familyName": "Pepperwood Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 3,
+      "totalSize": 89956,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PepperwoodStd-Fill",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21604,
+          "url": "fonts/Pepperwood Std/PepperwoodStd-Fill.woff2"
+        },
+        {
+          "name": "PepperwoodStd-Outline",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28980,
+          "url": "fonts/Pepperwood Std/PepperwoodStd-Outline.woff2"
+        },
+        {
+          "name": "PepperwoodStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 39372,
+          "url": "fonts/Pepperwood Std/PepperwoodStd-Regular.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Perpetua Std",
+      "familyName": "Perpetua Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 116600,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PerpetuaStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 28068,
+          "url": "fonts/Perpetua Std/PerpetuaStd-Italic.woff2"
+        },
+        {
+          "name": "PerpetuaStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 33248,
+          "url": "fonts/Perpetua Std/PerpetuaStd.woff2"
+        },
+        {
+          "name": "PerpetuaStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 27948,
+          "url": "fonts/Perpetua Std/PerpetuaStd-BoldItalic.woff2"
+        },
+        {
+          "name": "PerpetuaStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27336,
+          "url": "fonts/Perpetua Std/PerpetuaStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Photina MT Std",
+      "familyName": "Photina MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 184512,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PhotinaMTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23568,
+          "url": "fonts/Photina MT Std/PhotinaMTStd-Italic.woff2"
+        },
+        {
+          "name": "PhotinaMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23040,
+          "url": "fonts/Photina MT Std/PhotinaMTStd.woff2"
+        },
+        {
+          "name": "PhotinaMTStd-SemiBoldItalic",
+          "weight": 600,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22576,
+          "url": "fonts/Photina MT Std/PhotinaMTStd-SemiBoldItalic.woff2"
+        },
+        {
+          "name": "PhotinaMTStd-SemiBold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22636,
+          "url": "fonts/Photina MT Std/PhotinaMTStd-SemiBold.woff2"
+        },
+        {
+          "name": "PhotinaMTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24188,
+          "url": "fonts/Photina MT Std/PhotinaMTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "PhotinaMTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23188,
+          "url": "fonts/Photina MT Std/PhotinaMTStd-Bold.woff2"
+        },
+        {
+          "name": "PhotinaMTStd-UltraBold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22432,
+          "url": "fonts/Photina MT Std/PhotinaMTStd-UltraBold.woff2"
+        },
+        {
+          "name": "PhotinaMTStd-UltraBoldIt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22884,
+          "url": "fonts/Photina MT Std/PhotinaMTStd-UltraBoldIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Plantin Std",
+      "familyName": "Plantin Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 9,
+      "totalSize": 181196,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PlantinStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21216,
+          "url": "fonts/Plantin Std/PlantinStd-LightItalic.woff2"
+        },
+        {
+          "name": "PlantinStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19564,
+          "url": "fonts/Plantin Std/PlantinStd-Light.woff2"
+        },
+        {
+          "name": "PlantinStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20416,
+          "url": "fonts/Plantin Std/PlantinStd-Italic.woff2"
+        },
+        {
+          "name": "PlantinStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19168,
+          "url": "fonts/Plantin Std/PlantinStd.woff2"
+        },
+        {
+          "name": "PlantinStd-SemiboldItalic",
+          "weight": 600,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21108,
+          "url": "fonts/Plantin Std/PlantinStd-SemiboldItalic.woff2"
+        },
+        {
+          "name": "PlantinStd-Semibold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19320,
+          "url": "fonts/Plantin Std/PlantinStd-Semibold.woff2"
+        },
+        {
+          "name": "PlantinStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20720,
+          "url": "fonts/Plantin Std/PlantinStd-BoldItalic.woff2"
+        },
+        {
+          "name": "PlantinStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19652,
+          "url": "fonts/Plantin Std/PlantinStd-Bold.woff2"
+        },
+        {
+          "name": "PlantinStd-BoldCondensed",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20032,
+          "url": "fonts/Plantin Std/PlantinStd-BoldCondensed.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "PMN Caecilia LT Std",
+      "familyName": "PMN Caecilia LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 189812,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "CaeciliaLTStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23888,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-LightItalic.woff2"
+        },
+        {
+          "name": "CaeciliaLTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23836,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-Light.woff2"
+        },
+        {
+          "name": "CaeciliaLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23684,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-Italic.woff2"
+        },
+        {
+          "name": "CaeciliaLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23900,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-Roman.woff2"
+        },
+        {
+          "name": "CaeciliaLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24264,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "CaeciliaLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23704,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-Bold.woff2"
+        },
+        {
+          "name": "CaeciliaLTStd-HeavyItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23204,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-HeavyItalic.woff2"
+        },
+        {
+          "name": "CaeciliaLTStd-Heavy",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23332,
+          "url": "fonts/PMN Caecilia LT Std/CaeciliaLTStd-Heavy.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Poetica Std",
+      "familyName": "Poetica Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 251704,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PoeticaStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 251704,
+          "url": "fonts/Poetica Std/PoeticaStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Pompeia Std",
+      "familyName": "Pompeia Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 56356,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PompeiaStd-InlineItalic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 27504,
+          "url": "fonts/Pompeia Std/PompeiaStd-InlineItalic.woff2"
+        },
+        {
+          "name": "PompeiaStd-Inline",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28852,
+          "url": "fonts/Pompeia Std/PompeiaStd-Inline.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Pompeijana LT Std",
+      "familyName": "Pompeijana LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 23860,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PompeijanaLTStd-Borders",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 4796,
+          "url": "fonts/Pompeijana LT Std/PompeijanaLTStd-Borders.woff2"
+        },
+        {
+          "name": "PompeijanaLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19064,
+          "url": "fonts/Pompeijana LT Std/PompeijanaLTStd-Roman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Ponderosa Std",
+      "familyName": "Ponderosa Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 14972,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PonderosaStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14972,
+          "url": "fonts/Ponderosa Std/PonderosaStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Poplar Std",
+      "familyName": "Poplar Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 20392,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PoplarStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20392,
+          "url": "fonts/Poplar Std/PoplarStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Postino Std",
+      "familyName": "Postino Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 42856,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PostinoStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21524,
+          "url": "fonts/Postino Std/PostinoStd-Italic.woff2"
+        },
+        {
+          "name": "PostinoStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21332,
+          "url": "fonts/Postino Std/PostinoStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Present LT Std",
+      "familyName": "Present LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 6,
+      "totalSize": 148608,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PresentLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20896,
+          "url": "fonts/Present LT Std/PresentLTStd.woff2"
+        },
+        {
+          "name": "PresentLTStd-Condensed",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23364,
+          "url": "fonts/Present LT Std/PresentLTStd-Condensed.woff2"
+        },
+        {
+          "name": "PresentLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26088,
+          "url": "fonts/Present LT Std/PresentLTStd-Bold.woff2"
+        },
+        {
+          "name": "PresentLTStd-BoldCondensed",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 25200,
+          "url": "fonts/Present LT Std/PresentLTStd-BoldCondensed.woff2"
+        },
+        {
+          "name": "PresentLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26568,
+          "url": "fonts/Present LT Std/PresentLTStd-Black.woff2"
+        },
+        {
+          "name": "PresentLTStd-BlackCondensed",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26492,
+          "url": "fonts/Present LT Std/PresentLTStd-BlackCondensed.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Prestige Elite Std",
+      "familyName": "Prestige Elite Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 92176,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "PrestigeEliteStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22524,
+          "url": "fonts/Prestige Elite Std/PrestigeEliteStd.woff2"
+        },
+        {
+          "name": "PrestigeEliteStd-Bd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22376,
+          "url": "fonts/Prestige Elite Std/PrestigeEliteStd-Bd.woff2"
+        },
+        {
+          "name": "PrestigeEliteStd-BdSlanted",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23760,
+          "url": "fonts/Prestige Elite Std/PrestigeEliteStd-BdSlanted.woff2"
+        },
+        {
+          "name": "PrestigeEliteStd-Slanted",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23516,
+          "url": "fonts/Prestige Elite Std/PrestigeEliteStd-Slanted.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Quake Std",
+      "familyName": "Quake Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 25188,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "QuakeStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 25188,
+          "url": "fonts/Quake Std/QuakeStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Rad Std",
+      "familyName": "Rad Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 70884,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RadStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 70884,
+          "url": "fonts/Rad Std/RadStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Raleigh LT Std",
+      "familyName": "Raleigh LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 74116,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RaleighLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18608,
+          "url": "fonts/Raleigh LT Std/RaleighLTStd.woff2"
+        },
+        {
+          "name": "RaleighLTStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18448,
+          "url": "fonts/Raleigh LT Std/RaleighLTStd-Medium.woff2"
+        },
+        {
+          "name": "RaleighLTStd-DemiBold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18448,
+          "url": "fonts/Raleigh LT Std/RaleighLTStd-DemiBold.woff2"
+        },
+        {
+          "name": "RaleighLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18612,
+          "url": "fonts/Raleigh LT Std/RaleighLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Raphael Std",
+      "familyName": "Raphael Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 21256,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RaphaelStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21256,
+          "url": "fonts/Raphael Std/RaphaelStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Reliq Std",
+      "familyName": "Reliq Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 12,
+      "totalSize": 376308,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ReliqStd-LightActive",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30848,
+          "url": "fonts/Reliq Std/ReliqStd-LightActive.woff2"
+        },
+        {
+          "name": "ReliqStd-LightCalm",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28420,
+          "url": "fonts/Reliq Std/ReliqStd-LightCalm.woff2"
+        },
+        {
+          "name": "ReliqStd-LightExtraActive",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 29828,
+          "url": "fonts/Reliq Std/ReliqStd-LightExtraActive.woff2"
+        },
+        {
+          "name": "ReliqStd-Active",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32476,
+          "url": "fonts/Reliq Std/ReliqStd-Active.woff2"
+        },
+        {
+          "name": "ReliqStd-Calm",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32048,
+          "url": "fonts/Reliq Std/ReliqStd-Calm.woff2"
+        },
+        {
+          "name": "ReliqStd-ExtraActive",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32288,
+          "url": "fonts/Reliq Std/ReliqStd-ExtraActive.woff2"
+        },
+        {
+          "name": "ReliqStd-SemiboldActive",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32652,
+          "url": "fonts/Reliq Std/ReliqStd-SemiboldActive.woff2"
+        },
+        {
+          "name": "ReliqStd-SemiboldCalm",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32204,
+          "url": "fonts/Reliq Std/ReliqStd-SemiboldCalm.woff2"
+        },
+        {
+          "name": "ReliqStd-SemiboldExtActive",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32300,
+          "url": "fonts/Reliq Std/ReliqStd-SemiboldExtActive.woff2"
+        },
+        {
+          "name": "ReliqStd-BoldActive",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32272,
+          "url": "fonts/Reliq Std/ReliqStd-BoldActive.woff2"
+        },
+        {
+          "name": "ReliqStd-BoldCalm",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30748,
+          "url": "fonts/Reliq Std/ReliqStd-BoldCalm.woff2"
+        },
+        {
+          "name": "ReliqStd-BoldExtraActive",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30224,
+          "url": "fonts/Reliq Std/ReliqStd-BoldExtraActive.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Reporter LT Std",
+      "familyName": "Reporter LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 32684,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ReporterLTStd-2",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32684,
+          "url": "fonts/Reporter LT Std/ReporterLTStd-2.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Revue Std",
+      "familyName": "Revue Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 14736,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RevueStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14736,
+          "url": "fonts/Revue Std/RevueStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Rockwell Std",
+      "familyName": "Rockwell Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 9,
+      "totalSize": 156548,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RockwellStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 17492,
+          "url": "fonts/Rockwell Std/RockwellStd-LightItalic.woff2"
+        },
+        {
+          "name": "RockwellStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17256,
+          "url": "fonts/Rockwell Std/RockwellStd-Light.woff2"
+        },
+        {
+          "name": "RockwellStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 17532,
+          "url": "fonts/Rockwell Std/RockwellStd-Italic.woff2"
+        },
+        {
+          "name": "RockwellStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17260,
+          "url": "fonts/Rockwell Std/RockwellStd.woff2"
+        },
+        {
+          "name": "RockwellStd-Condensed",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17068,
+          "url": "fonts/Rockwell Std/RockwellStd-Condensed.woff2"
+        },
+        {
+          "name": "RockwellStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 17580,
+          "url": "fonts/Rockwell Std/RockwellStd-BoldItalic.woff2"
+        },
+        {
+          "name": "RockwellStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17284,
+          "url": "fonts/Rockwell Std/RockwellStd-Bold.woff2"
+        },
+        {
+          "name": "RockwellStd-BoldCondensed",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17400,
+          "url": "fonts/Rockwell Std/RockwellStd-BoldCondensed.woff2"
+        },
+        {
+          "name": "RockwellStd-ExtraBold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17676,
+          "url": "fonts/Rockwell Std/RockwellStd-ExtraBold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Romic Std",
+      "familyName": "Romic Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": false,
+      "fontCount": 5,
+      "totalSize": 108472,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RomicStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22148,
+          "url": "fonts/Romic Std/RomicStd-LightItalic.woff2"
+        },
+        {
+          "name": "RomicStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22076,
+          "url": "fonts/Romic Std/RomicStd-Light.woff2"
+        },
+        {
+          "name": "RomicStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21332,
+          "url": "fonts/Romic Std/RomicStd-Medium.woff2"
+        },
+        {
+          "name": "RomicStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21668,
+          "url": "fonts/Romic Std/RomicStd-Bold.woff2"
+        },
+        {
+          "name": "RomicStd-ExtraBold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21248,
+          "url": "fonts/Romic Std/RomicStd-ExtraBold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Rosewood Std",
+      "familyName": "Rosewood Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 54512,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RosewoodStd-Fill",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17516,
+          "url": "fonts/Rosewood Std/RosewoodStd-Fill.woff2"
+        },
+        {
+          "name": "RosewoodStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 36996,
+          "url": "fonts/Rosewood Std/RosewoodStd-Regular.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Rotation LT Std",
+      "familyName": "Rotation LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 3,
+      "totalSize": 61168,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RotationLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21728,
+          "url": "fonts/Rotation LT Std/RotationLTStd-Italic.woff2"
+        },
+        {
+          "name": "RotationLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19820,
+          "url": "fonts/Rotation LT Std/RotationLTStd-Roman.woff2"
+        },
+        {
+          "name": "RotationLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19620,
+          "url": "fonts/Rotation LT Std/RotationLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Ruling Script LT Std",
+      "familyName": "Ruling Script LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 65428,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RulingScriptLTStd-2",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 65428,
+          "url": "fonts/Ruling Script LT Std/RulingScriptLTStd-2.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Runic MT Std",
+      "familyName": "Runic MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 18996,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RunicMTStd-Condensed",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18996,
+          "url": "fonts/Runic MT Std/RunicMTStd-Condensed.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Russell Oblique Std",
+      "familyName": "Russell Oblique Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": false,
+      "fontCount": 2,
+      "totalSize": 67100,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RussellObliqueStd",
+          "weight": 400,
+          "style": "oblique",
+          "format": "woff2",
+          "fileSize": 26344,
+          "url": "fonts/Russell Oblique Std/RussellObliqueStd.woff2"
+        },
+        {
+          "name": "RussellObliqueStd-Informal",
+          "weight": 400,
+          "style": "oblique",
+          "format": "woff2",
+          "fileSize": 40756,
+          "url": "fonts/Russell Oblique Std/RussellObliqueStd-Informal.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Rusticana LT Std",
+      "familyName": "Rusticana LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 20064,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RusticanaLTStd-Borders",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 3884,
+          "url": "fonts/Rusticana LT Std/RusticanaLTStd-Borders.woff2"
+        },
+        {
+          "name": "RusticanaLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16180,
+          "url": "fonts/Rusticana LT Std/RusticanaLTStd-Roman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Ruzicka Freehand LT Std",
+      "familyName": "Ruzicka Freehand LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 60880,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "RuzickaFreehandLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30092,
+          "url": "fonts/Ruzicka Freehand LT Std/RuzickaFreehandLTStd-Roman.woff2"
+        },
+        {
+          "name": "RuzickaFreehandLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30788,
+          "url": "fonts/Ruzicka Freehand LT Std/RuzickaFreehandLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Sabon LT Std",
+      "familyName": "Sabon LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 92768,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SabonLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22780,
+          "url": "fonts/Sabon LT Std/SabonLTStd-Italic.woff2"
+        },
+        {
+          "name": "SabonLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26472,
+          "url": "fonts/Sabon LT Std/SabonLTStd-Roman.woff2"
+        },
+        {
+          "name": "SabonLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21848,
+          "url": "fonts/Sabon LT Std/SabonLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "SabonLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21668,
+          "url": "fonts/Sabon LT Std/SabonLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "San Marco LT Std",
+      "familyName": "San Marco LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 21236,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SanMarcoLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21236,
+          "url": "fonts/San Marco LT Std/SanMarcoLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Sassafras Std",
+      "familyName": "Sassafras Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 75044,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SassafrasStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 37892,
+          "url": "fonts/Sassafras Std/SassafrasStd-Italic.woff2"
+        },
+        {
+          "name": "SassafrasStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 37152,
+          "url": "fonts/Sassafras Std/SassafrasStd-Roman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Scotch Roman MT Std",
+      "familyName": "Scotch Roman MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 43124,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ScotchRomanMTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22920,
+          "url": "fonts/Scotch Roman MT Std/ScotchRomanMTStd-Italic.woff2"
+        },
+        {
+          "name": "ScotchRomanMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20204,
+          "url": "fonts/Scotch Roman MT Std/ScotchRomanMTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Script MT Std",
+      "familyName": "Script MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": false,
+      "fontCount": 1,
+      "totalSize": 24588,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ScriptMTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24588,
+          "url": "fonts/Script MT Std/ScriptMTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Serifa Std",
+      "familyName": "Serifa Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 6,
+      "totalSize": 99864,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SerifaStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 16952,
+          "url": "fonts/Serifa Std/SerifaStd-LightItalic.woff2"
+        },
+        {
+          "name": "SerifaStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16040,
+          "url": "fonts/Serifa Std/SerifaStd-Light.woff2"
+        },
+        {
+          "name": "SerifaStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 16800,
+          "url": "fonts/Serifa Std/SerifaStd-Italic.woff2"
+        },
+        {
+          "name": "SerifaStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16228,
+          "url": "fonts/Serifa Std/SerifaStd-Roman.woff2"
+        },
+        {
+          "name": "SerifaStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16316,
+          "url": "fonts/Serifa Std/SerifaStd-Bold.woff2"
+        },
+        {
+          "name": "SerifaStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17528,
+          "url": "fonts/Serifa Std/SerifaStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Serlio LT Std",
+      "familyName": "Serlio LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 23748,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SerlioLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23748,
+          "url": "fonts/Serlio LT Std/SerlioLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Shelley Script LT Std",
+      "familyName": "Shelley Script LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 43864,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ShelleyLTStd-Script",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 43864,
+          "url": "fonts/Shelley Script LT Std/ShelleyLTStd-Script.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Sho LT Std",
+      "familyName": "Sho LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 22368,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ShoLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22368,
+          "url": "fonts/Sho LT Std/ShoLTStd-Roman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Shuriken Boy Std",
+      "familyName": "Shuriken Boy Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 19476,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ShurikenStd-Boy",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19476,
+          "url": "fonts/Shuriken Boy Std/ShurikenStd-Boy.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Silentium Pro",
+      "familyName": "Silentium Pro",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 127676,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SilentiumPro-RomanI",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 75064,
+          "url": "fonts/Silentium Pro/SilentiumPro-RomanI.woff2"
+        },
+        {
+          "name": "SilentiumPro-RomanII",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 52612,
+          "url": "fonts/Silentium Pro/SilentiumPro-RomanII.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Simoncini Garamond Std",
+      "familyName": "Simoncini Garamond Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 3,
+      "totalSize": 63708,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SimonciniGaramondStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22012,
+          "url": "fonts/Simoncini Garamond Std/SimonciniGaramondStd-Italic.woff2"
+        },
+        {
+          "name": "SimonciniGaramondStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20568,
+          "url": "fonts/Simoncini Garamond Std/SimonciniGaramondStd.woff2"
+        },
+        {
+          "name": "SimonciniGaramondStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21128,
+          "url": "fonts/Simoncini Garamond Std/SimonciniGaramondStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Smaragd LT Std",
+      "familyName": "Smaragd LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 24124,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SmaragdLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24124,
+          "url": "fonts/Smaragd LT Std/SmaragdLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Snell Roundhand LT Std",
+      "familyName": "Snell Roundhand LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 3,
+      "totalSize": 82672,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SnellRoundhandLTStd-BdScr",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27428,
+          "url": "fonts/Snell Roundhand LT Std/SnellRoundhandLTStd-BdScr.woff2"
+        },
+        {
+          "name": "SnellRoundhandLTStd-BlkScr",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27800,
+          "url": "fonts/Snell Roundhand LT Std/SnellRoundhandLTStd-BlkScr.woff2"
+        },
+        {
+          "name": "SnellRoundhandLTStd-Scr",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27444,
+          "url": "fonts/Snell Roundhand LT Std/SnellRoundhandLTStd-Scr.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Sonata Std",
+      "familyName": "Sonata Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 17384,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SonataStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17384,
+          "url": "fonts/Sonata Std/SonataStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Spartan LT Std",
+      "familyName": "Spartan LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 32172,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SpartanLTStd-BookClass",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16052,
+          "url": "fonts/Spartan LT Std/SpartanLTStd-BookClass.woff2"
+        },
+        {
+          "name": "SpartanLTStd-HeavyClass",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16120,
+          "url": "fonts/Spartan LT Std/SpartanLTStd-HeavyClass.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Spectrum MT Std",
+      "familyName": "Spectrum MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 3,
+      "totalSize": 88192,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SpectrumMTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 27808,
+          "url": "fonts/Spectrum MT Std/SpectrumMTStd-Italic.woff2"
+        },
+        {
+          "name": "SpectrumMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 32908,
+          "url": "fonts/Spectrum MT Std/SpectrumMTStd.woff2"
+        },
+        {
+          "name": "SpectrumMTStd-SemiBold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27476,
+          "url": "fonts/Spectrum MT Std/SpectrumMTStd-SemiBold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Spring LP Std",
+      "familyName": "Spring LP Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 62212,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SpringLPStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30248,
+          "url": "fonts/Spring LP Std/SpringLPStd-Light.woff2"
+        },
+        {
+          "name": "SpringLPStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 31964,
+          "url": "fonts/Spring LP Std/SpringLPStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Spumoni LP Std",
+      "familyName": "Spumoni LP Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 30484,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SpumoniLPStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30484,
+          "url": "fonts/Spumoni LP Std/SpumoniLPStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Stempel Garamond LT Std",
+      "familyName": "Stempel Garamond LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 104444,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "StempelGaramondLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24296,
+          "url": "fonts/Stempel Garamond LT Std/StempelGaramondLTStd-Italic.woff2"
+        },
+        {
+          "name": "StempelGaramondLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 31232,
+          "url": "fonts/Stempel Garamond LT Std/StempelGaramondLTStd-Roman.woff2"
+        },
+        {
+          "name": "StempelGaramondLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24812,
+          "url": "fonts/Stempel Garamond LT Std/StempelGaramondLTStd-Bold.woff2"
+        },
+        {
+          "name": "StempelGaramondLTStd-BoldIt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24104,
+          "url": "fonts/Stempel Garamond LT Std/StempelGaramondLTStd-BoldIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Stempel Schneidler Std",
+      "familyName": "Stempel Schneidler Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 10,
+      "totalSize": 210120,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "StempelSchneidlerStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20268,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-Light.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 21136,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-Italic.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-BdIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21536,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-BdIt.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-BlkIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22112,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-BlkIt.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-LtIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20640,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-LtIt.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-MedIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21144,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-MedIt.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20808,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-Roman.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20224,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-Medium.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20944,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-Bold.woff2"
+        },
+        {
+          "name": "StempelSchneidlerStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21308,
+          "url": "fonts/Stempel Schneidler Std/StempelSchneidlerStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Stencil Std",
+      "familyName": "Stencil Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 17592,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "StencilStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17592,
+          "url": "fonts/Stencil Std/StencilStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Strayhorn MT Std",
+      "familyName": "Strayhorn MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 209684,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "StrayhornMTStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24772,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-LightItalic.woff2"
+        },
+        {
+          "name": "StrayhornMTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 30508,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-Light.woff2"
+        },
+        {
+          "name": "StrayhornMTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 25024,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-Italic.woff2"
+        },
+        {
+          "name": "StrayhornMTStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 31180,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-Regular.woff2"
+        },
+        {
+          "name": "StrayhornMTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 24828,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "StrayhornMTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24576,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-Bold.woff2"
+        },
+        {
+          "name": "StrayhornMTStd-ExtraBold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24324,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-ExtraBold.woff2"
+        },
+        {
+          "name": "StrayhornMTStd-ExtraBoldIt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24472,
+          "url": "fonts/Strayhorn MT Std/StrayhornMTStd-ExtraBoldIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Strumpf Std",
+      "familyName": "Strumpf Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 79876,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "StrumpfStd-Contour",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45476,
+          "url": "fonts/Strumpf Std/StrumpfStd-Contour.woff2"
+        },
+        {
+          "name": "StrumpfStd-Open",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 34400,
+          "url": "fonts/Strumpf Std/StrumpfStd-Open.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Studz Std",
+      "familyName": "Studz Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 44816,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "StudzStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 44816,
+          "url": "fonts/Studz Std/StudzStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Symbol Std",
+      "familyName": "Symbol Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 18240,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SymbolStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18240,
+          "url": "fonts/Symbol Std/SymbolStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Syntax LT Std",
+      "familyName": "Syntax LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 5,
+      "totalSize": 79588,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "SyntaxLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 15764,
+          "url": "fonts/Syntax LT Std/SyntaxLTStd-Italic.woff2"
+        },
+        {
+          "name": "SyntaxLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15512,
+          "url": "fonts/Syntax LT Std/SyntaxLTStd-Roman.woff2"
+        },
+        {
+          "name": "SyntaxLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15972,
+          "url": "fonts/Syntax LT Std/SyntaxLTStd-Bold.woff2"
+        },
+        {
+          "name": "SyntaxLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15876,
+          "url": "fonts/Syntax LT Std/SyntaxLTStd-Black.woff2"
+        },
+        {
+          "name": "SyntaxLTStd-UltraBlack",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16464,
+          "url": "fonts/Syntax LT Std/SyntaxLTStd-UltraBlack.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Tekton Pro",
+      "familyName": "Tekton Pro",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 18,
+      "totalSize": 822308,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TektonPro-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45564,
+          "url": "fonts/Tekton Pro/TektonPro-Light.woff2"
+        },
+        {
+          "name": "TektonPro-LightCond",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 43720,
+          "url": "fonts/Tekton Pro/TektonPro-LightCond.woff2"
+        },
+        {
+          "name": "TektonPro-LightCondObl",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 43736,
+          "url": "fonts/Tekton Pro/TektonPro-LightCondObl.woff2"
+        },
+        {
+          "name": "TektonPro-LightExt",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45648,
+          "url": "fonts/Tekton Pro/TektonPro-LightExt.woff2"
+        },
+        {
+          "name": "TektonPro-LightExtObl",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45800,
+          "url": "fonts/Tekton Pro/TektonPro-LightExtObl.woff2"
+        },
+        {
+          "name": "TektonPro-LightObl",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45664,
+          "url": "fonts/Tekton Pro/TektonPro-LightObl.woff2"
+        },
+        {
+          "name": "TektonPro-Cond",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45492,
+          "url": "fonts/Tekton Pro/TektonPro-Cond.woff2"
+        },
+        {
+          "name": "TektonPro-CondObl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45584,
+          "url": "fonts/Tekton Pro/TektonPro-CondObl.woff2"
+        },
+        {
+          "name": "TektonPro-Ext",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 46740,
+          "url": "fonts/Tekton Pro/TektonPro-Ext.woff2"
+        },
+        {
+          "name": "TektonPro-ExtObl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 46828,
+          "url": "fonts/Tekton Pro/TektonPro-ExtObl.woff2"
+        },
+        {
+          "name": "TektonPro-Obl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45764,
+          "url": "fonts/Tekton Pro/TektonPro-Obl.woff2"
+        },
+        {
+          "name": "TektonPro-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45712,
+          "url": "fonts/Tekton Pro/TektonPro-Regular.woff2"
+        },
+        {
+          "name": "TektonPro-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 46044,
+          "url": "fonts/Tekton Pro/TektonPro-Bold.woff2"
+        },
+        {
+          "name": "TektonPro-BoldCond",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45124,
+          "url": "fonts/Tekton Pro/TektonPro-BoldCond.woff2"
+        },
+        {
+          "name": "TektonPro-BoldCondObl",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 45052,
+          "url": "fonts/Tekton Pro/TektonPro-BoldCondObl.woff2"
+        },
+        {
+          "name": "TektonPro-BoldExt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 46780,
+          "url": "fonts/Tekton Pro/TektonPro-BoldExt.woff2"
+        },
+        {
+          "name": "TektonPro-BoldExtObl",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 46932,
+          "url": "fonts/Tekton Pro/TektonPro-BoldExtObl.woff2"
+        },
+        {
+          "name": "TektonPro-BoldObl",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 46124,
+          "url": "fonts/Tekton Pro/TektonPro-BoldObl.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Tempo Std",
+      "familyName": "Tempo Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": false,
+      "fontCount": 2,
+      "totalSize": 30424,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TempoStd-HeavyCondensed",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14964,
+          "url": "fonts/Tempo Std/TempoStd-HeavyCondensed.woff2"
+        },
+        {
+          "name": "TempoStd-HeavyCondensedIt",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15460,
+          "url": "fonts/Tempo Std/TempoStd-HeavyCondensedIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Times Europa LT Std",
+      "familyName": "Times Europa LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 81232,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TimesEuropaLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20340,
+          "url": "fonts/Times Europa LT Std/TimesEuropaLTStd-Italic.woff2"
+        },
+        {
+          "name": "TimesEuropaLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20404,
+          "url": "fonts/Times Europa LT Std/TimesEuropaLTStd-Roman.woff2"
+        },
+        {
+          "name": "TimesEuropaLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20552,
+          "url": "fonts/Times Europa LT Std/TimesEuropaLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "TimesEuropaLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19936,
+          "url": "fonts/Times Europa LT Std/TimesEuropaLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Times LT Std",
+      "familyName": "Times LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 205176,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TimesLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22572,
+          "url": "fonts/Times LT Std/TimesLTStd-Italic.woff2"
+        },
+        {
+          "name": "TimesLTStd-Phonetic",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 49264,
+          "url": "fonts/Times LT Std/TimesLTStd-Phonetic.woff2"
+        },
+        {
+          "name": "TimesLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27096,
+          "url": "fonts/Times LT Std/TimesLTStd-Roman.woff2"
+        },
+        {
+          "name": "TimesLTStd-SemiboldItalic",
+          "weight": 600,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20160,
+          "url": "fonts/Times LT Std/TimesLTStd-SemiboldItalic.woff2"
+        },
+        {
+          "name": "TimesLTStd-Semibold",
+          "weight": 600,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18516,
+          "url": "fonts/Times LT Std/TimesLTStd-Semibold.woff2"
+        },
+        {
+          "name": "TimesLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22148,
+          "url": "fonts/Times LT Std/TimesLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "TimesLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26760,
+          "url": "fonts/Times LT Std/TimesLTStd-Bold.woff2"
+        },
+        {
+          "name": "TimesLTStd-ExtraBold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18660,
+          "url": "fonts/Times LT Std/TimesLTStd-ExtraBold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Times New Roman MT Std",
+      "familyName": "Times New Roman MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 7,
+      "totalSize": 144616,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TimesNewRomanMTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22640,
+          "url": "fonts/Times New Roman MT Std/TimesNewRomanMTStd-Italic.woff2"
+        },
+        {
+          "name": "TimesNewRomanMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 20212,
+          "url": "fonts/Times New Roman MT Std/TimesNewRomanMTStd.woff2"
+        },
+        {
+          "name": "TimesNewRomanMTStd-Bold",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19676,
+          "url": "fonts/Times New Roman MT Std/TimesNewRomanMTStd-Bold.woff2"
+        },
+        {
+          "name": "TimesNewRomanMTStd-BoldCond",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19732,
+          "url": "fonts/Times New Roman MT Std/TimesNewRomanMTStd-BoldCond.woff2"
+        },
+        {
+          "name": "TimesNewRomanMTStd-BoldIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21560,
+          "url": "fonts/Times New Roman MT Std/TimesNewRomanMTStd-BoldIt.woff2"
+        },
+        {
+          "name": "TimesNewRomanMTStd-Cond",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19608,
+          "url": "fonts/Times New Roman MT Std/TimesNewRomanMTStd-Cond.woff2"
+        },
+        {
+          "name": "TimesNewRomanMTStd-CondIt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 21188,
+          "url": "fonts/Times New Roman MT Std/TimesNewRomanMTStd-CondIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Times Ten LT Std",
+      "familyName": "Times Ten LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 125240,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TimesTenLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 30852,
+          "url": "fonts/Times Ten LT Std/TimesTenLTStd-Italic.woff2"
+        },
+        {
+          "name": "TimesTenLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 33648,
+          "url": "fonts/Times Ten LT Std/TimesTenLTStd-Roman.woff2"
+        },
+        {
+          "name": "TimesTenLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 31700,
+          "url": "fonts/Times Ten LT Std/TimesTenLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "TimesTenLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 29040,
+          "url": "fonts/Times Ten LT Std/TimesTenLTStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Toolbox Std",
+      "familyName": "Toolbox Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 28260,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ToolboxStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28260,
+          "url": "fonts/Toolbox Std/ToolboxStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Trade Gothic LT Std",
+      "familyName": "Trade Gothic LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 14,
+      "totalSize": 222776,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TradeGothicLTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15180,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Light.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-LightObl",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16352,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-LightObl.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15320,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-Bd2",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15528,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Bd2.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-Bd2Obl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16460,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Bd2Obl.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-BdCn20",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15336,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-BdCn20.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-BdCn20Obl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16432,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-BdCn20Obl.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-Cn18",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15092,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Cn18.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-Cn18Obl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16264,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Cn18Obl.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-Extended",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16064,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Extended.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-Obl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16700,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Obl.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15388,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-Bold.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-BoldExt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16344,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-BoldExt.woff2"
+        },
+        {
+          "name": "TradeGothicLTStd-BoldObl",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16316,
+          "url": "fonts/Trade Gothic LT Std/TradeGothicLTStd-BoldObl.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Trajan Pro",
+      "familyName": "Trajan Pro",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 70692,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TrajanPro-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 35508,
+          "url": "fonts/Trajan Pro/TrajanPro-Regular.woff2"
+        },
+        {
+          "name": "TrajanPro-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 35184,
+          "url": "fonts/Trajan Pro/TrajanPro-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Trump Mediaeval LT Std",
+      "familyName": "Trump Mediaeval LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 82836,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "TrumpMediaevalLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19660,
+          "url": "fonts/Trump Mediaeval LT Std/TrumpMediaevalLTStd-Italic.woff2"
+        },
+        {
+          "name": "TrumpMediaevalLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24404,
+          "url": "fonts/Trump Mediaeval LT Std/TrumpMediaevalLTStd-Roman.woff2"
+        },
+        {
+          "name": "TrumpMediaevalLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18992,
+          "url": "fonts/Trump Mediaeval LT Std/TrumpMediaevalLTStd-Bold.woff2"
+        },
+        {
+          "name": "TrumpMediaevalLTStd-BoldIt",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19780,
+          "url": "fonts/Trump Mediaeval LT Std/TrumpMediaevalLTStd-BoldIt.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Umbra Std",
+      "familyName": "Umbra Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 16088,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "UmbraStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16088,
+          "url": "fonts/Umbra Std/UmbraStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Univers LT Std",
+      "familyName": "Univers LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 27,
+      "totalSize": 455388,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "UniversLTStd-ThinUltraCn",
+          "weight": 100,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14796,
+          "url": "fonts/Univers LT Std/UniversLTStd-ThinUltraCn.woff2"
+        },
+        {
+          "name": "UniversLTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16328,
+          "url": "fonts/Univers LT Std/UniversLTStd-Light.woff2"
+        },
+        {
+          "name": "UniversLTStd-LightCn",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15580,
+          "url": "fonts/Univers LT Std/UniversLTStd-LightCn.woff2"
+        },
+        {
+          "name": "UniversLTStd-LightCnObl",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16496,
+          "url": "fonts/Univers LT Std/UniversLTStd-LightCnObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-LightObl",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17272,
+          "url": "fonts/Univers LT Std/UniversLTStd-LightObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-LightUltraCn",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 14808,
+          "url": "fonts/Univers LT Std/UniversLTStd-LightUltraCn.woff2"
+        },
+        {
+          "name": "UniversLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17740,
+          "url": "fonts/Univers LT Std/UniversLTStd.woff2"
+        },
+        {
+          "name": "UniversLTStd-Cn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15404,
+          "url": "fonts/Univers LT Std/UniversLTStd-Cn.woff2"
+        },
+        {
+          "name": "UniversLTStd-CnObl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16132,
+          "url": "fonts/Univers LT Std/UniversLTStd-CnObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-Ex",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16140,
+          "url": "fonts/Univers LT Std/UniversLTStd-Ex.woff2"
+        },
+        {
+          "name": "UniversLTStd-ExObl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16952,
+          "url": "fonts/Univers LT Std/UniversLTStd-ExObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-Obl",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18900,
+          "url": "fonts/Univers LT Std/UniversLTStd-Obl.woff2"
+        },
+        {
+          "name": "UniversLTStd-UltraCn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15748,
+          "url": "fonts/Univers LT Std/UniversLTStd-UltraCn.woff2"
+        },
+        {
+          "name": "UniversLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18236,
+          "url": "fonts/Univers LT Std/UniversLTStd-Bold.woff2"
+        },
+        {
+          "name": "UniversLTStd-BoldCn",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15660,
+          "url": "fonts/Univers LT Std/UniversLTStd-BoldCn.woff2"
+        },
+        {
+          "name": "UniversLTStd-BoldCnObl",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16724,
+          "url": "fonts/Univers LT Std/UniversLTStd-BoldCnObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-BoldEx",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16504,
+          "url": "fonts/Univers LT Std/UniversLTStd-BoldEx.woff2"
+        },
+        {
+          "name": "UniversLTStd-BoldExObl",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17420,
+          "url": "fonts/Univers LT Std/UniversLTStd-BoldExObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-BoldObl",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18952,
+          "url": "fonts/Univers LT Std/UniversLTStd-BoldObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18208,
+          "url": "fonts/Univers LT Std/UniversLTStd-Black.woff2"
+        },
+        {
+          "name": "UniversLTStd-BlackEx",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16216,
+          "url": "fonts/Univers LT Std/UniversLTStd-BlackEx.woff2"
+        },
+        {
+          "name": "UniversLTStd-BlackExObl",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17092,
+          "url": "fonts/Univers LT Std/UniversLTStd-BlackExObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-BlackObl",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18832,
+          "url": "fonts/Univers LT Std/UniversLTStd-BlackObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-XBlack",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16740,
+          "url": "fonts/Univers LT Std/UniversLTStd-XBlack.woff2"
+        },
+        {
+          "name": "UniversLTStd-XBlackEx",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17072,
+          "url": "fonts/Univers LT Std/UniversLTStd-XBlackEx.woff2"
+        },
+        {
+          "name": "UniversLTStd-XBlackExObl",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18012,
+          "url": "fonts/Univers LT Std/UniversLTStd-XBlackExObl.woff2"
+        },
+        {
+          "name": "UniversLTStd-XBlackObl",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 17424,
+          "url": "fonts/Univers LT Std/UniversLTStd-XBlackObl.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Universal Std",
+      "familyName": "Universal Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 20768,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "UniversalStd-GreekwMathPi",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 10784,
+          "url": "fonts/Universal Std/UniversalStd-GreekwMathPi.woff2"
+        },
+        {
+          "name": "UniversalStd-NewswithCommPi",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 9984,
+          "url": "fonts/Universal Std/UniversalStd-NewswithCommPi.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "University Roman Std",
+      "familyName": "University Roman Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 19048,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "UniversityRomanStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19048,
+          "url": "fonts/University Roman Std/UniversityRomanStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "VAG Rounded Std",
+      "familyName": "VAG Rounded Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": false,
+      "fontCount": 4,
+      "totalSize": 65824,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "VAGRoundedStd-Thin",
+          "weight": 100,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16036,
+          "url": "fonts/VAG Rounded Std/VAGRoundedStd-Thin.woff2"
+        },
+        {
+          "name": "VAGRoundedStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16144,
+          "url": "fonts/VAG Rounded Std/VAGRoundedStd-Light.woff2"
+        },
+        {
+          "name": "VAGRoundedStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16872,
+          "url": "fonts/VAG Rounded Std/VAGRoundedStd-Bold.woff2"
+        },
+        {
+          "name": "VAGRoundedStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16772,
+          "url": "fonts/VAG Rounded Std/VAGRoundedStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Vectora LT Std",
+      "familyName": "Vectora LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 129588,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "VectoraLTStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 16084,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-LightItalic.woff2"
+        },
+        {
+          "name": "VectoraLTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15696,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-Light.woff2"
+        },
+        {
+          "name": "VectoraLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 16472,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-Italic.woff2"
+        },
+        {
+          "name": "VectoraLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15836,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-Roman.woff2"
+        },
+        {
+          "name": "VectoraLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 16400,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "VectoraLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16108,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-Bold.woff2"
+        },
+        {
+          "name": "VectoraLTStd-BlackItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 16676,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-BlackItalic.woff2"
+        },
+        {
+          "name": "VectoraLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16316,
+          "url": "fonts/Vectora LT Std/VectoraLTStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Versailles LT Std",
+      "familyName": "Versailles LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 153940,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "VersaillesLTStd-LightItalic",
+          "weight": 300,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19640,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-LightItalic.woff2"
+        },
+        {
+          "name": "VersaillesLTStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18488,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-Light.woff2"
+        },
+        {
+          "name": "VersaillesLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19412,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-Italic.woff2"
+        },
+        {
+          "name": "VersaillesLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18616,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-Roman.woff2"
+        },
+        {
+          "name": "VersaillesLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19680,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "VersaillesLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19048,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-Bold.woff2"
+        },
+        {
+          "name": "VersaillesLTStd-BlackItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19980,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-BlackItalic.woff2"
+        },
+        {
+          "name": "VersaillesLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19076,
+          "url": "fonts/Versailles LT Std/VersaillesLTStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Verve Std",
+      "familyName": "Verve Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 3,
+      "totalSize": 48896,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "VerveStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 15640,
+          "url": "fonts/Verve Std/VerveStd-Regular.woff2"
+        },
+        {
+          "name": "VerveStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16704,
+          "url": "fonts/Verve Std/VerveStd-Bold.woff2"
+        },
+        {
+          "name": "VerveStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 16552,
+          "url": "fonts/Verve Std/VerveStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Viva Std",
+      "familyName": "Viva Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 9,
+      "totalSize": 316736,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "VivaStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 35468,
+          "url": "fonts/Viva Std/VivaStd-Light.woff2"
+        },
+        {
+          "name": "VivaStd-LightCondensed",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 33000,
+          "url": "fonts/Viva Std/VivaStd-LightCondensed.woff2"
+        },
+        {
+          "name": "VivaStd-LightExtraExtended",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 33952,
+          "url": "fonts/Viva Std/VivaStd-LightExtraExtended.woff2"
+        },
+        {
+          "name": "VivaStd-Condensed",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 35664,
+          "url": "fonts/Viva Std/VivaStd-Condensed.woff2"
+        },
+        {
+          "name": "VivaStd-ExtraExtended",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 37244,
+          "url": "fonts/Viva Std/VivaStd-ExtraExtended.woff2"
+        },
+        {
+          "name": "VivaStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 36176,
+          "url": "fonts/Viva Std/VivaStd-Regular.woff2"
+        },
+        {
+          "name": "VivaStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 35912,
+          "url": "fonts/Viva Std/VivaStd-Bold.woff2"
+        },
+        {
+          "name": "VivaStd-BoldCondensed",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 33860,
+          "url": "fonts/Viva Std/VivaStd-BoldCondensed.woff2"
+        },
+        {
+          "name": "VivaStd-BoldExtraExtended",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 35460,
+          "url": "fonts/Viva Std/VivaStd-BoldExtraExtended.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Voluta Script Pro",
+      "familyName": "Voluta Script Pro",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 68416,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "VolutaScriptPro-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 68416,
+          "url": "fonts/Voluta Script Pro/VolutaScriptPro-Regular.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Waters Titling Pro",
+      "familyName": "Waters Titling Pro",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 12,
+      "totalSize": 786076,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WatersTitlingPro-Bd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 61492,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-Bd.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-BdCn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 58876,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-BdCn.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-BdScn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 68688,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-BdScn.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-Cn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 67096,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-Cn.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-Lt",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 57952,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-Lt.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-LtCn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 59032,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-LtCn.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-LtScn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 67468,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-LtScn.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-Rg",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 69480,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-Rg.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-Sb",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 69340,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-Sb.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-SbCn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 67296,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-SbCn.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-SbScn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 69488,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-SbScn.woff2"
+        },
+        {
+          "name": "WatersTitlingPro-Scn",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 69868,
+          "url": "fonts/Waters Titling Pro/WatersTitlingPro-Scn.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Weidemann Std",
+      "familyName": "Weidemann Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 8,
+      "totalSize": 153812,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WeidemannStd-BookItalic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19384,
+          "url": "fonts/Weidemann Std/WeidemannStd-BookItalic.woff2"
+        },
+        {
+          "name": "WeidemannStd-Book",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18308,
+          "url": "fonts/Weidemann Std/WeidemannStd-Book.woff2"
+        },
+        {
+          "name": "WeidemannStd-MediumItalic",
+          "weight": 500,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19192,
+          "url": "fonts/Weidemann Std/WeidemannStd-MediumItalic.woff2"
+        },
+        {
+          "name": "WeidemannStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18612,
+          "url": "fonts/Weidemann Std/WeidemannStd-Medium.woff2"
+        },
+        {
+          "name": "WeidemannStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20132,
+          "url": "fonts/Weidemann Std/WeidemannStd-BoldItalic.woff2"
+        },
+        {
+          "name": "WeidemannStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19104,
+          "url": "fonts/Weidemann Std/WeidemannStd-Bold.woff2"
+        },
+        {
+          "name": "WeidemannStd-BlackItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 20080,
+          "url": "fonts/Weidemann Std/WeidemannStd-BlackItalic.woff2"
+        },
+        {
+          "name": "WeidemannStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19000,
+          "url": "fonts/Weidemann Std/WeidemannStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Weiss Std",
+      "familyName": "Weiss Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 4,
+      "totalSize": 77836,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WeissStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 19368,
+          "url": "fonts/Weiss Std/WeissStd-Italic.woff2"
+        },
+        {
+          "name": "WeissStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19176,
+          "url": "fonts/Weiss Std/WeissStd.woff2"
+        },
+        {
+          "name": "WeissStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19468,
+          "url": "fonts/Weiss Std/WeissStd-Bold.woff2"
+        },
+        {
+          "name": "WeissStd-ExtraBold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 19824,
+          "url": "fonts/Weiss Std/WeissStd-ExtraBold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Wendy LP Std",
+      "familyName": "Wendy LP Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": false,
+      "fontCount": 3,
+      "totalSize": 82876,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WendyLPStd-Light",
+          "weight": 300,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 28276,
+          "url": "fonts/Wendy LP Std/WendyLPStd-Light.woff2"
+        },
+        {
+          "name": "WendyLPStd-Medium",
+          "weight": 500,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27392,
+          "url": "fonts/Wendy LP Std/WendyLPStd-Medium.woff2"
+        },
+        {
+          "name": "WendyLPStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27208,
+          "url": "fonts/Wendy LP Std/WendyLPStd-Bold.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Wiesbaden Swing LT Std",
+      "familyName": "Wiesbaden Swing LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 115420,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WiesbadenSwingLTStd-Ding",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 91240,
+          "url": "fonts/Wiesbaden Swing LT Std/WiesbadenSwingLTStd-Ding.woff2"
+        },
+        {
+          "name": "WiesbadenSwingLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24180,
+          "url": "fonts/Wiesbaden Swing LT Std/WiesbadenSwingLTStd-Roman.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Wilhelm Klingspor Gothic LT Std",
+      "familyName": "Wilhelm Klingspor Gothic LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 27692,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WilhelmKlingsporGotLTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 27692,
+          "url": "fonts/Wilhelm Klingspor Gothic LT Std/WilhelmKlingsporGotLTStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Wilke LT Std",
+      "familyName": "Wilke LT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 6,
+      "totalSize": 142456,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WilkeLTStd-Italic",
+          "weight": 400,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 22896,
+          "url": "fonts/Wilke LT Std/WilkeLTStd-Italic.woff2"
+        },
+        {
+          "name": "WilkeLTStd-Roman",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23652,
+          "url": "fonts/Wilke LT Std/WilkeLTStd-Roman.woff2"
+        },
+        {
+          "name": "WilkeLTStd-BoldItalic",
+          "weight": 700,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23916,
+          "url": "fonts/Wilke LT Std/WilkeLTStd-BoldItalic.woff2"
+        },
+        {
+          "name": "WilkeLTStd-Bold",
+          "weight": 700,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 23220,
+          "url": "fonts/Wilke LT Std/WilkeLTStd-Bold.woff2"
+        },
+        {
+          "name": "WilkeLTStd-BlackItalic",
+          "weight": 900,
+          "style": "italic",
+          "format": "woff2",
+          "fileSize": 23944,
+          "url": "fonts/Wilke LT Std/WilkeLTStd-BlackItalic.woff2"
+        },
+        {
+          "name": "WilkeLTStd-Black",
+          "weight": 900,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 24828,
+          "url": "fonts/Wilke LT Std/WilkeLTStd-Black.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Willow Std",
+      "familyName": "Willow Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 18944,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WillowStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 18944,
+          "url": "fonts/Willow Std/WillowStd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Wittenberger Fraktur MT Std",
+      "familyName": "Wittenberger Fraktur MT Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 53296,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "WittenbergerFrakturMTStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26944,
+          "url": "fonts/Wittenberger Fraktur MT Std/WittenbergerFrakturMTStd.woff2"
+        },
+        {
+          "name": "WittenbergerFrakturMTStd-Bd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 26352,
+          "url": "fonts/Wittenberger Fraktur MT Std/WittenbergerFrakturMTStd-Bd.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Zebrawood Std",
+      "familyName": "Zebrawood Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 2,
+      "totalSize": 86572,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ZebrawoodStd-Fill",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 22732,
+          "url": "fonts/Zebrawood Std/ZebrawoodStd-Fill.woff2"
+        },
+        {
+          "name": "ZebrawoodStd-Regular",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 63840,
+          "url": "fonts/Zebrawood Std/ZebrawoodStd-Regular.woff2"
+        }
+      ]
+    },
+    {
+      "displayName": "Zipty Do Std",
+      "familyName": "Zipty Do Std",
+      "formats": [
+        "woff2"
+      ],
+      "hasDefaultFont": true,
+      "fontCount": 1,
+      "totalSize": 33828,
+      "licenseFile": null,
+      "variants": [
+        {
+          "name": "ZiptyDoStd",
+          "weight": 400,
+          "style": "normal",
+          "format": "woff2",
+          "fileSize": 33828,
+          "url": "fonts/Zipty Do Std/ZiptyDoStd.woff2"
+        }
+      ]
+    }
+  ]
+}
