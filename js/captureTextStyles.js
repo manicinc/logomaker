@@ -249,22 +249,20 @@ export function captureAdvancedStyles() {
                  glowColor: borderInfo.glowColor || borderColorToUse 
              };
              
-             // Add dasharray information for SVG if applicable
              if (window.CSSUtils && typeof window.CSSUtils.getBorderDashArray === 'function') {
-                 const dashArray = window.CSSUtils.getBorderDashArray(borderInfo.style, styles.border.width);
-                 if (dashArray) {
-                     styles.border.dasharray = dashArray;
-                 }
-             } else {
-                 // Fallback to basic dasharray logic
-                 const dashArray = getStrokeDasharray(styles.border.style, styles.border.width);
-                 if (dashArray) {
-                     styles.border.dasharray = dashArray;
-                 }
-             }
-             
-             console.log(`[Style Capture] Container border detected: Style=${styles.border.style}, Color=${styles.border.color}, Width=${styles.border.width}`);
-         }
+                // Call the function from the centralized CSSUtils module
+                const dashArray = window.CSSUtils.getBorderDashArray(styles.border.style, styles.border.width);
+                if (dashArray) {
+                    styles.border.dasharray = dashArray;
+                    console.log(`[Style Capture] Border dasharray from CSSUtils: ${dashArray}`);
+                }
+                // No 'else' needed here, if it returns null, dasharray remains unset
+            } else {
+                 // Log if CSSUtils itself or the function isn't available
+                 console.warn("[Style Capture] window.CSSUtils.getBorderDashArray is not available. Cannot calculate border dasharray.");
+            }
+            console.log(`[Style Capture] Container border detected: Style=<span class="math-inline">\{styles\.border\.style\}, Color\=</span>{styles.border.color}, Width=${styles.border.width}`);
+        }
     }
 
     // --- Border Radius --- (NEW)
@@ -388,39 +386,6 @@ function getTransformedTextContent(element, transformStyle) {
         default: return txt;
     }
 }
-
-
-/** Get SVG stroke-dasharray string based on border style and width */
-function getStrokeDasharray(borderStyle, borderWidth) {
-    if (!borderStyle || borderStyle === 'none' || borderStyle === 'hidden') return null;
-    const style = borderStyle.toLowerCase();
-    
-    // Robust width parsing
-    const w = parseFloat(borderWidth);
-    if (isNaN(w) || w <= 0) {
-        console.warn(`[CaptureStyles] Invalid border width for dasharray: ${borderWidth}`);
-        return null;
-    }
-
-    switch (style) {
-        case 'dashed':
-            return `${Math.max(1, Math.round(w * 3))}, ${Math.max(1, Math.round(w * 2))}`;
-        case 'dotted':
-             return `${Math.max(1, Math.round(w))}, ${Math.max(1, Math.round(w * 2))}`;
-        case 'double':
-            // Approximation of double for SVG (not perfect)
-            return `${Math.max(1, Math.round(w * 4))}, ${Math.max(1, Math.round(w))}`;
-            case 'groove':
-            case 'ridge':
-            case 'inset':
-            case 'outset':
-                // Complex border styles can't be directly represented as SVG stroke-dasharray
-                console.warn(`[CaptureStyles] Border style '${style}' cannot be directly represented as SVG dasharray. Using solid.`);
-                return null; // Use solid stroke as fallback
-            default: // Includes 'solid' or unrecognized
-                return null;
-        }
-}      
 
 
 /** Enhanced border style detection */
