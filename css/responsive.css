@@ -23,7 +23,7 @@
   .logo-text {
     /* font-size: clamp(42px, 10vw, 120px); */ /* Let dynamic font size handle it */
   }
-  .preview-container {
+  .previewContainer {
     min-height: 250px; /* Adjust default height */
   }
   .preview-size-small { min-height: 180px; }
@@ -186,7 +186,7 @@
   button, .button { width: 100%; padding: 12px 20px; /* Increase padding for touch */ }
 
   /* --- ADJUSTED Preview Container Styles --- */
-  .preview-container {
+  .previewContainer {
     padding: var(--space-md);
     min-height: 200px; /* Increase default min-height slightly */
     border-left: none;
@@ -256,7 +256,7 @@
       display: none !important; /* Hide all controls - !important needed here */
   }
 
-  .preview-container {
+  .previewContainer {
     /* Use a simple border for print */
     border: 1px solid #ccc;
     box-shadow: none;
@@ -270,8 +270,8 @@
   }
 
   /* Hide overlays for print */
-  .preview-container::before,
-  .preview-container::after {
+  .previewContainer::before,
+  .previewContainer::after {
     display: none !important;
   }
 

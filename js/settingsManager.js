@@ -1,882 +1,1852 @@
 /**
- * settingsManager.js (Version 17.3 - COMPLETE + Debounce Fix + Robustness + Comments)
- * ====================================================================================
- * Manages UI state, applies styles via CSS classes & CSS Variables, handles settings persistence (localStorage),
- * and interacts with fontManager.js. Includes support for various text/border effects, gradients, animations,
- * border radius, border padding, and consistent class application for exports.
- * Adds debouncing (400ms) to font family application to prevent issues with rapid changes.
- * Includes checks for element existence before manipulation to improve robustness.
+ * @file settingsManager.js (UNIFIED - v20.x COMPLETE - Refactored)
+ * @version 20.x.R1
+ * @description
+ * A unified SettingsManager responsible for managing, applying, and persisting
+ * all style-related settings for the Logomaker application. It handles basic
+ * text properties, advanced effects (shadows, 3D, strokes), borders, backgrounds,
+ * animations, and preview/export configurations. It binds UI controls, updates
+ * the preview in real-time, and saves settings to localStorage.
  *
- * @module SettingsManager
- * @requires fontManager.js (expects `getFontDataAsync` function to be globally available via window.getFontDataAsync)
- * @requires cssUtils.js (optional, provides `CSSUtils.applyBorderRadius`, `CSSUtils.applyBorderPadding`, `CSSUtils.extractRGB`)
- * @listens input Event on various input/range elements
- * @listens change Event on various select/checkbox/color elements
- * @fires settings-update - Custom event or listener notification when settings change (via `_triggerSettingsUpdate`)
+ * Key Responsibilities:
+ * - Manages a single source of truth for all settings (_currentSettings).
+ * - Loads settings from localStorage on initialization, falling back to defaults.
+ * - Saves settings to localStorage whenever they change.
+ * - Binds event listeners to all relevant UI input elements.
+ * - Applies CSS classes and CSS variables to the logo text, container, and preview area
+ * based on the current settings and the rules defined in effects.css.
+ * - Handles complex interactions, like switching between basic and advanced effects.
+ * - Provides methods to get current settings, reset settings, and listen for changes.
+ * - Generates example CSS based on the current state.
  */
 
-// --- Constants for CSS Class Prefixes ---
-// Used to manage CSS classes applied to elements, ensuring easy removal and preventing conflicts.
-const FONT_FAMILY_CLASS_PREFIX = 'font-family-';
-const FONT_WEIGHT_CLASS_PREFIX = 'font-weight-';
-const TEXT_ALIGN_CLASS_PREFIX = 'text-align-';
-const TEXT_CASE_CLASS_PREFIX = 'text-case-';
-const TEXT_EFFECT_CLASS_PREFIX = 'text-effect-'; // Unified prefix for glows, shadows, etc.
-const BORDER_STYLE_CLASS_PREFIX = 'border-style-'; // For static border styles (solid, dashed)
-const BORDER_EFFECT_CLASS_PREFIX = 'border-effect-'; // For dynamic border effects (glow, pulse)
-const BORDER_RADIUS_CLASS_PREFIX = 'border-radius-'; // For border radius shapes/sizes
-const ANIMATION_CLASS_PREFIX = 'anim-'; // For text animations
-const PREVIEW_SIZE_CLASS_PREFIX = 'preview-size-'; // For preview container size
-const BACKGROUND_CLASS_PREFIX = 'bg-'; // For background types/patterns
+console.log('[SettingsManager v20.x Refactored] Loading...');
 
-// --- Default Settings ---
+// --- Constants ---
+
 /**
- * Default configuration values for all settings managed by SettingsManager.
- * Used for initial state and resetting. Values should match HTML control defaults where applicable.
- * @const {object} DEFAULT_SETTINGS
+ * Prefixes used for dynamically adding/removing CSS classes to elements.
+ * Ensures that only one class of a specific type (e.g., font weight) is active at a time.
+ * @enum {string}
+ */
+const PREFIX = {
+  FONT_FAMILY: 'font-family-', // Note: Applied via direct style, but prefix kept for consistency
+  FONT_WEIGHT: 'font-weight-',
+  TEXT_ALIGN: 'text-align-', // Note: Applied via container justify-content style
+  TEXT_CASE: 'text-case-',
+  TEXT_DECORATION: 'text-decoration-',
+  TEXT_STYLE: 'text-style-',
+  TEXT_STROKE: 'text-stroke-',
+  TEXT_EFFECT: 'text-effect-', // Covers both standard shadows/glows and 3D effects
+  BORDER_STYLE: 'border-style-',
+  BORDER_EFFECT: 'border-effect-',
+  BORDER_RADIUS: 'border-radius-',
+  ANIMATION: 'anim-', // Covers both standard and advanced text animations
+  PREVIEW_SIZE: 'preview-size-',
+  BACKGROUND: 'bg-', // Covers background types and patterns
+};
+
+/**
+ * Default values for all settings managed by the SettingsManager.
+ * Used for initial state and for resetting settings.
+ * @const {object}
  */
 const DEFAULT_SETTINGS = {
-    logoText: 'Manic',
-    fontFamily: 'Orbitron', // Default Font
-    fontSize: '100',
-    letterSpacing: '0.03',
-    textCase: 'none',
-    fontWeight: '700',
-    textColorMode: 'gradient',
-    solidColorPicker: '#ffffff',
-    gradientPreset: 'primary-gradient',
-    color1: '#FF1493', color2: '#8A2BE2', useColor3: false, color3: '#FF4500',
-    textShadow: 'text-effect-none',
-    borderColorPicker: '#ffffff',
-    borderStyle: 'border-none',
-    borderWidth: '2',
-    borderRadius: 'none',
-    customBorderRadius: '',
-    borderPadding: '10',
-    textAlign: 'center',
-    rotation: '0',
-    textAnimation: 'anim-none',
-    animationSpeed: '1',
-    animationDirection: '45', // Text gradient angle
-    backgroundType: 'bg-solid',
-    backgroundColor: '#000000',
-    bgOpacity: '1',
-    backgroundGradientPreset: 'bg-primary-gradient',
-    bgColor1: '#3a1c71', bgColor2: '#ffaf7b',
-    bgGradientDirection: '90', // Background gradient angle
-    previewSize: 'preview-size-medium',
-    exportWidth: '800',
-    exportHeight: '400',
-    exportQuality: '95',
-    exportTransparent: false,
-    exportFrames: '15',
-    exportFrameRate: '10',
-    aspectRatioPreset: 'auto',
-    aspectRatioLock: false,
+  // Basic Text
+  logoText: 'Manic',
+  fontFamily: 'Orbitron', // Ensure this is a valid font available initially
+  fontSize: '100', // px
+  fontWeight: '700',
+  letterSpacing: '0.03', // em
+  textCase: 'none',
+  textAlign: 'center', // Applies to container justify-content
+  rotation: '0', // deg
+
+  // Text Color Mode (Solid vs Gradient)
+  textColorMode: 'gradient', // 'solid' or 'gradient'
+  solidColorPicker: '#ffffff',
+  gradientPreset: 'primary-gradient', // 'custom' or a preset key (maps to CSS var or fallback)
+  color1: '#FF1493', // Custom gradient color 1
+  color2: '#8A2BE2', // Custom gradient color 2
+  useColor3: false, // Use third custom gradient color?
+  color3: '#FF4500', // Custom gradient color 3
+  animationDirection: '45', // deg (Used for text gradient direction)
+
+  // Text Effects (Basic Shadow/Glow + Advanced 3D)
+  textShadow: 'text-effect-none', // Basic text effect class (e.g., 'text-effect-glow-soft'). Value should match class name directly.
+  advanced3dEffect: 'none', // Advanced 3D effect key (maps to class via ADVANCED_3D_EFFECT_MAP). 'none' means use textShadow.
+
+  // Advanced Text Styling
+  textDecoration: 'none', // Maps to class via TEXT_DECORATION_MAP (e.g., 'underline')
+  textStyle: 'normal', // Maps to class via TEXT_STYLE_MAP (e.g., 'italic')
+  textStroke: 'none', // Maps to class via TEXT_STROKE_MAP (e.g., 'thin')
+
+  // Container / Border
+  borderStyle: 'border-style-none', // Basic border style class. Value should match class name.
+  advancedBorderStyle: 'none', // Advanced border style/effect key (maps via BORDER_STYLE_EFFECT_MAP). 'none' means use borderStyle.
+  borderColorPicker: '#ffffff', // Used for border color, stroke color, etc. via CSS var
+  borderWidth: '2', // px
+  borderRadius: 'none', // Maps to class via BORDER_RADIUS_MAP (e.g., 'rounded-md', 'custom')
+  customBorderRadius: '', // Value for custom border radius (e.g., '10px 20px', '15px')
+  borderPadding: '16', // px
+
+  // Animations (Basic + Advanced)
+  textAnimation: 'anim-none', // Basic text animation class. Value should match class name.
+  advancedTextAnimation: 'none', // Advanced text animation key (maps via ANIMATION_MAP). 'none' means use textAnimation.
+  animationSpeed: '1', // Multiplier for animation duration (1 = default speed)
+
+  // Background (Type/Color/Gradient/Pattern)
+  backgroundType: 'bg-solid', // Background type class. Value should match class name (e.g., 'bg-gradient', 'bg-grid').
+  advancedBackground: 'none', // Advanced background pattern key (maps via BACKGROUND_MAP). 'none' means use backgroundType.
+  backgroundColor: '#000000', // Solid background color
+  bgOpacity: '1', // Background opacity (applied to pseudo-element)
+  backgroundGradientPreset: 'bg-primary-gradient', // 'custom' or preset key
+  bgColor1: '#3a1c71', // Custom background gradient color 1
+  bgColor2: '#ffaf7b', // Custom background gradient color 2
+  bgGradientDirection: '90', // deg
+
+  // Pattern color overrides (if patterns use these CSS vars)
+  patternColor1: '#444444', // Example: Used for grid lines, dots etc. via CSS var --pattern-color1
+  patternColor2: '#1e1e1e', // Example: Used for checkerboard bg etc. via CSS var --pattern-color2
+
+  // Preview Sizing
+  previewSize: 'preview-size-medium', // Class applied to preview container
+  previewAreaPadding: '32', // px, applied to preview container style
+
+  // Export / Output Settings
+  exportWidth: '800', // px
+  exportHeight: '400', // px
+  aspectRatioPreset: 'auto', // 'auto' or a specific ratio key (e.g., '16:9')
+  aspectRatioLock: false, // Lock width/height to aspect ratio?
+  exportQuality: '95', // % (for JPEG/WebP)
+  exportTransparent: false, // Export with transparent background?
+  exportFrames: '15', // Number of frames for GIF/APNG
+  exportFrameRate: '10', // FPS for GIF/APNG
 };
 
-// --- Mapping Tables ---
-// Translate dropdown values into specific CSS classes for consistent styling.
-const BORDER_STYLE_MAP = {
-    'border-none': 'border-style-none', 'border-solid': 'border-style-solid', 'border-double': 'border-style-double',
-    'border-dashed': 'border-style-dashed', 'border-dotted': 'border-style-dotted', 'border-groove': 'border-style-groove',
-    'border-ridge': 'border-style-ridge', 'border-inset': 'border-style-inset', 'border-outset': 'border-style-outset',
-    'border-pixel': 'border-style-pixel', 'border-thick': 'border-style-thick',
-    'border-glow': 'border-effect-glow-soft', 'border-neon': 'border-effect-neon-animated',
-    'border-pulse': 'border-effect-glow-pulse', 'border-gradient': 'border-effect-gradient-animated'
+// --- Mapping Tables (Value -> CSS Class or Identifier) ---
+// Maps setting values (typically from <select> dropdowns) to specific CSS classes
+// or identifiers used in the logic.
+
+const TEXT_DECORATION_MAP = {
+  'none': 'text-decoration-none',
+  'underline': 'text-decoration-underline',
+  'overline': 'text-decoration-overline',
+  'line-through': 'text-decoration-line-through',
+  'dashed-underline': 'text-decoration-dashed-underline',
+  'wavy-underline': 'text-decoration-wavy-underline',
 };
-const TEXT_EFFECT_MAP = {
-    'text-glow-none': 'text-effect-none', 'text-shadow-none': 'text-effect-none', 'text-effect-none': 'text-effect-none',
-    'text-glow-soft': 'text-effect-glow-soft', 'text-glow-medium': 'text-effect-glow-medium', 'text-glow-strong': 'text-effect-glow-strong',
-    'text-glow-sharp': 'text-effect-glow-sharp', 'text-glow-neon': 'text-effect-neon-primary', 'text-shadow-soft': 'text-effect-shadow-soft-md',
-    'text-glow-hard': 'text-effect-shadow-hard-md', 'text-shadow-hard-sm': 'text-effect-shadow-hard-sm', 'text-shadow-hard-md': 'text-effect-shadow-hard-md',
-    'text-shadow-hard-lg': 'text-effect-shadow-hard-lg', 'text-shadow-hard-xl': 'text-effect-shadow-hard-xl', 'text-glow-outline': 'text-effect-outline-thin',
-    'text-glow-retro': 'text-effect-shadow-retro', 'text-glow-emboss': 'text-effect-emboss', 'text-glow-inset': 'text-effect-inset',
-    'text-effect-blend-screen': 'text-effect-blend-screen', 'text-effect-blend-multiply': 'text-effect-blend-multiply',
-    'text-effect-blend-overlay': 'text-effect-blend-overlay', 'text-effect-blend-difference': 'text-effect-blend-difference'
+
+const TEXT_STYLE_MAP = {
+  'normal': 'text-style-normal',
+  'italic': 'text-style-italic',
+  'oblique': 'text-style-oblique', // Ensure CSS supports 'oblique 15deg' or similar
 };
+
+const TEXT_STROKE_MAP = {
+  'none': 'text-stroke-none',
+  'thin': 'text-stroke-thin',
+  'medium': 'text-stroke-medium',
+  'thick': 'text-stroke-thick',
+  'contrast': 'text-stroke-contrast',
+};
+
+// Note: Basic text effects (textShadow setting) are assumed to have values
+// directly matching the CSS class names (e.g., 'text-effect-glow-soft').
+// A map is only needed if the values differ significantly or need abstraction.
+// const TEXT_EFFECT_MAP = { 'none': 'text-effect-none', ... };
+
+const ADVANCED_3D_EFFECT_MAP = {
+  'none': 'text-effect-none', // Indicates no advanced effect is active
+  '3d-simple': 'text-effect-3d-simple',
+  '3d-extrude': 'text-effect-3d-extrude',
+  '3d-bevel': 'text-effect-3d-bevel',
+  'isometric': 'text-effect-isometric',
+  'reflection': 'text-effect-reflection',
+  'cutout': 'text-effect-cutout',
+  // Add any other 3D effect classes from CSS here
+};
+
+// Maps border setting values (basic and advanced) to their CSS classes.
+// Keys should match the <select> option values.
+const BORDER_STYLE_EFFECT_MAP = {
+  // Basic Styles (match class name directly)
+  'border-style-none': 'border-style-none',
+  'border-style-solid': 'border-style-solid',
+  'border-style-double': 'border-style-double',
+  'border-style-dashed': 'border-style-dashed',
+  'border-style-dotted': 'border-style-dotted',
+  'border-style-groove': 'border-style-groove',
+  'border-style-ridge': 'border-style-ridge',
+  'border-style-inset': 'border-style-inset',
+  'border-style-outset': 'border-style-outset',
+  'border-style-thick': 'border-style-thick', // Added based on CSS
+  'border-style-pixel': 'border-style-pixel',
+
+  // Advanced / Enhanced Styles (from advancedBorderStyle dropdown)
+  'multi-layer': 'border-style-multi-layer',
+  'image-dots': 'border-style-image-dots',
+  'image-zigzag': 'border-style-image-zigzag',
+  'corners-cut': 'border-style-corners-cut',
+  'corners-rounded-different': 'border-style-corners-rounded-different',
+
+  // Border Effects (also from advancedBorderStyle dropdown)
+  'marching-ants': 'border-effect-marching-ants',
+  'rotating-dash': 'border-effect-rotating-dash',
+  'double-glow': 'border-effect-double-glow',
+  'glow-soft': 'border-effect-glow-soft', // Renamed for consistency
+  'glow-strong': 'border-effect-glow-strong', // Added based on CSS
+  'glow-pulse': 'border-effect-glow-pulse', // Added based on CSS
+  'neon-animated': 'border-effect-neon-animated',
+  'gradient-animated': 'border-effect-gradient-animated',
+
+  // Fallback / Explicit None
+  'none': 'border-style-none', // Explicitly map 'none' value if used
+};
+
 const BORDER_RADIUS_MAP = {
-     'none': 'border-radius-none', 'square': 'border-radius-none', 'rounded-sm': 'border-radius-sm',
-     'rounded-md': 'border-radius-md', 'rounded-lg': 'border-radius-lg', 'pill': 'border-radius-pill',
-     'circle': 'border-radius-circle', 'oval': 'border-radius-oval'
+  'none': 'border-radius-none',
+  'rounded-sm': 'border-radius-sm',
+  'rounded-md': 'border-radius-md',
+  'rounded-lg': 'border-radius-lg',
+  'pill': 'border-radius-pill',
+  'circle': 'border-radius-circle',
+  'custom': 'border-radius-custom', // Indicates custom value is used
 };
 
-// --- SettingsManager Object ---
+// Maps animation setting values (basic and advanced) to CSS classes.
+// Keys should match <select> option values.
+const ANIMATION_MAP = {
+  // Standard Animations (match class name directly)
+  'anim-none': 'anim-none',
+  'anim-pulse': 'anim-pulse',
+  'anim-bounce': 'anim-bounce',
+  'anim-shake': 'anim-shake',
+  'anim-float': 'anim-float',
+  'anim-rotate': 'anim-rotate',
+  'anim-glitch': 'anim-glitch',
+  'anim-wave': 'anim-wave',
+  'anim-flicker': 'anim-flicker',
+  'anim-fade': 'anim-fade',
+
+  // Advanced Animations (from advancedTextAnimation dropdown)
+  'liquify': 'anim-liquify',
+  'wobble': 'anim-wobble',
+  'perspective': 'anim-perspective', // Maps to 'anim-perspective-tilt' in CSS? Check CSS. Assuming 'anim-perspective'
+  'split': 'anim-split',
+  'magnify': 'anim-magnify',
+  'glow-multicolor': 'anim-glow-multicolor',
+  'flip-3d': 'anim-flip-3d',
+  'swing-3d': 'anim-swing-3d',
+
+  // Fallback / Explicit None
+  'none': 'anim-none', // Explicitly map 'none' value if used
+};
+
+// Maps background setting values (types and patterns) to CSS classes.
+// Keys should match <select> option values.
+const BACKGROUND_MAP = {
+  // Basic Types (match class name directly)
+  'bg-transparent': 'bg-transparent',
+  'bg-solid': 'bg-solid',
+  'bg-gradient': 'bg-gradient',
+  'bg-gradient-animated': 'bg-gradient-animated',
+
+  // Basic Patterns (match class name directly)
+  'bg-grid': 'bg-grid',
+  'bg-darkgrid': 'bg-darkgrid',
+  'bg-dots-sm': 'bg-dots-sm',
+  'bg-dots-lg': 'bg-dots-lg',
+  'bg-checkerboard': 'bg-checkerboard',
+  'bg-lines-diag': 'bg-lines-diag',
+  'bg-lines-vert': 'bg-lines-vert',
+  'bg-carbon': 'bg-carbon',
+
+  // Overlay / Effect Patterns (match class name directly)
+  'bg-noise': 'bg-noise',
+  'bg-stars': 'bg-stars',
+  'bg-synthwave': 'bg-synthwave',
+  'bg-matrix': 'bg-matrix', // Note: Requires JS helper for columns
+  'bg-scanlines': 'bg-scanlines',
+  'bg-circuit': 'bg-circuit',
+
+  // Advanced Backgrounds (from advancedBackground dropdown)
+  'hexagons': 'bg-hexagons',
+  'diamonds': 'bg-diamonds',
+  'wave-pattern': 'bg-wave-pattern',
+  'graph-paper': 'bg-graph-paper',
+  'gradient-pulse': 'bg-gradient-pulse',
+  'floating-particles': 'bg-floating-particles',
+
+  // Fallback / Explicit None
+  'none': 'bg-solid', // Fallback to solid black if 'none' is somehow selected
+};
+
+// --- SettingsManager Module ---
+
 const SettingsManager = {
-    /** @private @type {object} Holds the current state of all settings */
-    _currentSettings: {},
-    /** @private @type {Array<Function>} Array of listener functions to call on settings change */
-    _listeners: [],
-    /** @private @type {boolean} Flag indicating if initialization is complete */
-    _isInitialized: false,
-    /** @private @type {?HTMLElement} Cached reference to the main logo text element */
-    _logoElement: null,
-    /** @private @type {?HTMLElement} Cached reference to the logo container element (for border/padding) */
-    _logoContainer: null,
-    /** @private @type {?HTMLElement} Cached reference to the main preview area container */
-    _previewContainer: null,
-    /** @private @type {boolean} Flag to prevent aspect ratio updates from looping */
-    _isUpdatingAspectRatio: false,
+  _currentSettings: {}, // Holds the current state of all settings
+  _listeners: [], // Array of functions to call on settings update
+  _isInitialized: false, // Initialization flag
+  _logoElement: null, // Reference to the main text element (.logo-text)
+  _logoContainer: null, // Reference to the container wrapping the text (.logo-container)
+  _previewContainer: null, // Reference to the overall preview area (#previewContainer)
+  _isUpdatingAspectRatio: false, // Flag to prevent aspect ratio update loops
+  _fontApplyDebounceTimer: null, // Timer for debouncing font application
+  _FONT_APPLY_DEBOUNCE_DELAY: 300, // Delay (ms) for font application debounce
 
-    // --- Debounce Timer for Font Changes ---
-    /** @private @type {?number} Timeout ID for debouncing font family changes */
-    _fontApplyDebounceTimer: null,
-    /** @private @const {number} Delay in milliseconds for font application debounce */
-    _FONT_APPLY_DEBOUNCE_DELAY: 950, // Increased delay (milliseconds)
+  /**
+   * Gets a deep copy of the default settings.
+   * @returns {object} A clone of DEFAULT_SETTINGS.
+   */
+  getDefaults() {
+    try {
+      // structuredClone is the modern, reliable way to deep clone
+      return structuredClone(DEFAULT_SETTINGS);
+    } catch (e) {
+      // Fallback for older environments that might not support structuredClone
+      console.warn('[SM] structuredClone not supported, falling back to JSON clone:', e);
+      return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    }
+  },
 
-    // --- Getters ---
-    /**
-     * Returns a deep copy of the default settings.
-     * @returns {object} A deep copy of DEFAULT_SETTINGS.
-     */
-    getDefaults() {
+  /**
+   * Gets a deep copy of the *current* settings.
+   * Use this to safely read the current state without modifying the internal state.
+   * @returns {object} A clone of the current settings.
+   */
+  getCurrentSettings() {
+    const settingsToClone = (typeof this._currentSettings === 'object' && this._currentSettings !== null)
+      ? this._currentSettings
+      : this.getDefaults(); // Use defaults if current settings are invalid/missing
+
+    try {
+      return structuredClone(settingsToClone);
+    } catch (e) {
+      console.warn('[SM] structuredClone failed during getCurrentSettings, falling back to JSON clone:', e);
+      return JSON.parse(JSON.stringify(settingsToClone));
+    }
+  },
+
+  /**
+   * Initializes the SettingsManager.
+   * Finds essential DOM elements, loads saved settings, sets up event listeners,
+   * and applies the initial styles.
+   * @returns {Promise<void>} A promise that resolves when initialization is complete,
+   * or rejects if a critical error occurs.
+   */
+  async init() {
+    if (this._isInitialized) {
+      console.warn('[SM] SettingsManager already initialized.');
+      return Promise.resolve();
+    }
+    console.log('[SM Refactored] Initializing...');
+
+    // Cache essential DOM element references
+    this._logoElement = document.querySelector('.logo-text');
+    this._logoContainer = document.querySelector('.logo-container');
+    this._previewContainer = document.getElementById('previewContainer');
+
+    // Check if critical elements were found
+    if (!this._logoElement || !this._logoContainer || !this._previewContainer) {
+      return Promise.reject(this._initializationError("Missing core preview elements ('.logo-text', '.logo-container', '#previewContainer'). Check HTML structure."));
+    }
+
+    try {
+      this.loadSavedSettings(); // Load from localStorage or use defaults
+      this._setupEventListeners(); // Bind UI controls
+      console.log('[SM] Applying initial settings...');
+      // Apply loaded/default settings and update UI fields
+      await this.applySettings(this._currentSettings, true /* force UI update */, true /* is initial load */);
+
+      this._isInitialized = true;
+      console.log('[SM] Initialization complete.');
+      return Promise.resolve();
+    } catch (error) {
+      this._isInitialized = false; // Ensure flag is false if init fails
+      // Log the error and potentially notify the user
+      return Promise.reject(this._initializationError(error.message || String(error)));
+    }
+  },
+
+  /**
+   * Handles critical initialization errors. Logs the error, optionally shows an alert,
+   * and adds an error class to the main container for visual feedback.
+   * @private
+   * @param {string} message - The error message.
+   * @returns {Error} An Error object with the provided message.
+   */
+  _initializationError(message) {
+    console.error(`[SM CRITICAL] Initialization failed: ${message}`);
+    // Use a global alert function if available, otherwise standard alert
+    const notifyError = typeof window.showAlert === 'function' ? window.showAlert : alert;
+    notifyError(`Application Initialization Failed: ${message}. Please check console and reload.`, "error", { duration: null });
+    // Add a visual indicator to the UI if possible
+    document.querySelector('.container')?.classList?.add('initialization-error');
+    return new Error(message);
+  },
+
+  /**
+   * Sets up event listeners for all UI controls (inputs, selects, checkboxes, etc.).
+   * Uses helper functions for clarity and consistency.
+   * @private
+   */
+  _setupEventListeners() {
+    console.log('[SM] Setting up UI event listeners...');
+
+    // --- Listener Helper Functions ---
+
+    /** Binds a standard text input element. */
+    const bindInput = (id) => {
+      const el = document.getElementById(id);
+      if (!el) { console.warn(`[SM] Element not found for binding: #${id}`); return; }
+      el.addEventListener('input', (e) => {
+        const value = e.target.value;
+        this._updateSetting(id, value); // Update internal state
+
+        // Special immediate updates
+        if (id === 'logoText' && this._logoElement) {
+          this._logoElement.textContent = value;
+          // Update data-text attribute used by some effects (reflection, glitch)
+          this._logoElement.setAttribute('data-text', value);
+          this._updateSizeIndicator(); // Update width/height display
+        }
+        this._triggerSettingsUpdate(); // Notify listeners and save
+      });
+    };
+
+    /** Binds a <select> dropdown element. */
+    const bindSelect = (id) => {
+      const el = document.getElementById(id);
+      if (!el) { console.warn(`[SM] Element not found for binding: #${id}`); return; }
+      el.addEventListener('change', (e) => {
+        const value = e.target.value;
+        this._updateSetting(id, value); // Update internal state
+        let skipTrigger = false; // Flag to skip default trigger if handled specially
+
+        // --- Handle specific select changes ---
+        switch (id) {
+          case 'fontFamily':
+            // Debounce font application to avoid excessive loading/reflows
+            clearTimeout(this._fontApplyDebounceTimer);
+            this._updateFontPreview(value); // Update preview span immediately
+            this._fontApplyDebounceTimer = setTimeout(async () => {
+              await this._applyFontFamily(value); // Load and apply the font
+              this._triggerSettingsUpdate(); // Trigger *after* font is applied
+            }, this._FONT_APPLY_DEBOUNCE_DELAY);
+            skipTrigger = true; // Prevent double trigger
+            break;
+          case 'fontWeight': this._applyFontWeight(value); break;
+          case 'textAlign': this._applyTextAlign(value); break;
+          case 'textCase':
+            this._applyClass(this._logoElement, `${PREFIX.TEXT_CASE}${value}`, PREFIX.TEXT_CASE);
+            break;
+          case 'textDecoration': this._applyTextDecoration(value); break;
+          case 'textStyle': this._applyTextStyle(value); break;
+          case 'textStroke': this._applyTextStroke(value); break;
+          case 'rotation': this._applyRotation(value); break;
+
+          case 'textColorMode': this._handleColorModeChange(value); break;
+          case 'gradientPreset': this._handleGradientPresetChange(value); break;
+
+          case 'textShadow': // Basic text effect
+          case 'advanced3dEffect': // Advanced text effect
+            this._handleTextEffectChange(); // Combined handler reads both settings
+            break;
+
+          case 'borderStyle': // Basic border style
+          case 'advancedBorderStyle': // Advanced border style/effect
+            this._handleBorderStyleChange(); // Combined handler
+            break;
+          case 'borderRadius': this._applyBorderRadius(value); break;
+
+          case 'textAnimation': // Basic animation
+          case 'advancedTextAnimation': // Advanced animation
+            this._handleAnimationChange(); // Combined handler
+            break;
+
+          case 'backgroundType': // Basic background type/pattern
+          case 'advancedBackground': // Advanced background pattern
+            this._handleBackgroundChange(); // Combined handler
+            break;
+          case 'backgroundGradientPreset': this._handleBackgroundGradientChange(value); break;
+
+          case 'previewSize': this._applyPreviewSize(value); break;
+          case 'aspectRatioPreset': this._handleAspectPresetChange(e.target); break;
+
+          // Add other select IDs if they have specific direct actions needed on change
+          // Otherwise, their effect will be applied during the next full applySettings cycle
+          // triggered by _triggerSettingsUpdate()
+        }
+
+        if (!skipTrigger) {
+          this._triggerSettingsUpdate(); // Notify listeners and save
+        }
+      });
+    };
+
+    /** Binds a number input (type="number"). */
+    const bindNumberInput = (id, cssVar = null, unit = '') => {
+      const el = document.getElementById(id);
+      if (!el || (el.type !== 'number' && el.type !== 'text')) { // Allow text for fallback
+          console.warn(`[SM] Number input not found or invalid type: #${id}`); return;
+      }
+      el.addEventListener('input', (e) => {
+        const value = e.target.value;
+        this._updateSetting(id, String(value)); // Store as string consistently
+
+        // Apply direct effects
+        if (cssVar) {
+          document.documentElement.style.setProperty(cssVar, `<span class="math-inline">\{value\}</span>{unit}`);
+          if (cssVar === '--dynamic-font-size') this._updateSizeIndicator();
+        } else if (id === 'exportWidth' || id === 'exportHeight') {
+          this._handleDimensionChange(id); // Handle aspect ratio locking
+        } else if (id === 'borderPadding') {
+          document.documentElement.style.setProperty('--dynamic-border-padding', `${value}px`);
+        } else if (id === 'borderWidth') {
+          document.documentElement.style.setProperty('--dynamic-border-width', `${value}px`);
+        }
+        // Add other specific number input actions if needed
+
+        this._triggerSettingsUpdate();
+      });
+    };
+
+    /** Binds a range input (type="range") and updates its associated display. */
+    const bindRangeInput = (id, cssVar = null, unit = '', displaySuffix = null) => {
+      const el = document.getElementById(id);
+      if (!el || el.type !== 'range') { console.warn(`[SM] Range input not found or invalid type: #${id}`); return; }
+
+      const displayEl = el.closest('.range-container')?.querySelector('.range-value-display');
+      const suffix = displaySuffix !== null ? displaySuffix : (unit ? ` ${unit}` : ''); // Use custom suffix or unit
+
+      // Function to update the visual display span
+      const updateDisplay = (val) => {
+        if (displayEl) displayEl.textContent = val + suffix;
+      };
+      updateDisplay(el.value); // Initial display update
+
+      el.addEventListener('input', (e) => {
+        const value = e.target.value;
+        updateDisplay(value); // Update display on input
+        this._updateSetting(id, String(value)); // Update internal state
+
+        // Apply direct effects
+        if (cssVar) {
+          document.documentElement.style.setProperty(cssVar, `<span class="math-inline">\{value\}</span>{unit}`);
+        } else if (id === 'animationSpeed') {
+          this._applyAnimationSpeed(value);
+        } else if (id === 'bgOpacity') {
+          document.documentElement.style.setProperty('--bg-opacity', value);
+        } else if (id === 'previewAreaPadding') {
+            this._applyPreviewAreaPadding(value);
+        }
+        // Add other specific range input actions if needed
+
+        this._triggerSettingsUpdate();
+      });
+    };
+
+    /** Binds a checkbox input (type="checkbox"). */
+    const bindCheckbox = (id) => {
+      const el = document.getElementById(id);
+      if (!el || el.type !== 'checkbox') { console.warn(`[SM] Checkbox not found or invalid type: #${id}`); return; }
+      el.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        this._updateSetting(id, isChecked); // Update internal state
+
+        // Special actions based on checkbox state
+        if (id === 'useColor3') {
+          // Toggle visibility of the third color picker
+          document.getElementById('color3Control')?.classList.toggle('hidden', !isChecked);
+          // Re-apply gradient if it's active and custom
+          if (this._currentSettings.textColorMode === 'gradient' && this._currentSettings.gradientPreset === 'custom') {
+            this._applyGradientToLogo();
+          }
+        } else if (id === 'aspectRatioLock') {
+            this._handleAspectRatioLockChange(isChecked); // Trigger potential dimension update
+        } else if (id === 'exportTransparent') {
+            // May need to update preview visually if checkerboard is used for transparency
+            // this._applyBackground(); // Or similar if preview needs refresh
+        }
+        // Add other checkbox-specific actions
+
+        this._triggerSettingsUpdate();
+      });
+    };
+
+    /** Binds a color input (type="color"). */
+    const bindColorInput = (id, cssVar = null) => {
+      const el = document.getElementById(id);
+      if (!el || el.type !== 'color') { console.warn(`[SM] Color input not found or invalid type: #${id}`); return; }
+      el.addEventListener('input', (e) => {
+        const value = e.target.value;
+        this._updateSetting(id, value); // Update internal state
+
+        // Apply direct effects or update related elements
+        if (cssVar) {
+          document.documentElement.style.setProperty(cssVar, value);
+          // If this is the border color, update the RGB version too
+          if (cssVar === '--dynamic-border-color') {
+            this._updateBorderColorRGB(value);
+          }
+        } else {
+          // Handle color logic based on the specific input ID
+          switch (id) {
+            case 'solidColorPicker':
+              if (this._currentSettings.textColorMode === 'solid') this._applySolidTextColor(value);
+              break;
+            case 'color1':
+            case 'color2':
+            case 'color3':
+              if (this._currentSettings.textColorMode === 'gradient' && this._currentSettings.gradientPreset === 'custom') {
+                this._applyGradientToLogo(); // Re-apply custom gradient
+              }
+              break;
+            case 'backgroundColor':
+              if (this._currentSettings.backgroundType === 'bg-solid' || this._currentSettings.advancedBackground === 'none') {
+                 // Set the CSS var used by the ::before pseudo-element
+                 document.documentElement.style.setProperty('--dynamic-bg-color', value);
+              }
+              break;
+            case 'bgColor1':
+            case 'bgColor2':
+              if ((this._currentSettings.backgroundType?.includes('gradient') || this._currentSettings.advancedBackground === 'none') &&
+                  this._currentSettings.backgroundGradientPreset === 'custom') {
+                this._applyBackgroundGradient(); // Re-apply custom background gradient
+              }
+              break;
+            case 'patternColor1':
+            case 'patternColor2':
+              this._applyPatternColors(); // Update pattern colors via CSS vars
+              break;
+          }
+        }
+        this._triggerSettingsUpdate();
+      });
+    };
+
+    /** Binds the custom border radius text input. */
+    const bindCustomRadius = (id) => {
+      const el = document.getElementById(id);
+      if (!el) { console.warn(`[SM] Element not found for binding: #${id}`); return; }
+      el.addEventListener('input', (e) => {
+        const value = e.target.value.trim();
+        this._updateSetting(id, value); // Update internal state
+
+        // If user types in the custom field, ensure the dropdown is set to 'custom'
+        const borderRadiusSelect = document.getElementById('borderRadius');
+        if (borderRadiusSelect && value !== '' && borderRadiusSelect.value !== 'custom') {
+          // Check if 'custom' option exists before setting it
+          if (Array.from(borderRadiusSelect.options).some(opt => opt.value === 'custom')) {
+            borderRadiusSelect.value = 'custom';
+            this._updateSetting('borderRadius', 'custom'); // Sync internal state
+            // Apply the radius class change immediately
+             this._applyClass(this._logoContainer, BORDER_RADIUS_MAP['custom'], PREFIX.BORDER_RADIUS);
+          }
+        }
+
+        // Apply the custom value (or fallback if invalid)
+        this._applyCustomBorderRadiusValue(value);
+        this._triggerSettingsUpdate();
+      });
+    };
+
+    // --- Perform the actual bindings ---
+    console.log('[SM] Binding UI controls...');
+
+    // Basic Text & Style
+    bindInput('logoText');
+    bindSelect('fontFamily');
+    bindNumberInput('fontSize', '--dynamic-font-size', 'px');
+    bindRangeInput('letterSpacing', '--dynamic-letter-spacing', 'em');
+    bindSelect('textCase');
+    bindSelect('fontWeight');
+    bindSelect('textAlign'); // Handled by _applyTextAlign
+    bindRangeInput('rotation', '--dynamic-rotation', 'deg');
+
+    // Advanced Text Style
+    bindSelect('textDecoration');
+    bindSelect('textStyle');
+    bindSelect('textStroke');
+
+    // Text Color
+    bindSelect('textColorMode');
+    bindColorInput('solidColorPicker'); // Used when textColorMode === 'solid'
+    bindSelect('gradientPreset');
+    bindColorInput('color1'); // Used for custom gradient
+    bindColorInput('color2'); // Used for custom gradient
+    bindCheckbox('useColor3');
+    bindColorInput('color3'); // Used for custom gradient if useColor3 is true
+    bindRangeInput('animationDirection', '--gradient-direction', 'deg'); // Text gradient direction
+
+    // Text Effects
+    bindSelect('textShadow'); // Basic effects (shadow/glow)
+    bindSelect('advanced3dEffect'); // Advanced 3D effects
+
+    // Border
+    bindSelect('borderStyle'); // Basic border styles
+    bindSelect('advancedBorderStyle'); // Advanced border styles & effects
+    bindColorInput('borderColorPicker', '--dynamic-border-color'); // Used for border, stroke, etc.
+    bindNumberInput('borderWidth', '--dynamic-border-width', 'px');
+    bindSelect('borderRadius');
+    bindCustomRadius('customBorderRadius'); // Input for custom radius values
+    bindNumberInput('borderPadding', '--dynamic-border-padding', 'px');
+
+    // Animations
+    bindSelect('textAnimation'); // Basic animations
+    bindSelect('advancedTextAnimation'); // Advanced animations
+    bindRangeInput('animationSpeed', null, 'x', 'x'); // Controls --animation-duration
+
+    // Background
+    bindSelect('backgroundType'); // Basic background types/patterns
+    bindSelect('advancedBackground'); // Advanced background patterns
+    bindColorInput('backgroundColor', '--dynamic-bg-color'); // Solid color
+    bindRangeInput('bgOpacity', '--bg-opacity', ''); // Background opacity
+    bindSelect('backgroundGradientPreset');
+    bindColorInput('bgColor1'); // Custom BG gradient
+    bindColorInput('bgColor2'); // Custom BG gradient
+    bindRangeInput('bgGradientDirection', '--bg-gradient-direction', 'deg'); // BG gradient direction
+
+    // Pattern Colors (Optional - if patterns use these vars)
+    bindColorInput('patternColor1', '--pattern-color1');
+    bindColorInput('patternColor2', '--pattern-color2');
+
+    // Preview Area
+    bindSelect('previewSize'); // Applies class like 'preview-size-medium'
+    bindRangeInput('previewAreaPadding', null, 'px'); // Applies padding style
+
+    // Export Settings
+    bindNumberInput('exportWidth');
+    bindNumberInput('exportHeight');
+    bindSelect('aspectRatioPreset');
+    bindCheckbox('aspectRatioLock');
+    bindRangeInput('exportQuality', null, '%', '%');
+    bindCheckbox('exportTransparent');
+    bindNumberInput('exportFrames');
+    bindRangeInput('exportFrameRate', null, 'FPS', 'FPS');
+
+    console.log('[SM] Event listeners configured.');
+  },
+
+  /**
+   * Updates a specific setting in the internal state object.
+   * @private
+   * @param {string} key - The key of the setting to update (must match a key in DEFAULT_SETTINGS).
+   * @param {*} value - The new value for the setting.
+   */
+  _updateSetting(key, value) {
+    if (this._currentSettings.hasOwnProperty(key)) {
+      this._currentSettings[key] = value;
+    } else {
+      console.warn(`[SM] Attempted to update unknown setting key: ${key}`);
+    }
+  },
+
+  /**
+   * Applies a complete settings object to the UI and preview elements.
+   * Updates CSS variables, classes, styles, and optionally syncs UI input fields.
+   * @param {object} settings - The settings object to apply. Should contain keys matching DEFAULT_SETTINGS.
+   * @param {boolean} [forceUIUpdate=false] - If true, forcefully update the value/checked state of corresponding UI elements.
+   * @param {boolean} [isInitialLoad=false] - If true, indicates this is the initial application on page load.
+   * @returns {Promise<void>} A promise that resolves when settings have been applied.
+   */
+  async applySettings(settings, forceUIUpdate = false, isInitialLoad = false) {
+    console.log(`[SM] Applying settings... (Force UI: ${forceUIUpdate}, Initial: ${isInitialLoad})`);
+
+    // Ensure we have a valid settings object, merging with defaults if necessary
+    const settingsToApply = { ...this.getDefaults(), ...settings };
+    this._currentSettings = settingsToApply; // Update internal state
+
+    // --- 1. Update UI Input Fields (if requested) ---
+    if (forceUIUpdate || isInitialLoad) {
+      console.log('[SM] Updating UI control values...');
+      Object.entries(settingsToApply).forEach(([key, value]) => {
         try {
-            return structuredClone(DEFAULT_SETTINGS);
+          const el = document.getElementById(key);
+          if (!el) return; // Skip if element doesn't exist
+
+          // Don't manually set font family during initial load if it might be validated later
+          if (isInitialLoad && key === 'fontFamily' && typeof this._validateLoadedFont === 'function') {
+              // Let _validateLoadedFont handle setting the dropdown after checking validity
+          } else {
+            const currentElementValue = (el.type === 'checkbox') ? el.checked : el.value;
+            const newSettingValue = (el.type === 'checkbox') ? !!value : String(value ?? ''); // Coerce types
+
+            // Update only if different or forced
+            if (forceUIUpdate || String(currentElementValue) !== newSettingValue) {
+              if (el.type === 'checkbox') {
+                el.checked = newSettingValue;
+              } else {
+                el.value = newSettingValue;
+              }
+              // Trigger change/input event for range inputs to update display spans
+              if ((forceUIUpdate || isInitialLoad) && el.type === 'range') {
+                  el.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+              // Trigger change event for select elements to update visual state if needed by frameworks/libraries
+              if ((forceUIUpdate || isInitialLoad) && el.nodeName === 'SELECT') {
+                  el.dispatchEvent(new Event('change', { bubbles: true }));
+              }
+            }
+          }
         } catch (e) {
-            console.warn("[SM] structuredClone unavailable, using JSON fallback for getDefaults().");
-            return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+          console.warn(`[SM] Error setting UI control value for #${key}:`, e);
         }
+      });
+      // Ensure range value displays are correct after potential updates
+      this._updateRangeValueDisplays();
+      // Ensure visibility of conditional controls (color pickers, etc.) is correct
+      this._updateConditionalControlsVisibility();
+    }
+
+    // --- 2. Apply Styles and Classes ---
+    console.log('[SM] Applying styles and classes...');
+    if (!this._logoElement || !this._previewContainer || !this._logoContainer) {
+      return Promise.reject(this._initializationError("Cannot apply styles: Missing core elements."));
+    }
+
+    // Apply text content and data-text attribute
+    this._logoElement.textContent = settingsToApply.logoText;
+    this._logoElement.setAttribute('data-text', settingsToApply.logoText);
+
+    // Apply styles via CSS Variables
+    document.documentElement.style.setProperty('--dynamic-font-size', `${settingsToApply.fontSize}px`);
+    document.documentElement.style.setProperty('--dynamic-letter-spacing', `${settingsToApply.letterSpacing}em`);
+    document.documentElement.style.setProperty('--dynamic-rotation', `${settingsToApply.rotation}deg`);
+    document.documentElement.style.setProperty('--dynamic-border-color', settingsToApply.borderColorPicker);
+    this._updateBorderColorRGB(settingsToApply.borderColorPicker); // Update --dynamic-border-color-rgb
+    document.documentElement.style.setProperty('--dynamic-border-width', `${settingsToApply.borderWidth}px`);
+    document.documentElement.style.setProperty('--dynamic-border-padding', `${settingsToApply.borderPadding}px`);
+    document.documentElement.style.setProperty('--gradient-direction', `${settingsToApply.animationDirection}deg`); // Text gradient
+    document.documentElement.style.setProperty('--bg-gradient-direction', `${settingsToApply.bgGradientDirection}deg`); // Background gradient
+    document.documentElement.style.setProperty('--bg-opacity', settingsToApply.bgOpacity); // Background opacity
+    this._applyAnimationSpeed(settingsToApply.animationSpeed); // Sets --animation-duration
+
+    // Apply pattern colors (if used)
+    this._applyPatternColors();
+
+    // --- Apply settings via dedicated handlers ---
+
+    // Basic Text Styling (Font, Weight, Case, Align)
+    // Font family needs async loading, handled carefully
+    await this._applyFontFamily(settingsToApply.fontFamily); // Apply font family (async)
+    this._applyFontWeight(settingsToApply.fontWeight);     // Apply font weight class
+    this._applyClass(this._logoElement, `<span class="math-inline">\{PREFIX\.TEXT\_CASE\}</span>{settingsToApply.textCase}`, PREFIX.TEXT_CASE); // Apply text case class
+    this._applyTextAlign(settingsToApply.textAlign);       // Apply text alignment via container
+
+    // Advanced Text Styling (Decoration, Style, Stroke)
+    this._applyTextDecoration(settingsToApply.textDecoration);
+    this._applyTextStyle(settingsToApply.textStyle);
+    this._applyTextStroke(settingsToApply.textStroke);
+
+    // Text Color (Solid vs Gradient)
+    this._handleColorModeChange(settingsToApply.textColorMode); // Applies solid or gradient
+
+    // Text Effects (Basic Shadow/Glow vs Advanced 3D)
+    this._handleTextEffectChange(); // Reads settings and applies appropriate effect
+
+    // Border (Basic Style vs Advanced Style/Effect)
+    this._handleBorderStyleChange(); // Reads settings and applies appropriate border
+
+    // Border Radius
+    this._applyBorderRadius(settingsToApply.borderRadius); // Applies class and potentially custom value
+
+    // Animations (Basic vs Advanced)
+    this._handleAnimationChange(); // Reads settings and applies appropriate animation
+
+    // Background (Type/Pattern/Color/Gradient)
+    this._handleBackgroundChange(); // Reads settings and applies appropriate background
+
+    // Preview Area Styling
+    this._applyPreviewSize(settingsToApply.previewSize);
+    this._applyPreviewAreaPadding(settingsToApply.previewAreaPadding);
+
+    // --- 3. Final Updates & Notification ---
+    console.log('[SM] Finalizing settings application...');
+    // Ensure size indicators and CSS code output are updated after styles are applied
+    // Use requestAnimationFrame to allow browser reflow first
+    requestAnimationFrame(() => {
+      this._updateSizeIndicator();
+      this._updateCSSCode();
+    });
+
+    // Don't trigger if it's the initial load triggered *from init* (init handles the first trigger)
+    if (!isInitialLoad) {
+      this._triggerSettingsUpdate(); // Notify listeners and save changes
+    }
+
+    console.log('[SM] applySettings completed.');
+    return Promise.resolve();
+  },
+
+  /**
+   * Updates the visibility of UI controls that depend on other settings
+   * (e.g., custom gradient pickers, custom border radius input).
+   * Called during applySettings when forceUIUpdate is true.
+   * @private
+   */
+  _updateConditionalControlsVisibility() {
+    const s = this._currentSettings;
+
+    // Text color controls
+    const isSolid = s.textColorMode === 'solid';
+    document.getElementById('solidColorPickerGroup')?.classList.toggle('hidden', !isSolid);
+    document.getElementById('gradientPresetGroup')?.classList.toggle('hidden', isSolid);
+    const isCustomGradient = !isSolid && s.gradientPreset === 'custom';
+    document.getElementById('customGradientControls')?.classList.toggle('hidden', !isCustomGradient);
+    document.getElementById('color3Control')?.classList.toggle('hidden', !(isCustomGradient && s.useColor3));
+
+    // Background controls
+    const bgType = s.advancedBackground !== 'none' ? s.advancedBackground : s.backgroundType;
+    const isBgSolid = bgType === 'bg-solid';
+    const isBgGradient = bgType?.includes('gradient'); // Catches 'bg-gradient' and 'bg-gradient-animated'
+    document.getElementById('backgroundColorControl')?.classList.toggle('hidden', !isBgSolid);
+    document.getElementById('backgroundGradientControls')?.classList.toggle('hidden', !isBgGradient);
+    const isCustomBgGradient = isBgGradient && s.backgroundGradientPreset === 'custom';
+    document.getElementById('customBackgroundGradient')?.classList.toggle('hidden', !isCustomBgGradient);
+
+    // Border radius control
+    const isCustomRadius = s.borderRadius === 'custom';
+    document.getElementById('customBorderRadiusControl')?.classList.toggle('hidden', !isCustomRadius);
+
+    // Pattern color controls (show if any pattern background is selected)
+    const isPatternBg = !isBgSolid && !isBgGradient && bgType !== 'bg-transparent';
+    document.getElementById('customPatternControls')?.classList.toggle('hidden', !isPatternBg);
+
+     // Add more conditional visibility logic here if needed
+     // Example: Show/hide GIF export options only if export format is GIF
+     // const isGifExport = document.getElementById('exportFormat')?.value === 'gif';
+     // document.getElementById('gifOptions')?.classList.toggle('hidden', !isGifExport);
+  },
+
+
+  /**
+   * Saves the current settings to localStorage and notifies listeners.
+   * Also triggers updates for elements dependent on the final state (size indicator, CSS code).
+   * @private
+   */
+  _triggerSettingsUpdate() {
+    this.saveCurrentSettings(); // Persist to localStorage
+
+    // Create a deep copy to send to listeners, preventing accidental modification
+    const settingsCopy = this.getCurrentSettings();
+
+    // Notify internal listeners
+    this._listeners.forEach((listener) => {
+      try {
+        listener(settingsCopy);
+      } catch (e) {
+        console.error('[SM] Error executing settings change listener:', e);
+      }
+    });
+
+    // Dispatch a custom event for other parts of the application
+    try {
+      document.dispatchEvent(new CustomEvent('logomaker-settings-updated', {
+        detail: { settings: settingsCopy },
+      }));
+    } catch (err) {
+      console.error('[SM] Error dispatching logomaker-settings-updated event:', err);
+    }
+
+    // Update dependent UI elements after a frame to allow reflows
+    requestAnimationFrame(() => {
+      this._updateSizeIndicator();
+      this._updateCSSCode();
+    });
+  },
+
+  // Range display updates
+  _updateRangeValueDisplays() {
+    const controls = [
+      { id: 'letterSpacing', unit: 'em' },
+      { id: 'rotation', unit: 'deg' },
+      { id: 'animationSpeed', unit: 'x' },
+      { id: 'animationDirection', unit: 'deg' },
+      { id: 'bgOpacity', unit: '' },
+      { id: 'exportQuality', unit: '%' },
+      { id: 'exportFrameRate', unit: 'FPS' },
+      { id: 'bgGradientDirection', unit: 'deg' },
+      { id: 'fontSize', unit: 'px' },
+      { id: 'borderWidth', unit: 'px' },
+      { id: 'borderPadding', unit: 'px' },
+      { id: 'exportWidth', unit: 'px' },
+      { id: 'exportHeight', unit: 'px' },
+      { id: 'exportFrames', unit: '' },
+    ];
+    controls.forEach(({ id, unit }) => {
+      const input = document.getElementById(id);
+      if (!input) return;
+      const disp = input.parentElement?.querySelector('.range-value-display');
+      if (disp) {
+        let suffix = unit;
+        if (['x', 'FPS', '%'].includes(unit)) suffix = ` ${unit}`;
+        disp.textContent = input.value + suffix;
+      }
+    });
+  },
+
+  _updateSizeIndicator() {
+    const wEl = document.getElementById('logoWidth');
+    const hEl = document.getElementById('logoHeight');
+    if (!this._logoElement || !wEl || !hEl) return;
+    try {
+      const rect = this._logoElement.getBoundingClientRect();
+      wEl.textContent = rect.width > 0 ? Math.round(rect.width) : '--';
+      hEl.textContent = rect.height > 0 ? Math.round(rect.height) : '--';
+    } catch {
+      wEl.textContent = 'N/A';
+      hEl.textContent = 'N/A';
+    }
+  },
+
+  _updateCSSCode() {
+    const codeEl = document.getElementById('cssCode');
+    if (!codeEl) return;
+    try {
+      codeEl.value = this._generateCSSCode();
+    } catch (err) {
+      console.error('[SM] generateCSSCode error:', err);
+      codeEl.value = '/* Error generating CSS */';
+    }
+  },
+
+  _generateCSSCode() {
+    if (!this._logoElement || !this._previewContainer || !this._logoContainer) {
+      return '/* Error: Missing elements for CSS generation. */';
+    }
+    let css = `/* Generated CSS */\n\n:root {\n`;
+    const vars = [
+      '--animation-duration',
+      '--gradient-direction',
+      '--dynamic-border-color',
+      '--dynamic-border-color-rgb',
+      '--bg-gradient-direction',
+      '--dynamic-font-size',
+      '--dynamic-letter-spacing',
+      '--dynamic-rotation',
+      '--dynamic-border-width',
+      '--dynamic-border-radius',
+      '--dynamic-border-padding',
+    ];
+    vars.forEach((v) => {
+      const val = document.documentElement.style.getPropertyValue(v)
+        || getComputedStyle(document.documentElement).getPropertyValue(v);
+      if (val?.trim()) {
+        css += `  ${v}: ${val.trim()};\n`;
+      }
+    });
+    css += `}\n\n`;
+
+    // Classes from container, text
+    const containerClasses = Array.from(this._logoContainer.classList)
+      .filter((c) => c.startsWith('dynamic-border')
+                 || c.startsWith(PREFIX.BORDER_STYLE)
+                 || c.startsWith(PREFIX.BORDER_EFFECT)
+                 || c.startsWith(PREFIX.BORDER_RADIUS))
+      .map((c) => `.${c}`)
+      .join('');
+    const textClasses = Array.from(this._logoElement.classList)
+      .filter((c) => c.startsWith(PREFIX.FONT_FAMILY)
+                 || c.startsWith(PREFIX.FONT_WEIGHT)
+                 || c.startsWith(PREFIX.TEXT_ALIGN)
+                 || c.startsWith(PREFIX.TEXT_CASE)
+                 || c.startsWith(PREFIX.TEXT_EFFECT)
+                 || c.startsWith(PREFIX.ANIMATION)
+                 || c.startsWith(PREFIX.TEXT_DECORATION)
+                 || c.startsWith(PREFIX.TEXT_STYLE)
+                 || c.startsWith(PREFIX.TEXT_STROKE))
+      .map((c) => `.${c}`)
+      .join('');
+
+    css += `/* Container */\n.logo-container${containerClasses} {\n`;
+    css += `  position: relative;\n  display: inline-flex;\n  align-items: center;\n`;
+    css += `  justify-content: ${this._logoContainer.style.justifyContent || 'center'};\n`;
+    css += `  padding: var(--dynamic-border-padding, 10px);\n`;
+    css += `  border-radius: var(--dynamic-border-radius, 0);\n`;
+    css += `}\n\n`;
+
+    css += `/* Text */\n.logo-text${textClasses} {\n`;
+    css += `  font-size: var(--dynamic-font-size);\n`;
+    css += `  letter-spacing: var(--dynamic-letter-spacing);\n`;
+    css += `  transform: rotate(var(--dynamic-rotation));\n`;
+    css += `  line-height: 1.2;\n  white-space: nowrap;\n`;
+
+    if (this._currentSettings.textColorMode === 'gradient') {
+      css += `  background-image: ${this._logoElement.style.backgroundImage || 'none'};\n`;
+      css += `  -webkit-background-clip: text;\n  background-clip: text;\n`;
+      css += `  color: transparent;\n  -webkit-text-fill-color: transparent;\n`;
+    } else {
+      css += `  color: ${this._logoElement.style.color || '#ffffff'};\n`;
+      css += `  background-image: none;\n  background-clip: initial;\n`;
+      css += `  -webkit-background-clip: initial;\n  -webkit-text-fill-color: initial;\n`;
+    }
+    css += `}\n\n`;
+
+    // Possibly show keyframes if there's a known animation
+    const activeAnim = Array.from(this._logoElement.classList)
+      .find((c) => c.startsWith(PREFIX.ANIMATION) && c !== 'anim-none');
+    if (activeAnim && typeof window.getActiveAnimationKeyframes === 'function') {
+      const animName = activeAnim.replace(PREFIX.ANIMATION, '');
+      const keyframesCss = window.getActiveAnimationKeyframes(animName);
+      if (keyframesCss) {
+        css += `/* Keyframes for ${animName} */\n${keyframesCss}\n\n`;
+      }
+    }
+    // If there's a background class
+    const bgClass = Array.from(this._previewContainer.classList)
+      .find((c) => c.startsWith(PREFIX.BACKGROUND) && c !== 'bg-solid' && c !== 'bg-transparent');
+    if (bgClass) {
+      css += `/* Background pattern: .${bgClass} */\n\n`;
+    }
+
+    return css.trim();
+  },
+
+  // Simple class management
+  _applyClass(target, className, prefix = null) {
+    if (!target || !className) return;
+    try {
+      if (prefix) {
+        const toRemove = Array.from(target.classList).filter((c) => c.startsWith(prefix));
+        if (toRemove.length > 0) {
+          target.classList.remove(...toRemove);
+        }
+      }
+      if (!className.endsWith('-none')) {
+        target.classList.add(className);
+      }
+    } catch (e) {
+      console.error(`[SM] Error applying class "${className}":`, e);
+    }
+  },
+
+  _applyFontFamily(fontName) {
+    return new Promise((resolve) => {
+      if (!fontName) return resolve();
+      // Attempt to load or apply
+      getFontDataAsync(fontName)
+        .then(() => {
+          this._logoElement.style.fontFamily = `"${fontName}", sans-serif`;
+          resolve();
+        })
+        .catch((err) => {
+          console.warn('[SM] Could not load font:', fontName, err);
+          this._logoElement.style.fontFamily = 'sans-serif';
+          resolve();
+        });
+    });
+  },
+
+  _updateFontPreview(fontName) {
+    const previewEl = document.getElementById('fontPreview');
+    if (previewEl) {
+      previewEl.style.fontFamily = fontName
+        ? `"${fontName}", sans-serif`
+        : 'sans-serif';
+    }
+  },
+
+  _applyFontWeight(weightVal) {
+    this._logoElement.style.fontWeight = weightVal || '400';
+  },
+
+  _applyTextAlign(alignVal) {
+    if (!this._logoContainer) return;
+    switch ((alignVal || 'center').toLowerCase()) {
+      case 'left':
+        this._logoContainer.style.justifyContent = 'flex-start';
+        break;
+      case 'right':
+        this._logoContainer.style.justifyContent = 'flex-end';
+        break;
+      default:
+        this._logoContainer.style.justifyContent = 'center';
+        break;
+    }
+  },
+
+    // A new helper to remove old text-decoration class and add the new one immediately
+    _applyTextDecoration(val) {
+      if (!this._logoElement) return;
+      // Remove old
+      const old = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith(PREFIX.TEXT_DECORATION));
+      if (old.length) this._logoElement.classList.remove(...old);
+  
+      // Map from "underline" => "text-decoration-underline"
+      const mapped = PREFIX.TEXT_DECORATION_MAP[val] || 'text-decoration-none';
+      if (mapped !== 'text-decoration-none') {
+        this._logoElement.classList.add(mapped);
+      } else {
+        // If none, we ensure no text-decoration class remains
+        this._logoElement.classList.add('text-decoration-none');
+      }
+    },
+  
+    // Another helper for immediate textStyle
+    _applyTextStyle(val) {
+      if (!this._logoElement) return;
+      const old = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith(PREFIX.TEXT_STYLE));
+      if (old.length) this._logoElement.classList.remove(...old);
+  
+      const mapped = PREFIX.TEXT_STYLE_MAP[val] || 'text-style-normal';
+      if (mapped !== 'text-style-normal') {
+        this._logoElement.classList.add(mapped);
+      } else {
+        this._logoElement.classList.add('text-style-normal');
+      }
+    },
+  
+    // Another for textStroke
+    _applyTextStroke(val) {
+      if (!this._logoElement) return;
+      const old = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith(PREFIX.TEXT_STROKE));
+      if (old.length) this._logoElement.classList.remove(...old);
+  
+      const mapped = PREFIX.TEXT_STROKE_MAP[val] || 'text-stroke-none';
+      if (mapped !== 'text-stroke-none') {
+        this._logoElement.classList.add(mapped);
+      } else {
+        this._logoElement.classList.add('text-stroke-none');
+      }
+    },
+  
+    // (We keep your old `_applyTextCase`, `_applyFontWeight`, `_applyTextAlign` if you had them)
+    _applyTextCase(val) {
+      if (!this._logoElement) return;
+      // Remove old text-case-*
+      const old = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith(PREFIX.TEXT_CASE));
+      if (old.length) this._logoElement.classList.remove(...old);
+  
+      if (val && val !== 'none') {
+        const newClass = PREFIX.TEXT_CASE + val;
+        this._logoElement.classList.add(newClass);
+      } else {
+        // fallback to 'text-case-none' if you want
+        this._logoElement.classList.add('text-case-none');
+      }
+    },
+  
+    _applyFontWeight(val) {
+      if (!this._logoElement) return;
+      // Remove old
+      const old = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith(PREFIX.FONT_WEIGHT));
+      if (old.length) this._logoElement.classList.remove(...old);
+  
+      const newClass = PREFIX.FONT_WEIGHT + val;
+      this._logoElement.classList.add(newClass);
+    },
+  
+    // textShadow remains your old `_applyTextEffect` or `_handleTextEffectChange`.
+    // We'll do a short version:
+    _applyTextShadowEffect(effectVal) {
+      if (!this._logoElement) return;
+      // remove old
+      const old = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith(PREFIX.TEXT_EFFECT));
+      if (old.length) this._logoElement.classList.remove(...old);
+  
+      const mapped = PREFIX.TEXT_EFFECTS_MAP[effectVal] || 'text-effect-none';
+      if (mapped !== 'text-effect-none') {
+        this._logoElement.classList.add(mapped);
+      } else {
+        this._logoElement.classList.add('text-effect-none');
+      }
     },
 
-    /**
-     * Returns a deep copy of the current settings state.
-     * @returns {object} A deep copy of the internal _currentSettings.
-     */
-    getCurrentSettings() {
+  // Color Mode Handling
+  _handleColorModeChange(mode) {
+    const isSolid = (mode === 'solid');
+    document.getElementById('solidColorPickerGroup')?.classList.toggle('hidden', !isSolid);
+    document.getElementById('gradientPresetGroup')?.classList.toggle('hidden', isSolid);
+    const isCustomGrad = (!isSolid && this._currentSettings.gradientPreset === 'custom');
+    document.getElementById('customGradientControls')?.classList.toggle('hidden', !isCustomGrad);
+
+    if (isSolid) {
+      this._applySolidTextColor(this._currentSettings.solidColorPicker);
+    } else {
+      this._applyGradientToLogo();
+    }
+  },
+  _handleGradientPresetChange(preset) {
+    const isCustom = (preset === 'custom');
+    const showCustom = (
+      this._currentSettings.textColorMode === 'gradient' && isCustom
+    );
+    document.getElementById('customGradientControls')?.classList.toggle('hidden', !showCustom);
+    if (this._currentSettings.textColorMode === 'gradient') {
+      this._applyGradientToLogo();
+    }
+  },
+  _applySolidTextColor(color) {
+    if (!this._logoElement) return;
+    this._logoElement.style.backgroundImage = 'none';
+    this._logoElement.style.backgroundClip = 'initial';
+    this._logoElement.style.webkitBackgroundClip = 'initial';
+    this._logoElement.style.webkitTextFillColor = 'initial';
+    this._logoElement.style.color = color || '#ffffff';
+  },
+  _applyGradientToLogo() {
+    if (!this._logoElement) return;
+    const direction = this._currentSettings.animationDirection || '45';
+    const preset = this._currentSettings.gradientPreset;
+    let gradientCss = '';
+
+    try {
+      if (preset === 'custom') {
+        const c1 = this._currentSettings.color1 || '#FF1493';
+        const c2 = this._currentSettings.color2 || '#8A2BE2';
+        const useC3 = this._currentSettings.useColor3;
+        const c3 = this._currentSettings.color3 || '#FF4500';
+        gradientCss = useC3
+          ? `linear-gradient(${direction}deg, ${c1}, ${c2}, ${c3})`
+          : `linear-gradient(${direction}deg, ${c1}, ${c2})`;
+      } else {
+        // Try reading from a CSS var
+        let varVal = '';
         try {
-            return structuredClone(this._currentSettings);
-        } catch (e) {
-            console.warn("[SM] structuredClone unavailable, using JSON fallback for getCurrentSettings().");
-            return JSON.parse(JSON.stringify(this._currentSettings));
+          varVal = getComputedStyle(document.documentElement)
+            .getPropertyValue(`--${preset}`)
+            .trim();
+        } catch {}
+        if (varVal && varVal.startsWith('linear-gradient')) {
+          gradientCss = varVal.replace(
+            /linear-gradient\([^,]+,/,
+            `linear-gradient(${direction}deg,`
+          );
+        } else {
+          // fallback list
+          const fallbackMap = {
+            'primary-gradient': `linear-gradient(${direction}deg,#FF1493,#8A2BE2)`,
+            // etc. add more if needed
+          };
+          gradientCss = fallbackMap[preset]
+            || `linear-gradient(${direction}deg,#FF1493,#8A2BE2)`;
         }
-    },
+      }
+      this._logoElement.style.backgroundImage = gradientCss;
+      this._logoElement.style.webkitBackgroundClip = 'text';
+      this._logoElement.style.backgroundClip = 'text';
+      this._logoElement.style.color = 'transparent';
+      this._logoElement.style.webkitTextFillColor = 'transparent';
+    } catch (e) {
+      console.error('[SM] Error applying gradient:', e);
+      this._applySolidTextColor('#ffffff');
+    }
+  },
 
-    // --- Initialization ---
-    /**
-     * Initializes the SettingsManager. Should only be called once.
-     * Caches DOM elements, checks dependencies, loads saved settings, sets up event listeners,
-     * applies initial styles, and initializes dependent UI states.
-     * @async
-     * @returns {Promise<void>} Resolves when initialization is complete or rejects on critical failure.
-     */
-    async init() {
-        if (this._isInitialized) {
-            console.warn('[SM] Already initialized.');
-            return;
+  // Text Effects
+  _handleTextEffectChange(which, val) {
+    if (!this._logoElement) return;
+    // We'll unify "advanced3dEffect" vs. normal "textShadow"
+    if (which === 'advanced3dEffect') {
+      // Remove any textShadow-based classes first
+      const shadowClasses = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith(PREFIX.TEXT_EFFECT) && !c.includes('3d-'));
+      if (shadowClasses.length > 0) {
+        this._logoElement.classList.remove(...shadowClasses);
+      }
+      // Then apply the 3D effect
+      Object.values(ADVANCED_3D_EFFECT_MAP).forEach((cls) => {
+        if (cls && this._logoElement.classList.contains(cls)) {
+          this._logoElement.classList.remove(cls);
         }
-        console.log('[SM] Initialize (v17.3 - COMPLETE + Font Debounce 400ms + Robustness)...'); // Updated version
-
-        // Cache essential DOM elements
-        this._logoElement = document.querySelector('.logo-text');
-        this._logoContainer = document.querySelector('.logo-container');
-        this._previewContainer = document.getElementById('previewContainer');
-
-        // CRITICAL CHECK: Ensure core elements exist before proceeding.
-        if (!this._logoElement || !this._logoContainer || !this._previewContainer) {
-            console.error("[SM CRITICAL] Core preview elements (.logo-text, .logo-container, #previewContainer) missing! Cannot initialize. Check HTML structure.");
-            // Optionally show a user-facing error message here using showAlert if available
-            if (typeof showAlert === 'function') showAlert("Critical Error: UI elements missing.", "error");
-            return Promise.reject(new Error("Missing core preview elements."));
+      });
+      const effectCls = ADVANCED_3D_EFFECT_MAP[val] || 'text-effect-none';
+      if (effectCls !== 'text-effect-none') {
+        this._logoElement.classList.add(effectCls);
+        if (effectCls === 'text-effect-reflection') {
+          this._logoElement.setAttribute('data-text', this._logoElement.textContent);
         }
-
-        // Check critical dependencies (fontManager should expose this globally)
-        // Note: Adjust this check if getFontDataAsync is imported differently
-        if (typeof window.getFontDataAsync !== 'function') {
-            console.error("[SM CRITICAL] `window.getFontDataAsync` function not found! Ensure fontManager.js loads and exposes it globally BEFORE settingsManager.js runs.");
-             if (typeof showAlert === 'function') showAlert("Critical Error: Font system unavailable.", "error");
-            return Promise.reject(new Error("Missing dependency: window.getFontDataAsync"));
+      }
+    } else {
+      // 'textShadow'
+      // First remove any 3d classes
+      Object.values(ADVANCED_3D_EFFECT_MAP).forEach((cls) => {
+        if (cls && this._logoElement.classList.contains(cls)) {
+          this._logoElement.classList.remove(cls);
         }
+      });
+      // Then apply standard text effect
+      const existing = Array.from(this._logoElement.classList)
+        .filter((c) => c.startsWith('text-effect-'));
+      if (existing.length > 0) {
+        this._logoElement.classList.remove(...existing);
+      }
+      if (val && val !== 'text-effect-none') {
+        this._logoElement.classList.add(val);
+      }
+    }
+  },
 
-        // Check optional dependencies
-        if (!window.CSSUtils) {
-            console.warn("[SM] CSSUtils not found! Advanced border/padding features may use fallback styles.");
-        }
+  // Border Style
+  _handleBorderStyleChange(which, val) {
+    if (!this._logoContainer) return;
+    // Remove existing
+    const toRemove = Array.from(this._logoContainer.classList).filter((c) =>
+      c.startsWith('border-style-') ||
+      c.startsWith('border-effect-') ||
+      c.startsWith('border-') && c !== 'border-radius-custom' && c !== 'dynamic-border'
+    );
+    if (toRemove.length > 0) {
+      this._logoContainer.classList.remove(...toRemove);
+    }
+    // Always ensure .dynamic-border if we have any style
+    if (!this._logoContainer.classList.contains('dynamic-border')) {
+      this._logoContainer.classList.add('dynamic-border');
+    }
+    const mapped = BORDER_STYLE_EFFECT_MAP[val] || 'border-style-none';
+    if (mapped !== 'border-style-none') {
+      this._logoContainer.classList.add(mapped);
+    }
+  },
+  // Border radius
+  _applyBorderRadius(rVal) {
+    if (!this._logoContainer || !rVal) return;
 
+    // 🛑 GUARD: Prevent loop by checking if the value is already applied
+    if (
+      this._logoContainer.dataset._lastAppliedRadius === rVal
+    ) {
+      return; // Skip redundant re-application
+    }
+    this._logoContainer.dataset._lastAppliedRadius = rVal;
+
+    const cls = BORDER_RADIUS_MAP[rVal] || 'border-radius-none';
+    this._applyClass(this._logoContainer, cls, PREFIX.BORDER_RADIUS);
+
+    if (window.CSSUtils?.applyBorderRadius) {
+      window.CSSUtils.applyBorderRadius(this._logoContainer, rVal);
+    } else {
+      let cssR = '0px';
+      switch (rVal) {
+        case 'none':
+        case 'square':
+          cssR = '0px';
+          break;
+        case 'circle':
+          cssR = '50%';
+          break;
+        case 'pill':
+          cssR = '999px';
+          break;
+        case 'rounded-sm':
+          cssR = '4px';
+          break;
+        case 'rounded-md':
+          cssR = '8px';
+          break;
+        case 'rounded-lg':
+          cssR = '12px';
+          break;
+        case 'custom':
+          cssR = document.documentElement.style.getPropertyValue('--dynamic-border-radius') || '0px';
+          break;
+        default:
+          break;
+      }
+      this._logoContainer.style.borderRadius = cssR;
+      document.documentElement.style.setProperty('--dynamic-border-radius', cssR);
+    }
+  },
+  _applyCustomBorderRadius(v) {
+    if (!this._logoContainer) return;
+    let val = v.trim();
+    let finalVal = '';
+    if (val !== '' && !isNaN(val) && Number(val) >= 0) {
+      finalVal = `${Number(val)}px`;
+    } else if (this._currentSettings.borderRadius !== 'custom') {
+      this._applyBorderRadius(this._currentSettings.borderRadius);
+      return;
+    } else {
+      finalVal = '0px';
+    }
+    this._logoContainer.style.borderRadius = finalVal;
+    document.documentElement.style.setProperty('--dynamic-border-radius', finalVal);
+  },
+  _applyFontStyle(style) {
+    if (!this._logoElement) return;
+  
+    const validStyles = ['normal', 'italic', 'oblique'];
+    const styleToApply = validStyles.includes(style) ? style : 'normal';
+  
+    this._logoElement.style.fontStyle = styleToApply;
+  },  
+  // Animations
+  _handleAnimationChange(which, val) {
+    if (!this._logoElement) return;
+    // Wipe old
+    const oldAnim = Array.from(this._logoElement.classList)
+      .filter((c) => c.startsWith(PREFIX.ANIMATION));
+    if (oldAnim.length > 0) {
+      this._logoElement.classList.remove(...oldAnim);
+    }
+    const animCls = ANIMATION_MAP[val] || 'anim-none';
+    if (animCls !== 'anim-none') {
+      this._logoElement.classList.add(animCls);
+    }
+  },
+  _applyAnimationSpeed(spd) {
+    const baseDuration = 2.0;
+    const speedVal = parseFloat(spd || '1');
+    const final = Math.max(0.1, baseDuration / Math.max(0.1, speedVal));
+    document.documentElement.style.setProperty('--animation-duration', `${final.toFixed(2)}s`);
+  },
+
+  // Background
+  _handleBackgroundChange(which, val) {
+    if (!this._previewContainer) return;
+    // Clear advanced classes
+    Object.values(BACKGROUND_MAP).forEach((cls) => {
+      if (cls && this._previewContainer.classList.contains(cls)) {
+        this._previewContainer.classList.remove(cls);
+      }
+    });
+    // If advanced != none, override
+    if (which === 'advancedBackground' && val !== 'none') {
+      // Temporarily remove standard background class
+      const existingStd = this._currentSettings.backgroundType;
+      if (existingStd !== 'bg-solid' && existingStd !== 'bg-transparent') {
+        // store or remove
+        this._previewContainer.classList.remove(existingStd);
+      }
+      const advCls = BACKGROUND_MAP[val];
+      if (advCls) this._previewContainer.classList.add(advCls);
+      return;
+    }
+    // Otherwise normal background
+    const mapped = BACKGROUND_MAP[val];
+    if (mapped) {
+      this._previewContainer.classList.add(mapped);
+    }
+
+    // Show/hide relevant controls
+    const isSolid = (val === 'bg-solid');
+    const isGrad = (val?.includes('gradient'));
+    document.getElementById('backgroundColorControl')?.classList.toggle('hidden', !isSolid);
+    document.getElementById('backgroundGradientControls')?.classList.toggle('hidden', !isGrad);
+    const isCustomGrad = (isGrad && this._currentSettings.backgroundGradientPreset === 'custom');
+    document.getElementById('customBackgroundGradient')?.classList.toggle('hidden', !isCustomGrad);
+
+    if (isSolid) {
+      this._applySolidBgColor(this._currentSettings.backgroundColor);
+    } else if (isGrad) {
+      this._applyBackgroundGradient();
+    } else if (val === 'bg-transparent') {
+      this._previewContainer.style.backgroundColor = 'transparent';
+      this._previewContainer.style.backgroundImage = 'none';
+    }
+    this._previewContainer.style.opacity = this._currentSettings.bgOpacity || '1';
+  },
+  _applySolidBgColor(color) {
+    if (!this._previewContainer) return;
+    this._previewContainer.style.backgroundColor = color || '#000000';
+    this._previewContainer.style.backgroundImage = 'none';
+  },
+  _handleBackgroundGradientChange(preset) {
+    const isCustom = (preset === 'custom');
+    const isGrad = this._currentSettings.backgroundType?.includes('gradient');
+    document.getElementById('customBackgroundGradient')
+      ?.classList.toggle('hidden', !(isCustom && isGrad));
+    if (isGrad) this._applyBackgroundGradient();
+  },
+  _applyBackgroundGradient() {
+    if (!this._previewContainer) return;
+    const dir = this._currentSettings.bgGradientDirection || '90';
+    const preset = this._currentSettings.backgroundGradientPreset;
+    let gradStr = '';
+    try {
+      if (preset === 'custom') {
+        const c1 = this._currentSettings.bgColor1 || '#3a1c71';
+        const c2 = this._currentSettings.bgColor2 || '#ffaf7b';
+        gradStr = `linear-gradient(${dir}deg, ${c1}, ${c2})`;
+      } else {
+        let varVal = '';
         try {
-            console.log('[SM] Assuming Font Manager initialized.');
-            this.loadSavedSettings(); // Load settings from localStorage or use defaults
-            this._setupEventListeners(); // Bind listeners to UI controls AFTER loading settings
-            console.log('[SM] Applying initial settings to UI and preview...');
-            // Apply loaded settings visually, forcing UI update and style application on initial load
-            await this.applySettings(this._currentSettings, true, true); // forceUIUpdate=true, isInitialLoad=true
-            // Set initial visibility/state of dependent controls (like gradient pickers)
-            this._initializeUIComponentsState();
-            this._isInitialized = true;
-            console.log('[SM] Initialization complete.');
-        } catch (error) {
-            console.error("[SM] Initialization failed during setup:", error);
-            if (typeof showAlert === 'function') { // Use global notification if available
-                showAlert(`Initialization Error: ${error.message}`, 'error');
-            }
-            return Promise.reject(error); // Propagate the error
+          varVal = getComputedStyle(document.documentElement)
+            .getPropertyValue(`--${preset}`)
+            .trim();
+        } catch {}
+        if (varVal && varVal.startsWith('linear-gradient')) {
+          gradStr = varVal.replace(
+            /linear-gradient\([^,]+,/,
+            `linear-gradient(${dir}deg,`
+          );
+        } else {
+          gradStr = `linear-gradient(${dir}deg,#1a1a2e,#0f3460)`;
         }
-    },
+      }
+      this._previewContainer.style.backgroundImage = gradStr;
+      this._previewContainer.style.backgroundColor = '';
+    } catch (e) {
+      console.error('[SM] BG gradient error:', e);
+      this._applySolidBgColor('#000000');
+    }
+  },
 
-    // --- Event Listener Setup ---
-    /**
-     * Sets up event listeners for all relevant UI controls.
-     * Checks for element existence before binding.
-     * @private
-     */
-    _setupEventListeners() {
-        console.log('[SM] Setting up event listeners...');
-        // Robustness check - ensure at least one critical input exists before proceeding
-        if (!document.getElementById('logoText')) {
-            console.error("[SM] Cannot find #logoText input during listener setup. Check HTML structure.");
-            return;
+  // Pattern colors
+  _applyPatternColors() {
+    // If your BG patterns rely on CSS variables, set them here:
+    // e.g. document.documentElement.style.setProperty('--pattern-color1', this._currentSettings.patternColor1);
+    // etc. Implementation is up to you.
+  },
+
+  // Preview sizing
+  _applyPreviewSize(sz) {
+    if (!this._previewContainer) return;
+    // Remove old
+    const oldSz = Array.from(this._previewContainer.classList)
+      .filter((c) => c.startsWith(PREFIX.PREVIEW_SIZE));
+    if (oldSz.length > 0) {
+      this._previewContainer.classList.remove(...oldSz);
+    }
+    if (sz !== 'preview-size-auto') {
+      this._previewContainer.classList.add(sz);
+    }
+  },
+  _applyPreviewAreaPadding(val) {
+    if (!this._previewContainer) return;
+    const pxVal = /^\d+(\.\d+)?$/.test(val) ? `${val}px` : val;
+    this._previewContainer.style.padding = pxVal;
+  },
+
+  // Aspect Ratio logic
+  _getCurrentAspectRatio() {
+    const presetSel = document.getElementById('aspectRatioPreset');
+    const presetVal = this._currentSettings.aspectRatioPreset || 'auto';
+    if (presetVal !== 'auto' && presetSel) {
+      const opt = presetSel.options[presetSel.selectedIndex];
+      const ratio = parseFloat(opt?.dataset?.ratio);
+      if (!isNaN(ratio) && ratio > 0) return ratio;
+    }
+    // fallback: measure container
+    if (!this._logoContainer) return 1;
+    const w = this._logoContainer.offsetWidth;
+    const h = this._logoContainer.offsetHeight;
+    if (w <= 0 || h <= 0) return 1;
+    return w / h;
+  },
+  _handleAspectPresetChange(selectEl) {
+    if (!selectEl) return;
+    const opt = selectEl.options[selectEl.selectedIndex];
+    if (!opt) return;
+    const val = opt.value;
+    const ratio = parseFloat(opt?.dataset?.ratio);
+    this._currentSettings.aspectRatioPreset = val;
+    if (!isNaN(ratio) && ratio > 0) {
+      const wInput = document.getElementById('exportWidth');
+      const hInput = document.getElementById('exportHeight');
+      const lockCb = document.getElementById('aspectRatioLock');
+      if (!wInput || !hInput || !lockCb) return;
+      const baseW = parseInt(this._currentSettings.exportWidth || '800');
+      const newW = baseW;
+      const newH = Math.max(10, Math.round(newW / ratio));
+      this._isUpdatingAspectRatio = true;
+      hInput.value = newH;
+      this._currentSettings.exportHeight = String(newH);
+      lockCb.checked = true;
+      this._currentSettings.aspectRatioLock = true;
+      this._isUpdatingAspectRatio = false;
+    }
+    this._triggerSettingsUpdate();
+  },
+  _handleDimensionChange(changedId) {
+    if (this._isUpdatingAspectRatio || !this._currentSettings.aspectRatioLock) return;
+    this._isUpdatingAspectRatio = true;
+    try {
+      const ratio = this._getCurrentAspectRatio();
+      if (!ratio || isNaN(ratio) || ratio <= 0) return;
+      const wInput = document.getElementById('exportWidth');
+      const hInput = document.getElementById('exportHeight');
+      if (!wInput || !hInput) return;
+      const changedVal = parseFloat(this._currentSettings[changedId]);
+      if (isNaN(changedVal) || changedVal <= 0) return;
+      let tgtEl, tgtKey, newVal;
+      if (changedId === 'exportWidth') {
+        tgtEl = hInput;
+        tgtKey = 'exportHeight';
+        newVal = Math.round(changedVal / ratio);
+      } else {
+        tgtEl = wInput;
+        tgtKey = 'exportWidth';
+        newVal = Math.round(changedVal * ratio);
+      }
+      newVal = Math.max(10, newVal);
+      if (String(newVal) !== this._currentSettings[tgtKey]) {
+        tgtEl.value = newVal;
+        this._currentSettings[tgtKey] = String(newVal);
+      }
+    } catch (err) {
+      console.error('[SM] Aspect ratio dimension update error:', err);
+    } finally {
+      this._isUpdatingAspectRatio = false;
+    }
+  },
+
+  // LocalStorage Persistence
+  loadSavedSettings() {
+    try {
+      const json = localStorage.getItem('logomakerSettings');
+      if (json) {
+        const loaded = JSON.parse(json);
+        this._currentSettings = { ...this.getDefaults(), ...loaded };
+        console.log('[SM] Loaded settings from localStorage.');
+        setTimeout(() => {
+          this._validateLoadedFont();
+        }, 500);
+      } else {
+        this._currentSettings = this.getDefaults();
+        console.log('[SM] No saved settings found.');
+      }
+    } catch (err) {
+      console.error('[SM] loadSavedSettings error:', err);
+      this._currentSettings = this.getDefaults();
+      if (typeof showAlert === 'function') {
+        showAlert('Failed to load settings.', 'warning');
+      }
+    }
+  },
+  _validateLoadedFont() {
+    try {
+      const dd = document.getElementById('fontFamily');
+      const saved = this._currentSettings.fontFamily;
+      if (dd && dd.options.length > 1 && saved) {
+        const opt = dd.querySelector(`option[value="${CSS.escape(saved)}"]`);
+        if (!opt) {
+          console.warn(`[SM] Saved font '${saved}' not found. Reverting to default.`);
+          this._currentSettings.fontFamily = DEFAULT_SETTINGS.fontFamily;
+          if (dd.value !== this._currentSettings.fontFamily) {
+            dd.value = this._currentSettings.fontFamily;
+          }
         }
+      }
+    } catch (e) {
+      console.error('[SM] validateLoadedFont error:', e);
+    }
+  },
+  saveCurrentSettings() {
+    try {
+      localStorage.setItem('logomakerSettings', JSON.stringify(this._currentSettings));
+    } catch (err) {
+      console.error('[SM] saveCurrentSettings error:', err);
+      if (typeof showAlert === 'function') {
+        showAlert('Could not save settings.', 'error');
+      }
+    }
+  },
 
-        // Bind listeners using helper functions for different input types
-        // Each helper includes checks for element existence.
-        this._bindInputListener('logoText');
-        this._bindSelectListener('fontFamily'); // <= Uses debounce logic internally
-        this._bindSelectListener('textCase');
-        this._bindSelectListener('fontWeight');
-        this._bindSelectListener('textColorMode');
-        this._bindSelectListener('gradientPreset');
-        this._bindSelectListener('textShadow');
-        this._bindSelectListener('borderStyle');
-        this._bindSelectListener('borderRadius');
-        this._bindSelectListener('textAlign');
-        this._bindSelectListener('textAnimation');
-        this._bindSelectListener('backgroundType');
-        this._bindSelectListener('backgroundGradientPreset');
-        this._bindSelectListener('previewSize');
-        this._bindNumberInputListener('fontSize', '--dynamic-font-size', 'px');
-        this._bindNumberInputListener('borderWidth', '--dynamic-border-width', 'px');
-        this._bindNumberInputListener('borderPadding', '--dynamic-border-padding', 'px');
-        this._bindRangeInputListener('letterSpacing', '--dynamic-letter-spacing', 'em');
-        this._bindRangeInputListener('rotation', '--dynamic-rotation', 'deg');
-        this._bindRangeInputListener('animationSpeed'); // Special handling
-        this._bindRangeInputListener('animationDirection', '--gradient-direction', 'deg'); // Text gradient angle
-        this._bindRangeInputListener('bgGradientDirection', '--bg-gradient-direction', 'deg'); // Background gradient angle
-        this._bindRangeInputListener('bgOpacity'); // Direct style
-        this._bindColorInputListener('solidColorPicker'); // For solid text color
-        this._bindColorInputListener('color1'); // For custom text gradient
-        this._bindColorInputListener('color2'); // For custom text gradient
-        this._bindColorInputListener('color3'); // For custom text gradient
-        this._bindColorInputListener('borderColorPicker', '--dynamic-border-color'); // Sets CSS var + RGB var
-        this._bindColorInputListener('backgroundColor'); // For solid background
-        this._bindColorInputListener('bgColor1'); // For custom background gradient
-        this._bindColorInputListener('bgColor2'); // For custom background gradient
-        this._bindCheckboxListener('useColor3'); // Toggles color3 picker
-        this._bindCheckboxListener('exportTransparent'); // Export setting
-        this._bindNumberInputListener('exportWidth'); // Export setting / Aspect Ratio
-        this._bindNumberInputListener('exportHeight'); // Export setting / Aspect Ratio
-        this._bindRangeInputListener('exportQuality'); // Export setting
-        this._bindNumberInputListener('exportFrames'); // Export setting
-        this._bindRangeInputListener('exportFrameRate'); // Export setting
-        this._bindCustomBorderRadiusListener('customBorderRadius'); // Input for specific px radius
-        this._bindSelectListener('aspectRatioPreset'); // Aspect Ratio control
-        this._bindCheckboxListener('aspectRatioLock'); // Aspect Ratio control
-
-        console.log('[SM] Event listeners setup done.');
-    },
-
-    // --- Range Value Display ---
-    /**
-     * Updates the text content of all associated range value display spans
-     * (e.g., the '10px' text next to a slider). Includes number inputs if they have display spans.
-     * @private
-     */
-    _updateRangeValueDisplays() {
-        const controlsWithDisplay = [
-            { id: 'letterSpacing', unit: 'em' }, { id: 'rotation', unit: 'deg' },
-            { id: 'animationSpeed', unit: 'x' }, { id: 'animationDirection', unit: 'deg' },
-            { id: 'bgOpacity', unit: '' }, { id: 'exportQuality', unit: '%' },
-            { id: 'exportFrameRate', unit: 'FPS' }, { id: 'bgGradientDirection', unit: 'deg' },
-            // Add number inputs that have associated displays
-            { id: 'fontSize', unit: 'px' },
-            { id: 'borderWidth', unit: 'px' },
-            { id: 'borderPadding', unit: 'px' },
-            { id: 'exportWidth', unit: 'px' }, // Assuming these have displays
-            { id: 'exportHeight', unit: 'px' },
-            { id: 'exportFrames', unit: '' }
-        ];
-        controlsWithDisplay.forEach(config => {
-            const input = document.getElementById(config.id);
-            if (input) {
-                // Find the display span, typically a sibling or child of parent with class .range-value-display
-                const display = input.parentElement?.querySelector('.range-value-display');
-                if (display) {
-                    try {
-                        let unitDisplay = '';
-                        // Handle special units differently for spacing/clarity
-                        if (config.unit === 'x') unitDisplay = config.unit; // e.g., '1x'
-                        else if (config.unit === 'FPS') unitDisplay = '\u00A0' + config.unit; // Non-breaking space + FPS
-                        else if (config.unit) unitDisplay = config.unit; // e.g., 'em', 'deg', '%'
-
-                        const value = input.value ?? ''; // Handle potential null/undefined value
-                        display.textContent = value + unitDisplay;
-                    } catch (e) {
-                        console.warn(`[SM] Error updating display for #${config.id}:`, e);
-                        if(display) display.textContent = 'ERR'; // Indicate error on display
-                    }
-                }
-                // No warning if display span is missing, it's just a visual aid.
-            }
-            // No warning if input itself is missing, binding functions handle that.
-        });
-    },
-
-    // --- Listener Binder Functions (Include null checks) ---
-
-    /** @private Binds listener to a standard text input */
-    _bindInputListener(inputId) {
-        const input = document.getElementById(inputId);
-        // Robustness: Check if element exists
-        if (!input) { console.warn(`[SM Bind] Input element #${inputId} not found.`); return; }
-
-        input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            this._currentSettings[inputId] = value;
-
-            // Special handling for the main logo text input
-            if (inputId === 'logoText' && this._logoElement) {
-                this._logoElement.textContent = value;
-                this._logoElement.setAttribute('data-text', value); // Keep data-text attribute synced
-                this._updateSizeIndicator(); // Text change affects size
-            }
-            this._triggerSettingsUpdate(); // Notify listeners and save
-        });
-    },
-
-    /** @private Binds listener to a select dropdown, handles fontFamily debounce */
-    _bindSelectListener(selectId) {
-        const select = document.getElementById(selectId);
-        // Robustness: Check if element exists
-        if (!select) { console.warn(`[SM Bind] Select element #${selectId} not found.`); return; }
-
-        select.addEventListener('change', (e) => {
-            const value = e.target.value;
-            console.log(`[SM Select] #${selectId} changed to: '${value}'`);
-            this._currentSettings[selectId] = value; // Update setting immediately
-
-            // --- Debounce Logic specifically for Font Family ---
-            if (selectId === 'fontFamily') {
-                clearTimeout(this._fontApplyDebounceTimer); // Clear previous pending application
-                this._updateFontPreview(value); // Update small preview immediately
-
-                // Schedule the actual font application after a pause
-                this._fontApplyDebounceTimer = setTimeout(async () => {
-                    console.log(`[SM Debounce] Applying debounced font: ${this._currentSettings.fontFamily}`);
-                    try {
-                        // Ensure fontManager function is available globally
-                        if (typeof window.getFontDataAsync !== 'function') {
-                            throw new Error("window.getFontDataAsync is not available.");
-                        }
-                        await this._applyFontFamily(this._currentSettings.fontFamily); // Apply the LATEST font stored
-                        this._triggerSettingsUpdate(); // Save/Notify AFTER successful application
-                    } catch (fontApplyError) {
-                        console.error("[SM Debounce] Error applying debounced font:", fontApplyError);
-                        // Still trigger update to save the selected font name, even if application failed
-                        this._triggerSettingsUpdate();
-                    }
-                }, this._FONT_APPLY_DEBOUNCE_DELAY);
-
-                // NOTE: Do NOT call _triggerSettingsUpdate here for fontFamily, it's handled in setTimeout.
-            }
-            // --- End Debounce Logic ---
-            else {
-                // --- Handle other select changes immediately ---
-                let styleUpdateNeeded = true; // Flag to track if styles were directly affected
-                switch (selectId) {
-                    case 'fontWeight': this._applyFontWeight(value); break;
-                    case 'textAlign': this._applyTextAlign(value); break;
-                    case 'textCase': this._applyTextCase(value); break;
-                    case 'textShadow': this._applyTextEffect(value); break;
-                    case 'borderStyle': this._applyBorderStyle(value); break;
-                    case 'borderRadius': this._applyBorderRadius(value); break;
-                    case 'textAnimation': this._applyTextAnimation(value); break;
-                    case 'previewSize': this._applyPreviewSize(value); break;
-                    case 'textColorMode': this._handleColorModeChange(value); break;
-                    case 'gradientPreset': this._handleGradientPresetChange(value); break;
-                    case 'backgroundType': this._handleBackgroundTypeChange(value); break;
-                    case 'backgroundGradientPreset': this._handleBackgroundGradientChange(value); break;
-                    case 'aspectRatioPreset': this._handleAspectPresetChange(e.target); break; // Aspect ratio might not visually change preview instantly
-                    default:
-                        console.log(`[SM] Select change for #${selectId} noted, likely an export setting.`);
-                        styleUpdateNeeded = false; // Don't trigger full update just for export settings etc.
-                }
-                // Trigger update immediately for non-font-family selects
-                // Also trigger if it was a control that affects UI visibility even if no direct style apply above
-                if (styleUpdateNeeded || ['textColorMode', 'gradientPreset', 'backgroundType', 'backgroundGradientPreset'].includes(selectId)) {
-                    this._triggerSettingsUpdate();
-                } else {
-                     this.saveCurrentSettings(); // Just save non-visual settings
-                }
-            }
-        });
-    },
-
-    /** @private Binds listener to a number input */
-    _bindNumberInputListener(inputId, cssVar = null, unit = '') {
-        const input = document.getElementById(inputId);
-        // Robustness: Check if element exists
-        if (!input) { console.warn(`[SM Bind] Number input element #${inputId} not found.`); return; }
-
-        input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            this._currentSettings[inputId] = String(value); // Store as string
-
-            // Handle Aspect ratio linking
-            if (inputId === 'exportWidth' || inputId === 'exportHeight') {
-                this._handleDimensionChange(inputId);
-                // Update is triggered within _handleDimensionChange or by the input event itself
-            }
-            // Apply CSS Variable if specified
-            else if (cssVar) {
-                document.documentElement.style.setProperty(cssVar, `${value}${unit}`);
-                // Trigger size update or re-apply styles if necessary
-                if (cssVar === '--dynamic-font-size') this._updateSizeIndicator();
-                else if (cssVar === '--dynamic-border-width') {
-                    // Re-apply border style which inherently applies width variable
-                    if (this._currentSettings.borderStyle && this._currentSettings.borderStyle !== 'border-none') {
-                        this._applyBorderStyle(this._currentSettings.borderStyle);
-                    }
-                } else if (cssVar === '--dynamic-border-padding') {
-                    this._applyBorderPadding(value, unit); // Use helper which might use CSSUtils
-                }
-                 this._triggerSettingsUpdate(); // Trigger for CSS var changes
-            } else if (inputId === 'customBorderRadius') {
-                this._applyCustomBorderRadius(value);
-                 this._triggerSettingsUpdate(); // Trigger for custom radius change
-            } else {
-                 // Likely just an export setting, only save, don't trigger full update
-                 this.saveCurrentSettings();
-            }
-        });
-    },
-
-     /** @private Binds listener to a range input */
-     _bindRangeInputListener(inputId, cssVar = null, unit = '') {
-        const input = document.getElementById(inputId);
-        // Robustness: Check if element exists
-        if (!input) { console.warn(`[SM Bind] Range input element #${inputId} not found.`); return; }
-
-        const display = input.parentElement?.querySelector('.range-value-display');
-        // Helper to update the visual display text (e.g., "10px")
-        const updateDisplay = (val) => {
-            if(display) { /* ... (keep updateDisplay logic) ... */
-                 let unitDisplay='';if(unit==='x')unitDisplay=unit;else if(unit==='FPS')unitDisplay=' '+unit;else if(unit)unitDisplay=unit;display.textContent=(val??'')+unitDisplay;
-            }
-        };
-
-        input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            this._currentSettings[inputId] = String(value);
-            updateDisplay(value); // Update visual display immediately
-
-            let updateNeeded = true; // Assume update needed unless it's just an export setting
-
-            // Apply CSS variable if specified
-            if (cssVar) {
-                document.documentElement.style.setProperty(cssVar, `${value}${unit}`);
-                if (cssVar === '--dynamic-letter-spacing') {
-                    this._updateSizeIndicator(); // Letter spacing affects layout
-                }
-            }
-            // Handle settings that need specific functions
-            else if (inputId === 'animationSpeed') {
-                this._applyAnimationSpeed(value);
-            } else if (inputId === 'animationDirection') {
-                document.documentElement.style.setProperty('--gradient-direction', `${value}deg`);
-                // Re-apply text gradient if active to show new angle
-                if (this._currentSettings.textColorMode === 'gradient') { this._applyGradientToLogo(); }
-            } else if (inputId === 'bgGradientDirection') {
-                document.documentElement.style.setProperty('--bg-gradient-direction', `${value}deg`);
-                 // Re-apply background gradient if active to show new angle
-                if (this._currentSettings.backgroundType?.includes('gradient')) { this._applyBackgroundGradient(); }
-            } else if (inputId === 'bgOpacity') {
-                if (this._previewContainer) { this._previewContainer.style.opacity = value; }
-            } else if (inputId === 'exportQuality' || inputId === 'exportFrameRate') {
-                 updateNeeded = false; // Export settings don't need immediate full trigger
-                 this.saveCurrentSettings(); // Just save
-            }
-
-            if (updateNeeded) {
-                 this._triggerSettingsUpdate();
-            }
-        });
-    },
-
-    /** @private Binds listener to a checkbox */
-    _bindCheckboxListener(checkboxId) {
-        const checkbox = document.getElementById(checkboxId);
-        // Robustness: Check if element exists
-        if (!checkbox) { console.warn(`[SM Bind] Checkbox element #${checkboxId} not found.`); return; }
-
-        checkbox.addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            this._currentSettings[checkboxId] = isChecked; // Store boolean
-
-            // Specific actions based on checkbox ID
-            if (checkboxId === 'useColor3') {
-                document.getElementById('color3Control')?.classList.toggle('hidden', !isChecked);
-                // Re-apply gradient if active and custom
-                if (this._currentSettings.textColorMode === 'gradient' && this._currentSettings.gradientPreset === 'custom') {
-                    this._applyGradientToLogo();
-                }
-                console.log(`[SM] Toggled useColor3: ${isChecked}`);
-                 this._triggerSettingsUpdate(); // Affects appearance
-            } else if (checkboxId === 'exportTransparent') {
-                console.log(`[SM] Toggled exportTransparent: ${isChecked}`);
-                this.saveCurrentSettings(); // Just save export setting
-            } else if (checkboxId === 'aspectRatioLock') {
-                console.log(`[SM] Aspect Ratio Lock toggled: ${isChecked}`);
-                // Optionally sync dimensions immediately upon locking
-                // if (isChecked) { this._syncDimensionsOnLock(); } // (Need _syncDimensionsOnLock func)
-                this._triggerSettingsUpdate(); // Save lock state and potentially updated dimensions
-            } else {
-                 this._triggerSettingsUpdate(); // Trigger for other checkboxes if needed
-            }
-        });
-    },
-
-    /** @private Binds listener to a color input */
-    _bindColorInputListener(inputId, cssVar = null) {
-        const input = document.getElementById(inputId);
-        // Robustness: Check if element exists
-        if (!input) { console.warn(`[SM Bind] Color input element #${inputId} not found.`); return; }
-
-        input.addEventListener('input', (e) => {
-            const value = e.target.value;
-            this._currentSettings[inputId] = value;
-
-            if (cssVar) {
-                document.documentElement.style.setProperty(cssVar, value);
-                if (cssVar === '--dynamic-border-color') {
-                    // Update RGB version as well
-                    let rgbValue = "255, 255, 255";
-                    try { rgbValue = (window.CSSUtils?.extractRGB || this._extractColorRGB)(value); }
-                    catch (err) { console.error(`[SM] Error extracting RGB from ${value}:`, err); }
-                    document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgbValue);
-                    // Re-apply border style if needed for effects
-                    if (this._currentSettings.borderStyle && this._currentSettings.borderStyle !== 'border-none') {
-                        this._applyBorderStyle(this._currentSettings.borderStyle);
-                    }
-                }
-            } else { // Handle colors without a direct CSS var binding
-                switch (inputId) {
-                    case 'solidColorPicker': if (this._currentSettings.textColorMode === 'solid') { this._applySolidTextColor(value); } break;
-                    case 'color1': case 'color2': case 'color3': if (this._currentSettings.textColorMode === 'gradient' && this._currentSettings.gradientPreset === 'custom') { this._applyGradientToLogo(); } break;
-                    case 'backgroundColor': if (this._currentSettings.backgroundType === 'bg-solid') { this._applySolidBgColor(value); } break;
-                    case 'bgColor1': case 'bgColor2': if (this._currentSettings.backgroundType?.includes('gradient') && this._currentSettings.backgroundGradientPreset === 'custom') { this._applyBackgroundGradient(); } break;
-                }
-            }
-            this._triggerSettingsUpdate();
-        });
-    },
-
-    /** @private Binds listener for custom border radius input */
-    _bindCustomBorderRadiusListener(inputId) {
-        const input = document.getElementById(inputId);
-        // Robustness: Check if element exists
-        if (!input) { console.warn(`[SM Bind] Custom border radius input #${inputId} not found.`); return; }
-
-        input.addEventListener('input', (e) => {
-            const value = e.target.value.trim();
-            this._currentSettings[inputId] = value;
-            this._applyCustomBorderRadius(value); // Apply/remove style based on input
-            this._triggerSettingsUpdate();
-        });
-    },
-
-    // --- Helper: Extract RGB Fallback ---
-    /** @private Fallback to extract "R, G, B" from hex/rgb color string */
-    _extractColorRGB(color) {
-        const defaultRgb = "255, 255, 255";
-        if (!color || typeof color !== 'string') return defaultRgb;
-        // Simple Hex handling (#RGB or #RRGGBB)
-        if (color.startsWith('#')) {
-            const hex = color.slice(1); let r, g, b;
-            try {
-                if (hex.length === 3) { r = parseInt(hex[0] + hex[0], 16); g = parseInt(hex[1] + hex[1], 16); b = parseInt(hex[2] + hex[2], 16); }
-                else if (hex.length === 6) { r = parseInt(hex.slice(0, 2), 16); g = parseInt(hex.slice(2, 4), 16); b = parseInt(hex.slice(4, 6), 16); }
-                else { return defaultRgb; }
-                if (isNaN(r) || isNaN(g) || isNaN(b)) { return defaultRgb; }
-                return `${r}, ${g}, ${b}`;
-            } catch { return defaultRgb; }
+  // Reset
+  resetSettings(resetType = 'all') {
+    console.log(`[SM] Resetting settings - Type: ${resetType}`);
+    const defs = this.getDefaults();
+    let toApply;
+    if (resetType === 'all') {
+      toApply = { ...defs };
+    } else {
+      toApply = { ...this.getCurrentSettings() };
+      const catMap = {
+        text: [
+          'logoText', 'fontFamily', 'fontSize', 'letterSpacing',
+          'textCase', 'fontWeight', 'textAlign',
+        ],
+        style: [
+          'textColorMode', 'solidColorPicker', 'gradientPreset',
+          'color1', 'color2', 'useColor3', 'color3', 'animationDirection',
+          'textShadow', 'textAnimation', 'animationSpeed', 'rotation',
+        ],
+        border: [
+          'borderColorPicker', 'borderStyle', 'borderWidth',
+          'borderRadius', 'borderPadding', 'customBorderRadius',
+        ],
+        background: [
+          'backgroundType', 'backgroundColor', 'bgOpacity',
+          'backgroundGradientPreset', 'bgColor1', 'bgColor2', 'bgGradientDirection',
+        ],
+      };
+      const keys = catMap[resetType] || Object.keys(defs);
+      keys.forEach((k) => {
+        if (defs.hasOwnProperty(k)) {
+          toApply[k] = defs[k];
         }
-        // Simple RGB handling (rgb(R, G, B))
-        if (color.toLowerCase().startsWith('rgb(')) {
-            const match = color.match(/rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-            if (match) { return `${match[1]}, ${match[2]}, ${match[3]}`; }
+      });
+    }
+    this.applySettings(toApply, true)
+      .then(() => {
+        console.log(`[SM] Reset (${resetType}) applied.`);
+        if (typeof showToast === 'function') {
+          showToast({ message: `Settings Reset (${resetType})!`, type: 'success' });
         }
-        console.warn(`[SM Fallback] Could not parse color '${color}' for RGB.`);
-        return defaultRgb;
-    },
-
-    // --- Style Application Methods ---
-
-    /**
-     * Applies the specified font family to the logo element.
-     * Handles async loading, shows toasts, applies CSS class. Now uses global getFontDataAsync.
-     * @private
-     * @async
-     * @param {string} fontFamily - The font family name.
-     * @returns {Promise<void>}
-     */
-    async _applyFontFamily(fontFamily) {
-        if (!this._logoElement) { console.error("[SM ApplyFont] Logo element missing."); return Promise.reject(new Error("Logo element missing.")); }
-        if (!fontFamily) { console.warn("[SM ApplyFont] No font family specified. Applying fallback."); this._applyClass(this._logoElement, 'font-family-fallback', FONT_FAMILY_CLASS_PREFIX); this._displayLicenseInfo(null); this._applyFontWeight(DEFAULT_SETTINGS.fontWeight); return; }
-
-        // Check dependency
-        if (typeof window.getFontDataAsync !== 'function') { console.error("[SM ApplyFont] window.getFontDataAsync missing!"); this._applyClass(this._logoElement, 'font-family-fallback', FONT_FAMILY_CLASS_PREFIX); return Promise.reject(new Error("getFontDataAsync unavailable.")); }
-
-        // Optimization: Skip if already applied
-        const expectedClassName = FONT_FAMILY_CLASS_PREFIX + this._sanitizeForClassName(fontFamily);
-        if (this._logoElement.classList.contains(expectedClassName)) { console.log(`[SM ApplyFont] Font "${fontFamily}" already applied. Syncing weight.`); this._applyFontWeight(this._currentSettings.fontWeight); this._updateSizeIndicator(); return; }
-
-        console.log(`[SM] Applying Font Family: ${fontFamily}`);
-        this._applyClass(this._logoElement, 'font-loading', FONT_FAMILY_CLASS_PREFIX);
-
-        // Use global toast function or console log
-        const showAppToast = window.showToast || ((config) => console.log(`[Toast (${config.type || 'info'})] ${config.message}`));
-        const loadingToast = { message: `Loading font "${fontFamily}"...`, type: 'info', duration: 1500 }; // Use options object
-        showAppToast(loadingToast);
-
-        try {
-            const fontData = await window.getFontDataAsync(fontFamily); // Use global function
-            if (fontData) {
-                const className = FONT_FAMILY_CLASS_PREFIX + this._sanitizeForClassName(fontFamily);
-                this._applyClass(this._logoElement, className, FONT_FAMILY_CLASS_PREFIX);
-                this._logoElement.classList.remove('font-loading'); // Ensure loading class removed on success
-                this._displayLicenseInfo(fontData.licenseText);
-                this._applyFontWeight(this._currentSettings.fontWeight); // Re-apply selected weight
-                showAppToast({ message: `Font "${fontFamily}" loaded.`, type: 'success' });
-            } else {
-                throw new Error(`Font data not found for ${fontFamily}`); // Handle null return from fontManager
-            }
-        } catch (err) {
-            console.error(`[SM] Error setting font family ${fontFamily}. Applying fallback.`, err);
-            this._applyClass(this._logoElement, 'font-family-fallback', FONT_FAMILY_CLASS_PREFIX);
-            this._displayLicenseInfo(null);
-            this._applyFontWeight(DEFAULT_SETTINGS.fontWeight);
-            showAppToast({ message: `Error loading "${fontFamily}". Using fallback.`, type: 'error' });
-            // Rethrow if needed by caller (debounce logic doesn't strictly need it currently)
-            // throw err;
-        } finally {
-            if (this._logoElement) this._logoElement.classList.remove('font-loading');
-            this._updateSizeIndicator();
-             // Assume toast system handles its own dismissal
+      })
+      .catch((err) => {
+        console.error('[SM] Error applying reset:', err);
+        if (typeof showAlert === 'function') {
+          showAlert('Failed to reset settings.', 'error');
         }
-    },
+      });
+  },
 
-    /** @private Applies font weight class */
-    _applyFontWeight(weight) {
-        if (!this._logoElement) return;
-        const weightToApply = (weight === null || weight === undefined) ? DEFAULT_SETTINGS.fontWeight : weight;
-        this._applyClass(this._logoElement, FONT_WEIGHT_CLASS_PREFIX + weightToApply, FONT_WEIGHT_CLASS_PREFIX);
-    },
+  addSettingsChangeListener(fn) {
+    if (typeof fn === 'function' && !this._listeners.includes(fn)) {
+      this._listeners.push(fn);
+    }
+  },
+  removeSettingsChangeListener(fn) {
+    this._listeners = this._listeners.filter((x) => x !== fn);
+  },
 
-    /** @private Applies text alignment via container's justify-content */
-    _applyTextAlign(align) {
-        if (!this._logoContainer) { console.error("[SM ApplyTextAlign] Logo container missing."); return; }
-        const validAlignments = ['left', 'center', 'right'];
-        const alignToUse = (!align || !validAlignments.includes(align)) ? 'center' : align;
-        const justification = alignToUse === 'left' ? 'flex-start' : alignToUse === 'right' ? 'flex-end' : 'center';
-        console.log(`[SM] Applying alignment justify-content: ${justification}`);
-        this._logoContainer.style.justifyContent = justification;
-        validAlignments.forEach(a => this._logoContainer.classList.remove(`${TEXT_ALIGN_CLASS_PREFIX}${a}`)); // Remove old classes if any
-        this._updateSizeIndicator();
-    },
+  pickRandomColorMode() {
+    // Suppose you only allow "solid" vs "gradient".
+    // Weighted approach: 40% chance "solid", 60% chance "gradient"
+    const colorModeOptions = ['solid', 'gradient'];
+    const colorModeWeights = [4, 6]; // total = 10
 
-    /** @private Applies text case class */
-    _applyTextCase(textCase) {
-        if (!this._logoElement || !textCase) return;
-        this._applyClass(this._logoElement, TEXT_CASE_CLASS_PREFIX + textCase, TEXT_CASE_CLASS_PREFIX);
-        this._updateSizeIndicator();
-    },
+    // Weighted random logic
+    let total = colorModeWeights.reduce((sum, w) => sum + w, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < colorModeOptions.length; i++) {
+      r -= colorModeWeights[i];
+      if (r <= 0) return colorModeOptions[i];
+    }
+    // fallback
+    return 'solid';
+  },
 
-    /** @private Applies text effect class using mapping */
-    _applyTextEffect(effectValue) {
-        if (!this._logoElement || !effectValue) return;
-        const effectClass = TEXT_EFFECT_MAP[effectValue] || 'text-effect-none';
-        console.log(`[SM] Applying text effect: '${effectValue}' -> '${effectClass}'`);
-        this._applyClass(this._logoElement, effectClass, TEXT_EFFECT_CLASS_PREFIX);
-    },
+  _applyTextDecoration(decoration) {
+    document.documentElement.style.setProperty('--dynamic-text-decoration', decoration);
+  },
+  
 
-    /** @private Applies border style/effect class using mapping */
-    _applyBorderStyle(borderValue) {
-        if (!this._logoContainer || !borderValue) return;
-        const borderClass = BORDER_STYLE_MAP[borderValue] || 'border-style-none';
-        console.log(`[SM] Applying border style: '${borderValue}' -> '${borderClass}'`);
-        const isStatic = borderClass.startsWith(BORDER_STYLE_CLASS_PREFIX);
-        const isEffect = borderClass.startsWith(BORDER_EFFECT_CLASS_PREFIX);
-        const hasBorder = borderClass !== 'border-style-none';
-        this._logoContainer.classList.toggle('dynamic-border', hasBorder);
-        if (isStatic) { this._applyClass(this._logoContainer, borderClass, BORDER_STYLE_CLASS_PREFIX); this._applyClass(this._logoContainer, 'border-effect-none', BORDER_EFFECT_CLASS_PREFIX); }
-        else if (isEffect) { this._applyClass(this._logoContainer, 'border-style-none', BORDER_STYLE_CLASS_PREFIX); this._applyClass(this._logoContainer, borderClass, BORDER_EFFECT_CLASS_PREFIX); }
-        else { this._applyClass(this._logoContainer, 'border-style-none', BORDER_STYLE_CLASS_PREFIX); this._applyClass(this._logoContainer, 'border-effect-none', BORDER_EFFECT_CLASS_PREFIX); }
-        // Re-apply related properties
-        const bw = `${this._currentSettings.borderWidth || DEFAULT_SETTINGS.borderWidth}px`; document.documentElement.style.setProperty('--dynamic-border-width', bw);
-        this._applyBorderPadding(this._currentSettings.borderPadding || DEFAULT_SETTINGS.borderPadding);
-        this._applyBorderRadius(this._currentSettings.borderRadius || DEFAULT_SETTINGS.borderRadius);
-        if (this._currentSettings.customBorderRadius) { this._applyCustomBorderRadius(this._currentSettings.customBorderRadius); }
-    },
+  _updateBorderColorRGB(hexColor) {
+    const rgb = this._extractColorRGB(hexColor);
+    document.documentElement.style.setProperty('--dynamic-border-color-rgb', rgb);
+  },
+  
 
-    /** @private Applies border radius class and style */
-    _applyBorderRadius(radiusValue) {
-        if (!this._logoContainer || !radiusValue) return;
-        const radiusClass = BORDER_RADIUS_MAP[radiusValue] || 'border-radius-custom';
-        console.log(`[SM] Applying border radius: '${radiusValue}' -> '${radiusClass}'`);
-        this._applyClass(this._logoContainer, radiusClass, BORDER_RADIUS_CLASS_PREFIX);
-        // Apply style via CSSUtils or fallback
-        if (window.CSSUtils?.applyBorderRadius) { window.CSSUtils.applyBorderRadius(this._logoContainer, radiusValue); }
-        else { /* ... (Keep fallback logic from previous full version) ... */
-            let cssRadiusValue='0';switch(radiusValue){case'none':case'square':cssRadiusValue='0';break;case'circle':cssRadiusValue='50%';break;case'oval':cssRadiusValue='50%/30%';break;case'pill':cssRadiusValue='999px';break;case'rounded-sm':cssRadiusValue='4px';break;case'rounded-md':cssRadiusValue='8px';break;case'rounded-lg':cssRadiusValue='12px';break;default:if(/^\d+(\.\d+)?(px|em|rem|%)$/.test(radiusValue)){cssRadiusValue=radiusValue}else if(!isNaN(parseFloat(radiusValue))){cssRadiusValue=`${radiusValue}px`}else{console.warn(`[SM Fallback] Invalid border-radius '${radiusValue}'.`);cssRadiusValue='0'}}this._logoContainer.style.borderRadius=cssRadiusValue;document.documentElement.style.setProperty('--dynamic-border-radius',cssRadiusValue);console.log(`[SM Fallback] Applied border-radius:${cssRadiusValue}`)
-        }
-        // Ensure custom value overrides if set, or clear inline style if switching away from custom
-        if (radiusValue !== 'custom' && this._currentSettings.customBorderRadius) { this._applyCustomBorderRadius(this._currentSettings.customBorderRadius); }
-        else if (radiusValue !== 'custom') { this._logoContainer.style.borderRadius = ''; } // Clear inline style if switching to preset
-    },
-
-    /** @private Applies custom border radius style */
-    _applyCustomBorderRadius(radiusValue) {
-        if (!this._logoContainer) return;
-        const radiusPx = radiusValue.trim();
-        if (radiusPx !== '' && !isNaN(radiusPx) && Number(radiusPx) >= 0) {
-            const valueToApply = `${Number(radiusPx)}px`;
-            this._logoContainer.style.borderRadius = valueToApply; // Apply directly
-            document.documentElement.style.setProperty('--dynamic-border-radius', valueToApply); // Update var
-            console.log(`[SM] Applied custom border radius: ${valueToApply}`);
-            // Optionally update dropdown to 'custom'
-            const dropdown = document.getElementById('borderRadius'); if (dropdown && dropdown.value !== 'custom' && Array.from(dropdown.options).some(o=>o.value==='custom')) { dropdown.value = 'custom'; this._currentSettings.borderRadius = 'custom'; }
-        } else if (radiusPx === '') { // If input cleared
-            this._logoContainer.style.borderRadius = ''; // Remove inline style
-            console.log('[SM] Cleared custom border radius.');
-            this._applyBorderRadius(this._currentSettings.borderRadius || DEFAULT_SETTINGS.borderRadius); // Re-apply selected preset
-        }
-    },
-
-     /** @private Applies border padding style */
-    _applyBorderPadding(padding, unit = 'px') {
-        if (!this._logoContainer) return;
-        let normalizedPadding = String(padding || DEFAULT_SETTINGS.borderPadding); // Use default if null/undefined
-        if (/^\d+(\.\d+)?$/.test(normalizedPadding)) { normalizedPadding = `${normalizedPadding}${unit}`; }
-        if (window.CSSUtils?.applyBorderPadding) { window.CSSUtils.applyBorderPadding(this._logoContainer, normalizedPadding); }
-        else { this._logoContainer.style.padding = normalizedPadding; document.documentElement.style.setProperty('--dynamic-border-padding', normalizedPadding); console.log(`[SM Fallback] Applied padding: ${normalizedPadding}`); }
-    },
-
-    /** @private Applies text animation class and data-text attribute */
-    _applyTextAnimation(animValue) {
-        if (!this._logoElement || !animValue) return;
-        this._applyClass(this._logoElement, animValue, ANIMATION_CLASS_PREFIX);
-        this._applyAnimationSpeed(this._currentSettings.animationSpeed);
-        const needsDataText = ['anim-glitch', 'anim-reveal'];
-        if (needsDataText.includes(animValue)) { const currentText = this._logoElement.textContent || ''; this._logoElement.setAttribute('data-text', currentText); console.log(`[SM] Applied data-text for ${animValue}: "${currentText}"`); }
-        else { this._logoElement.removeAttribute('data-text'); }
-    },
-
-    /** @private Applies preview container size class */
-    _applyPreviewSize(sizeValue) {
-        if (!this._previewContainer || !sizeValue) return;
-        this._applyClass(this._previewContainer, sizeValue, PREVIEW_SIZE_CLASS_PREFIX);
-        this._updateSizeIndicator();
-    },
-
-    // --- Complex State Handlers ---
-    /** @private Handles text color mode change */
-    _handleColorModeChange(mode) { /* ... Keep logic from previous full version ... */
-        const isSolid=mode==='solid';document.getElementById('solidColorPickerGroup')?.classList.toggle('hidden',!isSolid);document.getElementById('gradientPresetGroup')?.classList.toggle('hidden',isSolid);const isCustomGradient=!isSolid&&this._currentSettings.gradientPreset==='custom';document.getElementById('customGradientControls')?.classList.toggle('hidden',!isCustomGradient);if(isSolid){this._applySolidTextColor(this._currentSettings.solidColorPicker)}else{this._applyGradientToLogo()}console.log(`[SM] Handled color mode: ${mode}`);
-    },
-    /** @private Handles text gradient preset change */
-    _handleGradientPresetChange(preset) { /* ... Keep logic from previous full version ... */
-        const isCustom=preset==='custom';const showCustomControls=this._currentSettings.textColorMode==='gradient'&&isCustom;document.getElementById('customGradientControls')?.classList.toggle('hidden',!showCustomControls);if(this._currentSettings.textColorMode==='gradient'){this._applyGradientToLogo()}console.log(`[SM] Handled gradient preset: ${preset}`);
-    },
-    /** @private Handles background type change */
-    _handleBackgroundTypeChange(type) { /* ... Keep logic from previous full version ... */
-        if(!this._previewContainer)return;const isSolid=type==='bg-solid';const isGradient=type?.includes('gradient');document.getElementById('backgroundColorControl')?.classList.toggle('hidden',!isSolid);document.getElementById('backgroundGradientControls')?.classList.toggle('hidden',!isGradient);const isCustomGradient=isGradient&&this._currentSettings.backgroundGradientPreset==='custom';document.getElementById('customBackgroundGradient')?.classList.toggle('hidden',!isCustomGradient);this._previewContainer.style.backgroundImage='';this._previewContainer.style.backgroundColor='';this._previewContainer.style.opacity='1';if(document.getElementById('bgOpacity'))document.getElementById('bgOpacity').value='1';this._currentSettings.bgOpacity='1';const classesToRemove=Array.from(this._previewContainer.classList).filter(cls=>cls.startsWith(BACKGROUND_CLASS_PREFIX)||cls==='bg-gradient-animated-css');if(classesToRemove.length>0){this._previewContainer.classList.remove(...classesToRemove)}if(type){this._previewContainer.classList.add(type)}if(isSolid){this._applySolidBgColor(this._currentSettings.backgroundColor)}else if(isGradient){this._applyBackgroundGradient();if(type==='bg-gradient-animated'){this._previewContainer.classList.add('bg-gradient-animated-css')}}else if(type==='bg-transparent'){this._previewContainer.style.backgroundColor='transparent'}this._previewContainer.style.opacity=this._currentSettings.bgOpacity;console.log(`[SM] Handled background type: ${type}`);
-    },
-    /** @private Handles background gradient preset change */
-    _handleBackgroundGradientChange(presetValue) { /* ... Keep logic from previous full version ... */
-        const isCustom=presetValue==='custom';const showCustomControls=this._currentSettings.backgroundType?.includes('gradient')&&isCustom;document.getElementById('customBackgroundGradient')?.classList.toggle('hidden',!showCustomControls);if(this._currentSettings.backgroundType?.includes('gradient')){this._applyBackgroundGradient()}console.log(`[SM] Handled background gradient preset: ${presetValue}`);
-    },
-
-    // --- Direct Style Setters (Implementations) ---
-    _applySolidTextColor(color) { /* ... Keep logic from previous full version ... */
-        if(!this._logoElement)return;this._logoElement.style.backgroundImage='none';this._logoElement.style.backgroundClip='initial';this._logoElement.style.webkitBackgroundClip='initial';this._logoElement.style.webkitTextFillColor='initial';this._logoElement.style.color=color||DEFAULT_SETTINGS.solidColorPicker;console.log(`[SM] Applied solid text color: ${this._logoElement.style.color}`);
-    },
-    _applySolidBgColor(color) { /* ... Keep logic from previous full version ... */
-        if(!this._previewContainer)return;this._previewContainer.style.backgroundColor=color||DEFAULT_SETTINGS.backgroundColor;this._previewContainer.style.backgroundImage='none';console.log(`[SM] Applied solid background color: ${this._previewContainer.style.backgroundColor}`);
-    },
-    _applyGradientToLogo() { /* ... Keep logic from previous full version ... */
-        if(!this._logoElement)return;const direction=this._currentSettings.animationDirection||DEFAULT_SETTINGS.animationDirection;const preset=this._currentSettings.gradientPreset;let gradientCssString='';try{if(preset==='custom'){const c1=this._currentSettings.color1||DEFAULT_SETTINGS.color1;const c2=this._currentSettings.color2||DEFAULT_SETTINGS.color2;const useC3=this._currentSettings.useColor3;const c3=this._currentSettings.color3||DEFAULT_SETTINGS.color3;gradientCssString=useC3?`linear-gradient(${direction}deg, ${c1}, ${c2}, ${c3})`:`linear-gradient(${direction}deg, ${c1}, ${c2})`}else{let presetVarValue='';try{presetVarValue=getComputedStyle(document.documentElement).getPropertyValue(`--${preset}`).trim()}catch(e){console.warn(`[SM Gradient] CSS var read failed for '${preset}'.`,e)}if(presetVarValue&&presetVarValue.startsWith('linear-gradient')){console.log(`[SM Gradient] Using CSS var for preset: ${preset}`);gradientCssString=presetVarValue.replace(/linear-gradient\([^,]+,/,`linear-gradient(${direction}deg,`)}else{console.warn(`[SM Gradient] CSS var '${preset}' invalid/missing. Using fallback.`);const fallbacks={'primary-gradient':`linear-gradient(${direction}deg,#FF1493,#8A2BE2)`,'cyberpunk-gradient':`linear-gradient(${direction}deg,#f953c6,#b91d73)`,'sunset-gradient':`linear-gradient(${direction}deg,#ff7e5f,#feb47b)`,'ocean-gradient':`linear-gradient(${direction}deg,#00c6ff,#0072ff)`,'forest-gradient':`linear-gradient(${direction}deg,#5ec422,#01796f)`,'rainbow-gradient':`linear-gradient(${direction}deg,red,orange,yellow,green,blue,indigo,violet)`,'neon-blue-gradient':`linear-gradient(${direction}deg,#00c9ff,#92fe9d)`,'royal-gradient':`linear-gradient(${direction}deg,#141e30,#243b55)`,'fire-gradient':`linear-gradient(${direction}deg,#f5576c,#f39c12)`,'purple-love-gradient':`linear-gradient(${direction}deg,#cc2b5e,#753a88)`,'dark-knight-gradient':`linear-gradient(${direction}deg,#ba8b02,#181818)`,'emerald-gradient':`linear-gradient(${direction}deg,#43cea2,#185a9d)`};gradientCssString=fallbacks[preset];if(!gradientCssString){console.warn(`[SM Gradient] Unknown preset '${preset}'. Reverting.`);gradientCssString=`linear-gradient(${direction}deg,${DEFAULT_SETTINGS.color1},${DEFAULT_SETTINGS.color2})`}}}this._logoElement.style.backgroundImage=gradientCssString;this._logoElement.style.webkitBackgroundClip='text';this._logoElement.style.backgroundClip='text';this._logoElement.style.color='transparent';this._logoElement.style.webkitTextFillColor='transparent';console.log(`[SM] Applied text gradient (Preset:${preset},Dir:${direction}deg)`)}catch(e){console.error(`[SM] Error applying text gradient:`,e);this._applySolidTextColor(DEFAULT_SETTINGS.solidColorPicker)}
-    },
-    _applyBackgroundGradient() { /* ... Keep logic from previous full version ... */
-        if(!this._previewContainer)return;const direction=this._currentSettings.bgGradientDirection||DEFAULT_SETTINGS.bgGradientDirection;const preset=this._currentSettings.backgroundGradientPreset;let gradientCssString='';try{if(preset==='custom'){const c1=this._currentSettings.bgColor1||DEFAULT_SETTINGS.bgColor1;const c2=this._currentSettings.bgColor2||DEFAULT_SETTINGS.bgColor2;gradientCssString=`linear-gradient(${direction}deg, ${c1}, ${c2})`}else{let presetVarValue='';try{presetVarValue=getComputedStyle(document.documentElement).getPropertyValue(`--${preset}`).trim()}catch(e){console.warn(`[SM BG Gradient] CSS var read failed for '${preset}'.`,e)}if(presetVarValue&&presetVarValue.startsWith('linear-gradient')){console.log(`[SM BG Gradient] Using CSS var for preset: ${preset}`);gradientCssString=presetVarValue.replace(/linear-gradient\([^,]+,/,`linear-gradient(${direction}deg,`)}else{console.warn(`[SM BG Gradient] CSS var '${preset}' invalid/missing. Using fallback.`);const fallbacks={'bg-primary-gradient':`linear-gradient(${direction}deg,#1a1a2e,#16213e,#0f3460)`,'bg-cyberpunk-gradient':`linear-gradient(${direction}deg,#0f0c29,#302b63,#24243e)`,'bg-sunset-gradient':`linear-gradient(${direction}deg,#ff7e5f,#feb47b)`,'bg-ocean-gradient':`linear-gradient(${direction}deg,#00c6ff,#0072ff)`};gradientCssString=fallbacks[preset];if(!gradientCssString){console.warn(`[SM BG Gradient] Unknown preset '${preset}'. Reverting.`);gradientCssString=`linear-gradient(${direction}deg,${DEFAULT_SETTINGS.bgColor1},${DEFAULT_SETTINGS.bgColor2})`}}}this._previewContainer.style.backgroundImage=gradientCssString;this._previewContainer.style.backgroundColor='';console.log(`[SM] Applied background gradient (Preset:${preset},Dir:${direction}deg)`)}catch(e){console.error(`[SM] Error applying background gradient:`,e);this._applySolidBgColor(DEFAULT_SETTINGS.backgroundColor)}
-    },
-    _applyAnimationSpeed(speedValue) { /* ... Keep logic from previous full version ... */
-        const baseDuration=2;const speed=parseFloat(speedValue||'1');const duration=Math.max(0.1,baseDuration/Math.max(0.1,speed));document.documentElement.style.setProperty('--animation-duration',`${duration.toFixed(2)}s`);console.log(`[SM] Applied animation speed: ${speed}x -> Duration: ${duration.toFixed(2)}s`);
-    },
-    _updateFontPreview(fontFamilyName) { /* ... Keep logic from previous full version ... */
-        const previewElement=document.getElementById("fontPreview");if(previewElement){previewElement.style.fontFamily=fontFamilyName?`"${fontFamilyName}", sans-serif`:'sans-serif'}else{console.warn("[SM] Font preview element missing.")}
-    },
-    _displayLicenseInfo(licenseText) { /* ... Keep logic from previous full version ... */
-        const licenseTextArea=document.getElementById('fontLicenseText');const licenseContainer=document.getElementById('fontLicenseContainer');if(licenseTextArea&&licenseContainer){const hasText=!!licenseText&&licenseText.trim()!=='';licenseTextArea.textContent=hasText?licenseText:"No license info available.";licenseContainer.classList.toggle('hidden',!hasText)}
-    },
-
-    // --- Utility Helpers ---
-    _applyClass(targetElement, className, classPrefix = null) { /* ... Keep logic from previous full version ... */
-         if(!targetElement||!(targetElement instanceof HTMLElement)||!className)return;try{if(classPrefix){const classesToRemove=Array.from(targetElement.classList).filter(cls=>cls.startsWith(classPrefix));if(classesToRemove.length>0){targetElement.classList.remove(...classesToRemove)}}if(!className.endsWith('-none')&&!className.endsWith('_none')){targetElement.classList.add(className)}}catch(e){console.error(`[SM ApplyClass] Error applying class "${className}":`,e)}
-    },
-    _sanitizeForClassName(name) { /* ... Keep logic from previous full version ... */
-         if(!name||typeof name!=='string')return'';return name.toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'').replace(/^[\d-]+/,'')||'invalid-name';
-    },
-
-    // --- Core Methods ---
-    async applySettings(settings, forceUIUpdate = false, isInitialLoad = false) { /* ... Keep logic from previous full version ... */
-         console.log(`[SM] Applying settings (forceUI:${forceUIUpdate}, initial:${isInitialLoad})`);const settingsToApply=(typeof settings==='object'&&settings!==null)?{...this.getDefaults(),...settings}:this.getCurrentSettings();this._currentSettings=settingsToApply;Object.entries(this._currentSettings).forEach(([key,value])=>{const element=document.getElementById(key);if(!element){return}try{const currentElementValue=(element.type==='checkbox')?element.checked:element.value;const newValueFormatted=(element.type==='checkbox')?!!value:String(value??'');const currentValueFormatted=(element.type==='checkbox')?currentElementValue:String(currentElementValue);if(forceUIUpdate||isInitialLoad||currentValueFormatted!==newValueFormatted){if(element.type==='checkbox'){element.checked=newValueFormatted}else{element.value=newValueFormatted}if(forceUIUpdate&&!isInitialLoad){const eventType=(element.nodeName==='SELECT'||element.type==='checkbox'||element.type==='color')?'change':'input';element.dispatchEvent(new Event(eventType,{bubbles:true}))}}}catch(e){console.warn(`[SM Apply UI] Error setting UI #${key}:`,e)}});if(isInitialLoad||forceUIUpdate){console.log('[SM Apply Styles] Applying visual styles directly...');if(!this._logoElement||!this._previewContainer||!this._logoContainer){console.error("[SM Apply Styles] Critical elements missing!");return Promise.reject(new Error("Missing elements"))}const logoEl=this._logoElement;const logoContainer=this._logoContainer;const previewContainer=this._previewContainer;logoEl.textContent=this._currentSettings.logoText;logoEl.setAttribute('data-text',this._currentSettings.logoText);await this._applyFontFamily(this._currentSettings.fontFamily);this._applyTextCase(this._currentSettings.textCase);this._applyTextAlign(this._currentSettings.textAlign);document.documentElement.style.setProperty('--dynamic-font-size',`${this._currentSettings.fontSize}px`);document.documentElement.style.setProperty('--dynamic-letter-spacing',`${this._currentSettings.letterSpacing}em`);document.documentElement.style.setProperty('--dynamic-rotation',`${this._currentSettings.rotation}deg`);document.documentElement.style.setProperty('--dynamic-border-color',this._currentSettings.borderColorPicker);document.documentElement.style.setProperty('--dynamic-border-width',`${this._currentSettings.borderWidth}px`);document.documentElement.style.setProperty('--gradient-direction',`${this._currentSettings.animationDirection}deg`);document.documentElement.style.setProperty('--bg-gradient-direction',`${this._currentSettings.bgGradientDirection}deg`);let borderRgb="255,255,255";try{borderRgb=(window.CSSUtils?.extractRGB||this._extractColorRGB)(this._currentSettings.borderColorPicker)}catch(e){console.error("Error getting border RGB",e)}document.documentElement.style.setProperty('--dynamic-border-color-rgb',borderRgb);this._applyBorderStyle(this._currentSettings.borderStyle);if(this._currentSettings.customBorderRadius){this._applyCustomBorderRadius(this._currentSettings.customBorderRadius)}this._applyAnimationSpeed(this._currentSettings.animationSpeed);this._applyTextEffect(this._currentSettings.textShadow);this._applyTextAnimation(this._currentSettings.textAnimation);this._applyPreviewSize(this._currentSettings.previewSize);this._handleColorModeChange(this._currentSettings.textColorMode);this._handleBackgroundTypeChange(this._currentSettings.backgroundType);previewContainer.style.opacity=this._currentSettings.bgOpacity;this._handleGradientPresetChange(this._currentSettings.gradientPreset);this._handleBackgroundGradientChange(this._currentSettings.backgroundGradientPreset);this._updateRangeValueDisplays();const presetSelect=document.getElementById('aspectRatioPreset');if(presetSelect){presetSelect.value=this._currentSettings.aspectRatioPreset||'auto'}const lockCheckbox=document.getElementById('aspectRatioLock');if(lockCheckbox){lockCheckbox.checked=!!this._currentSettings.aspectRatioLock}console.log('[SM Apply Styles] Visual styles complete.')}this._triggerSettingsUpdate();console.log('[SM] applySettings complete.')
-    },
-    _triggerSettingsUpdate() { /* ... Keep logic from previous full version ... */
-        this.saveCurrentSettings();const currentSettingsCopy=this.getCurrentSettings();this._listeners.forEach(listener=>{try{listener(currentSettingsCopy)}catch(e){console.error('[SM] Error in listener:',e)}});try{document.dispatchEvent(new CustomEvent('logomaker-settings-updated',{detail:{settings:currentSettingsCopy}}))}catch(eventError){console.error('[SM] Error dispatching event:',eventError)}requestAnimationFrame(()=>{this._updateSizeIndicator();this._updateCSSCode()});
-    },
-    _updateSizeIndicator() { /* ... Keep logic from previous full version ... */
-        const widthDisplay=document.getElementById('logoWidth');const heightDisplay=document.getElementById('logoHeight');if(!this._logoElement||!widthDisplay||!heightDisplay)return;try{const rect=this._logoElement.getBoundingClientRect();if(rect.width>0)widthDisplay.textContent=Math.round(rect.width);else widthDisplay.textContent='--';if(rect.height>0)heightDisplay.textContent=Math.round(rect.height);else heightDisplay.textContent='--'}catch(e){console.error('[SM] Error updating size:',e);widthDisplay.textContent='N/A';heightDisplay.textContent='N/A'}
-    },
-    _updateCSSCode() { /* ... Keep logic from previous full version ... */
-        const cssCodeElement=document.getElementById('cssCode');if(cssCodeElement){try{cssCodeElement.value=this._generateCSSCode()}catch(e){console.error("[SM] Failed CSS code gen:",e);cssCodeElement.value="/* Error */"}}
-    },
-    _generateCSSCode() { /* ... Keep logic from previous full version ... */
-        if(!this._logoElement||!this._previewContainer||!this._logoContainer){return"/* Error: Core elements missing. */"}try{let css=`/* Generated CSS */\n\n:root {\n`;const cssVarsToInclude=['--animation-duration','--gradient-direction','--dynamic-border-color','--dynamic-border-color-rgb','--bg-gradient-direction','--dynamic-font-size','--dynamic-letter-spacing','--dynamic-rotation','--dynamic-border-width','--dynamic-border-radius','--dynamic-border-padding'];cssVarsToInclude.forEach(varName=>{const value=document.documentElement.style.getPropertyValue(varName)||getComputedStyle(document.documentElement).getPropertyValue(varName);if(value?.trim()){css+=`  ${varName}: ${value.trim()};\n`}});css+=`}\n\n`;const getPrefixedClass=(element,prefix)=>Array.from(element.classList).find(c=>c.startsWith(prefix));const isRelevantClass=c=>c==='dynamic-border'||[BORDER_STYLE_CLASS_PREFIX,BORDER_EFFECT_CLASS_PREFIX,BORDER_RADIUS_CLASS_PREFIX,FONT_FAMILY_CLASS_PREFIX,FONT_WEIGHT_CLASS_PREFIX,TEXT_ALIGN_CLASS_PREFIX,TEXT_CASE_CLASS_PREFIX,TEXT_EFFECT_CLASS_PREFIX,ANIMATION_CLASS_PREFIX].some(p=>c.startsWith(p));const containerClasses=Array.from(this._logoContainer.classList).filter(isRelevantClass).map(c=>`.${c}`).join('');const textClasses=Array.from(this._logoElement.classList).filter(isRelevantClass).map(c=>`.${c}`).join('');css+=`/* Container */\n.logo-container${containerClasses} {\n  position: relative; display: inline-flex; align-items: center; justify-content: ${this._logoContainer.style.justifyContent||'center'};\n  padding: var(--dynamic-border-padding, 10px);\n  border-radius: var(--dynamic-border-radius, 0);\n}\n\n`;css+=`/* Text */\n.logo-text${textClasses} {\n  font-size: var(--dynamic-font-size);\n  letter-spacing: var(--dynamic-letter-spacing);\n  transform: rotate(var(--dynamic-rotation));\n  line-height: 1.2; white-space: nowrap;\n`;if(this._currentSettings.textColorMode==='gradient'){css+=`  background-image: ${this._logoElement.style.backgroundImage||'none'};\n  -webkit-background-clip: text; background-clip: text;\n  color: transparent; -webkit-text-fill-color: transparent;\n`}else{css+=`  color: ${this._logoElement.style.color||'#ffffff'};\n  background-image: none;\n  background-clip: initial; -webkit-background-clip: initial;\n  -webkit-text-fill-color: initial;\n`}css+=`}\n\n`;const activeAnimationClass=getPrefixedClass(this._logoElement,ANIMATION_CLASS_PREFIX);if(activeAnimationClass&&activeAnimationClass!=='anim-none'&&typeof window.getActiveAnimationKeyframes==='function'){try{const animationName=activeAnimationClass.replace(ANIMATION_CLASS_PREFIX,'');const keyframesCss=window.getActiveAnimationKeyframes(animationName);if(keyframesCss){css+=`/* Keyframes for ${animationName} */\n${keyframesCss}\n\n`}}catch(e){console.error("Error getting keyframes CSS:",e)}}const backgroundClass=Array.from(this._previewContainer.classList).find(c=>c.startsWith(BACKGROUND_CLASS_PREFIX)&&!c.includes('gradient')&&c!=='bg-solid'&&c!=='bg-transparent');if(backgroundClass){css+=`/* Background pattern: .${backgroundClass} */\n\n`}return css.trim()}catch(e){console.error("Error generating CSS:",e);return`/* CSS Gen Error: ${e.message} */`}
-    },
-    _initializeUIComponentsState() { /* ... Keep logic from previous full version ... */
-        console.log('[SM] Initializing dependent UI component states...');try{this._handleColorModeChange(this._currentSettings.textColorMode);this._handleGradientPresetChange(this._currentSettings.gradientPreset);this._handleBackgroundTypeChange(this._currentSettings.backgroundType);this._handleBackgroundGradientChange(this._currentSettings.backgroundGradientPreset);const customRadiusInput=document.getElementById('customBorderRadius');if(customRadiusInput)customRadiusInput.parentElement?.classList.toggle('hidden',this._currentSettings.borderRadius!=='custom');this._updateFontPreview(this._currentSettings.fontFamily);this._updateRangeValueDisplays();this._setupResetButton();console.log('[SM] Dependent UI states initialized.')}catch(e){console.error("[SM] Error initializing UI states:",e)}
-    },
-    _setupResetButton() { /* ... Keep logic from previous full version ... */
-         const resetButton=document.getElementById('resetBtn');if(!resetButton){console.warn("[SM] Reset button missing.");return}if(resetButton.dataset.listenerAttached==='true'){return}const resetModal=document.getElementById('resetConfirmModal');const cancelBtn=document.getElementById('resetModalCancel');const confirmBtn=document.getElementById('resetModalConfirm');if(!resetModal||!cancelBtn||!confirmBtn){console.warn('[SM] Reset modal elements missing.');return}const closeModal=()=>{resetModal.style.display='none';resetModal.classList.remove('active')};resetButton.onclick=()=>{resetModal.style.display='flex';requestAnimationFrame(()=>resetModal.classList.add('active'))};cancelBtn.onclick=closeModal;confirmBtn.onclick=()=>{const resetType=document.querySelector('input[name="reset-type"]:checked')?.value||'all';this.resetSettings(resetType);closeModal()};resetModal.onclick=e=>{if(e.target===resetModal){closeModal()}};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&resetModal.classList.contains('active')){closeModal()}});resetButton.dataset.listenerAttached='true';console.log('[SM] Reset modal listeners attached.');
-    },
-    resetSettings(resetType = 'all') { /* ... Keep logic from previous full version ... */
-        console.log(`[SM Resetting] Type: ${resetType}`);const defaults=this.getDefaults();let settingsToApply;if(resetType==='all'){settingsToApply={...defaults}}else{settingsToApply={...this.getCurrentSettings()};const categoryKeyMap={text:['logoText','fontFamily','fontSize','letterSpacing','textCase','fontWeight','textAlign'],style:['textColorMode','solidColorPicker','gradientPreset','color1','color2','useColor3','color3','animationDirection','textShadow','textAnimation','animationSpeed','rotation'],border:['borderColorPicker','borderStyle','borderWidth','borderRadius','borderPadding','customBorderRadius'],background:['backgroundType','backgroundColor','bgOpacity','backgroundGradientPreset','bgColor1','bgColor2','bgGradientDirection']};const keysToReset=categoryKeyMap[resetType]||Object.keys(defaults);keysToReset.forEach(key=>{if(defaults.hasOwnProperty(key)){settingsToApply[key]=defaults[key]}})}this.applySettings(settingsToApply,true).then(()=>{console.log(`[SM] Settings Reset (${resetType}) applied.`);if(typeof showToast==='function'){showToast({message:`Settings Reset (${resetType})!`,type:'success'})}}).catch(err=>{console.error("[SM] Error applying reset:",err);if(typeof showAlert==='function'){showAlert("Failed to reset settings.","error")}})
-    },
-    loadSavedSettings() { /* ... Keep logic from previous full version ... */
-        try{const savedSettingsJson=localStorage.getItem('logomakerSettings');if(savedSettingsJson){const loadedSettings=JSON.parse(savedSettingsJson);const defaults=this.getDefaults();this._currentSettings={...defaults,...loadedSettings};console.log('[SM] Loaded settings from localStorage.');setTimeout(()=>{this._validateLoadedFont()},500)}else{this._currentSettings=this.getDefaults();console.log('[SM] No saved settings found.')}}catch(err){console.error('[SM] Error loading settings:',err);this._currentSettings=this.getDefaults();if(typeof showAlert==='function'){showAlert('Failed to load settings.','warning')}}
-    },
-    _validateLoadedFont() { /* ... Keep logic from previous full version ... */
-         try{const fontDropdown=document.getElementById('fontFamily');const savedFontFamily=this._currentSettings.fontFamily;if(fontDropdown&&fontDropdown.options.length>1&&savedFontFamily){const fontOptionExists=fontDropdown.querySelector(`option[value="${CSS.escape(savedFontFamily)}"]`);if(!fontOptionExists){console.warn(`[SM] Saved font '${savedFontFamily}' not found. Reverting.`);this._currentSettings.fontFamily=DEFAULT_SETTINGS.fontFamily;if(fontDropdown.value!==this._currentSettings.fontFamily){fontDropdown.value=this._currentSettings.fontFamily}}}else if(fontDropdown&&savedFontFamily){console.warn("[SM] Font dropdown empty during validation.")}}catch(e){console.error("[SM] Error validating font:",e)}
-     },
-    saveCurrentSettings() { /* ... Keep logic from previous full version ... */
-        try{localStorage.setItem('logomakerSettings',JSON.stringify(this._currentSettings))}catch(err){console.error('[SM] Error saving settings:',err);if(typeof showAlert==='function'){showAlert('Could not save settings.','error')}}
-    },
-    addSettingsChangeListener(listener) { /* ... Keep logic from previous full version ... */
-         if(typeof listener==='function'&&!this._listeners.includes(listener)){this._listeners.push(listener)}
-    },
-    removeSettingsChangeListener(listener) { /* ... Keep logic from previous full version ... */
-        this._listeners=this._listeners.filter(l=>l!==listener);
-    },
-
-    // --- Aspect Ratio Logic ---
-    _getCurrentAspectRatio() { /* ... Keep logic from previous full version ... */
-        const presetSelect=document.getElementById('aspectRatioPreset');const presetValue=this._currentSettings.aspectRatioPreset||'auto';if(presetValue!=='auto'&&presetSelect){const selectedOption=presetSelect.options[presetSelect.selectedIndex];const presetRatio=parseFloat(selectedOption?.dataset.ratio);if(!isNaN(presetRatio)&&presetRatio>0){return presetRatio}else{console.warn(`[SM AspectRatio] Invalid preset ratio '${presetValue}'.`)}}if(!this._logoContainer){console.warn("[SM AspectRatio] Logo container missing.");return 1}const width=this._logoContainer.offsetWidth;const height=this._logoContainer.offsetHeight;if(width<=0||height<=0){console.warn("[SM AspectRatio] Invalid dimensions.");return 1}return width/height;
-    },
-    _handleAspectPresetChange(selectElement) { /* ... Keep logic from previous full version ... */
-        if(!selectElement){console.error("[SM PresetChange] selectElement missing!");return}const selectedOption=selectElement.options[selectElement.selectedIndex];if(!selectedOption){console.error("[SM PresetChange] No selected option!");return}const presetValue=selectedOption.value;const numericRatio=parseFloat(selectedOption?.dataset.ratio);this._currentSettings.aspectRatioPreset=presetValue;if(!isNaN(numericRatio)&&numericRatio>0){const widthInput=document.getElementById('exportWidth');const heightInput=document.getElementById('exportHeight');const lockCheckbox=document.getElementById('aspectRatioLock');if(!widthInput||!heightInput||!lockCheckbox){console.error("[SM PresetChange] Dimension/Lock inputs missing!");return}const baseWidth=parseInt(this._currentSettings.exportWidth||DEFAULT_SETTINGS.exportWidth);const newWidth=baseWidth;const newHeight=Math.max(10,Math.round(newWidth/numericRatio));this._isUpdatingAspectRatio=true;heightInput.value=newHeight;this._currentSettings.exportHeight=String(newHeight);lockCheckbox.checked=true;this._currentSettings.aspectRatioLock=true;this._isUpdatingAspectRatio=false}this._triggerSettingsUpdate();
-    },
-    _handleDimensionChange(changedInputId) { /* ... Keep logic from previous full version ... */
-        if(this._isUpdatingAspectRatio||!this._currentSettings.aspectRatioLock){return}this._isUpdatingAspectRatio=true;try{const aspectRatio=this._getCurrentAspectRatio();if(aspectRatio<=0||isNaN(aspectRatio)){console.error("[SM AspectRatio] Invalid ratio.");return}const widthInput=document.getElementById('exportWidth');const heightInput=document.getElementById('exportHeight');if(!widthInput||!heightInput){console.error("[SM AspectRatio] Dimension inputs missing.");return}const changedValue=parseFloat(this._currentSettings[changedInputId]);if(isNaN(changedValue)||changedValue<=0){console.warn(`[SM AspectRatio] Invalid input ${changedInputId}.`);return}let targetInput,targetSettingKey,newValue;if(changedInputId==='exportWidth'){targetInput=heightInput;targetSettingKey='exportHeight';newValue=Math.round(changedValue/aspectRatio)}else{targetInput=widthInput;targetSettingKey='exportWidth';newValue=Math.round(changedValue*aspectRatio)}newValue=Math.max(10,newValue);if(String(newValue)!==this._currentSettings[targetSettingKey]){console.log(`[SM AspectRatio] Updating ${targetSettingKey} to ${newValue}`);targetInput.value=newValue;this._currentSettings[targetSettingKey]=String(newValue)}}catch(error){console.error("[SM AspectRatio] Error updating dimension:",error)}finally{this._isUpdatingAspectRatio=false;}
-    },
-
-}; // End of SettingsManager object literal
+  // Helper to parse color -> rgb
+  _extractColorRGB(hex) {
+    // minimal fallback
+    if (!hex || typeof hex !== 'string') return '255,255,255';
+    const c = hex.replace('#', '').trim();
+    if (c.length === 3) {
+      const r = parseInt(c[0] + c[0], 16);
+      const g = parseInt(c[1] + c[1], 16);
+      const b = parseInt(c[2] + c[2], 16);
+      return `${r},${g},${b}`;
+    } else if (c.length >= 6) {
+      const r = parseInt(c.slice(0, 2), 16);
+      const g = parseInt(c.slice(2, 4), 16);
+      const b = parseInt(c.slice(4, 6), 16);
+      return `${r},${g},${b}`;
+    }
+    return '255,255,255';
+  },
+};
 
 export default SettingsManager;
+window.SettingsManager = SettingsManager; // manually attach

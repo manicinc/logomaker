@@ -1,153 +1,343 @@
 /**
  * PNGRenderer.js
  * ====================================================
- * Provides PNG export functionality. Prioritizes direct canvas snapshotting
- * (requires html2canvas.js) for WYSIWYG results, with SVG-based rendering
- * as a user-selectable alternative/fallback.
-
+ * Provides PNG export functionality, allowing two main modes:
+ * 1) **Snapshot (html2canvas)** – Captures the visual appearance of the preview container for a WYSIWYG result
+ * 2) **SVG-based** – Uses an SVG export pipeline for consistent vector rendering, then converts to PNG
+ *
+ * - Export runs in a modal to show a preview image.
+ * - Also features optional background transparency.
+ * - Includes improved mobile handling: the preview area is responsive, and
+ *   we clamp the dimensions if the device is very small.
+ *
+ * Dependencies:
+ *   - RendererCore.js (for `generateConsistentPreview`, `generateSVGBlob`, `convertSVGtoPNG`, etc.)
+ *   - html2canvas / captureLogoWithHTML2Canvas if snapshot mode is enabled
+ *
+ * For best results, ensure:
+ *   - #previewContainer is in the DOM with .logo-container & .logo-text children.
+ *   - The user’s width/height/quality, etc. are synced with the main UI (exportWidth, exportHeight, etc.).
  */
 
-// Import core functions from RendererCore
-// Ensure RendererCore v2.8+ is used (with global normalizeColor)
-import { generateConsistentPreview, generateSVGBlob, convertSVGtoPNG, blobToDataURL } from './RendererCore.js';
+import {
+  generateConsistentPreview,
+  generateSVGBlob,
+  convertSVGtoPNG,
+  blobToDataURL
+} from './RendererCore.js';
+
 import { captureLogoWithHTML2Canvas } from '../utils/html2Canvas.js';
 
-
-// so it can be accessed by both attachModalEventListeners (to set it up) and detachModalEventListeners (to remove it later).
-let handleSettingsUpdateListener = null; 
-
-// --- Module Scope Variables ---
-let isInitialized = false;
-const MODAL_ID = 'pngExportModal';
+/* -----------------------------------------------------
+   Module-Scope / Globals
+------------------------------------------------------ */
+let isInitialized = false;          // Have we injected HTML, styles, etc.?
+let handleSettingsUpdateListener;   // For removing the global event listener later
+const MODAL_ID = 'pngExportModal';  // Modal DOM wrapper ID
 const STYLE_ID = 'pngExporterStyles';
 
-// --- DOM Element References ---
-let modal = null, closeBtn = null, cancelBtn = null, exportBtn = null;
-let previewImage = null, loadingIndicator = null;
-let widthInput = null, heightInput = null, qualityInput = null, qualityDisplay = null, transparentCheckbox = null;
-let snapshotRadio = null, svgRenderRadio = null; // Export method radio buttons
+/* -----------------------------------------------------
+   DOM References (populated by queryModalElements)
+------------------------------------------------------ */
+let modal = null,
+    closeBtn = null,
+    cancelBtn = null,
+    exportBtn = null,
+    previewImage = null,
+    loadingIndicator = null,
+    widthInput = null,
+    heightInput = null,
+    qualityInput = null,
+    qualityDisplay = null,
+    transparentCheckbox = null,
+    snapshotRadio = null,
+    svgRenderRadio = null;
 
-// --- CSS ---
+/* -----------------------------------------------------
+   CSS for the PNG Exporter Modal
+   - Includes better mobile responsiveness
+   - Aspect ratio trick for preview container
+   - Checkerboard background for transparency
+------------------------------------------------------ */
 const MODAL_CSS = `
-/* Styles for PNG exporter modal (v2.3 - Preview Size Fix) */
+/* PNG Exporter Modal (responsive) */
 
-/* --- Base Modal Styles --- */
+.png-exporter-modal {
+  position: fixed;
+  inset: 0;
+  display: none; /* Shown by JS */
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+  background: rgba(0, 0, 0, 0.6);
+  overflow: auto; /* Allow scroll on smaller screens */
+  padding: 2rem 1rem; /* Some padding for smaller devices */
+}
+
 .png-exporter-modal .modal-content {
-    max-width: 900px; /* Consider adjusting based on content */
+  background: var(--panel-bg, #f5f5f5);
+  color: var(--text-color, #333);
+  max-width: 900px; /* Constrain modal size */
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.3);
+  padding: 1.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-/* --- Preview Area & Image (FIXED SIZING) --- */
+.png-exporter-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.png-exporter-modal .modal-header h3 {
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.png-exporter-modal .modal-header button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-color, #333);
+  cursor: pointer;
+  margin-left: 0.5rem;
+  line-height: 1;
+}
+
+.png-exporter-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Preview area container with aspect ratio trick */
 .png-exporter-modal .exporter-preview-area {
-    position: relative; /* Needed for absolute positioning of image and loading */
-    width: 100%; /* Take full available width */
-    max-width: 100%; /* Ensure it doesn't overflow */
-    margin-bottom: var(--space-md); /* Space below preview */
-
-    /* --- Aspect Ratio Control (Padding-Top Trick for 16:9) --- */
-    height: 0;
-    /* Calculate padding-top: (desired height / desired width) * 100% */
-    padding-top: 56.25%; /* (9 / 16) * 100% = 16:9 aspect ratio */
-    /* Adjust this percentage for other default ratios (e.g., 75% for 4:3, 100% for 1:1) */
-
-    background-color: rgba(0,0,0,0.1); /* Subtle background */
-    border-radius: var(--border-radius-sm);
-    overflow: hidden; /* Important to contain the absolutely positioned image */
-    border: 1px solid var(--border-color);
+  position: relative;
+  width: 100%;
+  /* 16:9 aspect ratio by default; can adjust below if needed */
+  padding-top: 56.25%;
+  background-color: rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
+/* Absolutely positioned image to fill .exporter-preview-area */
 .png-exporter-modal .exporter-preview-image {
-    /* --- Image Scaling & Positioning --- */
-    display: block; /* Correct display type */
-    position: absolute; /* Position relative to the preview-area */
-    top: 0;
-    left: 0;
-    width: 100%; /* Fill the container width */
-    height: 100%; /* Fill the container height */
-    object-fit: contain; /* Scale image down, preserve aspect ratio, fit within element */
-    border: none; /* Remove border from image itself */
-
-    /* --- Checkerboard Background --- */
-    background: repeating-conic-gradient(var(--border-subtle, #ccc) 0% 25%, var(--panel-bg-opaque, #fff) 0% 50%) 50% / 20px 20px;
-    background-size: 20px 20px; /* Ensure size */
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: none;
+  background: repeating-conic-gradient(var(--border-subtle, #ccc) 0% 25%, var(--panel-bg-opaque, #fff) 0% 50%) 50% / 20px 20px;
+  background-size: 20px 20px; /* Checkerboard for transparency */
+  border: 0;
 }
 
-/* Adjust dark mode checkerboard */
 body.dark-mode .png-exporter-modal .exporter-preview-image {
-     background: repeating-conic-gradient(var(--border-color, #333) 0% 25%, var(--panel-bg, #222) 0% 50%) 50% / 20px 20px;
-     background-size: 20px 20px;
+  background: repeating-conic-gradient(var(--border-color, #333) 0% 25%, var(--panel-bg, #222) 0% 50%) 50% / 20px 20px;
 }
 
-/* --- Loading Indicator --- */
+/* Loading overlay within the preview area */
 .png-exporter-modal .exporter-preview-loading {
-    position: absolute; inset: 0; /* Cover the preview area */
-    background: var(--modal-backdrop-bg, rgba(255, 255, 255, 0.8));
-    display: flex; /* Use flex to center content */
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 5; /* Above the image */
-    color: var(--text-color, #333);
-    border-radius: inherit; /* Match container radius */
-    text-align: center;
-    /* Transitions can be added for smoother showing/hiding */
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-}
-/* Style for when loading is hidden */
-.png-exporter-modal .exporter-preview-loading:not([style*="display: flex"]) {
-    opacity: 0;
-    visibility: hidden;
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  color: var(--text-color, #333);
+  border-radius: inherit;
+  text-align: center;
+  transition: opacity 0.2s ease;
 }
 
+body.dark-mode .png-exporter-modal .exporter-preview-loading {
+  background: rgba(20, 20, 20, 0.7);
+  color: #ccc;
+}
 
 .png-exporter-modal .exporter-preview-loading .spinner {
-    border: 4px solid rgba(var(--accent-color-rgb, 255, 20, 147), 0.2);
-    border-left-color: var(--accent-color, #ff1493);
-    border-radius: 50%; width: 30px; height: 30px;
-    animation: png-spin 1s linear infinite; margin-bottom: 10px;
+  border: 4px solid rgba(var(--accent-color-rgb, 255, 20, 147), 0.2);
+  border-left-color: var(--accent-color, #ff1493);
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  animation: png-spin 1s linear infinite;
+  margin-bottom: 0.5rem;
 }
-@keyframes png-spin { to { transform: rotate(360deg); } }
 
-/* --- Export Method Selection --- */
-.png-export-method-selector {
-    margin-top: 15px; padding: 15px;
-    background-color: var(--input-bg, rgba(0,0,0,0.05));
-    border-radius: var(--border-radius-sm, 4px);
-    border: 1px solid var(--border-color, #ccc);
+@keyframes png-spin {
+  to { transform: rotate(360deg); }
 }
-.png-export-method-selector legend {
-    font-weight: var(--font-weight-medium); padding: 0 5px; margin-bottom: 10px;
-    font-size: 0.9em; color: var(--text-color-muted);
+
+/* Controls area */
+.png-exporter-modal .exporter-controls-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-.png-export-method-selector .radio-option { display: flex; align-items: flex-start; margin-bottom: 8px; cursor: pointer; }
-.png-export-method-selector input[type="radio"] { margin-right: 10px; margin-top: 3px; /* Align better with text */ accent-color: var(--accent-color); cursor: pointer; flex-shrink: 0; }
-.png-export-method-selector label { font-size: 0.95em; color: var(--text-color); cursor: pointer; }
-.png-export-method-selector label span { font-size: 0.85em; color: var(--text-color-muted); display: block; /* Indent description */ line-height: 1.3; }
-.png-export-method-selector label code { background-color: var(--code-bg, #eee); padding: 1px 4px; border-radius: 3px; font-size: 0.9em; color: var(--text-color, #333); }
-body.dark-mode .png-export-method-selector label code { background-color: #11131c; color: #ddd; }
-`
 
+.png-exporter-modal .exporter-controls-area .control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
 
-// ----- Modal HTML -----
+.png-exporter-modal .exporter-controls-area label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.png-exporter-modal .exporter-controls-area input[type="number"],
+.png-exporter-modal .exporter-controls-area input[type="range"] {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.png-exporter-modal .exporter-controls-area input[readonly] {
+  background-color: var(--bg-base, #eee);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.png-exporter-modal .exporter-controls-area .range-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.png-exporter-modal .exporter-controls-area .range-container span {
+  font-size: 0.85rem;
+  color: var(--text-color-muted, #666);
+  min-width: 40px;
+  text-align: right;
+}
+
+.png-exporter-modal .checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.png-exporter-modal .checkbox-label input[type="checkbox"] {
+  width: 18px; height: 18px;
+  margin-right: 0.4rem;
+}
+
+.png-exporter-modal fieldset {
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 5px;
+  padding: 0.8rem;
+}
+
+.png-exporter-modal fieldset legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color-muted, #555);
+}
+
+.png-exporter-modal fieldset label {
+  display: block;
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+  cursor: pointer;
+}
+
+/* Snapshot vs. SVG radio layout */
+.png-exporter-modal fieldset label input[type="radio"] {
+  margin-right: 0.5rem;
+}
+
+.png-exporter-modal .snapshot-warning {
+  font-size: 0.8rem;
+  color: #c75;
+  margin-top: 0.3rem;
+  display: none;
+}
+
+/* Footer actions */
+.png-exporter-modal .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+}
+
+.png-exporter-modal .modal-footer button {
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.png-exporter-modal .modal-footer .cancel-btn {
+  background-color: #bbb;
+}
+
+.png-exporter-modal .modal-footer .cancel-btn:hover {
+  background-color: #aaa;
+}
+
+.png-exporter-modal .modal-footer .export-btn {
+  background-color: var(--accent-color, #ff1493);
+  color: #fff;
+}
+
+.png-exporter-modal .modal-footer .export-btn:hover {
+  background-color: #ff46a7;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .png-exporter-modal .modal-content {
+    padding: 1rem;
+    border-radius: 5px;
+  }
+
+  .png-exporter-modal .exporter-preview-area {
+    /* For extremely narrow devices, reduce ratio or let it adapt */
+    padding-top: 60%; /* Slightly taller ratio on narrow screens */
+  }
+
+  .png-exporter-modal .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+`;
+
+/* -----------------------------------------------------
+   HTML template for the PNG Exporter Modal
+------------------------------------------------------ */
 const MODAL_HTML = `
-<div id="${MODAL_ID}" class="modal-overlay png-exporter-modal" style="display:none;">
+<div id="${MODAL_ID}" class="png-exporter-modal" role="dialog" aria-modal="true">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Export as PNG</h3>
       <button id="${MODAL_ID}CloseBtn" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="exporter-preview-area" style="position: relative;">
-        <div id="${MODAL_ID}Loading" class="exporter-preview-loading">
+      <!-- Preview Area (16:9 aspect ratio box) -->
+      <div class="exporter-preview-area">
+        <div id="${MODAL_ID}Loading" class="exporter-preview-loading" style="display: none;">
           <div class="spinner"></div>
           <div class="progress-text">Generating preview...</div>
         </div>
-        <img id="${MODAL_ID}PreviewImage" class="exporter-preview-image" src="" alt="PNG Preview">
+        <img id="${MODAL_ID}PreviewImage" class="exporter-preview-image" src="" alt="PNG Preview" />
       </div>
 
+      <!-- Controls -->
       <div class="exporter-controls-area">
-        <!-- same controls: width, height, quality, transparency, snapshot vs svg radio, etc. -->
         <div class="control-group">
           <label for="${MODAL_ID}Width">Width (px)</label>
           <input type="number" id="${MODAL_ID}Width" value="800" min="10" max="8000" readonly>
@@ -158,16 +348,32 @@ const MODAL_HTML = `
         </div>
         <div class="control-group">
           <label for="${MODAL_ID}Quality">Quality (%)</label>
-          <input type="range" id="${MODAL_ID}Quality" min="10" max="100" step="5" value="95">
-          <span id="${MODAL_ID}QualityValue">95%</span>
+          <div class="range-container">
+            <input type="range" id="${MODAL_ID}Quality" min="10" max="100" step="5" value="95">
+            <span id="${MODAL_ID}QualityValue">95%</span>
+          </div>
         </div>
         <div class="control-group">
-          <label><input type="checkbox" id="${MODAL_ID}Transparent"> Transparent?</label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="${MODAL_ID}Transparent">
+            <span>Transparent?</span>
+          </label>
         </div>
+
         <fieldset>
           <legend>Export Method</legend>
-          <label><input type="radio" name="pngExportMethod" id="pngExportMethodSnapshot" value="snapshot" checked> Snapshot (html2canvas)</label>
-          <label><input type="radio" name="pngExportMethod" id="pngExportMethodSvgRender" value="svgRender"> SVG Render</label>
+          <label>
+            <input type="radio" name="pngExportMethod" id="pngExportMethodSnapshot" value="snapshot" checked>
+            Snapshot (html2canvas)
+          </label>
+          <label>
+            <input type="radio" name="pngExportMethod" id="pngExportMethodSvgRender" value="svgRender">
+            SVG Render
+          </label>
+          <!-- Warning block shown if snapshot is selected and user must be aware of performance -->
+          <div id="snapshotMethodWarning" class="snapshot-warning">
+            Note: Snapshot can be slower but captures the exact on-screen appearance (CSS effects, filters, etc.).
+          </div>
         </fieldset>
       </div>
     </div>
@@ -179,25 +385,28 @@ const MODAL_HTML = `
 </div>
 `;
 
-/* ------------------------------------------------------
-   1) Injection and Element Query
------------------------------------------------------- */
+// --- Core Functions ---
+
 function injectStyles() {
   if (!document.getElementById(STYLE_ID)) {
-    const styleEl = document.createElement('style');
-    styleEl.id = STYLE_ID;
-    styleEl.textContent = MODAL_CSS;
-    document.head.appendChild(styleEl);
+      const styleEl = document.createElement('style');
+      styleEl.id = STYLE_ID;
+      styleEl.textContent = MODAL_CSS;
+      document.head.appendChild(styleEl);
   }
 }
 
 function injectModalHTML() {
-  if (document.getElementById(MODAL_ID)) return; // already in DOM
-  const div = document.createElement('div');
-  div.innerHTML = MODAL_HTML.trim();
-  document.body.appendChild(div.firstChild);
+  if (document.getElementById(MODAL_ID)) return;
+  const container = document.createElement('div');
+  container.innerHTML = MODAL_HTML.trim();
+  document.body.appendChild(container.firstChild);
 }
 
+/**
+* Queries essential modal elements and returns true if ALL are found.
+* @returns {boolean} True if all elements were found, false otherwise.
+*/
 function queryModalElements() {
   modal = document.getElementById(MODAL_ID);
   closeBtn = document.getElementById(`${MODAL_ID}CloseBtn`);
@@ -205,7 +414,6 @@ function queryModalElements() {
   exportBtn = document.getElementById(`${MODAL_ID}ExportBtn`);
   previewImage = document.getElementById(`${MODAL_ID}PreviewImage`);
   loadingIndicator = document.getElementById(`${MODAL_ID}Loading`);
-
   widthInput = document.getElementById(`${MODAL_ID}Width`);
   heightInput = document.getElementById(`${MODAL_ID}Height`);
   qualityInput = document.getElementById(`${MODAL_ID}Quality`);
@@ -213,325 +421,285 @@ function queryModalElements() {
   transparentCheckbox = document.getElementById(`${MODAL_ID}Transparent`);
   snapshotRadio = document.getElementById('pngExportMethodSnapshot');
   svgRenderRadio = document.getElementById('pngExportMethodSvgRender');
+  snapshotWarningEl = document.getElementById('snapshotMethodWarning'); // Query warning div
 
-  // Return true if all are found
-  return !!(
-    modal && closeBtn && cancelBtn && exportBtn &&
-    previewImage && loadingIndicator &&
-    widthInput && heightInput && qualityInput && qualityDisplay &&
-    transparentCheckbox && snapshotRadio && svgRenderRadio
-  );
+  // Check if all crucial elements were found
+  const allFound = !!(modal && closeBtn && cancelBtn && exportBtn &&
+      previewImage && loadingIndicator &&
+      widthInput && heightInput &&
+      qualityInput && qualityDisplay &&
+      transparentCheckbox && snapshotRadio && svgRenderRadio && snapshotWarningEl); // Added warningEl check
+
+  if (!allFound) {
+      console.error("[PNGRenderer] Failed to query one or more essential modal elements!");
+  }
+  return allFound;
 }
 
-/* ------------------------------------------------------
-   2) Event Listeners
------------------------------------------------------- */
+/**
+* Attaches event listeners to the modal. Uses dataset flag to prevent double binding.
+*/
 function attachModalEventListeners() {
-  // We do this once. We do NOT remove them on close.
-  if (!modal) return;
-  if (modal.dataset.listeners === 'true') return; // already attached
+  if (!modal || modal.dataset.listeners === 'true') return; // Ensure modal exists and not already bound
 
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', (evt) => {
-    // click background to close
-    if (evt.target === modal) closeModal();
-  });
-
+  modal.addEventListener('click', (evt) => { if (evt.target === modal) closeModal(); });
   exportBtn.addEventListener('click', handleExport);
-
-  // Update preview if method or transparency changes
   snapshotRadio.addEventListener('change', updatePreview);
   svgRenderRadio.addEventListener('change', updatePreview);
   transparentCheckbox.addEventListener('change', updatePreview);
 
-  // Quality slider -> label update
   qualityInput.addEventListener('input', () => {
-    if (qualityDisplay) {
       qualityDisplay.textContent = `${qualityInput.value}%`;
-    }
+      // Debounce preview update on slider input if desired
+      // clearTimeout(previewUpdateDebounce);
+      // previewUpdateDebounce = setTimeout(updatePreview, 300);
   });
+  qualityInput.addEventListener('change', updatePreview); // Update on final change
 
-  // Listen for global settings changes from your app
-  handleSettingsUpdateListener = function() {
-    syncExportSettings();
-    updatePreview();
+  // Global settings listener
+  handleSettingsUpdateListener = () => {
+      // Only update if modal is currently visible
+      if (modal && modal.style.display === 'flex') {
+          syncExportSettings();
+          updatePreview(); // Refresh preview on settings change
+      }
   };
   document.addEventListener('logomaker-settings-updated', handleSettingsUpdateListener);
 
-  // Allow ESC to close
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('active')) {
-      closeModal();
-    }
-  });
+  document.addEventListener('keydown', handleEscKey);
 
   modal.dataset.listeners = 'true';
+  console.log("[PNGRenderer] Modal event listeners attached.");
 }
 
-// We no longer detach them in closeModal, so they remain valid across multiple opens.
-
-function syncExportSettings() {
-  // Pull from #exportWidth, #exportHeight, #exportQuality, #exportTransparent if present
-  try {
-    const mainW = document.getElementById('exportWidth')?.value || '800';
-    const mainH = document.getElementById('exportHeight')?.value || '400';
-    const mainQ = document.getElementById('exportQuality')?.value || '95';
-    const mainT = document.getElementById('exportTransparent')?.checked || false;
-
-    widthInput.value = mainW;
-    heightInput.value = mainH;
-    qualityInput.value = mainQ;
-    qualityDisplay.textContent = mainQ + '%';
-    transparentCheckbox.checked = mainT;
-  } catch (err) {
-    console.warn('[PNGRenderer] Could not sync from main UI. Using defaults.', err);
+/** Handles Escape key press for closing modal */
+function handleEscKey(e) {
+   if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+      closeModal();
   }
 }
 
-/* ------------------------------------------------------
-   3) Opening and Closing the Modal
------------------------------------------------------- */
-function openModal() {
-    if (!modal) {
-         console.error('PNG modal not present in DOM'); // Log error instead of throwing if possible
-         if(typeof showAlert === 'function') showAlert('Cannot open exporter: Modal not found.', 'error');
-         return;
-    }
-    if (!isInitialized) {
-         console.error('PNG modal opened before initialization.');
-         if(typeof showAlert === 'function') showAlert('Cannot open exporter: Not initialized.', 'error');
-         return;
-    }
+/** Detaches event listeners - useful for cleanup if needed */
+function detachModalEventListeners() {
+  if (!modal || modal.dataset.listeners !== 'true') return;
 
-    syncExportSettings(); // Sync settings first
+  closeBtn.removeEventListener('click', closeModal);
+  cancelBtn.removeEventListener('click', closeModal);
+  // Need to store the exact listener function for removal
+  // modal.removeEventListener('click', specificModalClickListener);
+  exportBtn.removeEventListener('click', handleExport);
+  snapshotRadio.removeEventListener('change', updatePreview);
+  svgRenderRadio.removeEventListener('change', updatePreview);
+  transparentCheckbox.removeEventListener('change', updatePreview);
+  qualityInput.removeEventListener('input', () => {}); // Placeholder - needs stored listener
+  qualityInput.removeEventListener('change', updatePreview);
 
-    // Clear previous state / ensure clean slate before showing
-    loadingIndicator.style.display = 'none'; // Ensure loader is hidden initially
-    previewImage.style.display = 'none'; // Ensure image is hidden initially
-    previewImage.removeAttribute('src'); // Remove any old src
+  if (handleSettingsUpdateListener) {
+      document.removeEventListener('logomaker-settings-updated', handleSettingsUpdateListener);
+      handleSettingsUpdateListener = null;
+  }
+  document.removeEventListener('keydown', handleEscKey);
 
-    modal.style.display = 'flex'; // Make modal visible
-
-    // Use requestAnimationFrame to wait for the browser to render the modal
-    requestAnimationFrame(() => {
-         modal.classList.add('active'); // Add active class for transitions (if any)
-         document.body.style.overflow = 'hidden'; // disable scroll behind modal
-
-         // ---- CRITICAL CHANGE ----
-         // Now that the modal is displayed, queue the preview update
-         // Using another rAF or a tiny timeout ensures layout is stable
-         requestAnimationFrame(() => {
-             updatePreview(); // Generate the preview *after* modal is rendered
-         });
-         // Alternatively, a small timeout:
-         // setTimeout(updatePreview, 10); // 10ms delay often sufficient
-
-    });
-    // **** REMOVED updatePreview() call from here ****
+  modal.removeAttribute('data-listeners');
+   console.log("[PNGRenderer] Modal event listeners detached.");
 }
 
-function closeModal() {
-  if (!modal) return;
+/** Syncs modal inputs with main UI export settings */
+function syncExportSettings() {
+  // ... (Keep existing syncExportSettings logic - seems okay) ...
+   try {
+      const mainW = document.getElementById('exportWidth')?.value || '800';
+      const mainH = document.getElementById('exportHeight')?.value || '400';
+      const mainQ = document.getElementById('exportQuality')?.value || '95';
+      const mainT = document.getElementById('exportTransparent')?.checked || false;
 
-  // remove .active so it can fade out if you have CSS transitions
-  modal.classList.remove('active');
-
-  // after short delay, hide the modal
-  setTimeout(() => {
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
-  }, 300); // match your CSS transition time, or 0 if none
+      if (widthInput) widthInput.value = mainW;
+      if (heightInput) heightInput.value = mainH;
+      if (qualityInput) qualityInput.value = mainQ;
+      if (qualityDisplay) qualityDisplay.textContent = `${mainQ}%`;
+      if (transparentCheckbox) transparentCheckbox.checked = mainT;
+  } catch (err) {
+      console.warn('[PNGRenderer] Could not sync from main UI', err);
+  }
 }
 
-/* ------------------------------------------------------
-   4) Updating the Preview
------------------------------------------------------- */
+/** Updates the preview image in the modal */
 async function updatePreview() {
-  if (!isInitialized) return;
-  if (!modal || modal.style.display === 'none') return; // no need if not visible
+  // Add checks at the start
+  if (!isInitialized || !modal || modal.style.display !== 'flex') {
+       console.log("[PNGRenderer updatePreview] Aborting: Not initialized or modal not visible.");
+       return;
+  }
+  if (!loadingIndicator || !previewImage || !snapshotRadio || !svgRenderRadio || !transparentCheckbox || !widthInput || !heightInput) {
+      console.error("[PNGRenderer updatePreview] Aborting: Required modal elements are missing.");
+      return;
+  }
 
   const method = snapshotRadio.checked ? 'snapshot' : 'svgRender';
-  const w = parseInt(widthInput.value || '800', 10);
-  const h = parseInt(heightInput.value || '400', 10);
+  const w = parseInt(widthInput.value, 10) || 800;
+  const h = parseInt(heightInput.value, 10) || 400;
   const transparent = transparentCheckbox.checked;
 
   loadingIndicator.style.display = 'flex';
   previewImage.style.display = 'none';
-  previewImage.removeAttribute('src');
+  previewImage.src = ''; // Clear previous src
 
-  const progressEl = loadingIndicator.querySelector('.progress-text');
-  if (progressEl) progressEl.textContent = `Generating preview (${method})...`;
+  const progressTextEl = loadingIndicator.querySelector('.progress-text');
+  if (progressTextEl) progressTextEl.textContent = `Generating preview (${method})...`;
+
+  if (snapshotWarningEl) {
+      snapshotWarningEl.style.display = snapshotRadio.checked ? 'block' : 'none';
+  }
 
   try {
-    if (method === 'snapshot') {
-      // EXACT WYSIWYG snapshot from #previewContainer
-      if (typeof captureLogoWithHTML2Canvas !== 'function') {
-        throw new Error('html2canvas/captureLogoWithHTML2Canvas not found');
-      }
-      const container = document.getElementById('previewContainer');
-      if (!container) {
-        throw new Error('No #previewContainer found in DOM');
-      }
-      const canvas = await captureLogoWithHTML2Canvas(container, {
-        width: w,
-        height: h,
-        transparentBackground: transparent,
-        scale: window.devicePixelRatio
-      });
-      const blob = await new Promise((resolve, reject) => {
-        canvas.toBlob(
-          (b) => b ? resolve(b) : reject(new Error('canvas.toBlob returned null')),
-          'image/png'
-        );
-      });
-      const dataUrl = await blobToDataURL(blob);
-      previewImage.onload = () => {
-        loadingIndicator.style.display = 'none';
-        previewImage.style.display = 'block';
-      };
-      previewImage.onerror = () => {
-        loadingIndicator.style.display = 'none';
-        previewImage.style.display = 'block';
-        previewImage.alt = 'Snapshot preview load failed';
-      };
-      previewImage.src = dataUrl;
+      let dataUrl = null;
+      if (method === 'snapshot') {
+          if (typeof captureLogoWithHTML2Canvas !== 'function') {
+              throw new Error('Snapshot mode unavailable: html2canvas helper function missing.');
+          }
+          const container = document.getElementById('previewContainer');
+          if (!container) throw new Error('Source #previewContainer not found for snapshot.');
 
-    } else {
-      // Use the built-in generateConsistentPreview to do SVG->PNG for preview
-      await generateConsistentPreview(
-        { width: w, height: h, transparentBackground: transparent },
-        previewImage,
-        loadingIndicator,
-        'png'
-      );
-      // That function sets previewImage.src for us, hides spinner, etc.
-    }
+          const canvas = await captureLogoWithHTML2Canvas(container, { width: w, height: h, transparentBackground: transparent, scale: 1 }); // Use scale 1 for preview speed
+          const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('Snapshot preview: canvas.toBlob failed')), 'image/png'));
+          dataUrl = await blobToDataURL(blob);
+      } else { // svgRender path
+          const result = await generateConsistentPreview({ width: w, height: h, transparentBackground: transparent }, previewImage, loadingIndicator, 'png');
+          dataUrl = result.dataUrl; // This function handles setting the src and loading state
+           if (!dataUrl) throw new Error("SVG Render preview failed to generate Data URL.");
+      }
+
+      // Only set src directly if snapshot method OR if generateConsistentPreview failed to set it
+       if ((method === 'snapshot' || !previewImage.src) && dataUrl) {
+           previewImage.onload = () => {
+               loadingIndicator.style.display = 'none';
+               previewImage.style.display = 'block';
+               previewImage.alt = `PNG Preview (${method})`;
+           };
+           previewImage.onerror = () => {
+               loadingIndicator.style.display = 'none';
+               previewImage.style.display = 'none'; // Hide broken image
+               if (progressTextEl) progressTextEl.textContent = 'Preview Failed (Image Load Error)';
+               previewImage.alt = 'Preview Failed';
+           };
+           previewImage.src = dataUrl;
+       } else if (method !== 'snapshot') {
+           // generateConsistentPreview handled it, ensure loading is hidden IF image displayed
+           if (previewImage.style.display === 'block') {
+               loadingIndicator.style.display = 'none';
+           }
+       }
+
   } catch (err) {
-    console.error('[PNGRenderer] updatePreview error:', err);
-    if (loadingIndicator) {
-      (loadingIndicator.querySelector('.progress-text') || loadingIndicator).textContent =
-        `Preview Failed: ${err.message}`;
-    }
+      console.error('[PNGRenderer] Error in updatePreview:', err);
+      loadingIndicator.style.display = 'flex'; // Keep loading shown on error
+       if (progressTextEl) progressTextEl.textContent = `Preview Failed: ${err.message}`;
+      previewImage.style.display = 'none';
+      previewImage.alt = 'Preview Failed';
   }
 }
 
-/* ------------------------------------------------------
-   5) Final Export
------------------------------------------------------- */
+/** Handles the actual export process */
 async function handleExport() {
-  if (!modal) return;
+  if (!modal || !exportBtn || !loadingIndicator) return; // Ensure elements exist
+
   exportBtn.disabled = true;
+  exportBtn.textContent = 'Exporting...';
   loadingIndicator.style.display = 'flex';
   const progressEl = loadingIndicator.querySelector('.progress-text');
-  if (progressEl) progressEl.textContent = 'Exporting...';
+  if (progressEl) progressEl.textContent = 'Generating final PNG...';
 
+  // Gather options
   const method = snapshotRadio.checked ? 'snapshot' : 'svgRender';
-  const w = parseInt(widthInput.value || '800', 10);
-  const h = parseInt(heightInput.value || '400', 10);
-  const qualityVal = parseInt(qualityInput.value || '95', 10) / 100; // PNG compression hint
+  const w = parseInt(widthInput.value, 10) || 800;
+  const h = parseInt(heightInput.value, 10) || 400;
+  const qualityVal = parseInt(qualityInput.value, 10) / 100 || 0.95;
   const transparent = transparentCheckbox.checked;
 
   let finalBlob = null;
   try {
-    if (method === 'snapshot') {
-      const container = document.getElementById('previewContainer');
-      if (!container) throw new Error('No #previewContainer for snapshot export.');
+      if (method === 'snapshot') {
+          if (typeof captureLogoWithHTML2Canvas !== 'function') throw new Error('Snapshot mode unavailable: html2canvas missing.');
+          const container = document.getElementById('previewContainer');
+          if (!container) throw new Error('Source #previewContainer not found for snapshot export.');
+          const canvas = await captureLogoWithHTML2Canvas(container, { width: w, height: h, transparentBackground: transparent, scale: 2 }); // Higher scale for export
+          finalBlob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('Snapshot export: canvas.toBlob failed')), 'image/png', qualityVal));
+      } else { // svgRender
+          const svgBlob = await generateSVGBlob({ width: w, height: h, transparentBackground: transparent });
+          finalBlob = await convertSVGtoPNG(svgBlob, { width: w, height: h, transparentBackground: transparent, quality: qualityVal });
+      }
 
-      // higher scale for better resolution
-      const canvas = await captureLogoWithHTML2Canvas(container, {
-        width: w,
-        height: h,
-        transparentBackground: transparent,
-        scale: 2
-      });
-      finalBlob = await new Promise((resolve, reject) => {
-        canvas.toBlob(
-          (b) => b ? resolve(b) : reject(new Error('Snapshot export toBlob failed')),
-          'image/png',
-          qualityVal
-        );
-      });
+      if (finalBlob) {
+          const baseName = window.Utils?.getLogoFilenameBase?.() || 'logo';
+          const filename = `${baseName}_${w}x${h}.png`;
 
-    } else {
-      // 1) Build SVG
-      const svgBlob = await generateSVGBlob({ width: w, height: h, transparentBackground: transparent });
-      // 2) Convert to PNG
-      finalBlob = await convertSVGtoPNG(svgBlob, {
-        width: w,
-        height: h,
-        transparentBackground: transparent,
-        quality: qualityVal
-      });
-    }
+          if (typeof window.Utils?.downloadBlob === 'function') {
+              window.Utils.downloadBlob(finalBlob, filename);
+          } else { // Fallback download
+              const url = URL.createObjectURL(finalBlob);
+              const link = document.createElement('a'); link.href = url; link.download = filename;
+              document.body.appendChild(link); link.click(); document.body.removeChild(link);
+              setTimeout(()=>URL.revokeObjectURL(url),100);
+          }
 
-    if (finalBlob) {
-      // Trigger a file download
-      const baseName = window.Utils?.getLogoFilenameBase?.() || 'logo';
-      const filename = `${baseName}.png`;
-
-      if (typeof window.Utils?.downloadBlob === 'function') {
-        window.Utils.downloadBlob(finalBlob, filename);
+          if (typeof showToast === 'function') showToast({ message: `PNG exported: ${filename}`, type: 'success' });
+          closeModal(); // Close modal on success
       } else {
-        // basic fallback
-        const url = URL.createObjectURL(finalBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+           throw new Error("Generated PNG blob was null.");
       }
-
-      // optional: notify success
-      if (typeof window.notifyExportSuccess === 'function') {
-        window.notifyExportSuccess('PNG Export', filename);
-      }
-      closeModal();
-    }
   } catch (err) {
-    console.error('[PNGRenderer] handleExport error:', err);
-    if (typeof showAlert === 'function') {
-      showAlert(`PNG export failed (${method}): ${err.message}`, 'error');
-    }
+      console.error('[PNGRenderer] handleExport error:', err);
+      if (typeof showAlert === 'function') showAlert(`PNG export failed (${method}): ${err.message}`, 'error');
+      if (progressEl) progressEl.textContent = 'Export Failed!'; // Update loading text
+      // Keep modal open on error for user feedback
   } finally {
-    exportBtn.disabled = false;
-    loadingIndicator.style.display = 'none';
+      exportBtn.disabled = false;
+      exportBtn.textContent = 'Export PNG';
+       // Hide loading indicator only if export didn't fail immediately
+       if(finalBlob) loadingIndicator.style.display = 'none';
   }
 }
 
-/* ------------------------------------------------------
-   6) Main Entry Point
------------------------------------------------------- */
-function initializeUI() {
-  if (isInitialized) return Promise.resolve(true);
-  return new Promise((resolve, reject) => {
-    try {
+/**
+* Initialize the PNG Renderer UI (injects HTML/CSS, queries elements, attaches listeners)
+* @returns {Promise<boolean>} True if successful, false otherwise.
+*/
+async function initializeUI() {
+  if (isInitialized) return true;
+  console.log("[PNGRenderer] Initializing UI...");
+
+  try {
       injectStyles();
       injectModalHTML();
-      if (!queryModalElements()) {
-        throw new Error('PNG modal elements not found after injection');
+      if (!queryModalElements()) { // ** Check if query succeeded **
+          throw new Error('Failed to find required modal elements after injection.');
       }
-      attachModalEventListeners();
+      attachModalEventListeners(); // Attach events only if elements found
       isInitialized = true;
-      resolve(true);
-    } catch (err) {
-      console.error('[PNGRenderer] initUI failed:', err);
-      isInitialized = false;
-      reject(err);
-    }
-  });
-}
-
-export async function exportPNGWithUI() {
-  try {
-    await initializeUI();
-    openModal();
+      console.log("[PNGRenderer] UI Initialized successfully.");
+      return true;
   } catch (err) {
-    console.error('[PNGRenderer] Cannot open PNG exporter:', err);
-    if (typeof showAlert === 'function') {
-      showAlert(`Cannot open PNG Exporter: ${err.message}`, 'error');
-    }
+      console.error('[PNGRenderer] initUI failed:', err);
+      isInitialized = false; // Ensure flag is false on failure
+      return false;
   }
 }
+
+/** Public function to trigger the PNG export modal */
+export async function exportPNGWithUI() {
+  console.log("[PNGRenderer] exportPNGWithUI called...");
+  try {
+      const success = await initializeUI(); // Ensure UI is ready
+      if (!success) {
+           throw new Error("PNG Exporter UI could not be initialized.");
+      }
+      openModal(); // Now open the modal
+  } catch (err) {
+      console.error('[PNGRenderer] Cannot open PNG exporter:', err);
+      if (typeof showAlert === 'function') showAlert(`Cannot open PNG Exporter: ${err.message}`, 'error');
+  }
+}
+
+console.log("[PNGRenderer v2.2] Loaded successfully.");

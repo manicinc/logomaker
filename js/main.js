@@ -13,7 +13,8 @@ import { initializeFonts } from './fontManager.js'; // Assuming fontManager expo
 import { setupThemeToggle } from './misc.js';
 // UI Initializers / Handlers (Ensure these files export the functions)
 import { setupTabNavigation } from './utils/tabs.js'; // ** FIX: Import function **
-import { setupTooltips, updateSizeIndicator, throttle, randomizeStyle, openShareModal } from './misc.js'; // Assuming misc.js exports these
+import { setupTooltips, updateSizeIndicator, throttle, openShareModal } from './misc.js';
+import { randomizeStyle } from './randomize.js'; // Assuming this is the correct path
 import { showToast, showAlert } from './notificationsDropInAlerts.js'; // Assuming notificationsDropInAlerts.js exports these
 
 // Action Handlers

@@ -361,7 +361,7 @@ function createAnimationPreviewHTML(filenameBase, frameCount, width, height, del
             border-bottom: 2px solid #3498db;
             padding-bottom: 10px;
         }
-        .preview-container {
+        .previewContainer {
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -464,7 +464,7 @@ function createAnimationPreviewHTML(filenameBase, frameCount, width, height, del
 <body>
     <h1>Animation Preview: ${filenameBase}</h1>
     
-    <div class="preview-container">
+    <div class="previewContainer">
         <div class="animation-preview" id="previewContainer">
             <!-- Frames will be loaded by JavaScript -->
         </div>

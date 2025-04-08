@@ -146,7 +146,7 @@ header {
 
 /* --- Preview Area --- */
 /* --- Preview Area --- */
-.preview-container {
+.previewContainer {
   position: relative; /* For absolute positioning of size indicator */
   display: flex; /* Use flex to center logo-container */
   align-items: center; /* Vertical centering */
@@ -166,7 +166,7 @@ header {
 }
 
 /* Preview container background overlay (Keep this as it applies the dynamic bg-* styles) */
-.preview-container::before {
+.previewContainer::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -188,7 +188,7 @@ header {
   display: flex; /* Align text */
   align-items: center; /* Vertical align */
   justify-content: center; /* Horizontal align (controlled by JS via style) */
-  /* Let width/height be determined by content or preview-container */
+  /* Let width/height be determined by content or previewContainer */
   /* width: 100%; */ /* Remove fixed width/height */
   /* height: 100%; */
   z-index: 2; /* Above background overlay */
