@@ -1,6 +1,6 @@
 window._INLINE_FONTS_DATA = {
   "metadata": {
-    "generationTimestamp": "2025-04-06T23:05:05.034Z",
+    "generationTimestamp": "2025-04-08T05:06:57.353Z",
     "familyCount": 407,
     "variantCount": 1738,
     "totalOriginalSizeMB": "40.67",

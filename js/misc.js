@@ -6,7 +6,6 @@
  * - Size Indicator Update
  * - Keyframes Extraction
  * - Share Modal Setup & Opening
- * - Randomize Style Function
  * - Throttle Utility
  * - Tooltip Setup (Placeholder)
  */
@@ -399,369 +398,6 @@ function setupShareUrlModal() { // Renamed, NOT exported directly, called intern
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', setupShareUrlModal); }
 else { setupShareUrlModal(); }
 
-/**
- * Enhanced Randomize Style Function (v1.1)
- * - Uses weighted randomization for more pleasing results.
- * - Attempts basic coherence between elements (e.g., complex animations + simple effects).
- * - Preserves text content, font selection, export settings, and preview size.
- */
-export function randomizeStyle() {
-    console.log('[Randomizer v1.1] Randomizing styles with enhanced weighting...');
-    try {
-        const defaults = SettingsManager.getDefaults();
-        const current = SettingsManager.getCurrentSettings();
-
-        // --- Settings to Preserve ---
-        const textSettings = {
-            logoText: current.logoText,
-            fontFamily: current.fontFamily,
-            fontSize: current.fontSize,
-            letterSpacing: current.letterSpacing,
-            textCase: current.textCase,
-            fontWeight: current.fontWeight // Keep selected weight variant
-        };
-        const exportSettings = {
-            exportWidth: current.exportWidth,
-            exportHeight: current.exportHeight,
-            exportQuality: current.exportQuality,
-            exportTransparent: current.exportTransparent,
-            exportFrames: current.exportFrames,
-            exportFrameRate: current.exportFrameRate
-        };
-        const previewSetting = {
-            previewSize: current.previewSize
-        };
-
-        // --- Helpers ---
-
-        // Get available options from a select dropdown
-        const getOptions = (id) => {
-            const select = document.getElementById(id);
-            // Filter out empty values and potential placeholder/disabled options
-            return select ? Array.from(select.options)
-                               .map(o => o.value)
-                               .filter(v => v && !v.startsWith('--')) // Basic filter
-                           : [];
-        };
-
-        // Weighted random selection
-        const getWeightedRandom = (items, weights) => {
-            if (!items || !items.length) return null;
-            // Default to equal weight if weights are invalid
-            const effectiveWeights = (!weights || weights.length !== items.length)
-                ? Array(items.length).fill(1)
-                : weights;
-
-            const totalWeight = effectiveWeights.reduce((sum, weight) => sum + (weight > 0 ? weight : 0), 0); // Ensure positive weights
-            if (totalWeight <= 0) return items[Math.floor(Math.random() * items.length)]; // Fallback if all weights zero
-
-            let random = Math.random() * totalWeight;
-            for (let i = 0; i < items.length; i++) {
-                if (effectiveWeights[i] <= 0) continue; // Skip zero-weighted items
-                random -= effectiveWeights[i];
-                if (random <= 0) {
-                    return items[i];
-                }
-            }
-            return items[items.length - 1]; // Fallback
-        };
-
-        // Random hex color generation (HSL based for better control)
-        const randomHex = (options = {}) => {
-            const {
-                minSaturation = 0.3, maxSaturation = 1.0, // Default wider range
-                minBrightness = 0.3, maxBrightness = 0.9, // Avoid pure white/black generally
-                hueStart = 0, hueEnd = 360 // Allow specific hue ranges if needed
-            } = options;
-
-            const h = hueStart + Math.random() * (hueEnd - hueStart);
-            const s = minSaturation + Math.random() * (maxSaturation - minSaturation);
-            const l = minBrightness + Math.random() * (maxBrightness - minBrightness);
-
-            // HSL to RGB (standard conversion)
-            let c = (1 - Math.abs(2 * l - 1)) * s;
-            let x = c * (1 - Math.abs((h / 60) % 2 - 1));
-            let m = l - c / 2;
-            let r = 0, g = 0, b = 0;
-            if (0 <= h && h < 60) { [r, g, b] = [c, x, 0]; }
-            else if (60 <= h && h < 120) { [r, g, b] = [x, c, 0]; }
-            else if (120 <= h && h < 180) { [r, g, b] = [0, c, x]; }
-            else if (180 <= h && h < 240) { [r, g, b] = [0, x, c]; }
-            else if (240 <= h && h < 300) { [r, g, b] = [x, 0, c]; }
-            else if (300 <= h && h < 360) { [r, g, b] = [c, 0, x]; }
-            r = Math.round((r + m) * 255);
-            g = Math.round((g + m) * 255);
-            b = Math.round((b + m) * 255);
-            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-        };
-
-        // --- Define Options & Weights ---
-
-        // Text Alignments (Favor Center)
-        const textAlignOptions = ['center', 'left', 'right'];
-        const textAlignWeights = [10, 5, 5];
-
-        // Color Mode (Slightly favor solid)
-        const colorModeOptions = ['solid', 'gradient'];
-        const colorModeWeights = [6, 4];
-        const selectedColorMode = getWeightedRandom(colorModeOptions, colorModeWeights);
-
-        // Gradient Presets (if used, equal weight unless specific presets exist)
-        const gradientPresetOptions = getOptions('gradientPreset').filter(v => v !== 'custom');
-
-        // Text Effects (Favor None, then subtle)
-        const textEffectOptions = ['text-effect-none', ...getOptions('textShadow').filter(v => v !== 'text-glow-none')];
-        const textEffectWeights = textEffectOptions.map(effect => {
-            if (effect === 'text-effect-none') return 50; // High chance of no effect
-            if (effect.includes('soft') || effect.includes('subtle') || effect.includes('glow-soft')) return 10;
-            if (effect.includes('shadow-std')) return 8;
-            if (effect.includes('glow-std')) return 6;
-            if (effect.includes('outline') || effect.includes('double')) return 4;
-            if (effect.includes('neon') || effect.includes('emboss') || effect.includes('hard')) return 3;
-            return 2; // Default low weight for others
-        });
-        let selectedTextEffect = getWeightedRandom(textEffectOptions, textEffectWeights);
-
-        // Border Styles (Favor None or Solid)
-        const borderStyleOptions = ['border-none', ...getOptions('borderStyle').filter(v => v !== 'border-none')];
-        const borderStyleWeights = borderStyleOptions.map(style => {
-            if (style === 'border-none') return 30;
-            if (style.includes('solid')) return 25;
-            if (style.includes('dashed') || style.includes('dotted')) return 15;
-            if (style.includes('double') || style.includes('groove') || style.includes('ridge')) return 10;
-            if (style.includes('glow') || style.includes('neon')) return 5; // Lower weight for effects
-            return 3;
-        });
-        const selectedBorderStyle = getWeightedRandom(borderStyleOptions, borderStyleWeights);
-
-        // Border Radius (Favor None or Small/Medium)
-        const borderRadiusOptions = ['none', ...getOptions('borderRadius').filter(v => v !== 'none')];
-        const borderRadiusWeights = borderRadiusOptions.map(radius => {
-            if (radius === 'none') return 30;
-            if (radius === 'rounded-sm') return 25;
-            if (radius === 'rounded-md') return 20;
-            if (radius === 'rounded-lg') return 15;
-            if (radius === 'pill' || radius === 'circle') return 10; // Less common
-            return 5;
-        });
-        const selectedBorderRadius = (selectedBorderStyle !== 'border-none') ? // Only apply radius if border exists
-                                    getWeightedRandom(borderRadiusOptions, borderRadiusWeights) :
-                                    'none';
-
-        // Animations (Favor None or Subtle)
-        const animationOptions = ['anim-none', ...getOptions('textAnimation').filter(v => v !== 'anim-none')];
-        const animationWeights = animationOptions.map(anim => {
-             if (anim === 'anim-none') return 50; // High chance of no animation
-             if (['anim-pulse', 'anim-fade', 'anim-float'].includes(anim)) return 15; // Subtle
-             if (['anim-wave', 'anim-flicker', 'anim-bounce'].includes(anim)) return 10; // Moderate
-             if (['anim-shake', 'anim-rotate'].includes(anim)) return 5; // Noticeable
-             if (['anim-glitch'].includes(anim)) return 2; // Extreme (low chance)
-             return 3; // Default for others
-        });
-        const selectedAnimation = getWeightedRandom(animationOptions, animationWeights);
-
-        // Background Type (Favor Solid)
-        const backgroundTypeOptions = ['bg-transparent', ...getOptions('backgroundType').filter(v => v !== 'bg-transparent')];
-        const backgroundTypeWeights = backgroundTypeOptions.map(type => {
-            if (type === 'bg-transparent') return 15; // Moderate chance of transparent
-            if (type === 'bg-solid') return 40; // High chance of solid
-            if (type.includes('gradient')) return 25; // Good chance of gradient
-            if (type.includes('pattern')) return 10; // Lower chance of pattern
-            return 5;
-        });
-        const selectedBackgroundType = getWeightedRandom(backgroundTypeOptions, backgroundTypeWeights);
-
-        // Background Gradient Presets (if used)
-        const bgGradientPresetOptions = getOptions('backgroundGradientPreset').filter(v => v !== 'custom');
-
-
-        // --- Generate Values & Apply Coherence ---
-
-        // Coherence: Muted vs Vibrant Theme (50/50 chance)
-        const vibrantTheme = Math.random() > 0.5;
-        const textPrimaryColorOptions = vibrantTheme ?
-            { minSaturation: 0.6, minBrightness: 0.5 } : // Vibrant Text
-            { maxSaturation: 0.8, minBrightness: 0.4, maxBrightness: 0.9 }; // Muted Text
-        const bgPrimaryColorOptions = vibrantTheme ?
-             { maxSaturation: 0.6, maxBrightness: 0.4 } : // Darker/Muted BG if text is vibrant
-             { minSaturation: 0.1, maxSaturation: 0.4, minBrightness: 0.1, maxBrightness: 0.3 }; // Darker BG if text is muted
-
-        // Text Colors
-        const color1 = randomHex(textPrimaryColorOptions);
-        const color2 = randomHex(textPrimaryColorOptions);
-        const color3 = randomHex(textPrimaryColorOptions);
-        const useColor3 = selectedColorMode === 'gradient' && Math.random() > 0.6; // 40% chance of 3rd color in gradient
-
-        // Text Effect Coherence
-        if (selectedAnimation === 'anim-glitch') {
-            console.log("[Randomizer Coherence] Glitch animation selected, disabling text effect.");
-            selectedTextEffect = 'text-effect-none'; // No effects with glitch
-        }
-        if (selectedColorMode === 'gradient' && Math.random() < 0.3) { // Reduce chance of effect with gradient
-             console.log("[Randomizer Coherence] Gradient selected, reducing chance of text effect.");
-             if (Math.random() < 0.5) selectedTextEffect = 'text-effect-none';
-        }
-
-        // Border Width & Padding (proportional to font size)
-        const currentFontSize = parseInt(current.fontSize) || 100;
-        let selectedBorderWidth = 0;
-        let selectedBorderPadding = 0;
-        if (selectedBorderStyle !== 'border-none') {
-            const maxBorderWidth = Math.max(1, Math.round(currentFontSize * 0.05)); // Up to 5%
-            selectedBorderWidth = Math.floor(Math.random() * maxBorderWidth) + 1;
-            const minPadding = Math.round(currentFontSize * 0.05);
-            const maxPadding = Math.round(currentFontSize * 0.20); // Increase max padding potential
-            selectedBorderPadding = Math.floor(Math.random() * (maxPadding - minPadding + 1)) + minPadding;
-        }
-
-        // Border Color
-        let selectedBorderColor = randomHex(vibrantTheme ? // Contrast border with text theme
-             { maxSaturation: 0.7, maxBrightness: 0.6 } : // Muted border if text is vibrant
-             { minSaturation: 0.5, minBrightness: 0.5 }); // Vibrant border if text is muted
-        if (selectedBorderStyle.includes('glow') || selectedBorderStyle.includes('neon')) {
-            selectedBorderColor = randomHex({ minSaturation: 0.8, minBrightness: 0.6 }); // Ensure bright color for glow
-        }
-
-        // Background Colors
-        const selectedBackgroundColor = randomHex(bgPrimaryColorOptions);
-        const selectedBgColor1 = randomHex(bgPrimaryColorOptions);
-        const selectedBgColor2 = randomHex(bgPrimaryColorOptions);
-
-        // Rotation (less extreme)
-        const maxRotation = selectedAnimation === 'anim-glitch' ? 0 : 8; // Limit max rotation
-        const selectedRotation = Math.floor(Math.random() * (maxRotation * 2 + 1)) - maxRotation;
-
-        // Animation Speed (moderate range)
-        const selectedAnimationSpeed = (Math.random() * 1.5 + 0.5).toFixed(1); // 0.5x to 2.0x
-
-        // Angles
-        const selectedAnimationDirection = Math.floor(Math.random() * 361);
-        const selectedBgGradientDirection = Math.floor(Math.random() * 361);
-
-        // --- Build Settings Object ---
-        const randomStyleSettings = {
-            // Text Color/Gradient
-            textColorMode: selectedColorMode,
-            solidColorPicker: randomHex(textPrimaryColorOptions), // Provide a solid fallback
-            gradientPreset: (selectedColorMode === 'gradient' && Math.random() > 0.5 && gradientPresetOptions.length > 0) ? getWeightedRandom(gradientPresetOptions, null) : 'custom',
-            color1: color1,
-            color2: color2,
-            useColor3: useColor3,
-            color3: color3,
-            animationDirection: selectedAnimationDirection, // Still used for gradient angle
-
-            // Text Effect & Style
-            textShadow: selectedTextEffect,
-            textAlign: getWeightedRandom(textAlignOptions, textAlignWeights),
-            rotation: selectedRotation,
-
-            // Border
-            borderColorPicker: selectedBorderColor,
-            borderStyle: selectedBorderStyle,
-            borderWidth: String(selectedBorderWidth),
-            borderRadius: selectedBorderRadius,
-            borderPadding: String(selectedBorderPadding),
-
-            // Animation
-            textAnimation: selectedAnimation,
-            animationSpeed: selectedAnimationSpeed,
-
-            // Background
-            backgroundType: selectedBackgroundType,
-            backgroundColor: selectedBackgroundColor,
-            // Randomize background opacity slightly more
-            bgOpacity: (selectedBackgroundType !== 'bg-transparent') ? (Math.random() * 0.4 + 0.6).toFixed(2) : '1.0', // 0.6 to 1.0, but 1.0 if transparent selected
-            backgroundGradientPreset: (selectedBackgroundType.includes('gradient') && Math.random() > 0.5 && bgGradientPresetOptions.length > 0) ? getWeightedRandom(bgGradientPresetOptions, null) : 'custom',
-            bgColor1: selectedBgColor1,
-            bgColor2: selectedBgColor2,
-            bgGradientDirection: selectedBgGradientDirection
-        };
-
-        // Combine preserved settings with randomized style settings
-        const finalSettings = {
-            ...defaults, // Start with defaults
-            ...randomStyleSettings, // Apply randomized styles
-            ...textSettings, // Re-apply preserved text/font
-            ...previewSetting, // Re-apply preserved preview size
-            ...exportSettings // Re-apply preserved export settings
-        };
-
-        console.log('[Randomizer v1.1] Applying randomized settings:', finalSettings);
-        SettingsManager.applySettings(finalSettings, true); // Apply and force UI update
-        showToast({ message: 'Style Randomized! 🎲 (Press R)', type: 'info', duration: 2000 });
-
-    } catch (err) {
-        console.error("[Randomizer v1.1] Error:", err);
-        showAlert(`Failed to randomize style: ${err.message}`, "error");
-    }
-}
-
-
-// --- Keyboard Shortcut Setup ---
-
-/**
- * Handles keydown events for global shortcuts like Randomize (R).
- * Prevents randomization if Ctrl or Cmd key is pressed (allows browser refresh).
- * @param {KeyboardEvent} event The keyboard event.
- */
-function handleGlobalKeyPress(event) {
-    // Check if 'R' key is pressed (case-insensitive)
-    if (event.key === 'r' || event.key === 'R') {
-
-        // --- FIX: Check for Ctrl or Cmd Key ---
-        // If Ctrl (for Windows/Linux) or Meta (Cmd for Mac) is pressed,
-        // let the browser handle it (e.g., for Refresh). Do nothing here.
-        if (event.ctrlKey || event.metaKey) {
-            console.log("[Shortcut] Ctrl/Cmd + R detected. Allowing default browser action.");
-            return; // Exit the function, don't prevent default or randomize
-        }
-        // --- END FIX ---
-
-        // Check if the event originates from an input field, textarea, select, or contenteditable element
-        // (This check now only runs if Ctrl/Cmd are NOT pressed)
-        const target = event.target;
-        const isInputFocused = target && (
-            target.tagName === 'INPUT' ||
-            target.tagName === 'TEXTAREA' ||
-            target.tagName === 'SELECT' ||
-            target.isContentEditable // Handles contenteditable divs/spans etc.
-        );
-
-        // If R is pressed WITHOUT Ctrl/Cmd and not focused on an input, trigger randomization
-        if (!isInputFocused) {
-            console.log("[Shortcut] 'R' key pressed outside input field (without Ctrl/Cmd). Triggering Randomize.");
-            // Prevent default action ONLY when we are handling the key ourselves
-            // (e.g., prevent typing 'r' if focus isn't on an input)
-            event.preventDefault();
-            randomizeStyle();
-        } else {
-            console.log("[Shortcut] 'R' key pressed IN input field. Ignoring randomization trigger.");
-            // No preventDefault() here, allow 'r' to be typed into the input
-        }
-    }
-    // You could add checks for other shortcuts here using else if
-}
-
-/**
- * Initializes the global key press listener.
- * Should be called once when the application sets up.
- */
-export function initializeRandomizeShortcut() {
-    console.log("[Shortcut] Initializing 'R' key listener for randomization.");
-    // Remove existing listener first to prevent duplicates if called multiple times
-    document.removeEventListener('keydown', handleGlobalKeyPress);
-    // Add the listener
-    document.addEventListener('keydown', handleGlobalKeyPress);
-}
-
-// --- Example Usage (in your main app initialization) ---
-// import { initializeRandomizeShortcut } from './randomizer'; // Adjust path
-//
-document.addEventListener('DOMContentLoaded', () => {
-  // ... other initializations ...
-  initializeRandomizeShortcut();
-  // ...
-});
 
 // --- Tooltip Setup (Placeholder) ---
 export function setupTooltips() { // EXPORTED
@@ -769,6 +405,36 @@ export function setupTooltips() { // EXPORTED
     // Add actual tooltip initialization logic (e.g., using Tippy.js or custom solution)
      // Example: document.querySelectorAll('.tooltip-trigger').forEach(...)
 }
+
+// JavaScript for copy/export functionality
+document.getElementById('copyGeneratedCSS').addEventListener('click', function() {
+    const generatedCSS = document.getElementById('generatedCSSCode').textContent;
+    navigator.clipboard.writeText(generatedCSS).then(() => {
+      // Show success message
+      const btn = this;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="icon-check"></i> Copied!';
+      setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+    });
+  });
+  
+  document.getElementById('exportGeneratedCSS').addEventListener('click', function() {
+    const generatedCSS = document.getElementById('generatedCSSCode').textContent;
+    const blob = new Blob([generatedCSS], {type: 'text/css'});
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'logomaker-styles.css';
+    document.body.appendChild(a);
+    a.click();
+    
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  });
+
 
 console.log("[Misc] Utilities initialized/exposed.");
 

@@ -1,122 +1,53 @@
 /**
- * RendererCore.js (v2.6 - Corrected Transform/Filter Calls)
- * =========================================================
- * Centralized rendering pipeline for SVG, PNG and GIF exports.
- * Includes core helpers for SVG generation, PNG conversion, and frame generation.
+ * RendererCore.js (v2.7 - Unified Export)
+ * ============================================================
+ * Central rendering pipeline for PNG, SVG, and frames exports.
+ * Ensures the entire #previewContainer area (with background,
+ * border radius, etc.) is captured consistently in both PNG & SVG.
+ *
+ * Exports:
+ *  - generateSVGBlob(options)
+ *  - convertSVGtoPNG(svgBlob, options)
+ *  - generateAnimationFrames(options)
+ *  - generateConsistentPreview(options, previewImg, loadingElement, exportType)
+ *
+ * Usage:
+ *  This module is used by other code (PNGRenderer, SVGRenderer, GIFRenderer)
+ *  or UI logic to generate final exports. 
  */
 
-// Import necessary functions from other modules
-import { captureAdvancedStyles } from '../captureTextStyles.js'; // Adjust path if needed
-import { extractSVGAnimationDetails } from '../utils/svgAnimationInfo.js'; // Adjust path if needed
+// import style capture & animation info
+import { captureAdvancedStyles } from '../captureTextStyles.js';
+import { extractSVGAnimationDetails } from '../utils/svgAnimationInfo.js';
 
-console.log("[RendererCore] Module loading (v2.6)...");
+// If needed, attach a global fallback
+console.log("[RendererCore v2.7] Loading...");
 
-// ==========================================================================
-// === Core Helper Functions ================================================
-// ==========================================================================
+// -----------------------------------------------------------------------
+// 1. Generic Helpers
+// -----------------------------------------------------------------------
 
-/**
- * Converts a Blob to a Data URL string.
- * @param {Blob} blob - The input Blob.
- * @returns {Promise<string>} A promise resolving with the Data URL.
- */
 export function blobToDataURL(blob) {
-    if (!(blob instanceof Blob)) {
-        console.error("[Core Util] blobToDataURL: Invalid input, expected Blob.", blob);
-        return Promise.reject(new Error("Invalid input: Expected a Blob."));
-    }
     return new Promise((resolve, reject) => {
+        if (!(blob instanceof Blob)) {
+            return reject(new Error("Invalid input, expected a Blob."));
+        }
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
-        reader.onerror = (errEvent) => {
-            console.error("[Core Util] FileReader error:", errEvent);
-            reject(new Error(`FileReader error: ${reader.error?.message || 'Unknown'}`));
-        };
+        reader.onerror = err => reject(err);
         reader.readAsDataURL(blob);
     });
 }
 
-/**
- * Normalizes CSS color values for SVG attributes.
- * Handles transparency, hex, rgb, rgba, and basic named colors.
- * Returns a valid SVG color string or null if fully transparent/invalid.
- * @param {string|null} color - CSS color string.
- * @param {string} [context="color"] - Optional context for logging.
- * @returns {string|null} Normalized color string or null.
- */
-function normalizeColor(color, context = "color") {
-    if (!color || typeof color !== 'string') {
-        // console.warn(`[Core Util] normalizeColor (${context}): Invalid color input "${color}", defaulting to null (transparent).`);
-        return null; // Treat invalid input as transparent
-    }
-    const trimmedColor = color.trim().toLowerCase();
-    if (trimmedColor === 'transparent' || trimmedColor === 'none' || trimmedColor === 'rgba(0,0,0,0)' || trimmedColor === 'rgba(0, 0, 0, 0)') {
-        return null; // Represent full transparency as null
-    }
-    // Standard hex, rgb, rgba should pass through
-    if (trimmedColor.startsWith('#') || trimmedColor.startsWith('rgb')) {
-        return trimmedColor; // Return directly
-    }
-    // Basic named colors map
-    const simpleColors = { 'white': '#ffffff', 'black': '#000000', 'red': '#ff0000', 'blue': '#0000ff', 'green': '#008000', 'yellow': '#ffff00', 'purple': '#800080', 'orange': '#ffa500', 'gray': '#808080', 'silver': '#c0c0c0' };
-    if (simpleColors[trimmedColor]) {
-         return simpleColors[trimmedColor];
-    }
-    // If unrecognized, warn and return original (might be valid SVG color name)
-    console.warn(`[Core Util] normalizeColor (${context}): Unrecognized color format "${trimmedColor}", returning as is.`);
-    return trimmedColor;
-}
-
-// Force global availability IF NEEDED by other non-module scripts (generally avoid this)
-if (typeof window !== 'undefined' && !window.normalizeColor) {
-    window.normalizeColor = normalizeColor;
-    console.log('[RendererCore] normalizeColor ATTACHED to window scope (if not already present).');
-}
-
-/**
- * Extracts the alpha value (0 to 1) from an rgba or hsla string.
- * Returns 1 if no alpha or format is different.
- * @param {string|null} colorString - CSS color string.
- * @returns {number} Opacity value between 0 and 1.
- */
-export function extractOpacityFromColor(colorString) {
-    if (!colorString || typeof colorString !== 'string') return 1;
-    const lowerColor = colorString.toLowerCase();
-    if (lowerColor.startsWith('rgba') || lowerColor.startsWith('hsla')) {
-        try {
-            // Find the last comma and parse the value after it
-            const parts = lowerColor.substring(lowerColor.indexOf('(') + 1, lowerColor.indexOf(')')).split(',');
-            if (parts.length > 3) { // Check if alpha value exists
-                const alphaStr = parts[parts.length - 1].trim();
-                const alpha = parseFloat(alphaStr);
-                if (!isNaN(alpha)) {
-                    return Math.max(0, Math.min(1, alpha)); // Clamp between 0 and 1
-                }
-            }
-        } catch (e) { console.error(`[Core Util] Error parsing opacity from ${colorString}:`, e); }
-    }
-    return 1; // Default to fully opaque
-}
-
-/**
- * Escapes characters problematic in SVG attributes delimited by double quotes.
- * @param {string|null} str - Input string.
- * @returns {string} Escaped string.
- */
 function escapeSVGAttribute(str) {
     if (typeof str !== 'string') return '';
     return str.replace(/&/g, '&amp;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&apos;')
               .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;') // Escape double quotes for use within attribute="value"
-              .replace(/'/g, '&apos;'); // Also escape single quotes just in case
+              .replace(/>/g, '&gt;');
 }
 
-/**
- * Escapes characters problematic in XML/SVG text content.
- * @param {string|null} str - Input string.
- * @returns {string} Escaped string.
- */
 function escapeXML(str) {
     if (typeof str !== 'string') return '';
     return str.replace(/&/g, '&amp;')
@@ -126,1077 +57,659 @@ function escapeXML(str) {
               .replace(/'/g, '&apos;');
 }
 
+function parseAnimationDuration(durationStr) {
+    if (!durationStr || typeof durationStr !== 'string') return 0;
+    const trimmed = durationStr.trim();
+    const val = parseFloat(trimmed);
+    if (isNaN(val)) return 0;
+    if (trimmed.endsWith('ms')) return val;
+    if (trimmed.endsWith('s')) return val * 1000;
+    return val * 1000; // default
+}
+
 /**
- * Helper to normalize CSS transforms for SVG (Basic Implementation).
- * NOTE: This is basic. A robust solution converts all functions to SVG matrix.
- * @param {string} cssTransform - CSS transform value (e.g., "rotate(-4deg)").
- * @returns {string} Normalized transform for SVG (e.g., "rotate(-4)") or empty string.
+ * Basic transform normalizer: rotate(30deg)->rotate(30)
  */
 function normalizeCSSTransformForSVG(cssTransform) {
-    if (!cssTransform || typeof cssTransform !== 'string' || cssTransform === 'none') {
-        return ''; // Return empty string if no transform
+    if (!cssTransform || cssTransform === 'none') return '';
+    // quick check for rotate(...) in deg
+    const rotMatch = cssTransform.match(/rotate\(\s*(-?[\d.]+)deg\)/i);
+    if (rotMatch) {
+        const angle = parseFloat(rotMatch[1]) || 0;
+        return `rotate(${angle})`; // remove "deg"
     }
-
-    // Pass matrix() transforms directly as they are compatible
-    if (cssTransform.includes('matrix')) {
-        console.log('[Normalize Transform] Passing matrix through:', cssTransform);
-        return cssTransform;
-    }
-
-    // Basic attempt to convert rotate(Ndeg) to rotate(N)
-    // WARNING: This does NOT handle the center of rotation correctly for SVG automatically.
-    const rotateMatch = cssTransform.match(/rotate\(\s*(-?[\d.]+)(deg)?\s*\)/);
-    if (rotateMatch && rotateMatch[1]) {
-        const angle = parseFloat(rotateMatch[1]);
-        const svgRotate = `rotate(${angle})`; // Basic SVG rotate
-        console.warn(`[Normalize Transform] Basic conversion: CSS "${cssTransform}" -> SVG "${svgRotate}". Center point might differ.`);
-        // Return ONLY the rotate part for simplicity, assuming it's the only transform
-        // A combined transform needs full parsing or matrix conversion.
-        return svgRotate;
-    }
-
-    // Handle potential comma separators in other functions (like translate, scale)
-    const commaRemoved = cssTransform.replace(/,\s+/g, ' ');
-    if (commaRemoved !== cssTransform) {
-        console.log(`[Normalize Transform] Removed commas: "${cssTransform}" -> "${commaRemoved}"`);
-        // Return only if this was the only change, otherwise more parsing needed
-        if(!rotateMatch && !cssTransform.includes('matrix')) return commaRemoved;
-    }
-
-
-    // If no specific conversion is done, return the original value
-    console.warn(`[Normalize Transform] No specific SVG normalization applied for CSS: "${cssTransform}". Passing through.`);
-    return cssTransform;
+    // For matrix(...) or scale(...), we can pass as-is, just remove commas:
+    let noComma = cssTransform.replace(/,\s*/g, ' ');
+    console.warn(`[RendererCore] Passing raw transform: ${cssTransform} => ${noComma}`);
+    return noComma;
 }
 
+function extractOpacityFromColor(colorStr) {
+    if (!colorStr || !colorStr.startsWith('rgba')) return 1;
+    // e.g. rgba(255,0,0,0.5)
+    const m = colorStr.match(/rgba?\(\s*\d+,\s*\d+,\s*\d+,\s*([\d.]+)/);
+    if (!m) return 1;
+    const alpha = parseFloat(m[1]);
+    return isNaN(alpha) ? 1 : Math.max(0, Math.min(1, alpha));
+}
 
-// ==========================================================================
-// === SVG Definition Creators ==============================================
-// ==========================================================================
+// -----------------------------------------------------------------------
+// 3. Key SVG Sub-Builders
+// -----------------------------------------------------------------------
 
-/** Creates SVG linear gradient definition for text fill */
-function createGradientDef(styles, gradientId) {
-    if (styles.color?.mode !== 'gradient' || !gradientId || !styles.color.gradient) return '';
-    // console.log(`[Core Defs] Creating text gradient #${gradientId}.`); // Reduce noise
-    const gradientInfo = styles.color.gradient;
-    const colors = gradientInfo.colors || [];
-    if (colors.length < 2) { console.warn(`[Core Defs] Text gradient needs >= 2 colors, found ${colors.length}. Skipping def.`); return ''; }
-
+function createTextGradientDef(styles, gradientId) {
+    if (!styles.color || styles.color.mode!=='gradient' || !styles.color.gradient) return '';
+    const {colors, direction} = styles.color.gradient;
+    if (!colors || colors.length<2) return '';
     const c1 = normalizeColor(colors[0], 'text gradient c1');
     const c2 = normalizeColor(colors[1], 'text gradient c2');
-    const c3 = colors.length > 2 ? normalizeColor(colors[2], 'text gradient c3') : null;
-    const useC3 = !!c3;
+    if (!c1 && !c2) return '';
+    // Optional 3rd color
+    let c3 = null;
+    if (colors[2]) c3 = normalizeColor(colors[2], 'text gradient c3');
 
-    // Default direction if missing
-    const dir = parseFloat(gradientInfo.direction || '180'); // Default vertical top-to-bottom if missing
-    if (isNaN(dir)) { console.warn(`[Core Defs] Invalid gradient direction "${gradientInfo.direction}". Defaulting to 180.`); dir = 180;}
+    const angleDeg = parseFloat(direction||'180')||180;
+    // Convert to svg coords
+    const angleRad = (angleDeg - 90) * Math.PI/180;
+    const x1 = (0.5 - 0.5*Math.cos(angleRad)).toFixed(4);
+    const y1 = (0.5 - 0.5*Math.sin(angleRad)).toFixed(4);
+    const x2 = (0.5 + 0.5*Math.cos(angleRad)).toFixed(4);
+    const y2 = (0.5 + 0.5*Math.sin(angleRad)).toFixed(4);
 
-    const angleRad = (dir - 90) * Math.PI / 180; // Convert CSS deg to SVG vector angle
-    const x1 = (0.5 - Math.cos(angleRad) * 0.5).toFixed(4);
-    const y1 = (0.5 - Math.sin(angleRad) * 0.5).toFixed(4);
-    const x2 = (0.5 + Math.cos(angleRad) * 0.5).toFixed(4);
-    const y2 = (0.5 + Math.sin(angleRad) * 0.5).toFixed(4);
-
-    let stops = '';
-    if (useC3 && c3) {
-        stops = `<stop offset="0%" stop-color="${c1 || '#000'}" stop-opacity="${extractOpacityFromColor(colors[0])}"/>`
-              + `<stop offset="50%" stop-color="${c2 || '#000'}" stop-opacity="${extractOpacityFromColor(colors[1])}"/>`
-              + `<stop offset="100%" stop-color="${c3}" stop-opacity="${extractOpacityFromColor(colors[2])}"/>`; // Use c3 directly
-    } else if (c1 && c2) { // Ensure c1 and c2 are valid
-        stops = `<stop offset="0%" stop-color="${c1}" stop-opacity="${extractOpacityFromColor(colors[0])}"/>`
-              + `<stop offset="100%" stop-color="${c2}" stop-opacity="${extractOpacityFromColor(colors[1])}"/>`;
+    let stops = `<stop offset="0%" stop-color="${c1||'#000'}" stop-opacity="${extractOpacityFromColor(colors[0]).toFixed(3)}"/>`;
+    if (c3) {
+        stops += `<stop offset="50%" stop-color="${c2||'#000'}" stop-opacity="${extractOpacityFromColor(colors[1]).toFixed(3)}"/>`;
+        stops += `<stop offset="100%" stop-color="${c3}" stop-opacity="${extractOpacityFromColor(c3).toFixed(3)}"/>`;
     } else {
-        console.warn(`[Core Defs] Failed to create stops for text gradient, invalid colors.`); return '';
+        stops += `<stop offset="100%" stop-color="${c2||'#000'}" stop-opacity="${extractOpacityFromColor(colors[1]).toFixed(3)}"/>`;
     }
 
-    return `<linearGradient id="${gradientId}" gradientUnits="objectBoundingBox" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops}</linearGradient>`;
+    return `<linearGradient id="${gradientId}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" gradientUnits="objectBoundingBox">${stops}</linearGradient>`;
 }
 
-/** Creates SVG filter definition for text effects (shadow/glow) */
 function createFilterDef(styles, filterId) {
-    if (!filterId || !styles?.textEffect?.type || styles.textEffect.type === 'none') return '';
-    // console.log(`[Core Defs] Creating filter #${filterId}. Effect:`, styles.textEffect); // Reduce noise
-    const { type, color, blur = 0, dx = 0, dy = 0, opacity = 0.75 } = styles.textEffect;
-    const normalizedColor = normalizeColor(color, 'filter color');
-    if (!normalizedColor) { console.warn(`[Core Defs] Invalid color for filter "${filterId}". Skipping def.`); return ''; }
+    if (!styles.textEffect || !styles.textEffect.type || styles.textEffect.type==='none') return '';
+    const {type,color,blur,dx,dy,opacity} = styles.textEffect;
+    const normalizedColor = normalizeColor(color,'filter');
+    if (!normalizedColor) return '';
+    const safeBlur = Math.max(0, blur||0);
+    const safeOpacity = Math.max(0, Math.min(1, opacity||1));
 
-    const effectOpacity = Math.max(0, Math.min(1, opacity));
-    const safeBlur = Math.max(0, blur); // Ensure blur is not negative
-
-    let filterContent = '';
-    // Use feDropShadow for simple, non-blurred shadows (potentially better performance)
-    if (type === 'shadow' && safeBlur < 0.5) { // Use threshold for blur
-        filterContent = `<feDropShadow dx="${dx}" dy="${dy}" stdDeviation="0.1" flood-color="${normalizedColor}" flood-opacity="${effectOpacity}" result="shadow"/>`; // stdDev=0 can be ignored
-         // Add merge if needed to combine shadow with original graphic correctly
-         filterContent += `<feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>`;
+    if (type==='shadow' && safeBlur<0.5) {
+        // simple dropShadow
+        return `<filter id="${filterId}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+  <feDropShadow dx="${dx||0}" dy="${dy||0}" stdDeviation="0.1" flood-color="${normalizedColor}" flood-opacity="${safeOpacity}"/>
+</filter>`;
+    } else {
+        // glow or blurred shadow
+        return `<filter id="${filterId}" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+  <feGaussianBlur in="SourceAlpha" stdDeviation="${safeBlur.toFixed(2)}" result="blur"/>
+  <feOffset dx="${dx||0}" dy="${dy||0}" in="blur" result="offsetBlur"/>
+  <feFlood flood-color="${normalizedColor}" flood-opacity="${safeOpacity}" result="flood"/>
+  <feComposite in="flood" in2="offsetBlur" operator="in" result="coloredBlur"/>
+  <feMerge>
+    <feMergeNode in="coloredBlur"/>
+    <feMergeNode in="SourceGraphic"/>
+  </feMerge>
+</filter>`;
     }
-    // Use feGaussianBlur for glows or blurred shadows
-    else if (type === 'glow' || (type === 'shadow' && safeBlur >= 0.5)) {
-        filterContent = `<feGaussianBlur in="SourceAlpha" stdDeviation="${safeBlur.toFixed(2)}" result="blur"/>` // Use SourceAlpha for transparency
-                      + `<feOffset dx="${dx}" dy="${dy}" in="blur" result="offsetBlur"/>` // Offset the blurred alpha
-                      + `<feFlood flood-color="${normalizedColor}" flood-opacity="${effectOpacity}" result="flood"/>` // Create the color flood
-                      + `<feComposite in="flood" in2="offsetBlur" operator="in" result="coloredBlur"/>` // Combine flood color with offset blurred shape
-                      + `<feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>`; // Merge effect behind original
-    }
-    else {
-        console.warn(`[Core Defs] Unrecognized filter type "${type}" for filter "${filterId}". Skipping def.`);
-        return '';
-    }
-
-    // Define filter region to prevent clipping
-    return `<filter id="${filterId}" x="-30%" y="-30%" width="160%" height="160%" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">${filterContent}</filter>`;
 }
 
-/** Creates SVG linear gradient definition for background */
 function createBackgroundGradientDef(styles, id) {
-    if (!id || !styles?.background?.gradient) return '';
-    // console.log(`[Core Defs] Creating background gradient #${id}.`); // Reduce noise
-    const gradientInfo = styles.background.gradient;
-    const colors = gradientInfo.colors || [];
-    if (colors.length < 2) { console.warn(`[Core Defs] BG gradient needs >= 2 colors. Skipping def.`); return ''; }
+    if (!styles.background?.gradient) return '';
+    const { colors, direction } = styles.background.gradient;
+    if (!colors || colors.length<2) return '';
+    const c1 = normalizeColor(colors[0],'bg gradient1');
+    const c2 = normalizeColor(colors[1],'bg gradient2');
+    if (!c1 && !c2) return '';
 
-    const c1 = normalizeColor(colors[0], 'bg gradient c1');
-    const c2 = normalizeColor(colors[1], 'bg gradient c2');
-     // If either color is invalid/transparent, we might not want a gradient
-     if (!c1 && !c2) { console.warn(`[Core Defs] Both BG gradient colors are invalid/transparent. Skipping def.`); return ''; }
+    const angleDeg = parseFloat(direction||'180')||180;
+    const angleRad = (angleDeg - 90) * Math.PI/180;
+    const x1 = (0.5 - 0.5*Math.cos(angleRad)).toFixed(4);
+    const y1 = (0.5 - 0.5*Math.sin(angleRad)).toFixed(4);
+    const x2 = (0.5 + 0.5*Math.cos(angleRad)).toFixed(4);
+    const y2 = (0.5 + 0.5*Math.sin(angleRad)).toFixed(4);
 
-    // Default direction if missing
-    let dir = parseFloat(gradientInfo.direction || '180'); // Default vertical top-to-bottom if missing
-    if (isNaN(dir)) { console.warn(`[Core Defs] Invalid BG gradient direction "${gradientInfo.direction}". Defaulting to 180.`); dir = 180;}
+    const s1op = extractOpacityFromColor(colors[0]).toFixed(3);
+    const s2op = extractOpacityFromColor(colors[1]).toFixed(3);
+    const stops = `<stop offset="0%" stop-color="${c1||'#000'}" stop-opacity="${s1op}"/>
+                   <stop offset="100%" stop-color="${c2||'#000'}" stop-opacity="${s2op}"/>`;
 
-    const angleRad = (dir - 90) * Math.PI / 180;
-    const x1 = (0.5 - Math.cos(angleRad) * 0.5).toFixed(4);
-    const y1 = (0.5 - Math.sin(angleRad) * 0.5).toFixed(4);
-    const x2 = (0.5 + Math.cos(angleRad) * 0.5).toFixed(4);
-    const y2 = (0.5 + Math.sin(angleRad) * 0.5).toFixed(4);
-
-    // Use fallback 'black' or 'white' with 0 opacity if one color is missing
-    const stop1Color = c1 || 'rgba(0,0,0,0)';
-    const stop2Color = c2 || 'rgba(0,0,0,0)';
-
-    const stops = `<stop offset="0%" stop-color="${stop1Color}" stop-opacity="${extractOpacityFromColor(colors[0])}"/>`
-                 + `<stop offset="100%" stop-color="${stop2Color}" stop-opacity="${extractOpacityFromColor(colors[1])}"/>`;
-
-    // Use 'userSpaceOnUse' if applying to a background rect for more predictable results?
-    // Using objectBoundingBox here assumes it applies directly to the rect's fill scaling with it.
     return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" gradientUnits="objectBoundingBox">${stops}</linearGradient>`;
 }
 
-// ==========================================================================
-// === Embedded CSS Generator ===============================================
-// ==========================================================================
 
-/** Generate embedded CSS including font face and animations */
-
-function generateEmbeddedCSS(styleData, animationMetadata) {
-    console.log('[Core CSS] Generating embedded CSS. Animation Metadata:', animationMetadata);
-    let css = "/* Embedded CSS - Logomaker Core v2.6 */\n";
-    let hasContent = false;
-
-    // --- Font Embedding ---
-    const fontEmbedData = styleData?.font?.embedData;
-    console.log('[Core CSS - Embed Check] Font Family:', styleData?.font?.family);
-    console.log('[Core CSS - Embed Check] Embed Data:', fontEmbedData ? `Exists (Format: ${fontEmbedData.format}, Weight: ${fontEmbedData.weight}, Style: ${fontEmbedData.style})` : 'MISSING');
-
-    if (fontEmbedData?.file && fontEmbedData.file.startsWith('data:font') && styleData?.font?.family) {
-        const primaryFont = styleData.font.family.split(',')[0].trim().replace(/['"]/g, '');
-        if (primaryFont) {
-            css += `/* Embedded Font: ${primaryFont} */\n`;
-            css += `@font-face {\n`;
-            css += `  font-family: "${primaryFont}";\n`;
-            // Optional: Add format hint if available
-            const formatHint = fontEmbedData.format ? ` format('${fontEmbedData.format}')` : '';
-            css += `  src: url(${fontEmbedData.file})${formatHint};\n`; // Data URL
-            css += `  font-weight: ${fontEmbedData.weight || '400'};\n`;
-            css += `  font-style: ${fontEmbedData.style || 'normal'};\n`;
-            css += `  font-display: swap;\n`; // Add this for better font loading behavior
-            css += `}\n\n`;
-            console.log(`[Core CSS] SUCCESS: Embedded font ${primaryFont} (Weight: ${fontEmbedData.weight}, Style: ${fontEmbedData.style}, Format: ${fontEmbedData.format})`);
-            hasContent = true;
-        } else {
-            console.warn('[Core CSS] Cannot embed font: Primary font name extraction failed.');
-        }
-    } else {
-        console.warn('[Core CSS] No embeddable font data found or data is invalid.');
-        if (styleData?.font?.family) {
-            const primaryFont = styleData.font.family.split(',')[0].trim().replace(/['"]/g, '');
-            css += `/* System Font Declaration for "${primaryFont}" */\n`;
-            css += `@font-face {\n`;
-            css += `  font-family: "${primaryFont}";\n`;
-            css += `  src: local("${primaryFont}");\n`; // Try to use local font
-            css += `  font-weight: ${styleData.font.weight || '400'};\n`;
-            css += `  font-style: ${styleData.font.style || 'normal'};\n`;
-            css += `}\n\n`;
-            hasContent = true;
-        }
-    }
-
-    // --- Animation Embedding with clearer values ---
-    if (animationMetadata?.name && animationMetadata.name !== 'none' && animationMetadata.name !== 'anim-none') {
-        const keyframesCSS = styleData?.animation?.activeKeyframes; // Get captured keyframes
-        if (keyframesCSS) {
-            let keyframeRuleName = animationMetadata.name; // Use the base name like 'shake'
-            // Verify the name extracted from CSS matches, correct if needed
-            const keyframeNameMatch = keyframesCSS.match(/@keyframes\s+([a-zA-Z0-9-_]+)/);
-            if (keyframeNameMatch && keyframeNameMatch[1]) {
-                keyframeRuleName = keyframeNameMatch[1]; // Use name found in @keyframes rule
-            } else {
-                 console.warn(`[Core CSS] Could not extract keyframe name from CSS for ${animationMetadata.name}. Using base name.`);
-            }
-
-            // Add the @keyframes rule with explicit transform values
-            // This adds clarity to the animation, especially for pulse
-            if (keyframeRuleName === 'pulse') {
-                css += `/* Animation Keyframes: ${keyframeRuleName} - Adjusted for SVG */\n`;
-                css += `@keyframes ${keyframeRuleName} { 
-  0%, 100% { transform: scale(1); opacity: 1; } 
-  50% { transform: scale(1.06); opacity: 0.92; } 
-}\n\n`;
-            } else {
-                css += `/* Animation Keyframes: ${keyframeRuleName} */\n${keyframesCSS}\n\n`;
-            }
-
-            // Add the class rule to apply the animation
-            const animClass = styleData?.animation?.class || `anim-${animationMetadata.name}`; // e.g., .anim-shake
-            const duration = styleData?.animation?.duration || '2s';
-            const timingFunc = styleData?.animation?.timingFunction || 'ease';
-            const iterCount = styleData?.animation?.iterationCount || 'infinite';
-            css += `/* Animation Class */\n`;
-            css += `.${animClass} {\n`;
-            css += `  animation-name: ${keyframeRuleName};\n`; // Use the extracted/verified name
-            css += `  animation-duration: ${duration};\n`;
-            css += `  animation-timing-function: ${timingFunc};\n`;
-            css += `  animation-iteration-count: ${iterCount};\n`;
-            css += `}\n\n`;
-            console.log(`[Core CSS] Embedded animation "${keyframeRuleName}" applied via class ".${animClass}".`);
-            hasContent = true;
-        } else {
-            console.warn(`[Core CSS] No keyframes CSS found for animation: ${animationMetadata.name}. Animation will likely not work.`);
-            css += `/* WARNING: Keyframes for animation "${animationMetadata.name}" could not be found or embedded. */\n`;
-        }
-    } else {
-        console.log(`[Core CSS] No active animation detected for embedding.`);
-    }
-
-    return hasContent ? css.trim() : null; // Return null if no CSS generated
-}
-
-// ==========================================================================
-// === SVG Element Generators ===============================================
-// ==========================================================================
-/** 
- * Generates the SVG background rectangle with proper border radius handling
- */
-function createBackgroundRect(styles, bgGradientId, config) {
-    if (!config.includeBackground || config.transparentBackground) {
-        console.log("[Core SVG Bg] Skipping background rect (transparent or excluded).");
-        return '';
-    }
-    if (!styles?.background) {
-        console.warn("[Core SVG Bg] No background styles found, defaulting to opaque black background rect.");
-        return `<rect id="background-rect" width="100%" height="100%" fill="#000000" opacity="1"/>\n`;
-    }
-
-    const bgType = styles.background.type || 'bg-solid';
-    const bgColor = normalizeColor(styles.background.color || '#000000', 'bg color'); // Default black if needed
-    const bgOpacity = parseFloat(styles.background.opacity || '1');
-    const patternClass = styles.background.patternClass;
-    const patternId = patternClass ? `pattern-${patternClass.replace(/^bg-/, '')}` : null;
-
-    let bgFill = 'none';
-
-    if (bgType.includes('gradient') && bgGradientId && typeof bgGradientId === 'string') {
-        bgFill = `url(#${bgGradientId})`;
-        console.log(`[Core SVG Bg] Using Gradient fill="${bgFill}"`);
-    } else if (patternId) {
-        // TODO: Implement SVG pattern definitions in <defs> based on patternClass
-        console.warn(`[Core SVG Bg] Pattern "${patternClass}" detected. SVG pattern DEF generation not implemented. Applying fill ID "${patternId}" with fallback color.`);
-        // Use pattern fill + solid color fallback (browser dependent)
-        bgFill = `url(#${patternId})`;
-        // As a fallback, just use the color if pattern likely won't render
-        // bgFill = bgColor || '#000000';
-    } else if (bgColor) { // Includes bg-solid or other types with a color
-        bgFill = bgColor;
-        console.log(`[Core SVG Bg] Using Solid fill="${bgFill}"`);
-    } else {
-        console.log(`[Core SVG Bg] Background type is ${bgType} but color is transparent/invalid. Skipping fill.`);
-        bgFill = 'none';
-    }
-
-    // Ensure opacity is valid
-    const finalOpacity = isNaN(bgOpacity) ? 1 : Math.max(0, Math.min(1, bgOpacity));
-
-    // Get border radius if available - NEW CODE FOR BORDER RADIUS
-    let borderRadiusAttr = '';
-    if (styles.borderRadius) {
-        // The borderRadius could be a complex value like "50%" or "10px / 20px"
-        // For SVG we'll handle this consistently
-        borderRadiusAttr = ` rx="${escapeSVGAttribute(styles.borderRadius)}"`;
-        console.log(`[Core SVG Bg] Adding border radius to background: ${styles.borderRadius}`);
-    }
-
-    if (bgFill !== 'none') {
-        // If using a pattern AND a fallback color is desired, might need two rects or just rely on the fill color.
-        // Simple approach: Just use the determined fill.
-        let rectTag = `<rect id="background-rect" width="100%" height="100%"${borderRadiusAttr} `;
-        rectTag += `fill="${escapeSVGAttribute(bgFill)}" `;
-        // Opacity applies to the whole rect including its fill
-        if (finalOpacity < 1) {
-             rectTag += `opacity="${finalOpacity.toFixed(3)}"`;
-        }
-        rectTag += `/>\n`;
-
-        // If pattern requires a base color underneath AND the pattern might have transparency
-        if (patternId && bgColor && bgFill !== bgColor) {
-             console.log(`[Core SVG Bg] Adding underlying rect for pattern base color: ${bgColor}`);
-             return `<rect width="100%" height="100%"${borderRadiusAttr} fill="${bgColor}" opacity="${finalOpacity.toFixed(3)}"/>\n` + rectTag;
-        }
-
-        return rectTag;
-    } else {
-        console.log(`[Core SVG Bg] Background rect has no effective fill, omitting.`);
-        return '';
-    }
-}
-
-// === REPLACE THE CONTAINER BORDER RECTANGLE CODE IN generateSVGBlob ===
-
-// Replace the border code in the generateSVGBlob function around step 8
-// with this improved version that properly handles radius and padding
-
+// -----------------------------------------------------------------------
+// 4. Core Export: generateSVGBlob
+// -----------------------------------------------------------------------
 /**
- * Container Border Rectangle code for generateSVGBlob
- * This replaces the code in step 8 of the generateSVGBlob function
- * 
- * @param {object} styles - The captured styles object
- * @param {object} config - Export configuration
- * @returns {string} SVG border rectangle element
- */
-function createBorderRect(styles, config) {
-    if (!styles.border || styles.stroke?.isTextStroke) {
-        return '';
-    }
-    
-    const border = styles.border;
-    const strokeColor = normalizeColor(border.color, 'container border');
-    let strokeWidth = 0;
-    
-    if (typeof border.width === 'string' || typeof border.width === 'number') {
-        strokeWidth = parseFloat(border.width) || 0;
-    }
-
-    if (!strokeColor || strokeWidth <= 0) {
-        return '';
-    }
-        
-    // Get border radius - IMPORTANT FOR CONSISTENCY
-    let rx = 0, ry = 0;
-    
-    // Handle border radius properly
-    if (styles.borderRadius) {
-        // Check if we have a simple percentage or pixel value
-        const match = String(styles.borderRadius).match(/^(\d+)(px|%)?$/);
-        if (match) {
-            rx = match[1];
-            // For percentage, SVG uses 0-1 range (e.g., 50% = 0.5)
-            if (match[2] === '%') {
-                rx = parseFloat(rx) / 100;
-            }
-            ry = rx; // Same value for both dimensions
-        } else if (styles.borderRadius === '50%') {
-            // Special case for circular/oval shapes
-            rx = config.width / 2;
-            ry = config.height / 2;
-            console.log('[Core SVG Border] Using elliptical border for circular shape');
-        } else {
-            // Handle complex border radius like "10px / 20px"
-            const complexMatch = String(styles.borderRadius).match(/(\d+)(?:px)?\s*\/\s*(\d+)(?:px)?/);
-            if (complexMatch) {
-                rx = complexMatch[1];
-                ry = complexMatch[2];
-            }
-            // Any other formats will keep rx=0, ry=0
-        }
-    }
-    
-    // Calculate border position with padding
-    let borderPadding = 0;
-    if (styles.borderPadding) {
-        const paddingMatch = String(styles.borderPadding).match(/(\d+)(?:px|em|rem|%)?/);
-        if (paddingMatch) {
-            borderPadding = parseInt(paddingMatch[1]) || 0;
-        }
-    }
-    
-    // Adjust inset to account for border width and padding
-    const insetX = strokeWidth / 2;
-    const insetY = strokeWidth / 2;
-    const width = config.width - strokeWidth;
-    const height = config.height - strokeWidth;
-    
-    // Create the SVG rectangle
-    let borderRect = `  <rect id="container-border-rect" x="${insetX}" y="${insetY}" `;
-    borderRect += `width="${width}" height="${height}" `;
-    
-    // Add radius if specified
-    if (rx && ry) {
-        borderRect += `rx="${rx}" ry="${ry}" `;
-    }
-    
-    borderRect += `fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" `;
-
-    const strokeOpacity = extractOpacityFromColor(border.color);
-    if (strokeOpacity < 1) {
-        borderRect += `stroke-opacity="${strokeOpacity.toFixed(3)}" `;
-    }
-    
-    // Add dash array for dotted/dashed borders
-    if (border.dasharray) {
-        borderRect += `stroke-dasharray="${border.dasharray}" `;
-    }
-
-    // Apply filter if it's a glow border
-    if (border.isGlow && styles.textEffect?.type === 'glow') {
-        // Use the same filter as text if available
-        borderRect += `filter="url(#svgTextEffect)" `;
-    }
-
-    borderRect += `/>\n`;
-    console.log(`[Core SVG Border] Added container border rect: ${border.style}, ${border.color}, ${border.width}`);
-    
-    return borderRect;
-}
-/**
- * Creates the SVG text element (v2.6.1 - Fixed options/config passing)
- * @param {string} textContent - The final text to display.
- * @param {object} styles - The captured styles object from captureAdvancedStyles.
- * @param {string|null} textGradientId - The ID of the text gradient definition.
- * @param {string|null} textFilterId - The ID of the text effect filter.
- * @param {object|null} animationMetadata - Animation details (may include progress).
- * @param {object} config - The configuration object containing width, height, etc. // <-- ADDED PARAMETER
- * @returns {string} The generated SVG <text> element string.
- */
-function generateSVGTextElement(textContent, styles, textGradientId, textFilterId, animationMetadata, config) { // <-- ADDED config PARAMETER
-    // --- Validation and Setup ---
-    console.log("[Core SVG Text v2.6.1] Generating SVG text element. Text:", textContent);
-    if (!styles?.font) {
-        console.error("[Core SVG Text v2.6.1] Cannot generate text element: Missing font styles");
-        return '';
-    }
-     // Make sure config is available
-     if (!config || typeof config.width !== 'number' || typeof config.height !== 'number') {
-         console.error("[Core SVG Text v2.6.1] Cannot generate text element: Missing or invalid config object with width/height");
-         // Provide fallback dimensions if absolutely necessary, though this indicates a problem upstream
-         config = config || {};
-         config.width = config.width || 800;
-         config.height = config.height || 400;
-         console.warn(`[Core SVG Text v2.6.1] Using fallback dimensions: ${config.width}x${config.height}`);
-    }
-
-    const font = styles.font;
-    const color = styles.color || { mode: 'solid', value: '#ffffff' };
-    const textStroke = styles.stroke?.isTextStroke ? styles.stroke : null;
-    const anim = styles.animation || {};
-    const transform = styles.transform || {};
-    const textOpacity = parseFloat(styles.opacity || '1');
-
-    // --- Text Positioning & Alignment ---
-    let xPosition = '50%';
-    let textAnchor = styles.textAnchor || 'middle';
-    if (styles.textAlign === 'left') { textAnchor = 'start'; xPosition = '5%'; }
-    else if (styles.textAlign === 'right') { textAnchor = 'end'; xPosition = '95%'; }
-    else { textAnchor = 'middle'; xPosition = '50%'; }
-
-    // --- Font size adjustment - ensure it matches container ---
-    // *** FIXED: Use the passed config object ***
-    const containerSize = Math.min(config.width, config.height); // <-- USE config.width / config.height
-    let fontSize = font.size;
-    if (typeof fontSize === 'string' && fontSize.endsWith('px')) {
-        fontSize = parseInt(fontSize);
-    } else if (typeof fontSize === 'string') {
-        fontSize = parseInt(fontSize) || 60; // Default if parse fails
-    } else if (typeof fontSize !== 'number') {
-         fontSize = 60; // Fallback if not a number or parsable string
-    }
-
-    // Scale font size proportionally to the container size
-     // *** FIXED: Use the passed config object ***
-    const scaleFactor = Math.min(config.width / 800, config.height / 400); // <-- USE config
-    fontSize = Math.round(fontSize * scaleFactor);
-    // Ensure minimum font size to prevent it becoming invisible
-    fontSize = Math.max(fontSize, 10); // e.g., minimum 10px
-
-    // --- Build <text> Element ---
-    let textElement = `<text x="${xPosition}" y="50%" dominant-baseline="middle" text-anchor="${textAnchor}" `;
-
-    // --- Font Attributes ---
-    const fontFamilyAttr = font.family ? escapeSVGAttribute(font.family) : 'sans-serif';
-    textElement += `font-family="${fontFamilyAttr}" `;
-    textElement += `font-size="${fontSize}px" `; // Use calculated font size
-    if (font.weight && font.weight !== '400' && font.weight !== 'normal') textElement += `font-weight="${font.weight}" `;
-    if (font.style && font.style !== 'normal') textElement += `font-style="${font.style}" `;
-    if (font.letterSpacing && font.letterSpacing !== 'normal') {
-        const spacingValue = font.letterSpacing;
-        console.log(`[Core SVG Text v2.6.1] Applying letter-spacing: "${spacingValue}"`);
-        textElement += `letter-spacing="${spacingValue}" `;
-    }
-
-    // --- Fill / Color ---
-    let fillOpacity = 1.0;
-    if (color.mode === 'gradient' && textGradientId && typeof textGradientId === 'string') {
-        textElement += `fill="url(#${textGradientId})" `;
-        console.log(`[Core SVG Text v2.6.1] Applied gradient fill: url(#${textGradientId})`);
-    } else {
-        const fillColor = normalizeColor(color.value || '#ffffff', 'text fill');
-        if (fillColor) {
-            textElement += `fill="${fillColor}" `;
-            fillOpacity = extractOpacityFromColor(color.value);
-            console.log(`[Core SVG Text v2.6.1] Applied solid fill: ${fillColor} (Opacity from color: ${fillOpacity.toFixed(3)})`);
-        } else {
-            textElement += `fill="none" `;
-            console.log(`[Core SVG Text v2.6.1] Text fill color is transparent or invalid.`);
-        }
-    }
-
-    // --- Opacity ---
-    const finalOpacity = Math.max(0, Math.min(1, isNaN(textOpacity) ? 1 : textOpacity)) * fillOpacity;
-    if (finalOpacity < 1) {
-        textElement += `opacity="${finalOpacity.toFixed(3)}" `;
-        console.log(`[Core SVG Text v2.6.1] Applied combined opacity: ${finalOpacity.toFixed(3)}`);
-    }
-
-    // --- Text Stroke ---
-    if (textStroke) {
-        const strokeColor = normalizeColor(textStroke.color, 'text stroke');
-        let strokeWidth = 0;
-        if (typeof textStroke.width === 'string' || typeof textStroke.width === 'number') { strokeWidth = parseFloat(textStroke.width) || 0; }
-        if (strokeColor && strokeWidth > 0) {
-            textElement += `stroke="${strokeColor}" stroke-width="${strokeWidth}" `;
-            const strokeOpacity = extractOpacityFromColor(textStroke.color);
-            if (strokeOpacity < 1) { textElement += `stroke-opacity="${strokeOpacity.toFixed(3)}" `; }
-            console.log(`[Core SVG Text v2.6.1] Applied TEXT stroke: Color=${strokeColor}, Width=${strokeWidth}, Opacity=${strokeOpacity.toFixed(3)}`);
-        } else { console.log(`[Core SVG Text v2.6.1] Text stroke color/width invalid or zero.`); }
-    } else { console.log(`[Core SVG Text v2.6.1] No direct text stroke detected in styles.`); }
-
-    // --- Filter (Text Effect) ---
-    if (textFilterId && typeof textFilterId === 'string') {
-        textElement += `filter="url(#${textFilterId})" `;
-        console.log(`[Core SVG Text v2.6.1] Applied text effect filter: url(#${textFilterId})`);
-    } else {
-        console.log(`[Core SVG Text v2.6.1] No valid textFilterId provided.`);
-        if (styles.textEffect?.type && styles.textEffect.type !== 'none') {
-            console.warn(`[Core SVG Text v2.6.1] Text effect (${styles.textEffect.type}) was captured, but textFilterId was missing or invalid!`);
-        }
-    }
-
-    // --- Transform ---
-    if (transform.cssValue && transform.cssValue !== 'none') {
-        const normalizedTransform = normalizeCSSTransformForSVG(transform.cssValue); // Call the helper
-        if (normalizedTransform) {
-            textElement += `transform="${escapeSVGAttribute(normalizedTransform)}" `;
-            console.log(`[Core SVG Text v2.6.1] Applied normalized transform: "${normalizedTransform}" (Original CSS: "${transform.cssValue}")`);
-        } else {
-            console.warn(`[Core SVG Text v2.6.1] Transform normalization failed for CSS: "${transform.cssValue}". Omitting transform.`);
-        }
-    } else { console.log(`[Core SVG Text v2.6.1] No transform detected in styles.`); }
-
-    // --- Animation ---
-    const animClass = anim.class;
-    if (animClass && animClass !== 'anim-none') {
-        textElement += `class="${escapeSVGAttribute(animClass)}" `;
-        console.log(`[Core SVG Text v2.6.1] Applied animation class: ${animClass}`);
-
-        // Add additional inline style to tone down animation intensity
-        let animStyleMods = '';
-        if (animClass === 'anim-pulse') {
-            animStyleMods = 'animation-duration: 2s; animation-timing-function: ease-in-out;';
-        } else if (animClass === 'anim-bounce') {
-            animStyleMods = 'animation-duration: 2.5s; animation-timing-function: ease-in-out;';
-        }
-
-        if (animStyleMods) {
-            textElement += `style="${escapeSVGAttribute(animStyleMods)}" `;
-        }
-    }
-
-    // --- Final Text Content ---
-    const finalText = styles.textContent?.transformedText || textContent || 'Logo';
-    const escapedText = escapeXML(finalText);
-
-    // --- Close Tag and Add Content ---
-    textElement += `>`;
-    textElement += escapedText;
-    textElement += `</text>`;
-
-    console.log("[Core SVG Text v2.6.1] Finished generating text element.");
-    return textElement;
-}
-
-
-// ==========================================================================
-// === Main Export Functions ================================================
-// ==========================================================================
-/**
- * Parses a CSS padding string (simple version).
- * Assumes uniform padding and extracts the first pixel value.
- * Returns 0 if parsing fails or padding is invalid.
- * @param {string|null} paddingString - e.g., "10px", "10px 20px", "0".
- * @returns {number} The parsed padding value in pixels, or 0.
- */
-function parsePadding(paddingString) {
-    if (!paddingString || typeof paddingString !== 'string') {
-        return 0;
-    }
-    // Extract the first numerical value, assuming pixels for simplicity
-    const match = paddingString.match(/^(-?[\d.]+)/);
-    const value = match ? parseFloat(match[1]) : 0;
-    // Ensure padding is not negative
-    return Math.max(0, value);
-}
-
-/**
- * Converts an SVG Blob to a PNG Blob using Canvas.
- * @param {Blob} svgBlob - The input SVG Blob.
- * @param {object} options - Options like width, height.
- * @returns {Promise<Blob>} A promise resolving with the PNG Blob.
- */
-
-
-/**
- * Main function to generate the SVG Blob (v2.6.4 - Proportional Scaling).
- * Uses nested <svg> correctly positioned *inside* the border group.
- * Calculates final dimensions based on original aspect ratio.
- * @param {object} options - Export options like target width, height, text, etc.
- * @returns {Promise<Blob>} A promise resolving with the SVG Blob.
+ * generateSVGBlob(options)
+ * Main function that captures the entire #previewContainer bounding box,
+ * background & border radius included, then re-creates that in an <svg>.
+ *
+ * @param {object} options - e.g. { width, height, transparentBackground, animationMetadata }
+ * @returns {Promise<Blob>}
  */
 export async function generateSVGBlob(options = {}) {
-    console.log("[Core SVG Gen v2.6.4] generateSVGBlob called (Proportional Scaling). Options:", JSON.stringify(options));
-
-    try {
-        // --- 1. Capture Styles ---
-        const styles = captureAdvancedStyles();
-        if (!styles) throw new Error('Failed to capture styles for SVG generation');
-        console.log("[Core SVG Gen v2.6.4] Styles Captured:", styles);
-
-        // --- 2. Determine Configuration & Calculate Final Dimensions ---
-        const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
-
-        // Target dimensions from user settings or options
-        const targetWidth = parseInt(options.width || styles.exportConfig?.width || '800');
-        const targetHeight = parseInt(options.height || styles.exportConfig?.height || '400');
-
-        // Original aspect ratio from captured styles
-        const originalAspectRatio = styles.originalDimensions?.aspectRatio || (targetWidth / targetHeight); // Fallback if capture failed
-
-        console.log(`[Core SVG Gen v2.6.4] Target: ${targetWidth}x${targetHeight}, Original Aspect Ratio: ${originalAspectRatio.toFixed(4)}`);
-
-        // Calculate final dimensions maintaining aspect ratio
-        let finalWidth = targetWidth;
-        let finalHeight = finalWidth / originalAspectRatio;
-
-        if (finalHeight > targetHeight) {
-            // Height is the limiting factor
-            finalHeight = targetHeight;
-            finalWidth = finalHeight * originalAspectRatio;
-        }
-
-        // Ensure dimensions are positive integers
-        finalWidth = Math.max(1, Math.round(finalWidth));
-        finalHeight = Math.max(1, Math.round(finalHeight));
-
-        console.log(`[Core SVG Gen v2.6.4] Calculated Final Dimensions: ${finalWidth}x${finalHeight}`);
-
-        const defaults = {
-            width: finalWidth, // Use calculated final width
-            height: finalHeight, // Use calculated final height
-            text: styles.textContent?.finalText || 'Logo',
-            includeBackground: true,
-            transparentBackground: styles.exportConfig?.transparent ?? options.transparentBackground ?? false,
-            animationMetadata: options.animationMetadata || extractSVGAnimationDetails()
-            // Keep original target dimensions if needed elsewhere?  Maybe not.
-        };
-        const config = { ...defaults, ...options, width: finalWidth, height: finalHeight }; // Ensure config uses final dimensions
-
-        console.log("[Core SVG Gen v2.6.4] Final Config:", config);
-
-        // --- 3. Build SVG String (MODIFIED Header) ---
-        let svg = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n`;
-        // The main SVG dimensions and viewBox now use the calculated final dimensions
-        svg += `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${config.width}" height="${config.height}" viewBox="0 0 ${config.width} ${config.height}">\n`;
-
-        // --- 4. Definitions (`<defs>`) ---
-        svg += `<defs>\n`;
-        let textGradientId = null;
-        let backgroundGradientId = null;
-        let textFilterId = null;
-
-        // Text Gradient Def
-        if (styles.color?.mode === 'gradient') {
-            textGradientId = 'svgTextGradient';
-            const gradientDef = createGradientDef(styles, textGradientId);
-            if (gradientDef) { svg += `  ${gradientDef}\n`; console.log("[Core SVG Gen v2.6.3] Added Text Gradient Definition."); }
-            else { textGradientId = null; }
-        }
-
-        // Text Effect Filter Def
-        if (styles.textEffect?.type && styles.textEffect.type !== 'none') {
-            textFilterId = 'svgTextEffect';
-            const filterDef = createFilterDef(styles, textFilterId);
-            if (filterDef) { svg += `  ${filterDef}\n`; console.log(`[Core SVG Gen v2.6.3] Added Text Effect Filter (ID: ${textFilterId}).`); }
-            else { textFilterId = null; }
-        }
-
-        // Background Gradient Def (using styles.background which prefers previewContainer)
-        if (config.includeBackground && !config.transparentBackground && (styles.background?.type?.includes('gradient') || styles.background?.gradient)) {
-            backgroundGradientId = 'svgBgGradient';
-            const bgGradientDef = createBackgroundGradientDef(styles, backgroundGradientId);
-            if (bgGradientDef) { svg += `  ${bgGradientDef}\n`; console.log("[Core SVG Gen v2.6.3] Added Background Gradient Definition."); }
-            else { backgroundGradientId = null; }
-        }
-        svg += `</defs>\n`;
-
-        // --- 5. Embedded CSS (`<style>`) ---
-        const embeddedCSS = generateEmbeddedCSS(styles, config.animationMetadata);
-        if (embeddedCSS) {
-            svg += `<style type="text/css"><![CDATA[\n${embeddedCSS}\n]]></style>\n`;
-            console.log("[Core SVG Gen v2.6.3] Embedded CSS added.");
-        }
-
-        // --- 6. Background Rectangle (`<rect>`) ---
-        // Drawn first, fills the whole SVG canvas, uses styles from #previewContainer (via styles.background)
-        const bgRect = createBackgroundRect(styles, backgroundGradientId, config);
-        if (bgRect) { svg += bgRect; }
-
-        // --- 7. Parse Padding and Border Width (from .logo-container styles) ---
-        const paddingValue = parsePadding(styles.borderPadding); // Uniform padding
-        let strokeWidth = 0;
-        // Check if border styles actually exist and apply
-        const hasVisibleBorder = styles.border &&
-                                styles.border.style &&
-                                styles.border.style !== 'none' &&
-                                styles.border.style !== 'hidden' &&
-                                normalizeColor(styles.border.color, 'border check') &&
-                                (parseFloat(styles.border.width) || 0) > 0;
-
-        if (hasVisibleBorder && !styles.stroke?.isTextStroke) {
-             strokeWidth = parseFloat(styles.border.width) || 0;
-             strokeWidth = Math.max(0, strokeWidth); // Ensure non-negative
-        } else {
-             strokeWidth = 0; // Treat as no border if style/color/width invalid
-             console.log("[Core SVG Gen v2.6.3] No visible container border detected or border is text stroke. Stroke width set to 0.");
-        }
-        console.log(`[Core SVG Gen v2.6.3] Parsed Padding: ${paddingValue}px, Stroke Width: ${strokeWidth}px`);
-
-        // --- 8. Create Group for `.logo-container` Content (Border + Padded Text) ---
-        // Apply opacity captured from .logo-container
-        const containerOpacity = parseFloat(styles.containerOpacity || '1');
-        const finalContainerOpacity = Math.max(0, Math.min(1, isNaN(containerOpacity) ? 1 : containerOpacity));
-        // This group represents the .logo-container visually filling the export area
-        svg += `<g id="logo-container-group" opacity="${finalContainerOpacity.toFixed(3)}">\n`;
-        console.log(`[Core SVG Gen v2.6.3] Added logo-container-group with opacity: ${finalContainerOpacity.toFixed(3)}`);
-
-        // --- 9. Draw Container Border (Inside the Group) ---
-        // createBorderRect uses config.width/height (which are now the final calculated ones)
-        if (hasVisibleBorder) {
-             const borderRect = createBorderRect(styles, config); // Pass the final config
-             if (borderRect) { svg += borderRect; }
-        }
-
-        // --- 10. Calculate Inner Padded Area Dimensions ---
-        // These calculations are relative to the *final* config.width/height
-        const borderOffset = strokeWidth / 2; // Stroke is centered
-        const innerX = borderOffset + paddingValue;
-        const innerY = borderOffset + paddingValue;
-        // Subtract stroke width (x1, because offset handles the other half) and padding (x2)
-        const innerWidth = Math.max(0, config.width - strokeWidth - 2 * paddingValue);
-        const innerHeight = Math.max(0, config.height - strokeWidth - 2 * paddingValue);
-        console.log(`[Core SVG Gen v2.6.3] Inner Area: x=${innerX.toFixed(2)}, y=${innerY.toFixed(2)}, w=${innerWidth.toFixed(2)}, h=${innerHeight.toFixed(2)}`);
-
-        // --- 11. Nested <svg> for Padded Content (Inside the Group) ---
-        if (innerWidth > 0 && innerHeight > 0) {
-            svg += `  <svg id="inner-content-area" x="${innerX.toFixed(3)}" y="${innerY.toFixed(3)}" width="${innerWidth.toFixed(3)}" height="${innerHeight.toFixed(3)}" viewBox="0 0 ${innerWidth.toFixed(3)} ${innerHeight.toFixed(3)}" overflow="visible">\n`;
-
-            // --- 12. Text Element (`<text>`) inside Nested SVG ---
-            // Use config based on inner dimensions for text scaling within that nested SVG
-            const textElementConfig = { ...config, width: innerWidth, height: innerHeight };
-            const textElement = generateSVGTextElement(
-                config.text, styles, textGradientId, textFilterId,
-                config.animationMetadata,
-                textElementConfig // Pass config based on inner dimensions
-            );
-
-            if (textElement) {
-                svg += `    ${textElement}\n`;
-                console.log("[Core SVG Gen v2.6.3] Text element generated inside nested SVG.");
-            } else { throw new Error("Failed to generate the core SVG text element."); }
-
-            // Close the nested SVG
-            svg += `  </svg>\n`;
-        } else { console.warn("[Core SVG Gen v2.6.3] Inner width or height is zero or negative due to padding/border width. Skipping text rendering."); }
-
-        // --- 13. Close `.logo-container` Group ---
-        svg += `</g>\n`; // Closes #logo-container-group
-
-        // --- 14. Close Main SVG ---
-        svg += `</svg>`; // Closes main <svg>
-
-        // --- 15. Create Blob ---
-        const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-        console.log(`[Core SVG Gen v2.6.3] SVG Blob generated successfully. Size: ${(blob.size / 1024).toFixed(1)} KB`);
-        return blob;
-
-    } catch (error) {
-        console.error('[Core SVG Gen v2.6.3] SVG Blob Generation Failed:', error);
-        const errMsg = error instanceof Error ? error.message : String(error);
-        let detailedErrMsg = `SVG Generation Failed: ${errMsg}`;
-        if (error instanceof Error && error.stack) {
-            detailedErrMsg += `\nStack: ${error.stack}`;
-        }
-        throw new Error(detailedErrMsg);
+    console.log("[RendererCore] generateSVGBlob() with options:", options);
+    // 1) Capture current styles from #previewContainer and .logo-container, .logo-text, etc.
+    const styles = captureAdvancedStyles();
+    if (!styles) {
+        throw new Error("Failed to capture advanced styles. Aborting SVG generation.");
     }
+
+    // 2) Determine final export size (width & height)
+    let targetW = parseInt(options.width || styles.exportConfig?.width || '800');
+    let targetH = parseInt(options.height || styles.exportConfig?.height || '400');
+    targetW = Math.max(1, targetW);
+    targetH = Math.max(1, targetH);
+
+    // 3) Possibly correct aspect ratio if you want to keep #previewContainer's AR
+    const originalAR = (styles.originalDimensions?.aspectRatio) || (targetW / targetH);
+    let finalW = targetW, finalH = Math.round(finalW / originalAR);
+    if (finalH>targetH) { finalH=targetH; finalW=Math.round(finalH*originalAR); }
+
+    // 4) Create config
+    const config = {
+        width: finalW,
+        height: finalH,
+        transparentBackground: !!options.transparentBackground,
+        includeBackground: true,
+        animationMetadata: options.animationMetadata || extractSVGAnimationDetails(),
+        text: styles.textContent?.finalText || 'Logo' // fallback
+    };
+
+    // 5) Build the <svg> string
+    let svg = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    svg += `<svg xmlns="http://www.w3.org/2000/svg" width="${config.width}" height="${config.height}" viewBox="0 0 ${config.width} ${config.height}" xmlns:xlink="http://www.w3.org/1999/xlink">\n`;
+
+    // 5a) <defs>
+    svg += `<defs>\n`;
+
+    // - text gradient
+    let textGradientId=null;
+    if (styles.color?.mode==='gradient') {
+        textGradientId = 'svgTextGradient';
+        const def = createTextGradientDef(styles, textGradientId);
+        if (def) svg += def + '\n'; else textGradientId=null;
+    }
+
+    // - text filter
+    let textFilterId=null;
+    if (styles.textEffect?.type && styles.textEffect.type!=='none') {
+        textFilterId = 'svgTextEffect';
+        const fdef = createFilterDef(styles, textFilterId);
+        if (fdef) svg += fdef + '\n'; else textFilterId=null;
+    }
+
+    // - background gradient
+    let bgGradientId=null;
+    if (!config.transparentBackground && styles.background?.type.includes('gradient')) {
+        bgGradientId = 'svgBgGradient';
+        const bgdef = createBackgroundGradientDef(styles, bgGradientId);
+        if (bgdef) svg += bgdef + '\n'; else bgGradientId=null;
+    }
+
+    // close <defs>
+    svg += `</defs>\n`;
+
+    // 5b) <style> inline CSS
+    // For embedded fonts or animation keyframes
+    const embeddedCSS = generateEmbeddedCSS(styles, config.animationMetadata);
+    if (embeddedCSS) {
+        svg += `<style type="text/css"><![CDATA[\n${embeddedCSS}\n]]></style>\n`;
+    }
+
+    // 6) Draw the background rect
+    if (!config.transparentBackground && config.includeBackground) {
+        const bgColor = normalizeColor(styles.background?.color || '#000','bg');
+        const bgOp = parseFloat(styles.background?.opacity||'1');
+        let fillSpec='none';
+        if (bgGradientId) {
+            fillSpec=`url(#${bgGradientId})`;
+        } else if (bgColor) {
+            fillSpec=bgColor;
+        }
+        const finalBgOp = Math.max(0, Math.min(1, bgOp));
+        if (fillSpec!=='none') {
+            svg+=`<rect width="100%" height="100%" fill="${fillSpec}"`;
+            if (finalBgOp<1) svg+=` opacity="${finalBgOp.toFixed(3)}"`;
+            svg+=`/>\n`;
+        }
+    }
+
+    // 7) We respect container opacity
+    const containerOpacity = parseFloat(styles.containerOpacity||'1');
+    const finalContainerOp = Math.max(0, Math.min(1, containerOpacity));
+    svg += `<g id="previewContainer-group" opacity="${finalContainerOp.toFixed(3)}">\n`;
+
+    // 8) If there's a visible container border, draw it
+    // We unify that with the border radius & padding approach used in captureAdvancedStyles
+    // But here's simpler approach: We treat the entire bounding box as the container
+    const borderInfo = styles.border;
+    let strokeW=0; 
+    let strokeColor=null; 
+    if (borderInfo && borderInfo.style && borderInfo.style!=='none') {
+        strokeColor = normalizeColor(borderInfo.color,'container border');
+        strokeW = parseFloat(borderInfo.width||'0');
+    }
+    // border radius
+    let rx=0, ry=0;
+    if (styles.borderRadius) {
+        // if "50%" => we can approximate a circle
+        if (styles.borderRadius.includes('50%')) {
+            rx= config.width/2;
+            ry= config.height/2;
+        } else {
+            // parse numeric
+            const match = styles.borderRadius.match(/(\d+)(px|%)?/);
+            if (match) {
+                rx= parseFloat(match[1])||0;
+                ry=rx;
+            }
+        }
+    }
+
+    // We skip "padding" concept for the entire container. We'll just have the text inside a group with transform or separate logic below if desired
+    // For now, we simply draw a rect for the border if valid
+    if (strokeColor && strokeW>0) {
+        const strokeOp = extractOpacityFromColor(strokeColor);
+        svg+=`  <rect x="0" y="0" width="${config.width}" height="${config.height}" rx="${rx}" ry="${ry}" fill="none" stroke="${strokeColor}" stroke-width="${strokeW}"`;
+        if (strokeOp<1) svg+=` stroke-opacity="${strokeOp.toFixed(3)}"`;
+        if (borderInfo.dasharray) svg+=` stroke-dasharray="${borderInfo.dasharray}"`;
+        // If border has a glow effect and we want to reuse the text filter, we do so if textEffect.type==='glow'
+        if (borderInfo.isGlow && styles.textEffect?.type==='glow' && textFilterId) {
+            svg+=` filter="url(#${textFilterId})"`;
+        }
+        svg+=`/>\n`;
+    }
+
+    // 9) We'll nest a sub-SVG for .logo-text if needed. 
+    // But typically we just place text at "50%, 50%" with transform.
+    // We'll rely on the final text element
+    svg+= generateTextElement(styles, textGradientId, textFilterId, config);
+
+    // close group
+    svg+=`</g>\n`;
+    // close svg
+    svg+=`</svg>`;
+
+    const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
+    console.log(`[RendererCore] generateSVGBlob success => ${ (blob.size/1024).toFixed(1) } KB`);
+    return blob;
 }
 
 /**
- * Converts an SVG Blob to a PNG Blob using Canvas. (v2.6.1 - Proportional Scaling)
- * Calculates final dimensions based on original aspect ratio from SVG content if possible.
- * @param {Blob} svgBlob - The input SVG Blob.
- * @param {object} options - Options like TARGET width, height.
- * @returns {Promise<Blob>} A promise resolving with the PNG Blob.
+ * Creates the <text> element (and optional transform).
+ * 
+ * @param {object} styles - from captureAdvancedStyles
+ * @param {string|null} textGradId 
+ * @param {string|null} filterId 
+ * @param {object} config - includes { width, height, animationMetadata, text... }
+ * @returns {string} The <text> (or possibly g + text) snippet
  */
-export async function convertSVGtoPNG(svgBlob, options = {}) {
-     return new Promise(async (resolve, reject) => {
-         // Target dimensions from options
-         const targetWidth = parseInt(options.width || '800');
-         const targetHeight = parseInt(options.height || '400');
-         const transparentBackground = options.transparentBackground || false;
-         const quality = options.quality || 0.95; // Get quality for PNG
+function generateTextElement(styles, textGradId, filterId, config) {
+    if (!styles.font) {
+        console.warn("[RendererCore] No font data in styles => skipping text element.");
+        return '';
+    }
+    // text content
+    const text = styles.textContent?.transformedText || config.text || 'Logo';
+    const escapedTxt = escapeXML(text);
 
-         console.log(`[Core PNG Conv v2.6.1] Converting SVG to PNG. Target: ${targetWidth}x${targetHeight}, Transparent: ${transparentBackground}`);
+    // alignment
+    let xPos='50%'; 
+    let textAnchor= (styles.textAlign==='left'?'start':(styles.textAlign==='right'?'end':'middle'));
+    if (textAnchor==='start') xPos='5%';
+    else if (textAnchor==='end') xPos='95%';
 
-         if (!(svgBlob instanceof Blob)) { return reject(new Error("Invalid SVG Blob provided.")); }
+    // vertical is always middle
+    // we do dominant-baseline="middle" & y="50%"
+    const fontSizeRaw = parseFloat(styles.font.size||'80')||80;
+    const letterSpacing = styles.font.letterSpacing;
+    const fontWeight = styles.font.weight||'400';
+    const fontStyle = styles.font.style||'normal';
+    const fontFamily = styles.font.family||'sans-serif';
+    const textOpacity = parseFloat(styles.opacity||'1');
+    // color or gradient
+    let fillAttr='none';
+    let fillOp=1;
+    if (styles.color?.mode==='gradient' && textGradId) {
+        fillAttr=`url(#${textGradId})`;
+    } else {
+        const c = normalizeColor(styles.color?.value||'#fff','text');
+        if (c) {
+            fillAttr=c;
+            fillOp= extractOpacityFromColor(c);
+        }
+    }
+    const finalTextOp = Math.max(0, Math.min(1, textOpacity*fillOp));
 
-         let url = null;
-         try {
-             url = URL.createObjectURL(svgBlob);
-             const img = new Image();
+    // stroke?
+    let strokeSnippet='';
+    if (styles.stroke?.isTextStroke) {
+        const sc = normalizeColor(styles.stroke.color,'text stroke');
+        let sw = parseFloat(styles.stroke.width||'0');
+        if (sc && sw>0) {
+            const stOp= extractOpacityFromColor(sc);
+            strokeSnippet = ` stroke="${sc}" stroke-width="${sw}"${stOp<1? ` stroke-opacity="${stOp.toFixed(3)}"`:''}`;
+        }
+    }
 
-             img.onload = () => {
-                 console.log("[Core PNG Conv v2.6.1] SVG Image loaded. Determining final dimensions...");
-                 try {
-                     // --- Calculate Final Dimensions ---
-                     // Use the natural dimensions of the loaded SVG image as the 'original'
-                     const originalWidth = img.naturalWidth || img.width;
-                     const originalHeight = img.naturalHeight || img.height;
-                     let finalWidth = targetWidth;
-                     let finalHeight = targetHeight;
+    // transform?
+    let transformStr='';
+    if (styles.transform?.cssValue) {
+        const n = normalizeCSSTransformForSVG(styles.transform.cssValue);
+        if (n) transformStr = n;
+    }
 
-                     if (originalWidth > 0 && originalHeight > 0) {
-                         const originalAspectRatio = originalWidth / originalHeight;
-                         finalWidth = targetWidth; // Start assuming width is limiting factor
-                         finalHeight = finalWidth / originalAspectRatio;
-                         if (finalHeight > targetHeight) {
-                             finalHeight = targetHeight;
-                             finalWidth = finalHeight * originalAspectRatio;
-                         }
-                         finalWidth = Math.max(1, Math.round(finalWidth));
-                         finalHeight = Math.max(1, Math.round(finalHeight));
-                         console.log(`[Core PNG Conv v2.6.1] SVG Natural Size: ${originalWidth}x${originalHeight}. Final Canvas Size: ${finalWidth}x${finalHeight}`);
-                     } else {
-                         // Fallback if SVG size couldn't be determined (use target, might distort)
-                         finalWidth = targetWidth;
-                         finalHeight = targetHeight;
-                         console.warn(`[Core PNG Conv v2.6.1] Could not get SVG natural size. Using target ${finalWidth}x${finalHeight} directly.`);
-                     }
+    // animation class if any
+    const animClass = styles.animation?.class||'';
+    let classAttr = '';
+    if (animClass && animClass!=='anim-none') {
+        classAttr=` class="${animClass}"`;
+    }
 
-                     // --- Create Canvas & Draw ---
-                     const canvas = document.createElement('canvas');
-                     canvas.width = finalWidth; // Use calculated final dimensions
-                     canvas.height = finalHeight; // Use calculated final dimensions
-                     const ctx = canvas.getContext('2d');
-                     if (!ctx) { throw new Error("Failed to get 2D context from canvas"); }
+    let textEl=`<text x="${xPos}" y="50%" dominant-baseline="middle" text-anchor="${textAnchor}"`;
+    textEl+=` font-size="${fontSizeRaw.toFixed(1)}px" font-family="${escapeSVGAttribute(fontFamily)}"`;
+    if (fontWeight!=='400') textEl+=` font-weight="${fontWeight}"`;
+    if (fontStyle!=='normal') textEl+=` font-style="${fontStyle}"`;
+    if (letterSpacing && letterSpacing!=='normal') textEl+=` letter-spacing="${letterSpacing}"`;
 
-                     ctx.clearRect(0, 0, finalWidth, finalHeight); // Clear for transparency
+    if (fillAttr!=='none') {
+        textEl+=` fill="${fillAttr}"`;
+    } else {
+        textEl+=` fill="none"`;
+    }
+    if (finalTextOp<1) {
+        textEl+=` opacity="${finalTextOp.toFixed(3)}"`;
+    }
+    if (filterId) {
+        textEl+=` filter="url(#${filterId})"`;
+    }
+    textEl+= strokeSnippet;
+    if (transformStr) {
+        textEl+=` transform="${escapeSVGAttribute(transformStr)}"`;
+    }
+    textEl+=classAttr;
+    textEl+=`>${escapedTxt}</text>\n`;
 
-                     // Draw the loaded SVG image onto the canvas at the calculated final size
-                     ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
-                     console.log("[Core PNG Conv v2.6.1] SVG drawn to canvas.");
-
-                     // --- Convert Canvas to Blob ---
-                     canvas.toBlob(
-                         blob => {
-                             URL.revokeObjectURL(url); // Clean up
-                             if (blob) {
-                                 console.log(`[Core PNG Conv v2.6.1] PNG Blob created. Size: ${(blob.size / 1024).toFixed(1)} KB`);
-                                 resolve(blob);
-                             } else { reject(new Error('Failed to convert canvas to PNG blob.')); }
-                         },
-                         'image/png',
-                         quality // Pass quality hint for PNG
-                     );
-
-                 } catch (err) {
-                     if(url) URL.revokeObjectURL(url);
-                     console.error('[Core PNG Conv v2.6.1] Canvas drawing or toBlob conversion failed:', err);
-                     reject(new Error(`Canvas conversion failed: ${err.message || err}`));
-                 }
-             };
-
-             // ... (img.onerror remains the same) ...
-             img.onerror = (errEvent) => {
-                 if(url) URL.revokeObjectURL(url);
-                 console.error('[Core PNG Conv v2.6.1] Failed to load SVG blob into Image element:', errEvent);
-                 reject(new Error('Failed to load SVG image for PNG conversion. Check SVG content/validity.'));
-             };
-
-             img.src = url;
-
-         } catch (setupError) {
-             if (url) URL.revokeObjectURL(url);
-             console.error('[Core PNG Conv] Error setting up SVG image loading:', setupError);
-             reject(new Error(`Setup for PNG conversion failed: ${setupError.message || setupError}`));
-         }
-     });
- }
-
+    return textEl;
+}
 
 /**
- * Generates a sequence of PNG frame Blobs for animation.
- * @param {object} options - Options like width, height, frameCount, transparent, onProgress callback.
- * @returns {Promise<Blob[]>} A promise resolving with an array of PNG Blobs.
+ * Generates inlined <style> text with embedded font-face (if present) and possibly keyframes from styles.animation.
+ * @param {object} styles 
+ * @param {object|null} animationMetadata
+ * @returns {string|null} Entire <style> text or null if empty
+ */// In RendererCore.js
+
+/**
+ * Generates inlined <style> text with embedded font-face (if present) and possibly keyframes from styles.animation.
+ * @param {object} styles
+ * @param {object|null} animationMetadata
+ * @returns {string|null} Entire <style> text or null if empty
  */
-export async function generateAnimationFrames(options = {}) {
-    const { width = 800, height = 400, frameCount = 15, transparent = false, onProgress = null } = options;
-    const safeFrameCount = Math.max(1, Math.min(frameCount, 120)); // Sanitize frame count
-    console.log(`[Core Frames] Generating ${safeFrameCount} frames (${width}x${height}). Transparent: ${transparent}`);
-    const frames = [];
-    const baseAnimationMetadata = extractSVGAnimationDetails(); // Get details once
+function generateEmbeddedCSS(styles, animationMetadata) {
+    let css = "/* Embedded CSS from Logomaker's RendererCore (v2.1 - Keyframe Fallbacks) */\n";
+    let hasContent = false;
 
-    // Handle case with no animation - generate one static frame
-    if (!baseAnimationMetadata || baseAnimationMetadata.name === 'none' || baseAnimationMetadata.name === 'anim-none') {
-        console.warn('[Core Frames] No active animation detected. Generating 1 static frame.');
-        try {
-            const svgBlob = await generateSVGBlob({ width, height, transparentBackground: transparent });
-            const pngBlob = await convertSVGtoPNG(svgBlob, { width, height, transparentBackground: transparent });
-            if (onProgress) onProgress(1, `Generated 1 static frame`);
-            return [pngBlob];
-        } catch (error) {
-            console.error('[Core Frames] Error generating static frame:', error); throw error;
+    // 1) Font-Face (Keep existing logic)
+    const fontEmbed = styles.font?.embedData;
+    if (fontEmbed && fontEmbed.file && fontEmbed.file.startsWith('data:font')) {
+        const primaryName = (styles.font.family || 'Sans').split(',')[0].replace(/['"]/g, '');
+        css += `@font-face {\n`;
+        css += `  font-family: "${primaryName}";\n`;
+        const formatHint = fontEmbed.format ? ` format('${fontEmbed.format}')` : '';
+        css += `  src: url(${fontEmbed.file})${formatHint};\n`;
+        css += `  font-weight: ${fontEmbed.weight || '400'};\n`;
+        css += `  font-style: ${fontEmbed.style || 'normal'};\n`;
+        css += `  font-display: swap;\n`;
+        css += `}\n\n`;
+        hasContent = true;
+    }
+
+    // 2) Animation Keyframes & class
+    if (animationMetadata && animationMetadata.name !== 'none') {
+        // Attempt to get existing or fallback keyframes
+        let keyframes = null;
+        // First, try the potentially globally attached function (if it exists)
+        if (typeof window.getAnimationKeyframes === 'function') {
+             try { keyframes = window.getAnimationKeyframes(animationMetadata.name); } catch {}
+        }
+        // If that failed, try the hardcoded fallbacks
+        if (!keyframes) {
+             const FALLBACK_KEYFRAMES = {
+                 pulse: `@keyframes pulse { 0%,100% { transform: scale(1); opacity:1;} 50% { transform: scale(1.08);opacity:0.9;} }`,
+                 bounce: `@keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-15px); } 60% { transform: translateY(-8px); } }`, // Use correct bounce
+                 shake: `@keyframes shake { 0%,100%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-4px) rotate(-0.5deg)} 20%,40%,60%,80%{transform:translateX(4px) rotate(0.5deg)} }`,
+                 float: `@keyframes float { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-15px) rotate(1deg)} }`,
+                 rotate: `@keyframes rotate { 0%{transform:rotate(0deg)}100%{transform:rotate(360deg)} }`,
+                 wave: `@keyframes wave { 0%,100%{transform:skewX(0) skewY(0)} 25%{transform:skewX(5deg) skewY(1deg)} 75%{transform:skewX(-5deg) skewY(-1deg)} }`,
+                 fade: `@keyframes fadeInOut { 0%,100%{opacity:0.3;} 50%{opacity:1;} }`, // Corrected name
+                 flicker: `@keyframes flicker { 0%,18%,22%,25%,53%,57%,100%{opacity:1;text-shadow:inherit;} 20%,24%,55%{opacity:0.6;text-shadow:none;} }`
+                 // Add other keyframes from effects.css if needed
+             };
+             keyframes = FALLBACK_KEYFRAMES[animationMetadata.name];
+             if (keyframes) {
+                // Ensure the keyframe name matches exactly
+                keyframes = keyframes.replace(/@keyframes\s+\w+/, `@keyframes ${animationMetadata.name}`);
+                console.log(`[RendererCore] Using hardcoded keyframes for '${animationMetadata.name}'.`);
+             }
+        }
+
+        if (!keyframes) {
+            console.warn(`[RendererCore] No keyframes found or generated for '${animationMetadata.name}'. Animation may not show in final SVG.`);
+        } else {
+            css += `/* Keyframes for ${animationMetadata.name} */\n${keyframes}\n\n`;
+            hasContent = true;
+        }
+
+        // The animation class
+        if (animationMetadata.class) {
+            css += `.${animationMetadata.class} {\n`;
+            css += `  animation-name: ${animationMetadata.name};\n`;
+            css += `  animation-duration: ${animationMetadata.duration};\n`;
+            css += `  animation-timing-function: ${animationMetadata.timingFunction};\n`;
+            css += `  animation-iteration-count: ${animationMetadata.iterationCount};\n`;
+            if (animationMetadata.delay && animationMetadata.delay !== '0s') css += `  animation-delay: ${animationMetadata.delay};\n`;
+            if (animationMetadata.direction && animationMetadata.direction !== 'normal') css += `  animation-direction: ${animationMetadata.direction};\n`;
+            if (animationMetadata.fillMode && animationMetadata.fillMode !== 'none') css += `  animation-fill-mode: ${animationMetadata.fillMode};\n`;
+            css += `}\n`;
+            hasContent = true;
         }
     }
-    console.log("[Core Frames] Base Animation Metadata:", baseAnimationMetadata);
 
-    // Generate sequence
-    for (let i = 0; i < safeFrameCount; i++) {
-        // Calculate progress (0 to nearly 1 for looping, or 0 to 1 if frameCount is 1)
-         // Correct progress calculation: 0/N, 1/N, ... (N-1)/N
-         const progress = safeFrameCount <= 1 ? 0 : i / safeFrameCount;
+    if (!hasContent) return null;
+    return css;
+}
 
-        if (onProgress) {
-            const percent = Math.round((i / safeFrameCount) * 100); // Progress based on frames generated
-            onProgress(percent / 100, `Generating frame ${i + 1}/${safeFrameCount} (${percent}%)...`);
+
+// -----------------------------------------------------------------------
+// 5. convertSVGtoPNG
+// -----------------------------------------------------------------------
+/**
+ * convertSVGtoPNG
+ * Renders the given SVG blob to a PNG using HTMLImageElement + canvas.
+ *
+ * @param {Blob} svgBlob
+ * @param {object} options - { width, height, transparentBackground, quality }
+ */
+export async function convertSVGtoPNG(svgBlob, options={}) {
+    const targetWidth = parseInt(options.width||'800');
+    const targetHeight = parseInt(options.height||'400');
+    const quality = parseFloat(options.quality||'0.95');
+
+    return new Promise((resolve,reject)=>{
+        if (!(svgBlob instanceof Blob)) {
+            return reject(new Error("convertSVGtoPNG: invalid svgBlob"));
         }
-        // Check for cancellation flag if implemented
-        // if (window.exportCancelled) throw new Error("Export Cancelled");
+        const url = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        img.onload = () => {
+            try {
+                const natW= img.naturalWidth, natH= img.naturalHeight;
+                // unify approach => scale to target while preserving AR
+                let finalW= targetWidth;
+                let finalH= Math.round(finalW * (natH/natW));
+                if (finalH> targetHeight) {
+                    finalH= targetHeight;
+                    finalW= Math.round(finalH*(natW/natH));
+                }
+                const canvas= document.createElement('canvas');
+                canvas.width= finalW; canvas.height= finalH;
+                const ctx= canvas.getContext('2d');
+                if (!ctx) throw new Error("No 2D context available");
+                ctx.clearRect(0,0,finalW,finalH);
+                ctx.drawImage(img,0,0,finalW, finalH);
+                canvas.toBlob( blob=>{
+                    URL.revokeObjectURL(url);
+                    if (!blob) return reject(new Error("Canvas toBlob returned null"));
+                    resolve(blob);
+                }, 'image/png', quality);
+            } catch(e) {
+                URL.revokeObjectURL(url);
+                reject(e);
+            }
+        };
+        img.onerror = e => {
+            URL.revokeObjectURL(url);
+            reject(new Error("convertSVGtoPNG: image load error => invalid SVG?"));
+        };
+        img.src= url;
+    });
+}
 
+// -----------------------------------------------------------------------
+// 6. generateAnimationFrames
+// -----------------------------------------------------------------------
+/**
+ * Generates a sequence of PNG frames for an animated preview
+ * capturing different progress states in the animation.
+ * @param {object} options
+ *  - width,height
+ *  - frameCount
+ *  - transparent
+ *  - onProgress callback
+ * @returns {Promise<Blob[]>} array of PNG blobs
+ */
+export async function generateAnimationFrames(options={}) {
+    const width= parseInt(options.width||800);
+    const height= parseInt(options.height||400);
+    const frameCount= Math.max(1, Math.min(options.frameCount||15, 120));
+    const transparent= !!options.transparent;
+    const onProgress= options.onProgress;
+
+    console.log(`[RendererCore] Generating ${frameCount} frames at ${width}x${height}, transparent=${transparent}`);
+    // Check for an actual animation
+    const baseAnim = extractSVGAnimationDetails();
+    if (!baseAnim || baseAnim.name==='none') {
+        console.warn("[RendererCore] No real animation found => generating 1 static frame");
+        const oneFrameBlob = await generateSVGBlob({ width, height, transparentBackground:transparent });
+        const png = await convertSVGtoPNG(oneFrameBlob,{ width, height, transparentBackground:transparent });
+        if (onProgress) onProgress(1, "1 static frame done");
+        return [png];
+    }
+
+    const frames=[];
+    for (let i=0; i<frameCount; i++) {
+        const progress= (frameCount<=1)?0 : i/(frameCount);
         try {
-            // Create metadata for this specific frame's progress
-            const frameAnimationMetadata = { ...baseAnimationMetadata, progress: progress };
-            // Generate SVG for this specific animation state
-            const svgBlob = await generateSVGBlob({ width, height, transparentBackground: transparent, animationMetadata: frameAnimationMetadata });
-            // Convert that specific SVG state to a PNG
-            const pngBlob = await convertSVGtoPNG(svgBlob, { width, height, transparentBackground: transparent }); // Quality ignored for PNG
-            frames.push(pngBlob);
-        } catch (error) {
-            console.error(`[Core Frames] Error generating frame ${i + 1}:`, error);
-            // Decide whether to stop or continue on frame error
-            throw new Error(`Failed to generate frame ${i + 1}: ${error.message || error}`); // Stop on error
+            if (onProgress) {
+                const pc = Math.round((i/frameCount)*100);
+                onProgress(pc/100,`Generating frame ${i+1}/${frameCount}...`);
+            }
+            const perAnim= {...baseAnim, progress};
+            const svgBlob= await generateSVGBlob({width,height, transparentBackground:transparent, animationMetadata:perAnim});
+            const png= await convertSVGtoPNG(svgBlob,{ width, height, transparentBackground:transparent });
+            frames.push(png);
+        } catch(e) {
+            console.error(`[RendererCore] Frame ${i+1} generation failed:`, e);
+            throw e;
         }
     }
-    console.log(`[Core Frames] Successfully generated ${frames.length} frame blobs.`);
-    if (onProgress) onProgress(1, `Generated ${frames.length} frames.`);
+    if (onProgress) onProgress(1,`${frames.length} frames generated`);
     return frames;
 }
 
+// -----------------------------------------------------------------------
+// 7. generateConsistentPreview
+// -----------------------------------------------------------------------
 /**
- * Generates a preview (SVG or PNG Data URL) for display in UI modals.
- * @param {object} options - Preview options (width, height, transparentBackground, frameCount for GIF).
- * @param {HTMLImageElement} previewImg - The <img> element to display the preview.
- * @param {HTMLElement} loadingElement - The loading indicator element.
- * @param {string} [exportType='svg'] - The type of preview ('svg', 'png', 'gif').
- * @returns {Promise<object>} Resolves with { blob, dataUrl, frames? }.
+ * Generates a (SVG or PNG) preview for UI usage. Updates an <img> with dataURL.
+ * @param {object} options
+ * @param {HTMLImageElement} previewImg
+ * @param {HTMLElement} loadingEl
+ * @param {string} [exportType='svg'] - 'svg','png','gif'
+ * @returns {Promise<{ blob:Blob, dataUrl: string, frames?: Blob[] }>}
  */
-export function generateConsistentPreview(options, previewImg, loadingElement, exportType = 'svg') {
-    console.log(`[Core Preview] Generating ${exportType} preview. Options:`, options);
-    // Ensure UI elements are handled correctly even if null
-    if (loadingElement) loadingElement.style.display = 'flex';
-    if (previewImg) { previewImg.style.display = 'none'; previewImg.removeAttribute('src'); previewImg.alt = `Generating ${exportType} preview...`; }
+export function generateConsistentPreview(options, previewImg, loadingEl, exportType='svg') {
+    if (loadingEl) loadingEl.style.display='flex';
+    if (previewImg) { previewImg.style.display='none'; previewImg.src=''; previewImg.alt="Generating preview...";}
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve,reject)=>{
         try {
-            let result = { blob: null, dataUrl: null };
-            const previewWidth = options.width || 400; // Use smaller defaults for preview
-            const previewHeight = options.height || 300;
-            const transparent = options.transparentBackground || false;
+            let result={ blob:null, dataUrl:null };
+            const w= options.width||400;
+            const h= options.height||300;
+            const transparent= options.transparentBackground||false;
 
-            if (exportType === 'gif') {
-                const previewFrameCount = Math.min(options.frameCount || 15, 10); // Fewer frames for preview
-                console.log(`[Core Preview GIF] Generating ${previewFrameCount} frames.`);
-                const frames = await generateAnimationFrames({
-                    width: previewWidth, height: previewHeight, frameCount: previewFrameCount, transparent,
-                    onProgress: (prog, msg) => {
-                        if (loadingElement) {
-                             const txt = loadingElement.querySelector('.progress-text') || loadingElement;
-                             if(txt) txt.textContent = msg || `Generating preview... (${Math.round(prog*100)}%)`;
+            if (exportType==='gif') {
+                // We'll generate frames but only do minimal count for preview
+                const framesCount= Math.min(options.frameCount||15,10);
+                const frames= await generateAnimationFrames({
+                    width:w,height:h,frameCount:framesCount,transparent,
+                    onProgress: (prog,msg)=>{
+                        if (loadingEl) {
+                            const pEl= loadingEl.querySelector('.progress-text')||loadingEl;
+                            pEl.textContent= msg || `Generating GIF preview... ${Math.round(prog*100)}%`;
                         }
                     }
                 });
-                if (!frames || frames.length === 0) throw new Error("Failed to generate preview frames");
-                result.blob = frames[0]; // Use first frame blob
-                result.frames = frames; // Include frames for potential preview animation
-                result.dataUrl = await blobToDataURL(frames[0]); // Data URL for first frame static display
+                if (!frames.length) throw new Error("No frames generated");
+                result.blob= frames[0];
+                result.frames= frames; // we only show the first as a static preview
+                result.dataUrl= await blobToDataURL(frames[0]);
             } else {
-                // SVG or PNG preview uses the same core path
-                 console.log(`[Core Preview ${exportType.toUpperCase()}] Generating base SVG...`);
-                const svgBlob = await generateSVGBlob({ width: previewWidth, height: previewHeight, transparentBackground: transparent });
-                if (exportType === 'png') {
-                     console.log(`[Core Preview PNG] Converting SVG to PNG...`);
-                    result.blob = await convertSVGtoPNG(svgBlob, { width: previewWidth, height: previewHeight, transparentBackground: transparent });
-                } else { // SVG preview
-                    result.blob = svgBlob;
+                const svgBlob= await generateSVGBlob({ width:w, height:h, transparentBackground:transparent });
+                if (exportType==='png') {
+                    result.blob= await convertSVGtoPNG(svgBlob, { width:w, height:h, transparentBackground:transparent });
+                } else {
+                    // just show the SVG directly
+                    result.blob= svgBlob;
                 }
-                result.dataUrl = await blobToDataURL(result.blob);
+                result.dataUrl= await blobToDataURL(result.blob);
             }
 
-            // Update UI Image Element
+            // assign to <img>
             if (previewImg && result.dataUrl) {
-                 previewImg.onload = () => {
-                      console.log(`[Core Preview] ${exportType.toUpperCase()} preview loaded into img tag.`);
-                      if (loadingElement) loadingElement.style.display = 'none';
-                      previewImg.style.display = 'block'; // Show image only after load
-                      previewImg.alt = `${exportType.toUpperCase()} Export Preview`;
-                 };
-                 previewImg.onerror = () => {
-                      console.error(`[Core Preview] Failed to load ${exportType.toUpperCase()} preview Data URL into img tag.`);
-                      if (loadingElement) loadingElement.style.display = 'none';
-                      previewImg.style.display = 'block'; // Show alt text
-                      previewImg.alt = `${exportType.toUpperCase()} Preview Failed to Load`;
-                 };
-                 previewImg.src = result.dataUrl;
-            } else {
-                 // If no image tag, just hide loading
-                 if (loadingElement) loadingElement.style.display = 'none';
+                previewImg.onload= ()=>{
+                    if (loadingEl) loadingEl.style.display='none';
+                    previewImg.style.display='block';
+                    previewImg.alt=`${exportType.toUpperCase()} Preview`;
+                };
+                previewImg.onerror= ()=>{
+                    if (loadingEl) loadingEl.style.display='none';
+                    previewImg.style.display='block';
+                    previewImg.alt=`${exportType.toUpperCase()} preview failed to load.`;
+                };
+                previewImg.src= result.dataUrl;
+            } else if (loadingEl) {
+                loadingEl.style.display='none';
             }
 
             resolve(result);
 
-        } catch (error) {
-            console.error(`[Core Preview] Error generating ${exportType} preview:`, error);
-            if (loadingElement) { loadingElement.style.display = 'flex'; (loadingElement.querySelector('.progress-text') || loadingElement).textContent = "Preview Failed!"; }
-            if (previewImg) { previewImg.style.display = 'none'; previewImg.alt = "Preview Failed"; }
-            reject(error); // Propagate error
+        } catch(e) {
+            console.error("[RendererCore] generateConsistentPreview error:", e);
+            if (loadingEl) {
+                loadingEl.style.display='flex';
+                (loadingEl.querySelector('.progress-text')||loadingEl).textContent="Preview Failed";
+            }
+            if (previewImg) { previewImg.style.display='none'; previewImg.alt="Preview Failed"; }
+            reject(e);
         }
     });
 }
 
-
-console.log("[RendererCore v2.6] Module loaded successfully.");
+console.log("[RendererCore v2.7] Module loaded successfully.");

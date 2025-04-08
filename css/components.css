@@ -88,6 +88,70 @@
     opacity: 0; /* Hide subtle highlight when active */
 }
 
+/* Futuristic tab headers */
+.advanced-info .tabs {
+  display: flex;
+  background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, var(--panel-bg-opaque) 50%, rgba(0,0,0,0.3) 100%);
+  padding: var(--space-xs);
+  border-radius: var(--border-radius-sm);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+}
+
+.advanced-info .tab {
+  background: transparent;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--text-color-muted);
+  position: relative;
+  overflow: hidden;
+  transition: color var(--transition-fast);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.advanced-info .tab::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  transform: scaleX(0);
+  transition: transform var(--transition-base);
+}
+
+.advanced-info .tab:hover {
+  color: var(--text-color);
+}
+
+.advanced-info .tab.active {
+  color: var(--accent-color);
+}
+
+.advanced-info .tab.active::before {
+  transform: scaleX(1);
+}
+
+/* Add subtle glow behind active tab */
+.advanced-info .tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: var(--accent-color);
+  filter: blur(10px);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+
 /* --- Info Button (within Tabs) --- */
 .info-button {
   position: absolute; /* Position relative to .tabs */
@@ -524,60 +588,52 @@ textarea[readonly]:focus {
 }
 
 /* --- Number Input with Custom Controls --- */
-.number-input-wrapper {
-  position: relative;
+/* Styling for number input controls */
+.number-input-container {
   display: flex;
   align-items: center;
-  width: 100%;
+  position: relative;
 }
-.number-input-wrapper input[type="number"] {
-  width: 100%;
-  padding-right: 25px; /* Make room for controls */
-  -moz-appearance: textfield; /* Firefox: hide default arrows */
-}
-.number-input-wrapper input[type="number"]::-webkit-inner-spin-button,
-.number-input-wrapper input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.number-controls {
-  position: absolute;
-  right: 1px; /* Position inside the border */
-  top: 1px;
-  bottom: 1px;
-  width: 20px; /* Width of controls area */
-  display: flex;
-  flex-direction: column;
-  pointer-events: none; /* Allow focus on input */
-  border-left: 1px solid var(--border-color);
-  overflow: hidden;
-  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
-}
-.number-control-btn {
-  flex: 1; /* Each takes half the height */
-  background: transparent; /* Transparent background */
-  border: none;
-  cursor: pointer;
-  pointer-events: all; /* Enable clicks on buttons */
+
+.number-btn {
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-color-muted);
-  transition: all var(--transition-fast);
+  background: var(--button-secondary-bg);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  font-size: var(--font-size-md);
   padding: 0;
   line-height: 1;
-  font-size: 10px;
+  transition: background-color var(--transition-fast);
+  user-select: none;
 }
-.number-control-btn:hover {
-  background: var(--hover-bg-strong);
-  color: var(--accent-color);
+
+.number-btn.decrement {
+  border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
 }
-.number-control-btn:active {
-  background: var(--accent-color);
-  color: var(--text-color-on-accent);
+
+.number-btn.increment {
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
 }
-.number-control-btn:first-child {
-  border-bottom: 1px solid var(--border-color); /* Separator */
+
+.number-btn:hover {
+  background: var(--button-secondary-hover-bg);
+}
+
+.number-input-container input[type="number"] {
+  border-radius: 0;
+  margin: 0 -1px;
+  text-align: center;
+  -moz-appearance: textfield; /* Firefox */
+}
+
+.number-input-container input[type="number"]::-webkit-inner-spin-button, 
+.number-input-container input[type="number"]::-webkit-outer-spin-button { 
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* --- Specific Form Groups --- */
@@ -682,6 +738,33 @@ textarea[readonly]:focus {
   transform: scale(1.15);
   background-color: var(--accent-color-darker);
   outline: none; /* Handled by ::before/::after */
+}
+
+/* Enhanced tooltips */
+.tooltip {
+  position: absolute;
+  background: var(--panel-bg-opaque);
+  color: var(--text-color);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--box-shadow-md);
+  font-size: var(--font-size-sm);
+  max-width: 250px;
+  z-index: 1000;
+  pointer-events: none;
+  transform: translateY(8px);
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  text-transform: none; /* Prevent all caps */
+  font-weight: normal;
+  line-height: 1.5;
+  text-align: left;
+  border: 1px solid var(--border-color);
+}
+
+.tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* --- Modals --- */
@@ -1099,3 +1182,86 @@ input:focus-visible {
   to { transform: rotate(360deg); }
 }
 
+/* Better font warning display */
+.font-warning-box {
+  background: rgba(var(--warning-color-rgb), 0.1);
+  border-left: 3px solid var(--warning-color);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.font-warning-message {
+  margin: 0 0 var(--space-sm) 0;
+  color: var(--text-color-strong);
+  font-weight: var(--font-weight-medium);
+}
+
+.font-warning-details {
+  font-size: var(--font-size-sm);
+  color: var(--text-color-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Enhanced ZIP Export UI */
+.zip-export-container {
+  background: var(--panel-bg-opaque);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+  border: 1px solid var(--border-color);
+}
+
+.zip-export-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.zip-export-header h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  color: var(--text-color-strong);
+}
+
+.zip-content-preview {
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-sm);
+  margin-bottom: var(--space-md);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-sm);
+  color: var(--text-color-muted);
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.zip-export-progress {
+  height: 6px;
+  background: var(--input-bg);
+  border-radius: var(--border-radius-pill);
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+}
+
+.zip-export-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.zip-export-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.zip-file-info {
+  font-size: var(--font-size-sm);
+  color: var(--text-color-muted);
+}
