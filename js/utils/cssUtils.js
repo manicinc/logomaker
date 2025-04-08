@@ -1,331 +1,240 @@
 /**
- * cssUtils.js - v2.0
- * Enhanced utility functions for handling CSS variables and computed styles
- * With improved border styling support, radius options, and consistent style handling
+ * cssUtils.js (Revamped v2.x)
+ * ==============================================
+ * A unified utility for CSS variable handling,
+ * border/padding logic, color normalization, etc.
+ *
+ * Integrates references to "effects.css" style classes
+ * for named border-radius shortcuts (e.g., 'rounded-sm',
+ * 'rounded-md', 'rounded-lg', 'pill', 'circle').
  */
 
-const CSSUtils = (function() {
+console.log("[CSSUtils v2.x] Loading...");
+
+(function() {
+
   /**
-   * Gets the actual value of a CSS variable from the document root
-   * @param {string} varName - CSS variable name (with or without --) 
-   * @param {string} defaultValue - Fallback value if variable isn't found
-   * @returns {string} The resolved value
+   * Retrieves a CSS variable from :root or returns a fallback.
+   * @param {string} varName - The variable name (with or without '--')
+   * @param {string} [defaultValue=''] - fallback if not found
+   * @returns {string} The resolved CSS var value (trimmed)
    */
   function getCSSVariable(varName, defaultValue = '') {
-    // Ensure variable name has proper format
     if (!varName.startsWith('--')) {
       varName = `--${varName}`;
     }
-    
-    // Get the computed value from document root
-    const value = getComputedStyle(document.documentElement)
+    const val = getComputedStyle(document.documentElement)
       .getPropertyValue(varName)
       .trim();
-      
-    return value || defaultValue;
+    return val || defaultValue;
   }
-  
+
   /**
-   * Sets a CSS variable on the document root
-   * @param {string} varName - CSS variable name (with or without --)
-   * @param {string} value - Value to set
+   * Sets a CSS variable on :root
+   * @param {string} varName - e.g. 'primary-color'
+   * @param {string} value
    */
   function setCSSVariable(varName, value) {
-    // Ensure variable name has proper format
     if (!varName.startsWith('--')) {
       varName = `--${varName}`;
     }
-    
     document.documentElement.style.setProperty(varName, value);
   }
-  
+
   /**
-   * Retrieves all border-related styles for an element
-   * @param {HTMLElement} element - Element to get border styles from
-   * @returns {Object} Object with border properties
+   * Extracts the border style info from an element's computed style,
+   * plus checks for any dynamic-border CSS variables if present.
+   * @param {HTMLElement} element
+   * @returns {object} { borderColor, borderStyle, borderWidth, borderRadius, padding }
    */
   function getBorderStyles(element) {
+    if (!element) return {};
     const computed = window.getComputedStyle(element);
-    
-    // Get border color from CSS variable or computed style
-    const borderColor = getCSSVariable('dynamic-border-color') || 
-                        computed.borderColor || 
-                        '#ffffff';
-    
-    // Get border radius (both single value and complete)
+
+    // See if there's a dynamic var or fallback
+    const borderColorVar = getCSSVariable('dynamic-border-color');
+    const borderColor = borderColorVar || computed.borderColor || '#ffffff';
+
+    const borderStyle = computed.borderStyle || 'none';
+
+    const borderWidthVar = getCSSVariable('dynamic-border-width');
+    const borderWidth = borderWidthVar || computed.borderWidth || '2px';
+
     const borderRadius = computed.borderRadius || '0px';
-    
-    // Check if we have individual radius values
-    const topLeft = computed.borderTopLeftRadius || borderRadius;
-    const topRight = computed.borderTopRightRadius || borderRadius;
-    const bottomLeft = computed.borderBottomLeftRadius || borderRadius;
-    const bottomRight = computed.borderBottomRightRadius || borderRadius;
-    
-    // Get border width (analyze each side for consistency)
-    const borderWidth = computed.borderWidth || getCSSVariable('dynamic-border-width') || '2px';
-    const borderTopWidth = computed.borderTopWidth || borderWidth;
-    const borderRightWidth = computed.borderRightWidth || borderWidth;
-    const borderBottomWidth = computed.borderBottomWidth || borderWidth;
-    const borderLeftWidth = computed.borderLeftWidth || borderWidth;
-    
-    // Check for consistent widths (useful for SVG export)
-    const hasConsistentWidth = (
-      borderTopWidth === borderRightWidth && 
-      borderRightWidth === borderBottomWidth && 
-      borderBottomWidth === borderLeftWidth
-    );
-    
-    // Get padding (important for border appearance)
-    const padding = computed.padding || getCSSVariable('dynamic-border-padding') || '0px';
-    const paddingTop = computed.paddingTop || padding;
-    const paddingRight = computed.paddingRight || padding;
-    const paddingBottom = computed.paddingBottom || padding;
-    const paddingLeft = computed.paddingLeft || padding;
-    
-    // Check if the element has a consistent border radius (useful for circular/oval detection)
-    const isCircular = borderRadius.includes('50%') || 
-                      (topLeft === topRight && topRight === bottomRight && 
-                       bottomRight === bottomLeft && topLeft.includes('%'));
-                      
+
+    const paddingVal = getCSSVariable('dynamic-border-padding') || computed.padding || '0px';
+
     return {
-      borderColor: borderColor,
-      borderStyle: computed.borderStyle,
-      borderWidth: hasConsistentWidth ? borderWidth : {
-        top: borderTopWidth,
-        right: borderRightWidth,
-        bottom: borderBottomWidth,
-        left: borderLeftWidth
-      },
-      borderRadius: {
-        value: borderRadius,
-        topLeft: topLeft,
-        topRight: topRight,
-        bottomLeft: bottomLeft,
-        bottomRight: bottomRight,
-        isCircular: isCircular
-      },
-      padding: {
-        value: padding,
-        top: paddingTop,
-        right: paddingRight,
-        bottom: paddingBottom,
-        left: paddingLeft
-      },
-      // If border is circular and width is consistent, we can leverage this for better SVG export
-      isCircularWithConsistentWidth: isCircular && hasConsistentWidth
+      borderColor,
+      borderStyle,
+      borderWidth,
+      borderRadius,
+      padding: paddingVal
     };
   }
-  
+
   /**
-   * Calculates text color based on background for contrast
-   * @param {string} backgroundColor - CSS color value
-   * @returns {string} Either 'white' or 'black' for best contrast
+   * Decides if black or white is better for text over a given background color.
+   * Uses a simple luminance formula to pick high contrast.
+   * @param {string} backgroundColor
+   * @returns {string} 'black' or 'white'
    */
   function getTextColorForBackground(backgroundColor) {
-    // Convert color to RGB components
-    let r, g, b;
-    
-    if (backgroundColor.startsWith('#')) {
-      // Hex color
-      const hex = backgroundColor.slice(1);
+    // Minimal approach: parse as #RRGGBB or fallback
+    let r = 255, g = 255, b = 255; // fallback white
+    if (backgroundColor && backgroundColor.startsWith('#')) {
+      let hex = backgroundColor.slice(1);
       if (hex.length === 3) {
-        // #RGB format
         r = parseInt(hex[0] + hex[0], 16);
         g = parseInt(hex[1] + hex[1], 16);
         b = parseInt(hex[2] + hex[2], 16);
-      } else {
-        // #RRGGBB format
-        r = parseInt(hex.slice(0, 2), 16);
-        g = parseInt(hex.slice(2, 4), 16);
-        b = parseInt(hex.slice(4, 6), 16);
+      } else if (hex.length >= 6) {
+        r = parseInt(hex.slice(0,2), 16);
+        g = parseInt(hex.slice(2,4), 16);
+        b = parseInt(hex.slice(4,6), 16);
       }
-    } else if (backgroundColor.startsWith('rgb')) {
-      // RGB or RGBA color
-      const match = backgroundColor.match(/(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
-      if (match) {
-        r = parseInt(match[1]);
-        g = parseInt(match[2]);
-        b = parseInt(match[3]);
-      } else {
-        return 'white'; // Default for unknown format
-      }
-    } else {
-      return 'white'; // Default for unknown format
     }
-    
-    // Calculate relative luminance (WCAG recommendation)
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    
-    // Return black for light backgrounds, white for dark backgrounds
-    return luminance > 0.5 ? 'black' : 'white';
+    // Luminance check
+    const lum = (0.299*r + 0.587*g + 0.114*b) / 255;
+    return lum > 0.5 ? 'black' : 'white';
   }
-  
+
   /**
-   * Extracts RGB values from a color string for use in rgba()
-   * @param {string} color - Any valid CSS color
-   * @returns {string} Comma-separated RGB values or fallback
+   * Extracts just the R,G,B from a color string for usage in "rgba(r,g,b,alpha)".
+   * e.g. '#ff1493' => "255,20,147"
+   * If parsing fails, returns "255, 255, 255" by default.
+   * @param {string} color
+   * @returns {string} e.g. "255, 255, 255"
    */
   function extractRGB(color) {
-    if (!color) return "255, 255, 255"; // Default white
-    
-    // For hex colors
-    if (color.startsWith('#')) {
-      const hex = color.slice(1);
-      let r, g, b;
-      
+    if (!color) return "255, 255, 255";
+    const lower = color.toLowerCase().trim();
+
+    // hex
+    if (lower.startsWith('#')) {
+      let hex = lower.slice(1);
       if (hex.length === 3) {
-        r = parseInt(hex[0] + hex[0], 16);
-        g = parseInt(hex[1] + hex[1], 16);
-        b = parseInt(hex[2] + hex[2], 16);
-      } else if (hex.length === 6) {
-        r = parseInt(hex.slice(0, 2), 16);
-        g = parseInt(hex.slice(2, 4), 16);
-        b = parseInt(hex.slice(4, 6), 16);
-      } else {
-        return "255, 255, 255"; // Fallback
+        let r = parseInt(hex[0] + hex[0], 16),
+            g = parseInt(hex[1] + hex[1], 16),
+            b = parseInt(hex[2] + hex[2], 16);
+        return `${r}, ${g}, ${b}`;
+      } else if (hex.length >= 6) {
+        let r = parseInt(hex.slice(0,2), 16),
+            g = parseInt(hex.slice(2,4), 16),
+            b = parseInt(hex.slice(4,6), 16);
+        return `${r}, ${g}, ${b}`;
       }
-      
-      return `${r}, ${g}, ${b}`;
+      return "255, 255, 255";
     }
-    
-    // For rgb/rgba colors
-    if (color.startsWith('rgb')) {
-      const match = color.match(/rgb\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i) || 
-                    color.match(/rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-      if (match) {
-        return `${match[1]}, ${match[2]}, ${match[3]}`;
+
+    // rgb( or rgba(
+    if (lower.startsWith('rgb')) {
+      const m = lower.match(/\(([^)]+)\)/);
+      if (m && m[1]) {
+        const parts = m[1].split(',')
+          .map(x => parseInt(x.trim()))
+          .slice(0,3);
+        return parts.join(', ');
       }
     }
-    
-    // For named colors, we'd need a full mapping table (omitted for brevity)
-    // We can add if needed
-    
-    return "255, 255, 255"; // Default fallback
+    // fallback
+    return "255, 255, 255";
   }
-  
+
   /**
-   * Apply border radius to an element with proper CSS variables
-   * @param {HTMLElement} element - The element to style
-   * @param {string} radius - Border radius value (px, %, etc) or shape keyword
+   * Applies a border-radius to an element, possibly using named shortcuts
+   * that match your "effects.css" or "variables.css" definitions:
+   *  - "rounded-sm" => var(--border-radius-sm, 4px)
+   *  - "rounded-md" => var(--border-radius-md, 8px)
+   *  - "rounded-lg" => var(--border-radius-lg, 16px)
+   *  - "pill"       => "999px"
+   *  - "circle"     => "50%"
+   *  - "none" or "square" => "0px"
+   *
+   * If the input is purely numeric, appends "px".
    */
-  function applyBorderRadius(element, radius) {
+  function applyBorderRadius(element, radiusVal) {
     if (!element) return;
-    
-    // Handle shape keywords
-    if (radius === 'circle' || radius === 'round') {
-      element.style.borderRadius = '50%';
-      setCSSVariable('dynamic-border-radius', '50%');
-      console.log("[CSSUtils] Applied circular border radius (50%)");
-      return;
-    }
-    
-    if (radius === 'oval') {
-      element.style.borderRadius = '30% / 50%';  // Different horizontal/vertical for oval
-      setCSSVariable('dynamic-border-radius', '30% / 50%');
-      console.log("[CSSUtils] Applied oval border radius (30% / 50%)");
-      return;
-    }
-    
-    if (radius === 'pill') {
-      element.style.borderRadius = '999px';
-      setCSSVariable('dynamic-border-radius', '999px');
-      console.log("[CSSUtils] Applied pill border radius (999px)");
-      return;
-    }
-    
-    if (radius === 'none' || radius === 'square') {
-      element.style.borderRadius = '0';
-      setCSSVariable('dynamic-border-radius', '0');
-      console.log("[CSSUtils] Applied square border radius (0)");
-      return;
-    }
-    
-    // Handle standard size keywords
-    if (radius === 'rounded-sm') {
-      const size = getCSSVariable('border-radius-sm', '3px');
-      element.style.borderRadius = size;
-      setCSSVariable('dynamic-border-radius', size);
-      console.log(`[CSSUtils] Applied small rounded corners (${size})`);
-      return;
-    }
-    
-    if (radius === 'rounded-md') {
-      const size = getCSSVariable('border-radius-md', '6px');
-      element.style.borderRadius = size;
-      setCSSVariable('dynamic-border-radius', size);
-      console.log(`[CSSUtils] Applied medium rounded corners (${size})`);
-      return;
-    }
-    
-    if (radius === 'rounded-lg') {
-      const size = getCSSVariable('border-radius-lg', '10px');
-      element.style.borderRadius = size;
-      setCSSVariable('dynamic-border-radius', size);
-      console.log(`[CSSUtils] Applied large rounded corners (${size})`);
-      return;
-    }
-    
-    // Handle custom values
-    if (radius) {
-      // Normalize the value to ensure it has proper units
-      let normalizedRadius = radius;
-      if (!isNaN(radius)) {
-        normalizedRadius = `${radius}px`;
+    let normalized = radiusVal;
+
+    switch (radiusVal) {
+      case 'circle':
+        normalized = '50%';
+        break;
+      case 'pill':
+        normalized = '999px';
+        break;
+      case 'rounded-sm': {
+        normalized = getCSSVariable('border-radius-sm', '4px');
+      } break;
+      case 'rounded-md': {
+        normalized = getCSSVariable('border-radius-md', '8px');
+      } break;
+      case 'rounded-lg': {
+        normalized = getCSSVariable('border-radius-lg', '16px');
+      } break;
+      case 'none':
+      case 'square':
+        normalized = '0px';
+        break;
+      default: {
+        // If it's numeric only, add "px"
+        if (!isNaN(parseFloat(radiusVal)) && isFinite(radiusVal)) {
+          normalized = radiusVal + 'px';
+        }
       }
-      
-      element.style.borderRadius = normalizedRadius;
-      setCSSVariable('dynamic-border-radius', normalizedRadius);
-      console.log(`[CSSUtils] Applied custom border radius (${normalizedRadius})`);
     }
+
+    element.style.borderRadius = normalized;
+    setCSSVariable('dynamic-border-radius', normalized);
+
+    console.log(`[CSSUtils] applyBorderRadius -> ${normalized}`);
   }
-  
+
   /**
-   * Apply border padding to an element consistently
-   * @param {HTMLElement} element - The element to style
-   * @param {string|number} padding - Padding value
+   * Applies uniform padding to an element.
+   * If you pass a number, it appends "px".
+   * Also sets `--dynamic-border-padding` for consistency.
+   * @param {HTMLElement} element
+   * @param {string|number} paddingVal
    */
-  function applyBorderPadding(element, padding) {
+  function applyBorderPadding(element, paddingVal) {
     if (!element) return;
-    
-    // Normalize the value
-    let normalizedPadding = padding;
-    if (!isNaN(padding)) {
-      normalizedPadding = `${padding}px`;
-    }
-    
-    element.style.padding = normalizedPadding;
-    setCSSVariable('dynamic-border-padding', normalizedPadding);
-    console.log(`[CSSUtils] Applied border padding (${normalizedPadding})`);
+    let finalVal = (typeof paddingVal === 'number')
+      ? `${paddingVal}px`
+      : paddingVal;
+
+    element.style.padding = finalVal;
+    setCSSVariable('dynamic-border-padding', finalVal);
+
+    console.log(`[CSSUtils] applyBorderPadding -> ${finalVal}`);
   }
-  
+
   /**
-   * Gets border dasharray pattern for SVG stroke based on style
-   * @param {string} style - Border style (dotted, dashed, etc)
-   * @param {string|number} width - Border width
-   * @returns {string|null} - SVG stroke-dasharray value or null if solid/none
+   * Returns a stroke-dasharray for dotted/dashed/etc. based on style + width.
+   * e.g. for 'dashed' with width=3 => "9,6" or similar.
+   * @param {string} style - e.g. "dotted","dashed","double","solid"
+   * @param {string|number} width
+   * @returns {string|null} e.g. "3,3" or "6,4", or null if style not dash-based
    */
   function getBorderDashArray(style, width) {
-    if (!style || style === 'none' || style === 'solid') return null;
-    
-    // Get clean width as number
-    const w = parseFloat(width) || 1;
-    
-    // Create appropriate dasharray patterns for different styles
+    if (!style || style==='none' || style==='solid') return null;
+    const w = parseFloat(width) || 2;
     switch(style.toLowerCase()) {
       case 'dotted':
-        return `${w}, ${w * 2}`;
+        return `${w}, ${w*1.5}`;
       case 'dashed':
-        return `${w * 3}, ${w * 2}`;
+        return `${w*3}, ${w*2}`;
       case 'double':
-        // Double can't really be done with dasharray, but we attempt an approximation
-        return `${w * 4}, ${w}`;
+        // double is tricky, approximate:
+        return `${w*4}, ${w*2}`;
       default:
         return null;
     }
   }
-  
-  // Public API
-  return {
+
+  // Create an object with all these utility methods
+  const CSSUtils = {
     getCSSVariable,
     setCSSVariable,
     getBorderStyles,
@@ -335,9 +244,42 @@ const CSSUtils = (function() {
     applyBorderPadding,
     getBorderDashArray
   };
+
+  // Attach to window globally
+  window.CSSUtils = CSSUtils;
+
+  console.log("[CSSUtils] Ready. v2.x");
+
 })();
 
-// Make globally available
-window.CSSUtils = CSSUtils;
+/**
+ * A separate function for normalizing color names to hex (or just returns # or rgb).
+ * Attached to `window` for usage in other modules, so e.g. "red" => "#ff0000".
+ */
+window.normalizeColor = function normalizeColor(color, context = 'color') {
+  if (!color || color === 'transparent' || color === 'none') {
+    return null;
+  }
 
-console.log("[CSSUtils] Enhanced v2.0 loaded with improved border handling");
+  // Already # or rgb(...) => pass through
+  const lower = color.toLowerCase().trim();
+  if (lower.startsWith('#') || lower.startsWith('rgb')) {
+    return color;
+  }
+
+  // A partial HTML color name -> hex map
+  const colorMap = {
+    'black': '#000000', 'white': '#ffffff',
+    'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff',
+    'yellow': '#ffff00', 'purple': '#800080', 'orange': '#ffa500',
+    // Expand as needed...
+  };
+
+  if (colorMap[lower]) {
+    return colorMap[lower];
+  }
+
+  // If not recognized, warn and pass the string
+  console.warn(`[normalizeColor] Unrecognized color "${color}" for ${context}; passing through.`);
+  return color;
+};

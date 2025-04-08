@@ -331,7 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 licenseContainer.classList.remove('hidden'); // Show the container
 
                 // Determine summary text for the button
-                let summaryText = "View License Details";
+                const filenamePart = licenseFilename.substring(licenseFilename.lastIndexOf('/') + 1);
+                summaryText = `View License (${filenamePart})`;
                 const guessedType = guessLicenseType(licenseText, licenseFilename);
                 if (guessedType) {
                     summaryText = `View ${guessedType} License`;

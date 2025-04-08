@@ -302,13 +302,29 @@ async function prepareElementForCapture(element, options = {}) {
  * Restores original inline style attribute and data-text.
  * @param {HTMLElement} modifiedElement - Element that was prepared
  */
+// In html2canvas.js
+
+/**
+ * Clean up after capture to restore original element state (v2.8 - Improved Restore)
+ * Restores original inline style attribute, data-text, and removes explicit overrides.
+ * @param {HTMLElement} modifiedElement - Element that was prepared
+ */
 function cleanupAfterCapture(modifiedElement) {
-    console.log("[Capture Cleanup v2.7] Cleaning up element...");
+    console.log("[Capture Cleanup v2.8] Cleaning up element...");
 
     const prepData = modifiedElement._capturePreparationData;
     if (prepData) {
-        // Restore the original inline style attribute completely
+        // Restore the original inline style attribute FIRST
         modifiedElement.setAttribute('style', prepData.originalInlineStyle);
+
+        // --- NEW: Explicitly remove styles added during prep ---
+        // This ensures that even if the original style attribute was empty or
+        // didn't define these, we remove the explicit overrides, letting
+        // CSS classes take precedence again.
+        modifiedElement.style.removeProperty('width');
+        modifiedElement.style.removeProperty('height');
+        modifiedElement.style.removeProperty('overflow');
+        // --- END NEW ---
 
         // Restore data-text attribute if it was changed
         const logoText = prepData.logoTextElement;
@@ -323,14 +339,12 @@ function cleanupAfterCapture(modifiedElement) {
 
         // Remove preparation data marker
         delete modifiedElement._capturePreparationData;
-        console.log("[Capture Cleanup v2.7] Cleanup complete.");
+        console.log("[Capture Cleanup v2.8] Cleanup complete.");
     } else {
-        console.warn("[Capture Cleanup v2.7] No preparation data found. Cannot restore state precisely. Removing potentially added styles as fallback.");
-        // Fallback: Remove specific styles added during preparation
-        modifiedElement.style.width = '';
-        modifiedElement.style.height = '';
-        modifiedElement.style.overflow = '';
-        // Restore original style attribute if we somehow know it, otherwise leave it potentially modified
-         // if (originalInlineStyle !== undefined) modifiedElement.setAttribute('style', originalInlineStyle);
+        console.warn("[Capture Cleanup v2.8] No preparation data found. Cannot restore state precisely. Removing potentially added styles as fallback.");
+        // Fallback remains the same: attempt to remove specific styles
+        modifiedElement.style.removeProperty('width');
+        modifiedElement.style.removeProperty('height');
+        modifiedElement.style.removeProperty('overflow');
     }
 }

@@ -1,299 +1,175 @@
 /**
- * scripts/build.js (v3.6 - Inject base href for deploy target)
- * Performs the build steps for Logomaker.
- * Reads the correct HTML template based on the build target.
- * Injects <base href="/logomaker/"> ONLY for the 'deploy' target.
- * Copies source font files for the 'deploy' target to allow serving via URL.
+ * build.js v3.9 - Clean build script, no base href injection.
+ * Relies on relative paths in templates.
+ * Intended for use with dev.js v3.5+ (which serves the output locally)
+ * and potentially for the portable build target.
+ *
+ * WARNING: The output of the 'deploy' target from THIS script is NOT directly
+ * suitable for deployment to a subdirectory (like GitHub Pages /repo-name/)
+ * because it lacks the <base href> tag. A separate build step or script
+ * version (like v3.7) is needed for the actual deployment build.
  */
 
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-console.log('Starting Build Script...');
-
-// --- Configuration & Argument Parsing ---
+// --- Configuration ---
 const projectRoot = path.resolve(__dirname, '..');
 const args = process.argv.slice(2);
-let target = 'deploy'; // Default target
-let skipFontRegen = false;
 
-args.forEach(arg => {
-    if (arg.startsWith('--target=')) {
-        target = arg.split('=')[1] || 'deploy';
-        if (target !== 'deploy' && target !== 'portable') {
-            console.warn(`Unknown target '${target}', defaulting to 'deploy'.`);
-            target = 'deploy';
-        }
-    } else if (arg === '--skip-font-regen') {
-        skipFontRegen = true;
-    }
-});
+// Parse arguments robustly
+let target = args.find(a => a.startsWith('--target='))?.split('=')[1] || 'deploy';
+let skipFontRegen = args.includes('--skip-font-regen');
 
-console.log(`Build Target: ${target}`);
-console.log(`Skip Font Regen: ${skipFontRegen}`);
+// Validate target
+if (!['deploy', 'portable'].includes(target)) {
+    console.warn(`[Build] Invalid target '${target}', defaulting to 'deploy'.`);
+    target = 'deploy';
+}
 
-const distBaseDir = path.join(projectRoot, 'dist');
-const GITHUB_PAGES_SUBDIR = 'github-pages'; // Deploy target output
-const PORTABLE_SUBDIR = 'portable';        // Portable target output
-const targetSubDir = target === 'deploy' ? GITHUB_PAGES_SUBDIR : PORTABLE_SUBDIR;
-const distDir = path.join(distBaseDir, targetSubDir);
-const FONT_DIR_NAME = 'fonts'; // Source font directory name
-const REPO_NAME = 'logomaker'; // *** Your GitHub repo name for base path ***
+const distDir = path.join(projectRoot, 'dist', target === 'deploy' ? 'github-pages' : 'portable');
+const FONT_DIR_NAME = 'fonts'; // Source font directory relative to projectRoot
+const FONT_CHUNKS_DIR = 'font-chunks'; // Relative to projectRoot
 
-// --- Helper Function ---
-function copyDirRecursive(source, destination) {
-    if (!fs.existsSync(source)) {
-        console.warn(`Source directory not found, skipping copy: ${source}`);
+// --- Logging Helpers ---
+const logBuild = (msg) => console.log(`[Build:${target}] ${msg}`);
+const logBuildWarn = (msg) => console.warn(`[Build:${target}] [WARN] ${msg}`);
+const logBuildError = (msg, err) => console.error(`[Build:${target}] [ERROR] ${msg}`, err || '');
+const logBuildSuccess = (msg) => console.log(`[Build:${target}] ✅ ${msg}`);
+const logBuildInfo = (msg) => console.log(`[Build:${target} INFO] ${msg}`);
+
+
+// --- Helper Function: Safely Copy Directories ---
+function copyDirRecursive(src, dest) {
+    if (!fs.existsSync(src)) {
+        logBuildWarn(`Source directory not found, skipping copy: ${src}`);
         return;
     }
-    fs.mkdirSync(destination, { recursive: true });
-    const entries = fs.readdirSync(source, { withFileTypes: true });
-
-    for (let entry of entries) {
-        const srcPath = path.join(source, entry.name);
-        const destPath = path.join(destination, entry.name);
-
-        if (entry.isDirectory()) {
-            if (entry.name === '.git' || entry.name === 'node_modules' || srcPath === destination) continue;
-            copyDirRecursive(srcPath, destPath);
-        } else {
-            // Skip common junk files
-            if (entry.name === '.DS_Store' || entry.name === 'Thumbs.db' || entry.name.startsWith('~') || entry.name === '.gitkeep') continue;
-            try {
-                fs.copyFileSync(srcPath, destPath);
-            } catch (copyError) {
-                console.error(`Failed to copy ${entry.name} from ${source} to ${destination}:`, copyError);
-                throw copyError; // Re-throw to stop the build on error
-            }
-        }
-    }
-}
-
-// --- Build Steps ---
-try {
-    // 1. Clean previous build directory
-    console.log(`Cleaning target directory: ${distDir}`);
-    if (fs.existsSync(distDir)) { fs.rmSync(distDir, { recursive: true, force: true }); }
-    fs.mkdirSync(distDir, { recursive: true });
-    console.log('Target directory cleaned and created.');
-
-    // Define paths for generated files (relative to project root)
-    const generatedCssSourceFilename = 'generated-font-classes.css';
-    const generatedCssSourcePath = path.join(projectRoot, 'css', generatedCssSourceFilename);
-    const fontsJsonPath = path.join(projectRoot, 'fonts.json');
-    const inlineFontsJsPath = path.join(projectRoot, 'inline-fonts-data.js'); // Generated by font script
-
-    // Define paths for HTML templates (relative to project root)
-    // Assuming your deploy template is index.template.html now
-    const deployTemplatePath = path.join(projectRoot, 'index.template.html');
-    const portableTemplatePath = path.join(projectRoot, 'index-portable.template.html'); // Assuming separate portable template exists
-    const finalHtmlPath = path.join(distDir, 'index.html'); // Output HTML file
-
-    // 2. Generate Font Assets (if not skipped)
-    if (!skipFontRegen) {
-        console.log('Running generate-fonts-json.js...');
-        // Portable target needs Base64 data; Deploy target needs URL metadata
-        const fontArgs = (target === 'portable') ? ['--base64'] : [];
-        const fontGenCmd = 'node';
-        const fontGenScript = path.join(__dirname, 'generate-fonts-json.js');
-        console.log(`Executing: ${fontGenCmd} ${fontGenScript} ${fontArgs.join(' ')}`);
-
-        const fontGenResult = spawnSync(fontGenCmd, [fontGenScript, ...fontArgs], { stdio: 'inherit', encoding: 'utf-8', cwd: projectRoot });
-        if (fontGenResult.status !== 0 || fontGenResult.error) {
-             // Attempt to grab stderr if available
-             const stderrOutput = fontGenResult.stderr ? `\nStderr:\n${fontGenResult.stderr}` : '';
-            throw new Error(`generate-fonts-json.js failed. Status: ${fontGenResult.status}, Error: ${fontGenResult.error || 'Unknown error'}${stderrOutput}`);
-        }
-        console.log('Font assets generated successfully.');
-    } else {
-        console.log('Skipping font regeneration.');
-        // Add checks for required files if skipping regen - adjusted paths
-        if (!fs.existsSync(generatedCssSourcePath)) { console.warn(`WARNING: Skipping font regen, but '${generatedCssSourceFilename}' not found in css/!`); }
-        if (target === 'deploy' && !fs.existsSync(fontsJsonPath)) { console.warn("WARNING: Skipping font regen, but 'fonts.json' not found at project root! Deploy might fail."); }
-        if (target === 'deploy' && !fs.existsSync(inlineFontsJsPath)) { console.warn("WARNING: Skipping font regen, but 'inline-fonts-data.js' not found at project root! Deploy (chunk split) might fail."); }
-        if (target === 'portable' && !fs.existsSync(inlineFontsJsPath)) { console.warn("WARNING: Skipping font regen for portable target, but 'inline-fonts-data.js' not found at project root! Build might fail."); }
-    }
-
-    // 3. Process HTML Template
-    console.log('Processing HTML template...');
-    let sourceHtmlPath = '';
-    let finalHtmlContent = ''; // Variable to hold final HTML content
-
-    if (target === 'portable') {
-        sourceHtmlPath = portableTemplatePath;
-        if (!fs.existsSync(sourceHtmlPath)) { throw new Error(`Portable HTML template not found at ${sourceHtmlPath}`); }
-        console.log(`Reading PORTABLE HTML template (${path.basename(sourceHtmlPath)})...`);
-        finalHtmlContent = fs.readFileSync(sourceHtmlPath, 'utf-8');
-        // Portable version doesn't need base href injection
-    } else { // Default to deploy
-        sourceHtmlPath = deployTemplatePath;
-        if (!fs.existsSync(sourceHtmlPath)) { throw new Error(`Deploy HTML template not found at ${sourceHtmlPath}`); }
-        console.log(`Reading DEPLOY HTML template (${path.basename(sourceHtmlPath)})...`);
-        finalHtmlContent = fs.readFileSync(sourceHtmlPath, 'utf-8');
-
-        // --- >>> INJECT BASE HREF FOR DEPLOY <<< ---
-        const baseHref = `/${REPO_NAME}/`; // Your repo name for the base path
-        console.log(`Injecting <base href="${baseHref}"> for deploy target...`);
-        // Use regex for case-insensitivity and handle potential attributes on <head>
-        const headTagRegex = /<head\b[^>]*>/i;
-        if (!/<base\s+href=/i.test(finalHtmlContent)) { // Check if base tag already exists
-             if (headTagRegex.test(finalHtmlContent)) {
-                finalHtmlContent = finalHtmlContent.replace(headTagRegex, `$& \n    <base href="${baseHref}">`); // $& inserts the matched string (<head...>)
-                console.log('Injected base href tag.');
-            } else {
-                 console.warn('WARNING: Could not find <head> tag to inject base href!');
-            }
-        } else {
-            console.log('Base href tag already seems present in template, skipping injection.');
-        }
-        // --- >>> END INJECTION <<< ---
-    }
-
-    // Write the potentially modified HTML content to the final destination
-    console.log(`Writing final HTML to ${finalHtmlPath}...`);
     try {
-        fs.writeFileSync(finalHtmlPath, finalHtmlContent, 'utf-8');
-        console.log('HTML file written successfully.');
-    } catch (htmlWriteError) {
-        console.error(`Failed to write final HTML to ${finalHtmlPath}:`, htmlWriteError);
-        throw htmlWriteError;
-    }
+        fs.mkdirSync(dest, { recursive: true }); // Ensure destination exists
+        for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+            const srcPath = path.join(src, entry.name);
+            const destPath = path.join(dest, entry.name);
 
-    // 4. Copy Other Assets (CSS, JS, Images, Root Files etc.)
-    console.log('Copying other assets...');
-
-    // Copy CSS directory
-    const cssSourceDir = path.join(projectRoot, 'css');
-    const cssDestDir = path.join(distDir, 'css');
-    console.log(`Copying CSS directory from ${cssSourceDir} to ${cssDestDir}...`);
-    copyDirRecursive(cssSourceDir, cssDestDir);
-    // Verify generated CSS file exists in destination after copy
-    const generatedCssDestPath = path.join(cssDestDir, generatedCssSourceFilename);
-    if (!fs.existsSync(generatedCssDestPath)) {
-         // Only a warning unless it's absolutely critical
-         console.warn(`WARNING: Expected generated CSS file '${generatedCssSourceFilename}' not found in destination ${cssDestDir}`);
-    }
-
-    // Copy JS directory
-    const jsSourceDir = path.join(projectRoot, 'js');
-    const jsDestDir = path.join(distDir, 'js');
-    console.log(`Copying JS from ${jsSourceDir} to ${jsDestDir}...`);
-    copyDirRecursive(jsSourceDir, jsDestDir);
-
-    // Copy Assets directory (images, favicons, manifest etc.)
-    const assetsSourceDir = path.join(projectRoot, 'assets');
-    const assetsDestDir = path.join(distDir, 'assets');
-     if (fs.existsSync(assetsSourceDir)) {
-        console.log(`Copying ASSETS from ${assetsSourceDir} to ${assetsDestDir}...`);
-        copyDirRecursive(assetsSourceDir, assetsDestDir);
-    } else {
-         console.warn(`Assets directory not found at ${assetsSourceDir}, skipping copy.`);
-    }
-
-    // Copy other root files (e.g., LICENSE) - Adjust as needed
-    const rootFilesToCopy = ['LICENSE']; // Keep only essential files, README usually not needed in build output
-    rootFilesToCopy.forEach(file => {
-        const sourceFile = path.join(projectRoot, file);
-        const destFile = path.join(distDir, file);
-        if (fs.existsSync(sourceFile)) {
-            try {
-                console.log(`Copying ${file}...`);
-                fs.copyFileSync(sourceFile, destFile);
-            } catch (copyError) {
-                 console.error(`Failed to copy root file ${file}:`, copyError);
-                 // Decide if this should stop the build
-                 // throw copyError;
+            if (entry.isDirectory()) {
+                // Skip common excluded dirs and avoid infinite recursion
+                if (entry.name === '.git' || entry.name === 'node_modules' || srcPath === dest) continue;
+                copyDirRecursive(srcPath, destPath); // Recurse
+            } else if (!/^(\.DS_Store|Thumbs\.db|~|\.gitkeep)$/i.test(entry.name)) { // Skip common junk files
+                fs.copyFileSync(srcPath, destPath);
             }
-        } else {
-            console.warn(`Root file ${file} not found, skipping.`);
         }
-    });
-
-    // 5. Handle Target-Specific Steps (Post-Asset Copy)
-    if (target === 'deploy') {
-        console.log('Performing deploy-specific steps (chunking and font file copy)...');
-
-        // Ensure inline-fonts-data.js (with URLs) exists before splitting
-        if (!fs.existsSync(inlineFontsJsPath)) {
-            const errorMsg = `'inline-fonts-data.js' not found at project root after font generation. Cannot run split-fonts.js.`;
-            console.error(`ERROR: ${errorMsg}`);
-            throw new Error(errorMsg);
-        }
-
-        // Run split-fonts.js to create chunks (containing URLs)
-        console.log('Running split-fonts.js...');
-        const splitCmd = 'node';
-        const splitScript = path.join(__dirname, 'split-fonts.js');
-        console.log(`Executing: ${splitCmd} ${splitScript}`);
-        const splitResult = spawnSync(splitCmd, [splitScript], { stdio: 'inherit', cwd: projectRoot });
-        if (splitResult.status !== 0 || splitResult.error) {
-            throw new Error(`split-fonts.js failed. Status: ${splitResult.status}, Error: ${splitResult.error || 'Unknown error'}`);
-        }
-
-        // Copy the generated font chunks
-        const chunkSourceDir = path.join(projectRoot, 'font-chunks'); // Generated by split-fonts.js
-        if (fs.existsSync(chunkSourceDir)) {
-            const chunkDestDir = path.join(distDir, 'font-chunks');
-            console.log(`Copying font chunks from ${chunkSourceDir} to ${chunkDestDir}...`);
-            copyDirRecursive(chunkSourceDir, chunkDestDir);
-        } else {
-            console.warn("Font chunks directory not found after split script. Skipping copy.");
-        }
-
-        // Copy source font files for deploy target
-        const fontSourceDir = path.join(projectRoot, FONT_DIR_NAME);
-        const fontDestDir = path.join(distDir, FONT_DIR_NAME); // Output to e.g., dist/github-pages/fonts/
-         if (fs.existsSync(fontSourceDir)) {
-             console.log(`Copying SOURCE fonts directory from ${fontSourceDir} to ${fontDestDir} for deploy target...`);
-             copyDirRecursive(fontSourceDir, fontDestDir);
-         } else {
-             console.warn(`Source font directory ${fontSourceDir} not found, deploy target may not load fonts via URL.`);
-         }
-
-        // Copy fonts.json (metadata needed by deploy target)
-        const fontsJsonDest = path.join(distDir, 'fonts.json');
-        if (fs.existsSync(fontsJsonPath)) {
-             console.log(`Copying fonts.json...`);
-             fs.copyFileSync(fontsJsonPath, fontsJsonDest);
-        } else {
-             console.error(`ERROR: fonts.json not found at ${fontsJsonPath}! Deploy build requires this.`);
-             throw new Error("fonts.json missing");
-        }
-
-         // Add .nojekyll file for GitHub Pages
-         console.log('Adding .nojekyll file for GitHub Pages deployment...');
-         fs.writeFileSync(path.join(distDir, '.nojekyll'), '');
-
-
-    } else if (target === 'portable') {
-        console.log('Performing portable-specific steps (copying embedded data)...');
-
-        // Check for inline-fonts-data.js (which MUST have Base64 for portable)
-        if (!fs.existsSync(inlineFontsJsPath)) {
-            console.error(`ERROR: Required input file 'inline-fonts-data.js' not found at ${inlineFontsJsPath}!`);
-            console.error("Ensure 'scripts/generate-fonts-json.js --base64' ran successfully.");
-            throw new Error("inline-fonts-data.js missing for portable build.");
-        } else {
-             console.log(`Found required '${path.basename(inlineFontsJsPath)}'. Proceeding with portable build.`);
-        }
-
-        // Copy inline-fonts-data.js to the distribution directory
-        const inlineJsDest = path.join(distDir, 'inline-fonts-data.js');
-        console.log(`Copying '${path.basename(inlineFontsJsPath)}' for portable build...`);
-        fs.copyFileSync(inlineFontsJsPath, inlineJsDest);
-
-        // Note: If you want single-file portable, you'd need 'portapack' or similar here
-        console.log("--- Portable build output is a directory. Single file requires 'portapack'. ---");
-    }
-
-    console.log(`\n✅ Build successful for target '${target}'! Output in: ${distDir}`);
-
-} catch (error) {
-    console.error('\n❌ Build Failed!');
-    console.error("Error Message:", error.message || error); // Log the error message
-    if (error.stack) {
-        console.error("Stack Trace:", error.stack);
-    }
-    process.exit(1); // Exit with error code
+    } catch (error) {
+         logBuildError(`Failed during recursive copy from ${src} to ${dest}`, error);
+         throw error; // Stop build on copy failure
+     }
 }
+
+// --- Main Build Logic (Self-executing async function) ---
+(async () => {
+    try {
+        logBuild(`--- Starting Build: Target='${target}' ---`);
+
+        // 1. Clean Output Directory
+        logBuild(`Cleaning output directory: ${distDir}`);
+        fs.rmSync(distDir, { recursive: true, force: true });
+        fs.mkdirSync(distDir, { recursive: true });
+        logBuildSuccess(`Cleaned and created ${distDir}`);
+
+        // 2. Font Generation (Conditional)
+        if (!skipFontRegen) {
+            logBuildInfo('Regenerating font assets...');
+            const fontGenScript = path.join(__dirname, 'generate-fonts-json.js');
+            const fontArgs = target === 'portable' ? ['--base64'] : []; // Base64 only for portable
+            const fontResult = spawnSync('node', [fontGenScript, ...fontArgs], {
+                stdio: 'inherit', // Show output directly
+                cwd: projectRoot,
+                shell: process.platform === 'win32' // Use shell on Windows for node
+            });
+            if (fontResult.status !== 0) {
+                const errMsg = fontResult.error || `Font generation script exited with code ${fontResult.status}`;
+                throw new Error(`Font generation failed: ${errMsg}`);
+            }
+            logBuildSuccess('Font assets generated successfully.');
+        } else {
+            logBuildInfo('Skipping font regeneration.');
+            // Add checks here if needed for existence of generated files when skipping
+        }
+
+        // 3. Process and Copy HTML Template
+        const templateFile = target === 'deploy' ? 'index.template.html' : 'index-portable.template.html';
+        const htmlSrc = path.join(projectRoot, templateFile);
+        const htmlDest = path.join(distDir, 'index.html'); // Final name is always index.html
+
+        if (!fs.existsSync(htmlSrc)) throw new Error(`Required template file missing: ${htmlSrc}`);
+        logBuildInfo(`Copying template ${templateFile} to ${htmlDest}...`);
+        fs.copyFileSync(htmlSrc, htmlDest);
+        // --- ENSURE NO BASE HREF INJECTION OCCURS IN THIS VERSION ---
+        logBuildSuccess(`Copied ${templateFile} as index.html.`);
+
+        // 4. Copy Core Assets (CSS, JS, Assets)
+        logBuildInfo('Copying core asset directories (css, js, assets)...');
+        for (const dir of ['css', 'js', 'assets']) {
+            const src = path.join(projectRoot, dir);
+            const dest = path.join(distDir, dir);
+            logBuildInfo(`Copying ${dir}...`);
+            copyDirRecursive(src, dest);
+             // Verify generated CSS is copied (important)
+             if (dir === 'css' && !fs.existsSync(path.join(dest, 'generated-font-classes.css'))) {
+                 logBuildWarn(`Generated CSS file not found in destination ${dest} after copy!`);
+             }
+        }
+        logBuildSuccess('Core asset directories copied.');
+
+        // 5. Copy Root Files (e.g., LICENSE)
+        logBuildInfo('Copying root files...');
+        for (const file of ['LICENSE']) { // Keep minimal, adjust if needed
+            const filePath = path.join(projectRoot, file);
+            const filePathMd = path.join(projectRoot, `${file}.md`);
+            const sourceFile = fs.existsSync(filePath) ? filePath : fs.existsSync(filePathMd) ? filePathMd : null;
+            if (sourceFile) {
+                logBuildInfo(`Copying ${path.basename(sourceFile)}...`);
+                fs.copyFileSync(sourceFile, path.join(distDir, path.basename(sourceFile)));
+            } else { logBuildWarn(`Root file ${file}(.md) not found, skipping.`); }
+        }
+
+        // 6. Target-Specific Asset Handling
+        logBuildInfo(`Performing ${target}-specific steps...`);
+        if (target === 'deploy') {
+            const fontsJsonPath = path.join(projectRoot, 'fonts.json');
+            const inlineFontsJsPath = path.join(projectRoot, 'inline-fonts-data.js');
+
+            if (!fs.existsSync(inlineFontsJsPath)) throw new Error(`inline-fonts-data.js (with URLs) missing. Run font generation first.`);
+            if (!fs.existsSync(fontsJsonPath)) throw new Error(`fonts.json missing. Run font generation first.`);
+
+            // Run split-fonts.js
+            logBuildInfo('Running font chunking script...');
+            const splitResult = spawnSync('node', [path.join(__dirname, 'split-fonts.js')], { stdio: 'inherit', cwd: projectRoot, shell: process.platform === 'win32' });
+            if (splitResult.status !== 0) throw new Error('Font chunking script failed');
+
+            // Copy chunks, source fonts, metadata, .nojekyll
+            logBuildInfo('Copying deploy-specific assets (chunks, fonts, metadata)...');
+            copyDirRecursive(path.join(projectRoot, FONT_CHUNKS_DIR), path.join(distDir, FONT_CHUNKS_DIR));
+            copyDirRecursive(path.join(projectRoot, FONT_DIR_NAME), path.join(distDir, FONT_DIR_NAME)); // Need source fonts for URL loading
+            fs.copyFileSync(fontsJsonPath, path.join(distDir, 'fonts.json'));
+            fs.writeFileSync(path.join(distDir, '.nojekyll'), ''); // For GitHub Pages
+            logBuildSuccess('Deploy-specific assets processed.');
+
+        } else if (target === 'portable') {
+            const inlineFontsJsPath = path.join(projectRoot, 'inline-fonts-data.js'); // Needs Base64 data
+            if (!fs.existsSync(inlineFontsJsPath)) throw new Error(`inline-fonts-data.js missing for portable build. Ensure 'generate-fonts --base64' ran.`);
+            logBuildInfo(`Copying inline-fonts-data.js for portable build...`);
+            fs.copyFileSync(inlineFontsJsPath, path.join(distDir, 'inline-fonts-data.js'));
+            logBuildSuccess('Portable-specific assets processed.');
+        }
+
+        // Final Success Message
+        logBuildSuccess(`Build succeeded for target '${target}': ${distDir}`);
+
+    } catch (e) {
+        logBuildError(`Build failed for target '${target}': ${e.message}`);
+        if (e.stack) { console.error(e.stack); }
+        process.exit(1); // Exit with error code
+    }
+})();

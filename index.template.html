@@ -1,815 +1,1746 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logomaker: Free Design Playground</title>
-    <meta name="description" content="Instantly craft unique text logos with Logomaker v3 by Manic Agency. Featuring optimized loading, border controls, and enhanced export fidelity! Explore fonts, dynamic effects, gradients, animations, and export SVG, PNG, or frames. Free, open-source, offline-capable.">
-    <meta name="keywords" content="logo maker, logo generator, free logo tool, text logo, animated logo, svg logo export, png logo export, brand identity, design tool, web tool, open source, offline tool, portable app, font chunking, manic agency, ai generated code, border radius, border padding">
-    <meta name="author" content="Manic.agency">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logomaker: Free Design Playground</title>
+  <meta name="description" content="Instantly craft unique text logos with Logomaker v3 by Manic Agency. Featuring optimized loading, border controls, and enhanced export fidelity! Explore fonts, dynamic effects, gradients, animations, and export SVG, PNG, or frames. Free, open-source, offline-capable.">
+  <meta name="keywords" content="logo maker, logo generator, free logo tool, text logo, animated logo, svg logo export, png logo export, brand identity, design tool, web tool, open source, offline tool, portable app, font chunking, manic agency, ai generated code, border radius, border padding">
+  <meta name="author" content="Manic.agency">
 
-    <meta property="og:title" content="Logomaker v3: Enhanced Free Online Logo Generator - Manic Agency">
-    <meta property="og:description" content="Design stunning text logos in seconds. Optimized loading, border radius/padding, vast customization: fonts, colors, gradients, effects, animations & SVG/PNG export. Works offline!">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://manicinc.github.io/logomaker"> <meta property="og:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png"> <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Logomaker v3 by Manic - Free, Optimized, Offline Logo Creator with Borders">
-    <meta name="twitter:description" content="Generate unique text logos instantly. Optimized loading, offline capability. Customize fonts, effects, borders, animations & export SVG/PNG.">
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png"> 
-    <!-- <link rel="icon" href="https://manic.agency/favicon.ico" type="image/x-icon">  -->
-    <link rel="canonical" href="https://manicinc.github.io/logomaker"> 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YHJWW58FJ7"></script>
+  <meta property="og:title" content="Logomaker v3: Enhanced Free Online Logo Generator - Manic Agency">
+  <meta property="og:description" content="Design stunning text logos in seconds. Optimized loading, border radius/padding, vast customization: fonts, colors, gradients, effects, animations & SVG/PNG export. Works offline!">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://manicinc.github.io/logomaker">
+  <meta property="og:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Logomaker v3 by Manic - Free, Optimized, Offline Logo Creator with Borders">
+  <meta name="twitter:description" content="Generate unique text logos instantly. Optimized loading, offline capability. Customize fonts, effects, borders, animations & export SVG/PNG.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png">
 
-    <!-- <base href="/logomaker/"> -->
+  <!-- <link rel="icon" href="https://manic.agency/favicon.ico" type="image/x-icon"> -->
+  <link rel="canonical" href="https://manicinc.github.io/logomaker">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YHJWW58FJ7"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-YHJWW58FJ7');
+  </script>
 
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-YHJWW58FJ7');
-    </script>
+  <!-- Offline fonts or Google fonts (both placeholders) -->
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet"> -->
 
-    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"> -->
-    <!-- <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Audiowide&family=Press+Start+2P&family=Russo+One&display=swap" rel="stylesheet"> -->
-    <!-- Our site fonts are now offline -->
-    <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16x16.png">
-    <link rel="manifest" href="./assets/site.webmanifest">
-    <link rel="stylesheet" href="./css/google-fonts.css">
-    <link rel="stylesheet" href="./css/variables.css">
-    <link rel="stylesheet" href="./css/base.css">
-    <link rel="stylesheet" href="./css/components.css">
-    <link rel="stylesheet" href="./css/layout.css">
-    <link rel="stylesheet" href="./css/loading.css">
-    <link rel="stylesheet" href="./css/generated-font-classes.css"> <link rel="stylesheet" href="./css/effects.css">
-    <link rel="stylesheet" href="./css/responsive.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16x16.png">
+  <link rel="manifest" href="./assets/site.webmanifest">
 
-    <style id="dynamic-font-style"></style>
+  <!-- Base CSS files -->
+  <link rel="stylesheet" href="./css/google-fonts.css">
+  <link rel="stylesheet" href="./css/variables.css">
+  <link rel="stylesheet" href="./css/base.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/layout.css">
+  <link rel="stylesheet" href="./css/loading.css">
+  <link rel="stylesheet" href="./css/generated-font-classes.css">
+  <link rel="stylesheet" href="./css/effects.css">
+  <link rel="stylesheet" href="./css/responsive.css">
+
+  <style id="dynamic-font-style"></style>
 </head>
 <body>
 
+  <!-- Initial loading overlay -->
   <div id="loading-overlay" class="loading-overlay">
     <div class="loading-content">
-      <h3>Logomaker <span style="font-size: 0.7em; opacity: 0.8;">v3</span></h3> <div class="spinner"></div>
+      <h3>Logomaker <span style="font-size: 0.7em; opacity: 0.8;">v3</span></h3>
+      <div class="spinner"></div>
       <p>Preparing extensive font library & effects...</p>
       <div class="loading-progress-container">
-        <div id="loading-progress-bar" class="loading-progress-bar" role="progressbar" aria-valuenow="5" aria-valuemin="0" aria-valuemax="100"></div>
+        <div id="loading-progress-bar"
+             class="loading-progress-bar"
+             role="progressbar"
+             aria-valuenow="5"
+             aria-valuemin="0"
+             aria-valuemax="100">
+        </div>
       </div>
       <div id="loading-status">Initializing...</div>
     </div>
   </div>
 
-    <div class="container">
-        <header>
-             <div class="logo-brand">
-                 <h1>Logomaker <span class="logo-subtitle">by <a href="https://manic.agency" target="_blank" title="Visit Manic Agency" rel="noopener noreferrer">Manic</a></span></h1>
-             </div>
-             <div class="brand-links">
-                 </div>
+  <div class="container">
+    <header>
+      <div class="logo-brand">
+        <h1>Logomaker
+          <span class="logo-subtitle">
+            by <a href="https://manic.agency" target="_blank" rel="noopener noreferrer" title="Visit Manic Agency">Manic</a>
+          </span>
+        </h1>
+      </div>
 
-             <div class="promo-banner">
-                 <div class="promo-content">
-                     <div class="promo-text"><span class="highlight">Need Pro Design?</span> Hire the humans!</div>
-                     <a href="https://manic.agency/contact" target="_blank" class="promo-link" title="Contact Manic Agency for professional services" rel="noopener noreferrer">
-                         Work with Manic <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                     </a>
-                 </div>
-             </div>
-        </header>
+      <div class="brand-links">
+        <!-- (Optional brand link area) -->
+      </div>
 
-        <div id="info-notice" class="info-notice-section" style="display: none;" role="region" aria-live="polite">
-            <div class="info-notice-tabs" role="tablist" aria-label="Information Tabs">
-                 <button class="info-tab active" id="info-tab-performance" data-infotab="performance" role="tab" aria-selected="true" aria-controls="performance-info">Performance ⚡</button>
-                 <button class="info-tab" id="info-tab-ai-collab" data-infotab="ai-collab" role="tab" aria-selected="false" aria-controls="ai-collab-info">Genesis ✨</button>
-                 <button class="info-tab" id="info-tab-svg-animations" data-infotab="svg-animations" role="tab" aria-selected="false" aria-controls="svg-animations-info">SVG Animations 🤔</button>
-                 <button class="info-tab" id="info-tab-roadmap" data-infotab="roadmap" role="tab" aria-selected="false" aria-controls="roadmap-info">Roadmap 🚪</button>
-             </div>
-             <div class="info-notice-content-area">
-                 <div class="info-content active" id="performance-info" role="tabpanel" aria-labelledby="info-tab-performance">
-                     <h3>⚡ On Logomaker Performance & Loading ⚡</h3>
-                     <ul>
-                         <li><strong>Optimized Loading:</strong> This version uses <strong>font chunking</strong> for faster initial loads when run online or via a local server (`dist/github-pages` build).</li>
-                         <li>Only a small index loads first, then full font data (~400 fonts total) is fetched dynamically in small chunks as needed.</li>
-                         <li><strong>Portable Mode:</strong> For maximum offline capability, the <strong>portable build</strong> (`dist/portable/logomaker-portable.html` or `dist/portable/index.html`) <strong>embeds all font data</strong> (~90MB).</li>
-                         <li>This allows the portable version to run entirely offline from a single file, but the initial file open/load will be slower due to the large embedded data.</li>
-                         <li>This dual approach provides the best of both worlds: speed for online use, guaranteed offline access for portability.</li>
-                         <li>Source Code / Download Builds: <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">Logomaker on GitHub</a> (Check the README for build instructions!)</li>
-                     </ul>
-                 </div>
-                 <div class="info-content" id="ai-collab-info" role="tabpanel" aria-labelledby="info-tab-ai-collab">
-                     <h3>✨ Project Genesis & AI Collaboration</h3>
-                     <ul>
-                         <li>Logomaker is an experimental project from <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a> exploring Human+AI collaborative development.</li>
-                         <li>In other words, Logomaker was built with <strong>✨ vibe coding ✨</strong>. How well do you think the LLMs performed with our instructions?</li>
-                         <li>See and judge the code for <a href="https://github.com/manicinc/logomaker">yourself</a>.</li>
-                         <li>~90% of the code structure/boilerplate/functions were generated or assisted by LLMs (GPT-4o, Claude 3, Gemini Pro families, circa early 2025) under human direction.</li>
-                         <li>It demonstrates rapid prototyping potential but underscores the need for human oversight, architecture, and rigorous testing / continual iterative refinement.</li>
-                         <li>A logo creator app was the perfect scope for our agency to conduct this test! See more about in-guide development process <a href="https://manic.agency/blog" target="_blank">here</a>(coming soon).</li>
-                     </ul>
-                 </div>
-                 <div class="info-content" id="svg-animations-info" role="tabpanel" aria-labelledby="info-tab-svg-animations">
-                     <h3>🤔 SVG Animations? Yes!</h3>
-                     <ul>
-                         <li>Active CSS animations (Pulse, Float, etc.) are embedded directly into exported SVGs via `style` tags.</li>
-                         <li>View the SVG in modern browsers to see your logo animate! (Note: Viewer compatibility varies).</li>
-                         <li>These animations also drive the PNG sequence export (Frames ZIP).</li>
-                     </ul>
-                 </div>
-                 <div class="info-content" id="roadmap-info" role="tabpanel" aria-labelledby="info-tab-roadmap">
-                     <h3>🚪 Project Future & Roadmap</h3>
-                     <ul>
-                         <li>Logomaker remains free & open-source (MIT). Major new features aren't planned for *this* version, but community PRs are welcome on GitHub.</li>
-                         <li>Current focus includes ensuring export fidelity, improving font handling (e.g., weight validation), and enhancing accessibility.</li>
-                         <li>Manic Agency continues R&D for advanced AI creative platforms. Follow progress at <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic.agency</a>!</li>
-                     </ul>
-                 </div>
-             </div>
-             <button id="hideNoticeBtn" class="hide-notice-btn" title="Dismiss this notice" aria-label="Dismiss Notice">×</button>
+      <div class="promo-banner">
+        <div class="promo-content">
+          <div class="promo-text"><span class="highlight">Need Pro Design?</span> Hire the humans!</div>
+          <a href="https://manic.agency/contact"
+             target="_blank"
+             class="promo-link"
+             title="Contact Manic Agency for professional services"
+             rel="noopener noreferrer">
+            Work with Manic
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                 viewBox="0 0 24 24">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Info/notice panel -->
+    <div id="info-notice"
+         class="info-notice-section"
+         style="display: none;"
+         role="region"
+         aria-live="polite">
+      <div class="info-notice-tabs" role="tablist" aria-label="Information Tabs">
+        <button class="info-tab active" id="info-tab-performance" data-infotab="performance"
+                role="tab" aria-selected="true" aria-controls="performance-info">
+          Performance ⚡
+        </button>
+        <button class="info-tab" id="info-tab-ai-collab" data-infotab="ai-collab"
+                role="tab" aria-selected="false" aria-controls="ai-collab-info">
+          Genesis ✨
+        </button>
+        <button class="info-tab" id="info-tab-svg-animations" data-infotab="svg-animations"
+                role="tab" aria-selected="false" aria-controls="svg-animations-info">
+          SVG Animations 🤔
+        </button>
+        <button class="info-tab" id="info-tab-roadmap" data-infotab="roadmap"
+                role="tab" aria-selected="false" aria-controls="roadmap-info">
+          Roadmap 🚪
+        </button>
+      </div>
+      <div class="info-notice-content-area">
+        <div class="info-content active" id="performance-info"
+             role="tabpanel" aria-labelledby="info-tab-performance">
+          <h3>⚡ On Logomaker Performance & Loading ⚡</h3>
+          <ul>
+            <li><strong>Optimized Loading:</strong> This version uses <strong>font chunking</strong> for faster initial loads (dist/github-pages) or local servers.</li>
+            <li>Only a small index loads first, then full font data (~400 fonts total) is fetched in small chunks as needed.</li>
+            <li><strong>Portable Mode:</strong> The <strong>portable build</strong> (dist/portable/logomaker-portable.html) <strong>embeds all font data</strong> (~90MB).</li>
+            <li>This dual approach provides both speed (online chunking) and guaranteed offline operation (portable)!</li>
+            <li>Source Code on GitHub: <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">Logomaker</a></li>
+          </ul>
         </div>
 
-
-        <main>
-            <div class="controls-wrapper">
-                <div class="tabs" role="tablist" aria-label="Logo Controls">
-                    <button class="tab active" id="tab-text" data-tab="text" role="tab" aria-selected="true" aria-controls="text-tab">Text</button>
-                    <button class="tab" id="tab-style" data-tab="style" role="tab" aria-selected="false" aria-controls="style-tab">Style</button>
-                    <button class="tab" id="tab-animation" data-tab="animation" role="tab" aria-selected="false" aria-controls="animation-tab">Animation</button>
-                    <button class="tab" id="tab-background" data-tab="background" role="tab" aria-selected="false" aria-controls="background-tab">Background</button>
-                    <button class="tab" id="tab-advanced" data-tab="advanced" role="tab" aria-selected="false" aria-controls="advanced-tab">Advanced</button>
-                    <button id="infoButton" class="info-button" title="Show Info Panel (Performance, AI Collab, etc.)" aria-label="Show Information Panel" aria-expanded="false">ℹ️</button>
-                </div>
-
-                <div class="tab-content active" id="text-tab" role="tabpanel" aria-labelledby="tab-text">
-                     <div class="controls-container">
-                        <div class="control-group">
-                            <label for="logoText">Logo Text</label>
-                            <input type="text" id="logoText" value="Manic" placeholder="Your Logo Text" title="The text content of your logo" aria-describedby="logoTextLabel"/>
-                        </div>
-                        <div class="control-group">
-                            <label id="fontFamilyLabel" for="fontFamily">Font Family <span id="fontPreview" class="font-preview" title="Live preview of selected font">Aa</span></label>
-                            <select id="fontFamily" title="Choose the typeface for your logo" aria-labelledby="fontFamilyLabel">
-                                <option value="" disabled selected>Loading fonts...</option>
-                                </select>
-                        </div>
-                        <div id="fontLicenseContainer" class="control-group hidden full-width">
-                            <div class="license-display-wrapper">
-                                <button id="fontLicenseToggle" type="button" class="license-toggle-button" aria-expanded="false" aria-controls="fontLicenseFullText">
-                                    <span id="fontLicenseSummary" class="license-summary">License Information</span>
-                                    <svg class="disclosure-arrow" aria-hidden="true" width="10" height="10" viewBox="0 0 10 10"><path d="M1 1 L5 5 L9 1" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                                </button>
-                                <div id="fontLicenseFullText" class="license-full-text" hidden>
-                                    <pre><code id="fontLicenseContent"></code></pre>
-                                    <p id="fontLicenseLinkContainer" style="display: none; margin-top: 5px;">
-                                        <a id="fontLicenseFileLink" href="#" target="_blank" rel="noopener noreferrer" class="info-link">View original license file</a>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label id="fontSizeLabel" for="fontSize">Font Size (px)</label>
-                            <div class="number-input-wrapper">
-                                <input type="number" id="fontSize" value="100" min="10" max="600" step="1" title="Adjust the primary font size in pixels" aria-labelledby="fontSizeLabel">
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label id="letterSpacingLabel" for="letterSpacing">Letter Spacing</label>
-                            <div class="range-container">
-                                <input type="range" id="letterSpacing" min="-0.1" max="0.5" step="0.005" value="0.03" title="Adjust space between letters (em units)" aria-labelledby="letterSpacingLabel">
-                                <span class="range-value-display" aria-live="polite">0.03em</span>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label id="textCaseLabel" for="textCase">Text Transform</label>
-                            <select id="textCase" title="Change the capitalization style" aria-labelledby="textCaseLabel">
-                                <option value="none" selected>Default Case</option>
-                                <option value="uppercase">UPPERCASE</option>
-                                <option value="lowercase">lowercase</option>
-                                <option value="capitalize">Capitalize Each Word</option>
-                            </select>
-                        </div>
-                        <div class="control-group">
-                            <label id="fontWeightLabel" for="fontWeight">Font Weight</label>
-                            <select id="fontWeight" title="Adjust font boldness (availability depends on selected font)" aria-labelledby="fontWeightLabel">
-                                <option value="100">Thin (100)</option>
-                                <option value="200">Extra-Light (200)</option>
-                                <option value="300">Light (300)</option>
-                                <option value="400">Normal (400)</option>
-                                <option value="500">Medium (500)</option>
-                                <option value="600">Semi-Bold (600)</option>
-                                <option value="700" selected>Bold (700)</option>
-                                <option value="800">Extra-Bold (800)</option>
-                                <option value="900">Black (900)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="style-tab" role="tabpanel" aria-labelledby="tab-style">
-                    <div class="controls-container">
-                        <h4 class="full-width control-section-heading">Text Fill</h4>
-                         <div class="control-group">
-                            <label id="textColorModeLabel" for="textColorMode">Fill Mode</label>
-                            <select id="textColorMode" title="Choose solid color or gradient fill for text" aria-labelledby="textColorModeLabel">
-                                <option value="gradient" selected>Gradient Fill</option>
-                                <option value="solid">Solid Color Fill</option>
-                            </select>
-                        </div>
-                        <div class="control-group hidden" id="solidColorPickerGroup">
-                            <label id="solidColorPickerLabel" for="solidColorPicker">Solid Color</label>
-                            <input type="color" id="solidColorPicker" value="#ffffff" title="Select solid text color" aria-labelledby="solidColorPickerLabel">
-                        </div>
-                        <div class="control-group" id="gradientPresetGroup">
-                            <label id="gradientPresetLabel" for="gradientPreset">Gradient Preset</label>
-                            <select id="gradientPreset" title="Select a predefined gradient or choose custom" aria-labelledby="gradientPresetLabel">
-                                <option value="primary-gradient">Primary Pink</option>
-                                <option value="cyberpunk-gradient">Cyberpunk</option>
-                                <option value="sunset-gradient">Sunset</option>
-                                <option value="ocean-gradient">Ocean</option>
-                                <option value="forest-gradient">Forest</option>
-                                <option value="rainbow-gradient">Rainbow</option>
-                                <option value="neon-blue-gradient">Neon Blue</option>
-                                <option value="royal-gradient">Royal Dark</option>
-                                <option value="fire-gradient">Fire</option>
-                                <option value="purple-love-gradient">Purple Love</option>
-                                <option value="dark-knight-gradient">Dark Knight</option>
-                                <option value="emerald-gradient">Emerald</option>
-                                <option value="custom">Custom Gradient</option>
-                            </select>
-                        </div>
-                        <div id="customGradientControls" class="hidden full-width">
-                            <h5>Custom Gradient</h5>
-                            <div class="controls-container nested-controls">
-                                <div class="control-group">
-                                    <label for="color1">Color 1</label>
-                                    <input type="color" id="color1" value="#FF1493" title="First gradient color stop">
-                                </div>
-                                <div class="control-group">
-                                    <label for="color2">Color 2</label>
-                                    <input type="color" id="color2" value="#8A2BE2" title="Second gradient color stop">
-                                </div>
-                                <div class="control-group checkbox-label full-width">
-                                    <input type="checkbox" id="useColor3" aria-describedby="useColor3Label">
-                                    <label id="useColor3Label" for="useColor3" title="Add a third color stop to the gradient"> Use 3rd Color</label>
-                                </div>
-                                <div class="control-group hidden" id="color3Control">
-                                    <label for="color3">Color 3</label>
-                                    <input type="color" id="color3" value="#FF4500" title="Third gradient color stop (optional)">
-                                </div>
-                                <div class="control-group full-width">
-                                    <label id="gradientDirectionLabel" for="animationDirection">Gradient Angle</label>
-                                    <div class="range-container">
-                                        <input type="range" id="animationDirection" min="0" max="360" step="1" value="45" title="Adjust the angle of the text gradient" aria-labelledby="gradientDirectionLabel">
-                                        <span class="range-value-display" aria-live="polite">45deg</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                         <hr class="section-divider full-width">
-
-                        <h4 class="full-width control-section-heading">Text Effect & Alignment</h4>
-                        <div class="control-group">
-                            <label id="textShadowLabel" for="textShadow">Effect</label>
-                             <select id="textShadow" title="Apply visual effect like glow, shadow, outline" aria-labelledby="textShadowLabel">
-                                 <option value="text-effect-none" selected>None</option>
-                                 <option value="text-effect-glow-soft">Soft Glow</option>
-                                 <option value="text-effect-glow-medium">Medium Glow</option>
-                                 <option value="text-effect-neon-primary">Neon Glow</option>
-                                 <option value="text-effect-shadow-soft-md">Soft Shadow</option>
-                                 <option value="text-effect-shadow-hard-md">Hard Shadow</option>
-                                 <option value="text-effect-outline-thin">Outline</option>
-                                 <option value="text-effect-shadow-retro">Retro Shadow</option>
-                                 <option value="text-effect-emboss">Emboss</option>
-                                 <option value="text-effect-inset">Inset</option>
-                                 </select>
-                        </div>
-                         <div class="control-group">
-                            <label id="textAlignLabel" for="textAlign">Alignment</label>
-                            <select id="textAlign" title="Align the text within its box (useful for multi-line text)" aria-labelledby="textAlignLabel">
-                                <option value="center" selected>Center</option>
-                                <option value="left">Left</option>
-                                <option value="right">Right</option>
-                            </select>
-                        </div>
-                         <div class="control-group">
-                            <label id="rotationLabel" for="rotation">Rotation</label>
-                            <div class="range-container">
-                                <input type="range" id="rotation" min="-45" max="45" value="0" step="1" title="Rotate the text element" aria-labelledby="rotationLabel">
-                                <span class="range-value-display" aria-live="polite">0deg</span>
-                            </div>
-                        </div>
-                        <hr class="section-divider full-width">
-
-                        <h4 class="full-width control-section-heading">Container Border</h4>
-                         <div class="control-group">
-                            <label id="borderColorPickerLabel" for="borderColorPicker">Border Color</label>
-                            <input type="color" id="borderColorPicker" value="#ffffff" title="Sets color for container borders and some text effects" aria-labelledby="borderColorPickerLabel">
-                        </div>
-                        <div class="control-group">
-                            <label id="borderStyleLabel" for="borderStyle">Border Style</label>
-                             <select id="borderStyle" title="Apply a border around the text's container" aria-labelledby="borderStyleLabel">
-                                 <option value="border-none" selected>None</option>
-                                 <option value="border-solid">Solid</option>
-                                 <option value="border-double">Double</option>
-                                 <option value="border-dashed">Dashed</option>
-                                 <option value="border-dotted">Dotted</option>
-                                 <option value="border-groove">Groove (CSS only)</option>
-                                 <option value="border-ridge">Ridge (CSS only)</option>
-                                 <option value="border-inset">Inset (CSS only)</option>
-                                 <option value="border-outset">Outset (CSS only)</option>
-                                 <option value="border-glow">Glow Effect</option>
-                                 <option value="border-neon">Neon Effect</option>
-                                 <option value="border-gradient">Gradient Effect</option>
-                                 <option value="border-pixel">Pixel Border</option>
-                                 </select>
-                        </div>
-                         <div class="control-group">
-                             <label id="borderWidthLabel" for="borderWidth">Border Width (px)</label>
-                             <div class="number-input-wrapper">
-                                 <input type="number" id="borderWidth" value="2" min="0" max="50" step="1" title="Adjust border thickness in pixels" aria-labelledby="borderWidthLabel">
-                             </div>
-                         </div>
-                         <div class="control-group">
-                             <label id="borderRadiusLabel" for="borderRadius">Border Shape / Radius</label>
-                             <select id="borderRadius" title="Adjust the shape of the container border corners" aria-labelledby="borderRadiusLabel">
-                                 <option value="none" selected>Square Corners (None)</option>
-                                 <option value="rounded-sm">Slightly Rounded (sm)</option>
-                                 <option value="rounded-md">Rounded (md)</option>
-                                 <option value="rounded-lg">More Rounded (lg)</option>
-                                 <option value="pill">Pill Shape</option>
-                                 <option value="circle">Circle / Oval</option>
-                                 </select>
-                         </div>
-                         <div class="control-group">
-                            <label id="customBorderRadiusLabel" for="customBorderRadius">Custom Radius (px)
-                                <span class="tooltip-trigger" data-tooltip="Enter a specific pixel value (e.g., 15). Overrides the shape dropdown unless empty.">?</span>
-                            </label>
-                            <div class="number-input-wrapper">
-                                <input type="number" id="customBorderRadius" value="" min="0" max="500" step="1" placeholder="e.g., 15" title="Set custom border radius in pixels. Overrides shape dropdown." aria-labelledby="customBorderRadiusLabel">
-                            </div>
-                        </div>
-                         <div class="control-group">
-                             <label id="borderPaddingLabel" for="borderPadding">Padding Inside Border (px)</label>
-                             <div class="number-input-wrapper">
-                                 <input type="number" id="borderPadding" value="10" min="0" max="100" step="1" title="Adjust space between border and text" aria-labelledby="borderPaddingLabel">
-                             </div>
-                         </div>
-
-                    </div>
-                </div>
-
-                <div class="tab-content" id="animation-tab" role="tabpanel" aria-labelledby="tab-animation">
-                    <div class="controls-container">
-                        <div class="control-group">
-                            <label id="textAnimationLabel" for="textAnimation">Text Animation</label>
-                            <select id="textAnimation" title="Apply a looping animation to the text" aria-labelledby="textAnimationLabel">
-                                <option value="anim-none" selected>None</option>
-                                <option value="anim-pulse">Pulse</option>
-                                <option value="anim-bounce">Bounce</option>
-                                <option value="anim-shake">Shake</option>
-                                <option value="anim-float">Float</option>
-                                <option value="anim-rotate">Rotate</option>
-                                <option value="anim-glitch">Glitch</option>
-                                <option value="anim-wave">Wave</option>
-                                <option value="anim-flicker">Flicker</option>
-                                <option value="anim-fade">Fade In/Out</option>
-                            </select>
-                        </div>
-                        <div class="control-group">
-                            <label id="animationSpeedLabel" for="animationSpeed">Animation Speed Multiplier</label>
-                            <div class="range-container">
-                                <input type="range" id="animationSpeed" min="0.1" max="5" step="0.1" value="1" title="Adjust animation speed (1x = default, >1 = faster, <1 = slower)" aria-labelledby="animationSpeedLabel">
-                                <span class="range-value-display" aria-live="polite">1x</span>
-                            </div>
-                        </div>
-                        <p class="info-text full-width" style="margin-top: var(--space-md); font-size: var(--font-size-sm);">Note: Animations are embedded in SVG exports using CSS. They also drive the Frames ZIP export.</p>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="background-tab" role="tabpanel" aria-labelledby="tab-background">
-                     <div class="controls-container">
-                        <div class="control-group">
-                            <label id="backgroundTypeLabel" for="backgroundType">Background Style</label>
-                            <select id="backgroundType" title="Choose the style for the logo preview background" aria-labelledby="backgroundTypeLabel">
-                                <option value="bg-transparent">Transparent</option>
-                                <option value="bg-solid" selected>Solid Color</option>
-                                <option value="bg-gradient">Gradient</option>
-                                <option value="bg-gradient-animated">Animated Gradient</option>
-                                <option value="bg-grid">Light Grid</option>
-                                <option value="bg-darkgrid">Dark Grid</option> <option value="bg-dots-sm">Small Dots</option>
-                                <option value="bg-dots-lg">Large Dots</option>
-                                <option value="bg-checkerboard">Checkerboard</option>
-                                <option value="bg-lines-diag">Diagonal Lines</option>
-                                <option value="bg-lines-vert">Vertical Lines</option>
-                                <option value="bg-carbon">Carbon Fiber</option>
-                                <option value="bg-noise">Static Noise</option>
-                                <option value="bg-stars">Starfield</option>
-                                <option value="bg-synthwave">Synthwave Grid</option>
-                                <option value="bg-matrix">Matrix Code (Static)</option>
-                                <option value="bg-scanlines">Scanlines</option>
-                                <option value="bg-circuit">Circuit Board</option>
-                                </select>
-                        </div>
-                        <div class="control-group" id="backgroundColorControl">
-                            <label id="backgroundColorLabel" for="backgroundColor">Background Color</label>
-                            <input type="color" id="backgroundColor" value="#000000" title="Select solid background color (also affects patterns)" aria-labelledby="backgroundColorLabel">
-                        </div>
-                        <div id="backgroundGradientControls" class="hidden full-width">
-                            <h4>Background Gradient</h4>
-                            <div class="controls-container nested-controls">
-                                <div class="control-group">
-                                    <label id="backgroundGradientPresetLabel" for="backgroundGradientPreset">Preset</label>
-                                    <select id="backgroundGradientPreset" title="Select a predefined background gradient or custom" aria-labelledby="backgroundGradientPresetLabel">
-                                        <option value="bg-primary-gradient">Primary Dark</option>
-                                        <option value="bg-cyberpunk-gradient">Cyberpunk Dark</option>
-                                        <option value="bg-sunset-gradient">Sunset</option>
-                                        <option value="bg-ocean-gradient">Ocean</option>
-                                        <option value="custom">Custom</option>
-                                    </select>
-                                </div>
-                                <div id="customBackgroundGradient" class="hidden full-width">
-                                    <div class="controls-container" style="grid-template-columns: 1fr 1fr; gap: var(--space-md);">
-                                        <div class="control-group">
-                                            <label for="bgColor1">Color 1</label>
-                                            <input type="color" id="bgColor1" value="#3a1c71" title="First background gradient color">
-                                        </div>
-                                        <div class="control-group">
-                                            <label for="bgColor2">Color 2</label>
-                                            <input type="color" id="bgColor2" value="#ffaf7b" title="Second background gradient color">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="control-group full-width">
-                                    <label id="bgGradientDirectionLabel" for="bgGradientDirection">Direction</label>
-                                    <div class="range-container">
-                                        <input type="range" id="bgGradientDirection" min="0" max="360" step="1" value="90" title="Adjust background gradient angle" aria-labelledby="bgGradientDirectionLabel">
-                                        <span class="range-value-display" aria-live="polite">90deg</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="control-group full-width">
-                            <label id="bgOpacityLabel" for="bgOpacity">Background Opacity</label>
-                            <div class="range-container">
-                                <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="1" title="Adjust opacity of the background layer (0=transparent, 1=opaque)" aria-labelledby="bgOpacityLabel">
-                                <span class="range-value-display" aria-live="polite">1</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="advanced-tab" role="tabpanel" aria-labelledby="tab-advanced">
-                    <div class="controls-container">
-
-                        <div class="control-group">
-                            <label id="previewSizeLabel" for="previewSize">Preview Area Size</label>
-                            <select id="previewSize" title="Change the display size of the preview container" aria-labelledby="previewSizeLabel">
-                                <option value="preview-size-small">Small</option>
-                                <option value="preview-size-medium" selected>Medium</option>
-                                <option value="preview-size-large">Large</option>
-                                <option value="preview-size-x-large">Extra Large</option>
-                            </select>
-                        </div>
-
-                        <div class="control-group size-indicator-container">
-                            <label>Rendered Text Size</label>
-                            <div class="size-indicator" title="Approximate rendered size of the text element (pixels)">
-                                W: <span id="logoWidth">--</span>px , H: <span id="logoHeight">--</span>px
-                            </div>
-                         </div>
-
-                         <hr class="section-divider full-width">
-
-                         <h4 class="full-width" style="margin-bottom: var(--space-xs);">Export Dimensions</h4>
-                        <div class="dimension-controls full-width">
-                            <div class="control-group">
-                                <label id="exportWidthLabel" for="exportWidth">Width (px)</label>
-                                <div class="number-input-wrapper">
-                                    <input type="number" id="exportWidth" min="10" max="8000" value="800" title="Pixel width of the exported PNG/SVG/Frames" aria-labelledby="exportWidthLabel">
-                                </div>
-                            </div>
-                            <div class="control-group">
-                                <label id="exportHeightLabel" for="exportHeight">Height (px)</label>
-                                <div class="number-input-wrapper">
-                                    <input type="number" id="exportHeight" min="10" max="8000" value="400" title="Pixel height of the exported PNG/SVG/Frames" aria-labelledby="exportHeightLabel">
-                                </div>
-                            </div>
-                            <div class="control-group">
-                                <label id="aspectRatioPresetLabel" for="aspectRatioPreset">Aspect Ratio</label>
-                                <select id="aspectRatioPreset" title="Select a standard aspect ratio or use current" aria-labelledby="aspectRatioPresetLabel">
-                                    <option value="auto" data-ratio="0" selected>Auto (Current)</option>
-                                    <option value="1" data-ratio="1">1:1 (Square)</option>
-                                    <option value="1.77778" data-ratio="1.77778">16:9 (Landscape)</option>
-                                    <option value="0.5625" data-ratio="0.5625">9:16 (Portrait)</option>
-                                    <option value="1.33333" data-ratio="1.33333">4:3 (Standard)</option>
-                                    <option value="1.5" data-ratio="1.5">3:2 (Photo)</option>
-                                    </select>
-                            </div>
-                            <div class="control-group aspect-lock-control">
-                                 <label class="checkbox-label" for="aspectRatioLock" title="Maintain current aspect ratio when changing width or height">
-                                     <input type="checkbox" id="aspectRatioLock">
-                                     <span>Lock Aspect Ratio</span>
-                                     <span class="tooltip-trigger" data-tooltip="Locks the Width/Height ratio based on the current preview dimensions or selected preset. Changing one will update the other.">?</span>
-                                 </label>
-                             </div>
-                        </div>
-
-                         <div class="control-group full-width"> <label id="exportQualityLabel" for="exportQuality">PNG Quality (%)
-                                 <span class="tooltip-trigger" data-tooltip="Affects PNG file size/compression (10-100). Higher means better quality, larger file. 90-95 is often good. Does not affect SVG.">?</span>
-                             </label>
-                             <div class="range-container">
-                                 <input type="range" id="exportQuality" min="10" max="100" value="95" step="5" title="Adjust PNG compression quality (lower quality = smaller file)" aria-labelledby="exportQualityLabel">
-                                 <span class="range-value-display" aria-live="polite">95%</span>
-                             </div>
-                         </div>
-                         <label class="checkbox-label control-group full-width" style="margin-top: 5px;"> <input type="checkbox" id="exportTransparent">
-                             <span>Export with Transparent Background</span>
-                         </label>
-
-                         <hr class="section-divider full-width">
-
-                         <h4 class="full-width" style="margin-bottom: var(--space-xs);">Animation Export (Frames ZIP)</h4>
-                          <div class="controls-container nested-controls">
-                              <div class="control-group">
-                                  <label for="exportFrames">Number of Frames</label>
-                                  <div class="number-input-wrapper">
-                                       <input type="number" id="exportFrames" value="15" min="2" max="60" step="1" title="Total frames for animation ZIP">
-                                  </div>
-                              </div>
-                              <div class="control-group">
-                                  <label for="exportFrameRate">Frames Per Second (FPS)</label>
-                                  <div class="range-container">
-                                       <input type="range" id="exportFrameRate" min="1" max="30" value="10" step="1" title="Animation frame rate">
-                                       <span class="range-value-display" aria-live="polite">10 FPS</span>
-                                  </div>
-                              </div>
-                          </div>
-
-                        <hr class="section-divider full-width">
-
-                        <div class="control-group full-width">
-                             <label id="cssCodeLabel" for="cssCode">Generated CSS Snippet
-                                 <span class="tooltip-trigger" data-tooltip="CSS reflecting current styles. Useful for embedding...">?</span>
-                             </label>
-                             <textarea id="cssCode" rows="6" readonly title="CSS code representing current logo styles" aria-labelledby="cssCodeLabel"></textarea>
-                         </div>
-
-                         <hr class="section-divider full-width">
-
-                         <div class="control-group full-width">
-                             <h4>Font Management</h4>
-                             <div class="font-management-controls">
-                                 <button id="loadAllFontsBtn" class="button secondary-button" title="Download all fonts at once (100MB+)">
-                                     Load All Fonts
-                                 </button>
-                                 <div class="font-management-info">
-                                     <span class="label">Loading mode: </span>
-                                     <span id="fontLoadingMode" class="value">-</span>
-                                 </div>
-                                 <p class="warning-text"><strong>Warning:</strong> Loading all fonts...</p>
-                             </div>
-                         </div>
-
-                         <hr class="section-divider full-width">
-                         <div class="control-group full-width">
-                            <h4>Cache Management (Troubleshooting)</h4>
-                            <div class="cache-controls">
-                                 <button id="clearLocalStorageBtn" class="button danger-button" title="Removes saved UI settings (colors, fonts, etc.) from your browser's local storage for this site.">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                                     Clear Saved Settings
-                                 </button>
-                                 <button id="clearFontCacheBtn" class="button danger-button" title="Removes cached font data (chunks) from IndexedDB. May help with font loading issues but requires re-downloading chunks.">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H6M12 5l-7 7 7 7"/></svg>
-                                     Clear Font Cache
-                                 </button>
-                            </div>
-                             <p class="info-text" style="font-size: var(--font-size-sm);">Use these if you suspect outdated settings or font data are causing issues.</p>
-                         </div>
-                         <details class="info-details-section">
-                            <summary>ℹ️ About Logomaker & Features</summary>
-                            <div class="info-details-content">
-                                <h4>Forge Your Mark with Logomaker 🎨</h4>
-                                <p>Logomaker is a free, open-source creative tool by <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a>, designed for crafting striking text-based logos with ease, portability, and optimized loading.</p>
-                                <p><strong>Core Magic:</strong> Extensive font support (chunked loading online, embedded offline!), text styling, gradients, borders, effects, animations, customizable backgrounds. Export PNGs, scalable SVGs (with animations!), or animation frame sequences (ZIP). Share instantly with unique URLs.</p>
-                                 <p><strong>Genesis Note:</strong> An experimental venture into Human+AI collaboration. (<a href="#" onclick="document.getElementById('infoButton').click(); document.getElementById('info-tab-ai-collab').click(); return false;">More Info</a>)</p>
-                                <p><strong>Source & Freedom:</strong> <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">GitHub (MIT License)</a> - Use it, fork it, enhance it!</p>
-                            </div>
-                        </details>
-                        <details class="info-details-section">
-                            <summary>✨ Manic Agency: Pro Platform Horizon</summary>
-                            <div class="info-details-content">
-                               <h4>Manic Agency is architecting a next-generation professional design platform.</h4>
-                               <p>Envisioned features: Vast libraries, AI generation, cutting-edge text graphics, media kits, collaboration & more.</p>
-                               <p><a href="https://manic.agency/" target="_blank" class="info-link" rel="noopener noreferrer">Stay Tuned at Manic.agency »</a></p>
-                            </div>
-                        </details>
-                    </div>
-            </div>
-            </div> 
-            <div class="preview-container bg-solid preview-size-medium" id="previewContainer">
-                <div class="logo-container">
-                    <div class="logo-text" data-text="Manic">Manic</div>
-                </div>
-            </div>
-
-            <div class="button-container main-actions">
-                <button id="randomizeStyleBtn" class="randomize-btn" title="Apply Random Style Settings (Keeps Text & Font)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
-                    Randomize Style
-                </button>
-                <button id="resetBtn" class="reset-btn" title="Reset Settings">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                    Reset... </button>
-                <button id="themeToggleBtn" class="theme-toggle-btn button" title="Switch Theme (Light/Dark)" aria-label="Switch Theme">
-                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    <svg class="moon-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                    <span class="theme-toggle-text visually-hidden" aria-live="polite">Toggle Theme</span>
-                </button>
-            </div>
-
-            <div class="button-container export-actions">
-                <button id="exportPngBtn" title="Export static logo as high-quality PNG image">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Export PNG
-                </button>
-                <button id="exportSvgBtn" title="Export logo as scalable SVG vector file (includes animation if active)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                    Export SVG
-                </button>
-                <button id="exportGifBtn" title="Export animation as a sequence of PNG frames (ZIP package)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                    Export Frames (ZIP)
-                </button>
-                <button id="copyHtmlBtn" title="Copy basic HTML structure embedding current styles">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
-                    Copy HTML
-                </button>
-                <button id="copyCssBtn" title="Copy generated CSS styles for the current logo">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    Copy CSS
-                </button>
-                <button id="shareUrlBtn" title="Generate and copy a shareable URL with current logo settings">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                    Share URL
-                </button>
-            </div>
-
-        </main>
-
-        <div id="resetConfirmModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle" aria-hidden="true" style="display: none;">
-             <div class="modal-content">
-                 <div class="modal-header">
-                     <svg class="modal-header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                     <h3 class="modal-title" id="resetModalTitle">Reset Settings</h3>
-                     <button class="modal-close-btn" id="resetModalCloseTop" aria-label="Close">×</button>
-                 </div>
-                 <div class="modal-body">
-                     <p>Are you sure? Choose what to reset:</p>
-                     <div class="reset-options" role="radiogroup" aria-labelledby="resetTypeLabel">
-                         <span id="resetTypeLabel" class="visually-hidden">Choose reset type</span>
-                         <label class="reset-option">
-                             <input type="radio" name="reset-type" value="all" checked>
-                             <div><div class="reset-option-label">Reset Everything</div><div class="reset-option-desc">Restore all settings to default</div></div>
-                         </label>
-                         <label class="reset-option">
-                             <input type="radio" name="reset-type" value="text">
-                             <div><div class="reset-option-label">Reset Text Only</div><div class="reset-option-desc">Restore text, font, size, spacing, case, weight</div></div>
-                         </label>
-                         <label class="reset-option">
-                             <input type="radio" name="reset-type" value="style">
-                              <div><div class="reset-option-label">Reset Style Only</div><div class="reset-option-desc">Restore colors, effects, borders (style, width, radius, padding), alignment, rotation</div></div>
-                         </label>
-                          <label class="reset-option">
-                             <input type="radio" name="reset-type" value="background">
-                             <div><div class="reset-option-label">Reset Background Only</div><div class="reset-option-desc">Restore background type, color, gradient, opacity</div></div>
-                         </label>
-                     </div>
-                 </div>
-                 <div class="modal-footer">
-                     <button id="resetModalCancel" class="modal-btn modal-btn-cancel">Cancel</button>
-                     <button id="resetModalConfirm" class="modal-btn modal-btn-reset">Reset</button>
-                 </div>
-             </div>
+        <div class="info-content" id="ai-collab-info"
+             role="tabpanel" aria-labelledby="info-tab-ai-collab">
+          <h3>✨ Project Genesis & AI Collaboration</h3>
+          <ul>
+            <li>Logomaker is an experimental project from <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a> exploring Human+AI collaborative development.</li>
+            <li>It was built with <strong>vibe coding</strong>. ~90% code from LLM suggestions, refined by humans.</li>
+            <li><strong>Every single function</strong> in the <a href="https://github.com/manicinc/logomaker" target="_blank">source code</a> was written by a LLM.</li>
+            <li>Take a practical look at the potential and challenges of this emerging development paradigm!</li>
+          </ul>
         </div>
 
-         <div id="shareUrlModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle" aria-hidden="true" style="display: none;">
-             <div class="modal-content">
-                 <div class="modal-header">
-                     <svg class="modal-header-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                     <h3 class="modal-title" id="shareModalTitle">Share Your Logo Design</h3>
-                     <button class="modal-close-btn" id="shareModalClose" aria-label="Close">×</button>
-                 </div>
-                 <div class="modal-body">
-                     <p id="shareDesc">Share a unique link to this exact logo configuration:</p>
-                     <div class="control-group">
-                         <label for="shareUrlInput" class="visually-hidden">Logo URL</label>
-                         <div class="url-copy-container">
-                             <input type="text" id="shareUrlInput" readonly aria-describedby="shareDesc copyShareUrlBtn">
-                             <button id="copyShareUrlBtn" class="url-copy-btn" title="Copy URL to clipboard">
-                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                                 <span aria-live="polite">Copy</span>
-                             </button>
-                         </div>
-                     </div>
-                     <div class="share-options-container">
-                         <h4>Share via</h4>
-                         <div class="share-options" role="group" aria-label="Share options">
-                              <a href="#" id="shareTwitter" class="share-option-btn" target="_blank" rel="noopener noreferrer" title="Share on X (Twitter)"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> X / Twitter</a>
-                              <a href="#" id="shareFacebook" class="share-option-btn" target="_blank" rel="noopener noreferrer" title="Share on Facebook"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/></svg> Facebook</a>
-                              <a href="#" id="shareEmail" class="share-option-btn" title="Share via Email"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Email</a>
-                         </div>
-                     </div>
-                     <div class="qr-code-container">
-                         <h4>QR Code</h4>
-                         <div id="qrCodeDisplay" class="qr-code-display" aria-label="QR Code for shared URL"><div class="qr-placeholder">Generating...</div></div>
-                         <button id="downloadQrCode" class="download-qr-btn" disabled title="Download QR code as PNG">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                             Download QR
-                         </button>
-                     </div>
-                 </div>
-                 <div class="modal-footer">
-                     <button id="shareModalCancel" class="modal-btn modal-btn-cancel">Close</button>
-                 </div>
-             </div>
+        <div class="info-content" id="svg-animations-info"
+             role="tabpanel" aria-labelledby="info-tab-svg-animations">
+          <h3>🤔 Y'all got them vector animations?</h3>
+          <ul>
+            <li>Active CSS animations are embedded in exported SVGs via style tags.</li>
+            <li>View the exported SVG in a modern browser to see it animate!</li>
+            <li>These animations also drive PNG sequence exports (Frames ZIP).</li>
+          </ul>
         </div>
 
-        <div id="loadingIndicator" class="loading-indicator" role="status" aria-live="assertive" style="display: none;">
-             <div class="loading-indicator-content">
-                 <div class="spinner"></div>
-                 <div class="progress-text">Processing...</div>
-             </div>
+        <div class="info-content" id="roadmap-info"
+             role="tabpanel" aria-labelledby="info-tab-roadmap">
+          <h3>🚪 Project Future & Roadmap</h3>
+          <ul>
+            <li>Logomaker remains free & open-source (MIT). Major new features aren’t planned, but PRs are welcome.</li>
+            <li>Focus: export fidelity, advanced font handling, accessibility improvements.</li>
+            <li>Manic Agency continues R&D on bigger AI creative platforms. Stay tuned!</li>
+          </ul>
+        </div>
+      </div>
+      <button id="hideNoticeBtn"
+              class="hide-notice-btn"
+              title="Dismiss this notice"
+              aria-label="Dismiss Notice">×</button>
+    </div>
+    <!-- end info notice -->
+
+    <main>
+      <div class="controls-wrapper">
+        <div class="tabs" role="tablist" aria-label="Logo Controls">
+          <button class="tab active" id="tab-text" data-tab="text" role="tab"
+                  aria-selected="true" aria-controls="text-tab">Text</button>
+          <button class="tab" id="tab-style" data-tab="style" role="tab"
+                  aria-selected="false" aria-controls="style-tab">Style</button>
+          <button class="tab" id="tab-animation" data-tab="animation" role="tab"
+                  aria-selected="false" aria-controls="animation-tab">Animation</button>
+          <button class="tab" id="tab-background" data-tab="background" role="tab"
+                  aria-selected="false" aria-controls="background-tab">Background</button>
+          <button class="tab" id="tab-advanced" data-tab="advanced" role="tab"
+                  aria-selected="false" aria-controls="advanced-tab">Advanced</button>
+          <button id="infoButton"
+                  class="info-button"
+                  title="Show Info Panel (Performance, AI Collab, etc.)"
+                  aria-label="Show Information Panel" aria-expanded="false">ℹ️</button>
         </div>
 
-        <footer>
-             <div class="sponsor-banner">
-                 <div class="hearts"><span class="heart">❤️</span><span class="heart">💜</span><span class="heart">💙</span></div>
-                 <p>Enjoying Logomaker? It's free & <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">open source</a>!</p>
-                 <div class="github-stats">
-                     <a href="https://github.com/manicinc/logomaker" target="_blank" class="github-link" title="View source & star on GitHub!" rel="noopener noreferrer">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-                         <span id="github-star-count">...</span> Stars
-                     </a>
-                     <a href="https://github.com/sponsors/manicinc" target="_blank" class="sponsor-button" title="Sponsor Logomaker development on GitHub" rel="noopener noreferrer">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> Sponsor
-                     </a>
-                 </div>
-             </div>
-             <hr class="footer-hr">
-             <div class="footer-content">
-                 <div class="manic-logo">
-                     <a href="https://manic.agency" target="_blank" title="Visit Manic Agency" rel="noopener noreferrer">
-                         <div class="logo-text-animated">Manic</div> <span class="logo-agency">Agency</span>
-                     </a>
-                 </div>
-                 <div class="social-links">
-                     <span class="footer-label">Connect:</span>
-                     <div class="social-icons">
-                         <a href="https://manic.agency" target="_blank" class="social-icon" title="Manic Agency Website" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></a>
-                         <a href="mailto:team@manic.agency" class="social-icon" title="Email Manic"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a>
-                         <a href="https://github.com/manicinc" target="_blank" class="social-icon" title="Manic Inc on GitHub" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
-                         <a href="https://x.com/manicagency" target="_blank" class="social-icon" title="Manic Agency on X (Twitter)" rel="noopener noreferrer"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-                     </div>
-                 </div>
-                 <div class="footer-links">
-                     <a href="https://github.com/manicinc/logomaker/issues" target="_blank" rel="noopener noreferrer">Report Issue</a>
-                     <a href="mailto:team@manic.agency?subject=Logomaker%20Feedback" class="contact-button" title="Send Feedback via Email">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Feedback
-                     </a>
-                 </div>
-             </div>
-             <p class="copyright">&copy; 2024<span id="copyright-year"></span> Manic Agency & Collaborators. MIT Licensed.</p>
-             <p class="ai-collab-footer-note" style="font-size: 0.75em; text-align: center; opacity: 0.6; margin-top: 5px;">
-                 Powered by Human+AI Collaboration (<a href="#" onclick="document.getElementById('infoButton').click(); document.getElementById('info-tab-ai-collab').click(); return false;" style="color: inherit;">Details</a>)
-             </p>
-         </footer>
+        <!-- Text Tab -->
+        <div class="tab-content active" id="text-tab"
+             role="tabpanel" aria-labelledby="tab-text">
+          <div class="controls-container">
+            <!-- BASIC TEXT CONTROLS -->
+            <div class="control-group">
+              <label for="logoText">Logo Text</label>
+              <input type="text" id="logoText" value="Manic"
+                     placeholder="Your Logo Text"
+                     title="The text content of your logo"/>
+            </div>
+            <div class="control-group">
+              <label id="fontFamilyLabel" for="fontFamily">
+                Font Family
+                <span id="fontPreview" class="font-preview"
+                      title="Live preview of selected font">Aa</span>
+              </label>
+              <select id="fontFamily"
+                      title="Choose the typeface for your logo"
+                      aria-labelledby="fontFamilyLabel">
+                <option value="" disabled selected>Loading fonts...</option>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div id="fontLicenseContainer"
+                 class="control-group hidden full-width">
+              <div class="license-display-wrapper">
+                <button id="fontLicenseToggle"
+                        type="button"
+                        class="license-toggle-button"
+                        aria-expanded="false"
+                        aria-controls="fontLicenseFullText">
+                  <span id="fontLicenseSummary" class="license-summary">License Information</span>
+                  <svg class="disclosure-arrow"
+                       aria-hidden="true" width="10" height="10"
+                       viewBox="0 0 10 10">
+                    <path d="M1 1 L5 5 L9 1"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"/>
+                  </svg>
+                </button>
+                <div id="fontLicenseFullText"
+                     class="license-full-text" hidden>
+                  <pre><code id="fontLicenseContent"></code></pre>
+                  <p id="fontLicenseLinkContainer"
+                     style="display: none; margin-top: 5px;">
+                    <a id="fontLicenseFileLink"
+                       href="#"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="info-link">
+                      View original license file
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label id="fontSizeLabel" for="fontSize">Font Size (px)</label>
+              <div class="number-input-wrapper">
+                <input type="number"
+                       id="fontSize"
+                       value="100"
+                       min="10"
+                       max="600"
+                       step="1"
+                       title="Adjust the primary font size in pixels"
+                       aria-labelledby="fontSizeLabel">
+              </div>
+            </div>
+            <div class="control-group">
+              <label id="letterSpacingLabel" for="letterSpacing">
+                Letter Spacing
+              </label>
+              <div class="range-container">
+                <input type="range"
+                       id="letterSpacing"
+                       min="-0.1"
+                       max="0.5"
+                       step="0.005"
+                       value="0.03"
+                       title="Adjust space between letters (em units)"
+                       aria-labelledby="letterSpacingLabel">
+                <span class="range-value-display"
+                      aria-live="polite">0.03em</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label id="textCaseLabel" for="textCase">Text Transform</label>
+              <select id="textCase"
+                      title="Change the capitalization style"
+                      aria-labelledby="textCaseLabel">
+                <option value="none" selected>Default Case</option>
+                <option value="uppercase">UPPERCASE</option>
+                <option value="lowercase">lowercase</option>
+                <option value="capitalize">Capitalize Each Word</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="fontWeightLabel" for="fontWeight">Font Weight</label>
+              <select id="fontWeight"
+                      title="Adjust font boldness"
+                      aria-labelledby="fontWeightLabel">
+                <option value="100">Thin (100)</option>
+                <option value="200">Extra-Light (200)</option>
+                <option value="300">Light (300)</option>
+                <option value="400">Normal (400)</option>
+                <option value="500">Medium (500)</option>
+                <option value="600">Semi-Bold (600)</option>
+                <option value="700" selected>Bold (700)</option>
+                <option value="800">Extra-Bold (800)</option>
+                <option value="900">Black (900)</option>
+              </select>
+            </div>
+
+            <!-- NEW: TEXT DECORATION & STYLE -->
+            <div class="control-group">
+              <label for="textDecoration">Text Decoration</label>
+              <select id="textDecoration"
+                      title="Underline, overline, dashed, etc.">
+                <option value="none" selected>None</option>
+                <option value="underline">Underline</option>
+                <option value="overline">Overline</option>
+                <option value="line-through">Line Through</option>
+                <option value="dashed-underline">Dashed Underline</option>
+                <option value="wavy-underline">Wavy Underline</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="textStyle">Text Style</label>
+              <select id="textStyle"
+                      title="Italic, oblique, or normal text style">
+                <option value="normal" selected>Normal</option>
+                <option value="italic">Italic</option>
+                <option value="oblique">Oblique</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- end text tab -->
+
+        <!-- Style Tab -->
+        <div class="tab-content" id="style-tab"
+             role="tabpanel" aria-labelledby="tab-style">
 
 
-    </div> 
-    <!-- Online dependencies not required but offer fuller functionality -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+          <div class="controls-container">
+            <div class="control-group">
+              <h4 class="full-width control-section-heading">
+                Preview Area Padding (px)
+                <span class="tooltip-trigger" data-tooltip="Space around the logo container inside the preview area. Affects how 'zoomed in' the logo appears.">?</span>
+              </h4>
+              <div class="range-container">
+                <input type="range"
+                       id="previewAreaPadding"
+                       min="0"
+                       max="150" 
+                       step="1"
+                       value="32" title="Adjust padding around the logo container"
+                       aria-labelledby="previewAreaPaddingLabel">
+                <span class="range-value-display" aria-live="polite">32px</span>
+              </div>
+            </div>
+            <h4 class="full-width control-section-heading">Text Fill</h4>
+            <div class="control-group">
+              <label id="textColorModeLabel" for="textColorMode">Fill Mode</label>
+              <select id="textColorMode"
+                      title="Choose solid or gradient fill"
+                      aria-labelledby="textColorModeLabel">
+                <option value="gradient" selected>Gradient Fill</option>
+                <option value="solid">Solid Color Fill</option>
+              </select>
+            </div>
+            <div class="control-group hidden"
+                 id="solidColorPickerGroup">
+              <label id="solidColorPickerLabel" for="solidColorPicker">
+                Solid Color
+              </label>
+              <input type="color"
+                     id="solidColorPicker"
+                     value="#ffffff"
+                     title="Pick solid text color"
+                     aria-labelledby="solidColorPickerLabel">
+            </div>
+            <div class="control-group" id="gradientPresetGroup">
+              <label id="gradientPresetLabel" for="gradientPreset">
+                Gradient Preset
+              </label>
+              <select id="gradientPreset"
+                      title="Select a predefined gradient"
+                      aria-labelledby="gradientPresetLabel">
+                <option value="primary-gradient">Primary Pink</option>
+                <option value="cyberpunk-gradient">Cyberpunk</option>
+                <option value="sunset-gradient">Sunset</option>
+                <option value="ocean-gradient">Ocean</option>
+                <option value="forest-gradient">Forest</option>
+                <option value="rainbow-gradient">Rainbow</option>
+                <option value="neon-blue-gradient">Neon Blue</option>
+                <option value="royal-gradient">Royal Dark</option>
+                <option value="fire-gradient">Fire</option>
+                <option value="purple-love-gradient">Purple Love</option>
+                <option value="dark-knight-gradient">Dark Knight</option>
+                <option value="emerald-gradient">Emerald</option>
+                <option value="custom">Custom Gradient</option>
+              </select>
+            </div>
+            <div id="customGradientControls"
+                 class="hidden full-width">
+              <h5>Custom Gradient</h5>
+              <div class="controls-container nested-controls">
+                <div class="control-group">
+                  <label for="color1">Color 1</label>
+                  <input type="color" id="color1" value="#FF1493">
+                </div>
+                <div class="control-group">
+                  <label for="color2">Color 2</label>
+                  <input type="color" id="color2" value="#8A2BE2">
+                </div>
+                <div class="control-group checkbox-label full-width">
+                  <input type="checkbox"
+                         id="useColor3">
+                  <label for="useColor3"> Use 3rd Color</label>
+                </div>
+                <div class="control-group hidden"
+                     id="color3Control">
+                  <label for="color3">Color 3</label>
+                  <input type="color"
+                         id="color3"
+                         value="#FF4500">
+                </div>
+                <div class="control-group full-width">
+                  <label id="gradientDirectionLabel" for="animationDirection">
+                    Gradient Angle
+                  </label>
+                  <div class="range-container">
+                    <input type="range"
+                           id="animationDirection"
+                           min="0"
+                           max="360"
+                           step="1"
+                           value="45"
+                           title="Adjust text gradient angle"
+                           aria-labelledby="gradientDirectionLabel">
+                    <span class="range-value-display" aria-live="polite">45deg</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr class="section-divider full-width">
 
-    <script src="./js/utils/loading.js"></script>
-    <script type="module" src="./js/utils/utils.js"></script>
-    <script type="module" src="./js/utils/cssUtils.js"></script>
+            <h4 class="full-width control-section-heading">Text Effect & Alignment</h4>
+            <div class="control-group">
+              <label id="textShadowLabel" for="textShadow">Effect</label>
+              <select id="textShadow"
+                      title="Apply glow/shadow/outline"
+                      aria-labelledby="textShadowLabel">
+                <option value="text-effect-none" selected>None</option>
+                <option value="text-effect-glow-soft">Soft Glow</option>
+                <option value="text-effect-glow-medium">Medium Glow</option>
+                <option value="text-effect-neon-primary">Neon Glow</option>
+                <option value="text-effect-shadow-soft-md">Soft Shadow</option>
+                <option value="text-effect-shadow-hard-md">Hard Shadow</option>
+                <option value="text-effect-outline-thin">Outline</option>
+                <option value="text-effect-shadow-retro">Retro Shadow</option>
+                <option value="text-effect-emboss">Emboss</option>
+                <option value="text-effect-inset">Inset</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="textAlignLabel" for="textAlign">Alignment</label>
+              <select id="textAlign"
+                      title="Align text within container"
+                      aria-labelledby="textAlignLabel">
+                <option value="center" selected>Center</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="rotationLabel" for="rotation">Rotation</label>
+              <div class="range-container">
+                <input type="range"
+                       id="rotation"
+                       min="-45"
+                       max="45"
+                       value="0"
+                       step="1"
+                       title="Rotate the text"
+                       aria-labelledby="rotationLabel">
+                <span class="range-value-display" aria-live="polite">0deg</span>
+              </div>
+            </div>
 
-    <script type="module" src="./js/fontManager.js"></script>
-    <script type="module" src="./js/settingsManager.js"></script> <script type="module" src="./js/utils/tabs.js"></script>
-    <script type="module" src="./js/utils/numInputControls.js"></script>
-    <script type="module" src="./js/utils/resetConfirmation.js"></script>
-    <script type="module" src="./js/utils/mobile.js"></script>
-    <script type="module" src="./js/notificationsDropInAlerts.js"></script>
+            <hr class="section-divider full-width">
 
-    <script type="module" src="./js/captureTextStyles.js"></script> <script type="module" src="./js/renderers/RendererCore.js"></script>
-    <script type="module" src="./js/renderers/SVGRenderer.js"></script>
-    <script type="module" src="./js/renderers/PNGRenderer.js"></script>
-    <script type="module" src="./js/renderers/GIFRenderer.js"></script>
-    <script type="module" src="./js/exportHandler.js"></script> <script type="module" src="./js/urlParamsHandler.js"></script> <script type="module" src="./js/utils/html2Canvas.js"></script> <script type="module" src="./js/utils/svgAnimationInfo.js"></script>
-    <script type="module" src="./js/misc.js"></script> 
-    <script type="module" src="./js/main.js"></script>
-    <script src="./js/uiInit.js"></script>
+            <h4 class="full-width control-section-heading">Container Border</h4>
+            <div class="control-group">
+              <label id="borderColorPickerLabel" for="borderColorPicker">
+                Border Color
+              </label>
+              <input type="color"
+                     id="borderColorPicker"
+                     value="#ffffff"
+                     title="Sets color for container border/effects"
+                     aria-labelledby="borderColorPickerLabel">
+            </div>
+            <div class="control-group">
+              <label id="borderStyleLabel" for="borderStyle">Border Style</label>
+              <select id="borderStyle"
+                      title="Apply border style"
+                      aria-labelledby="borderStyleLabel">
+                <option value="border-none" selected>None</option>
+                <option value="border-solid">Solid</option>
+                <option value="border-double">Double</option>
+                <option value="border-dashed">Dashed</option>
+                <option value="border-dotted">Dotted</option>
+                <option value="border-groove">Groove</option>
+                <option value="border-ridge">Ridge</option>
+                <option value="border-inset">Inset</option>
+                <option value="border-outset">Outset</option>
+                <option value="border-glow">Glow</option>
+                <option value="border-neon">Neon</option>
+                <option value="border-gradient">Gradient Effect</option>
+                <option value="border-pixel">Pixel Border</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="borderWidthLabel" for="borderWidth">
+                Border Width (px)
+              </label>
+              <div class="number-input-wrapper">
+                <input type="number"
+                       id="borderWidth"
+                       value="2"
+                       min="0"
+                       max="50"
+                       step="1"
+                       title="Border thickness in px"
+                       aria-labelledby="borderWidthLabel">
+              </div>
+            </div>
+            <div class="control-group">
+              <label id="borderRadiusLabel" for="borderRadius">
+                Border Shape / Radius
+              </label>
+              <select id="borderRadius"
+                      title="Adjust border corner shape"
+                      aria-labelledby="borderRadiusLabel">
+                <option value="none" selected>Square (None)</option>
+                <option value="rounded-sm">Slightly Rounded (sm)</option>
+                <option value="rounded-md">Rounded (md)</option>
+                <option value="rounded-lg">More Rounded (lg)</option>
+                <option value="pill">Pill Shape</option>
+                <option value="circle">Circle / Oval</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="customBorderRadiusLabel" for="customBorderRadius">
+                Custom Radius (px)
+                <span class="tooltip-trigger"
+                      data-tooltip="Enter a px value (e.g., 15) to override the dropdown.">?</span>
+              </label>
+              <div class="number-input-wrapper">
+                <input type="number"
+                       id="customBorderRadius"
+                       value=""
+                       min="0"
+                       max="500"
+                       step="1"
+                       placeholder="e.g., 15"
+                       title="Set custom border radius in px"
+                       aria-labelledby="customBorderRadiusLabel">
+              </div>
+            </div>
+            <div class="control-group">
+              <label id="borderPaddingLabel" for="borderPadding">
+                Padding Inside Border (px)
+              </label>
+              <div class="number-input-wrapper">
+                <input type="number"
+                       id="borderPadding"
+                       value="10"
+                       min="0"
+                       max="100"
+                       step="1"
+                       title="Space between border & text"
+                       aria-labelledby="borderPaddingLabel">
+              </div>
+            </div>
+
+            <!-- ADVANCED TEXT EFFECTS (Stroke, 3D, etc.) -->
+            <hr class="section-divider full-width">
+            <h4 class="full-width control-section-heading">Advanced Text Effects</h4>
+            <div class="control-group">
+              <label id="textStrokeLabel" for="textStroke">Text Outline</label>
+              <select id="textStroke"
+                      title="Apply stroke around characters"
+                      aria-labelledby="textStrokeLabel">
+                <option value="none" selected>None</option>
+                <option value="thin">Thin Outline</option>
+                <option value="medium">Medium Outline</option>
+                <option value="thick">Thick Outline</option>
+                <option value="contrast">Contrast Outline</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="advanced3dEffectLabel" for="advanced3dEffect">3D Effects</label>
+              <select id="advanced3dEffect"
+                      title="Apply 3D styles to text"
+                      aria-labelledby="advanced3dEffectLabel">
+                <option value="none" selected>None</option>
+                <option value="3d-simple">Simple 3D</option>
+                <option value="3d-extrude">Extruded 3D</option>
+                <option value="3d-bevel">Beveled 3D</option>
+                <option value="isometric">Isometric 3D</option>
+                <option value="reflection">Reflection</option>
+                <option value="cutout">Cutout</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="advancedBorderStyleLabel" for="advancedBorderStyle">
+                Advanced Borders
+              </label>
+              <select id="advancedBorderStyle"
+                      title="Extra fancy border styles"
+                      aria-labelledby="advancedBorderStyleLabel">
+                <option value="none" selected>None</option>
+                <option value="multi-layer">Multi-layer</option>
+                <option value="image-dots">Dotted Pattern</option>
+                <option value="image-zigzag">Zigzag Pattern</option>
+                <option value="corners-cut">Cut Corners</option>
+                <option value="corners-rounded-different">Mixed Corners</option>
+                <option value="marching-ants">Marching Ants</option>
+                <option value="rotating-dash">Rotating Dash</option>
+                <option value="double-glow">Double Glow</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- end style tab -->
+
+        <!-- Animation Tab -->
+        <div class="tab-content" id="animation-tab"
+             role="tabpanel" aria-labelledby="tab-animation">
+          <div class="controls-container">
+            <div class="control-group">
+              <label id="textAnimationLabel" for="textAnimation">Text Animation</label>
+              <select id="textAnimation"
+                      title="Basic looping animations"
+                      aria-labelledby="textAnimationLabel">
+                <option value="anim-none" selected>None</option>
+                <option value="anim-pulse">Pulse</option>
+                <option value="anim-bounce">Bounce</option>
+                <option value="anim-shake">Shake</option>
+                <option value="anim-float">Float</option>
+                <option value="anim-rotate">Rotate</option>
+                <option value="anim-glitch">Glitch</option>
+                <option value="anim-wave">Wave</option>
+                <option value="anim-flicker">Flicker</option>
+                <option value="anim-fade">Fade In/Out</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label id="animationSpeedLabel" for="animationSpeed">
+                Animation Speed Multiplier
+              </label>
+              <div class="range-container">
+                <input type="range"
+                       id="animationSpeed"
+                       min="0.1"
+                       max="5"
+                       step="0.1"
+                       value="1"
+                       title="Speed factor (1x = default)"
+                       aria-labelledby="animationSpeedLabel">
+                <span class="range-value-display"
+                      aria-live="polite">1x</span>
+              </div>
+            </div>
+            <p class="info-text full-width"
+               style="margin-top: var(--space-md); font-size: var(--font-size-sm);">
+               Note: Animations embed into SVG exports & drive PNG frames.
+            </p>
+
+            <!-- ADVANCED ANIMATIONS -->
+            <hr class="section-divider full-width">
+            <h4 class="full-width control-section-heading">Advanced Animations</h4>
+            <div class="control-group">
+              <label id="advancedTextAnimationLabel" for="advancedTextAnimation">
+                Advanced Effects
+              </label>
+              <select id="advancedTextAnimation"
+                      title="Extra fancy text animations"
+                      aria-labelledby="advancedTextAnimationLabel">
+                <option value="none" selected>None</option>
+                <option value="liquify">Liquify</option>
+                <option value="wobble">Wobble</option>
+                <option value="perspective">Perspective</option>
+                <option value="split">Split</option>
+                <option value="magnify">Magnify</option>
+                <option value="glow-multicolor">Multicolor Glow</option>
+                <option value="flip-3d">3D Flip</option>
+                <option value="swing-3d">3D Swing</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- end animation tab -->
+
+        <!-- Background Tab -->
+        <div class="tab-content" id="background-tab"
+             role="tabpanel" aria-labelledby="tab-background">
+          <div class="controls-container">
+            <div class="control-group">
+              <label id="backgroundTypeLabel" for="backgroundType">
+                Background Style
+              </label>
+              <select id="backgroundType"
+                      title="Choose the overall background pattern"
+                      aria-labelledby="backgroundTypeLabel">
+                <option value="bg-transparent">Transparent</option>
+                <option value="bg-solid" selected>Solid Color</option>
+                <option value="bg-gradient">Gradient</option>
+                <option value="bg-gradient-animated">Animated Gradient</option>
+                <option value="bg-grid">Light Grid</option>
+                <option value="bg-darkgrid">Dark Grid</option>
+                <option value="bg-dots-sm">Small Dots</option>
+                <option value="bg-dots-lg">Large Dots</option>
+                <option value="bg-checkerboard">Checkerboard</option>
+                <option value="bg-lines-diag">Diagonal Lines</option>
+                <option value="bg-lines-vert">Vertical Lines</option>
+                <option value="bg-carbon">Carbon Fiber</option>
+                <option value="bg-noise">Static Noise</option>
+                <option value="bg-stars">Starfield</option>
+                <option value="bg-synthwave">Synthwave Grid</option>
+                <option value="bg-matrix">Matrix Code</option>
+                <option value="bg-scanlines">Scanlines</option>
+                <option value="bg-circuit">Circuit Board</option>
+              </select>
+            </div>
+            <div class="control-group"
+                 id="backgroundColorControl">
+              <label id="backgroundColorLabel" for="backgroundColor">
+                Background Color
+              </label>
+              <input type="color"
+                     id="backgroundColor"
+                     value="#000000"
+                     title="Select background color"
+                     aria-labelledby="backgroundColorLabel">
+            </div>
+
+            <div id="backgroundGradientControls" class="hidden full-width">
+              <h4>Background Gradient</h4>
+              <div class="controls-container nested-controls">
+                <div class="control-group">
+                  <label id="backgroundGradientPresetLabel" for="backgroundGradientPreset">
+                    Preset
+                  </label>
+                  <select id="backgroundGradientPreset"
+                          title="Choose a background gradient"
+                          aria-labelledby="backgroundGradientPresetLabel">
+                    <option value="bg-primary-gradient">Primary Dark</option>
+                    <option value="bg-cyberpunk-gradient">Cyberpunk Dark</option>
+                    <option value="bg-sunset-gradient">Sunset</option>
+                    <option value="bg-ocean-gradient">Ocean</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                <div id="customBackgroundGradient"
+                     class="hidden full-width">
+                  <div class="controls-container"
+                       style="grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                    <div class="control-group">
+                      <label for="bgColor1">Color 1</label>
+                      <input type="color"
+                             id="bgColor1"
+                             value="#3a1c71">
+                    </div>
+                    <div class="control-group">
+                      <label for="bgColor2">Color 2</label>
+                      <input type="color"
+                             id="bgColor2"
+                             value="#ffaf7b">
+                    </div>
+                  </div>
+                </div>
+                <div class="control-group full-width">
+                  <label id="bgGradientDirectionLabel" for="bgGradientDirection">
+                    Direction
+                  </label>
+                  <div class="range-container">
+                    <input type="range"
+                           id="bgGradientDirection"
+                           min="0"
+                           max="360"
+                           step="1"
+                           value="90"
+                           title="Adjust background gradient angle"
+                           aria-labelledby="bgGradientDirectionLabel">
+                    <span class="range-value-display" aria-live="polite">90deg</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="control-group full-width">
+              <label id="bgOpacityLabel" for="bgOpacity">Background Opacity</label>
+              <div class="range-container">
+                <input type="range"
+                       id="bgOpacity"
+                       min="0"
+                       max="1"
+                       step="0.05"
+                       value="1"
+                       title="Adjust overall background opacity"
+                       aria-labelledby="bgOpacityLabel">
+                <span class="range-value-display" aria-live="polite">1</span>
+              </div>
+              
+            </div>
+
+            <!-- ADVANCED BACKGROUND PATTERNS -->
+            <hr class="section-divider full-width">
+            <h4 class="full-width control-section-heading">
+              Advanced Background Patterns
+            </h4>
+            <div class="control-group">
+              <label id="advancedBackgroundLabel" for="advancedBackground">
+                Special Backgrounds
+              </label>
+              <select id="advancedBackground"
+                      title="Apply advanced background patterns/effects"
+                      aria-labelledby="advancedBackgroundLabel">
+                <option value="none" selected>None</option>
+                <option value="hexagons">Hexagon Pattern</option>
+                <option value="diamonds">Diamond Pattern</option>
+                <option value="wave-pattern">Wave Pattern</option>
+                <option value="graph-paper">Graph Paper</option>
+                <option value="gradient-pulse">Gradient Pulse</option>
+                <option value="floating-particles">Floating Particles</option>
+              </select>
+            </div>
+            <div id="customPatternControls" class="hidden full-width">
+              <hr class="section-divider"> <h4 class="control-section-heading">Customize Pattern Colors</h4>
+              <div class="controls-container nested-controls">
+                <div class="control-group">
+                    <label id="patternColor1Label" for="patternColor1">
+                        Pattern Color 1
+                        <span class="tooltip-trigger" data-tooltip="Primary pattern color (e.g., lines, dots, checkers)">?</span>
+                    </label>
+                    <input type="color" id="patternColor1" value="#CCCCCC" title="Set primary pattern color">
+                </div>
+                <div class="control-group">
+                    <label id="patternColor2Label" for="patternColor2">
+                        Pattern Color 2 (Base)
+                        <span class="tooltip-trigger" data-tooltip="Secondary/Base color for the pattern area">?</span>
+                    </label>
+                    <input type="color" id="patternColor2" value="#222222" title="Set secondary/base pattern color">
+                </div>
+              </div>
+               <p class="info-text full-width" style="font-size: var(--font-size-sm);">
+                  <i>Note: These colors apply to patterns like Grid, Dots, Lines, Checkerboard, etc. Not all patterns use both colors.</i>
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- end background tab -->
+
+        <!-- Advanced Tab -->
+        <div class="tab-content" id="advanced-tab"
+             role="tabpanel" aria-labelledby="tab-advanced">
+          <div class="controls-container">
+            <div class="control-group">
+              <label id="previewSizeLabel" for="previewSize">Preview Area Size</label>
+              <select id="previewSize"
+                      title="Change preview container size"
+                      aria-labelledby="previewSizeLabel">
+                <option value="preview-size-small">Small</option>
+                <option value="preview-size-medium" selected>Medium</option>
+                <option value="preview-size-large">Large</option>
+                <option value="preview-size-x-large">Extra Large</option>
+              </select>
+            </div>
+
+            <div class="control-group size-indicator-container">
+              <label>Rendered Text Size</label>
+              <div class="size-indicator"
+                   title="Approx. rendered text size in px">
+                W: <span id="logoWidth">--</span>px ,
+                H: <span id="logoHeight">--</span>px
+              </div>
+            </div>
+
+            <hr class="section-divider full-width">
+
+            <h4 class="full-width" style="margin-bottom: var(--space-xs);">Export Dimensions</h4>
+            <div class="dimension-controls full-width">
+              <div class="control-group">
+                <label id="exportWidthLabel" for="exportWidth">Width (px)</label>
+                <div class="number-input-wrapper">
+                  <input type="number" id="exportWidth"
+                         min="10" max="8000" value="800"
+                         title="Export width in pixels"
+                         aria-labelledby="exportWidthLabel">
+                </div>
+              </div>
+              <div class="control-group">
+                <label id="exportHeightLabel" for="exportHeight">Height (px)</label>
+                <div class="number-input-wrapper">
+                  <input type="number" id="exportHeight"
+                         min="10" max="8000" value="400"
+                         title="Export height in pixels"
+                         aria-labelledby="exportHeightLabel">
+                </div>
+              </div>
+              <div class="control-group">
+                <label id="aspectRatioPresetLabel" for="aspectRatioPreset">
+                  Aspect Ratio
+                </label>
+                <select id="aspectRatioPreset"
+                        title="Select or lock aspect ratio"
+                        aria-labelledby="aspectRatioPresetLabel">
+                  <option value="auto" data-ratio="0" selected>Auto (Current)</option>
+                  <option value="1" data-ratio="1">1:1 (Square)</option>
+                  <option value="1.77778" data-ratio="1.77778">16:9 (Landscape)</option>
+                  <option value="0.5625" data-ratio="0.5625">9:16 (Portrait)</option>
+                  <option value="1.33333" data-ratio="1.33333">4:3 (Standard)</option>
+                  <option value="1.5" data-ratio="1.5">3:2 (Photo)</option>
+                </select>
+              </div>
+              <div class="control-group aspect-lock-control">
+                <label class="checkbox-label"
+                       for="aspectRatioLock"
+                       title="Maintain aspect ratio when changing W/H">
+                  <input type="checkbox" id="aspectRatioLock">
+                  <span>Lock Aspect Ratio</span>
+                  <span class="tooltip-trigger"
+                        data-tooltip="Locks the ratio based on current or selected preset.">?</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="control-group full-width">
+              <label id="exportQualityLabel" for="exportQuality">
+                PNG Quality (%)
+                <span class="tooltip-trigger"
+                      data-tooltip="Higher = bigger file, better quality (10–100). Doesn’t affect SVG.">?</span>
+              </label>
+              <div class="range-container">
+                <input type="range"
+                       id="exportQuality"
+                       min="10"
+                       max="100"
+                       step="5"
+                       value="95"
+                       title="PNG compression quality"
+                       aria-labelledby="exportQualityLabel">
+                <span class="range-value-display"
+                      aria-live="polite">95%</span>
+              </div>
+            </div>
+            <label class="checkbox-label control-group full-width"
+                   style="margin-top: 5px;">
+              <input type="checkbox" id="exportTransparent">
+              <span>Export with Transparent Background</span>
+            </label>
+
+            <hr class="section-divider full-width">
+
+            <h4 class="full-width" style="margin-bottom: var(--space-xs);">
+              Animation Export (Frames ZIP)
+            </h4>
+            <div class="controls-container nested-controls">
+              <div class="control-group">
+                <label for="exportFrames">Number of Frames</label>
+                <div class="number-input-wrapper">
+                  <input type="number"
+                         id="exportFrames"
+                         value="15"
+                         min="2" max="60"
+                         step="1"
+                         title="Total frames for animation ZIP">
+                </div>
+              </div>
+              <div class="control-group">
+                <label for="exportFrameRate">Frames Per Second (FPS)</label>
+                <div class="range-container">
+                  <input type="range"
+                         id="exportFrameRate"
+                         min="1"
+                         max="30"
+                         value="10"
+                         step="1"
+                         title="Animation frame rate">
+                  <span class="range-value-display"
+                        aria-live="polite">10 FPS</span>
+                </div>
+              </div>
+            </div>
+
+            <hr class="section-divider full-width">
+
+            <div class="control-group full-width">
+              <label id="cssCodeLabel" for="cssCode">
+                Generated CSS Snippet
+                <span class="tooltip-trigger"
+                      data-tooltip="CSS reflecting current logo styles for embedding.">?</span>
+              </label>
+              <!-- Add this HTML near your generated CSS display -->
+                <div class="code-actions">
+                    <button id="copyGeneratedCSS" class="button button-accent">
+                    <i class="icon-copy"></i> Copy CSS
+                    </button>
+                    <button id="exportGeneratedCSS" class="button button-secondary">
+                    <i class="icon-download"></i> Export CSS
+                    </button>
+                </div>
+              <textarea id="cssCode"
+                        rows="6"
+                        readonly
+                        title="CSS for current logo"
+                        aria-labelledby="cssCodeLabel">
+              </textarea>
+            </div>
+
+            <hr class="section-divider full-width">
+
+            <div class="control-group full-width">
+              <h4>Font Management</h4>
+              <div class="font-management-controls">
+                <button id="loadAllFontsBtn"
+                        class="button secondary-button"
+                        title="Download all fonts at once (~100MB)">
+                  Load All Fonts
+                </button>
+                <div class="font-management-info">
+                  <span class="label">Loading mode:</span>
+                  <span id="fontLoadingMode" class="value">-</span>
+                </div>
+                <p class="font-warning-box">
+                  <strong>Warning:</strong> Loading all fonts will download 100mb+ into your local cache / system.
+                </p>
+              </div>
+            </div>
+
+            <hr class="section-divider full-width">
+
+            <div class="control-group full-width">
+              <h4>Cache Management (Troubleshooting)</h4>
+              <div class="cache-controls">
+                <button id="clearLocalStorageBtn"
+                        class="button danger-button"
+                        title="Removes saved UI settings from local storage.">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       viewBox="0 0 24 24">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  Clear Saved Settings
+                </button>
+                <button id="clearFontCacheBtn"
+                        class="button danger-button"
+                        title="Removes cached font data from IndexedDB.">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       viewBox="0 0 24 24">
+                    <path d="M19 12H6M12 5l-7 7 7 7"/>
+                  </svg>
+                  Clear Font Cache
+                </button>
+              </div>
+              <p class="info-text" style="font-size: var(--font-size-sm);">
+                Use these if you suspect outdated settings or font data are causing issues.
+              </p>
+            </div>
+
+            <details class="info-details-section">
+              <summary>ℹ️ About Logomaker &amp; Features</summary>
+              <div class="info-details-content">
+                <h4>Forge Your Mark with Logomaker 🎨</h4>
+                <p>Logomaker is a free, open-source creative tool by
+                   <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a>,
+                   designed for crafting text-based logos with ease, portability, &amp; optimized loading.</p>
+                <p><strong>Core Magic:</strong> Extensive font support (chunked or embedded), text styling, gradients, borders, animations, and backgrounds. Export PNG, scalable SVG, or animation frames. Share with unique URLs.</p>
+                <p><strong>Genesis Note:</strong> Built via Human+AI collaboration (<a href="#" onclick="document.getElementById('infoButton').click(); document.getElementById('info-tab-ai-collab').click(); return false;">More Info</a>).</p>
+                <p><strong>Source &amp; Freedom:</strong>
+                   <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">GitHub (MIT)</a>
+                   - Use, fork, or enhance it!
+                </p>
+              </div>
+            </details>
+            <details class="info-details-section">
+              <summary>✨ Manic Agency: Pro Platform Horizon</summary>
+              <div class="info-details-content">
+                <h4>Manic Agency is building next-generation creative platforms.</h4>
+                <p>Think advanced AI design tools, massive libraries, real-time collaboration, and more.</p>
+                <p><a href="https://manic.agency/" target="_blank" rel="noopener noreferrer" class="info-link">
+                  Stay Tuned at Manic.agency »
+                </a></p>
+              </div>
+            </details>
+
+          </div>
+        </div>
+        <!-- end advanced tab -->
+      </div>
+      <!-- end controls-wrapper -->
+
+      <!-- The Preview Container -->
+      <div class="previewContainer bg-solid preview-size-medium"
+           id="previewContainer">
+        <div class="logo-container">
+          <div class="logo-text" data-text="Manic">Manic</div>
+        </div>
+      </div>
+
+      <!-- Main Action Buttons -->
+      <div class="button-container main-actions">
+        <button id="randomizeStyleBtn" class="randomize-btn"
+                title="Apply Random Style Settings (Keeps Text & Font)">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="14" height="14"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <path d="M16 3h5v5"/>
+            <path d="M4 20L21 3"/>
+            <path d="M21 16v5h-5"/>
+            <path d="M15 15l6 6"/>
+            <path d="M4 4l5 5"/>
+          </svg>
+          Randomize Style
+        </button>
+        <button id="resetBtn" class="reset-btn"
+                title="Reset Settings">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="14" height="14"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Reset...
+        </button>
+        <button id="themeToggleBtn" class="theme-toggle-btn button"
+                title="Switch Theme (Light/Dark)" aria-label="Switch Theme">
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg class="moon-icon" style="display: none;"
+               xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3
+                     7 7 0 0 0 21 12.79z">
+            </path>
+          </svg>
+          <span class="theme-toggle-text visually-hidden" aria-live="polite">
+            Toggle Theme
+          </span>
+        </button>
+      </div>
+
+      <!-- Export Action Buttons -->
+      <div class="button-container export-actions">
+        <button id="exportPngBtn" title="Export as PNG">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5
+                     a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export PNG
+        </button>
+        <button id="exportSvgBtn" title="Export as SVG">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <polyline points="16 18 22 12 16 6"/>
+            <polyline points="8 6 2 12 8 18"/>
+          </svg>
+          Export SVG
+        </button>
+        <button id="exportGifBtn" title="Export animation as PNG Frames (ZIP)">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          Export Frames (ZIP)
+        </button>
+        <button id="copyHtmlBtn" title="Copy HTML">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14
+                     a2 2 0 0 1-2 2H6
+                     a2 2 0 0 1-2-2V6
+                     a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          </svg>
+          Copy HTML
+        </button>
+        <button id="copyCssBtn" title="Copy CSS">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4
+                     a2 2 0 0 1 2-2h9
+                     a2 2 0 0 1 2 2v1"/>
+          </svg>
+          Copy CSS
+        </button>
+        <button id="shareUrlBtn" title="Generate & Copy Shareable URL">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               width="16" height="16"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Share URL
+        </button>
+      </div>
+    </main>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="resetConfirmModal"
+         class="modal-overlay"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="resetModalTitle"
+         aria-hidden="true"
+         style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <svg class="modal-header-icon"
+               xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9
+                     9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          <h3 class="modal-title" id="resetModalTitle">Reset Settings</h3>
+          <button class="modal-close-btn"
+                  id="resetModalCloseTop"
+                  aria-label="Close">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure? Choose what to reset:</p>
+          <div class="reset-options"
+               role="radiogroup"
+               aria-labelledby="resetTypeLabel">
+            <span id="resetTypeLabel" class="visually-hidden">
+              Choose reset type
+            </span>
+            <label class="reset-option">
+              <input type="radio" name="reset-type" value="all" checked>
+              <div>
+                <div class="reset-option-label">Reset Everything</div>
+                <div class="reset-option-desc">Restore all settings to default</div>
+              </div>
+            </label>
+            <label class="reset-option">
+              <input type="radio" name="reset-type" value="text">
+              <div>
+                <div class="reset-option-label">Reset Text Only</div>
+                <div class="reset-option-desc">Restore text, font, size, spacing, case, weight</div>
+              </div>
+            </label>
+            <label class="reset-option">
+              <input type="radio" name="reset-type" value="style">
+              <div>
+                <div class="reset-option-label">Reset Style Only</div>
+                <div class="reset-option-desc">Restore colors, effects, borders (style/width/radius/padding), alignment, rotation</div>
+              </div>
+            </label>
+            <label class="reset-option">
+              <input type="radio" name="reset-type" value="background">
+              <div>
+                <div class="reset-option-label">Reset Background Only</div>
+                <div class="reset-option-desc">Restore background type, color, gradient, opacity</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="resetModalCancel" class="modal-btn modal-btn-cancel">
+            Cancel
+          </button>
+          <button id="resetModalConfirm" class="modal-btn modal-btn-reset">
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share URL Modal -->
+    <div id="shareUrlModal"
+         class="modal-overlay"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="shareModalTitle"
+         aria-hidden="true"
+         style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <svg class="modal-header-icon"
+               xmlns="http://www.w3.org/2000/svg"
+               width="24" height="24"
+               fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               viewBox="0 0 24 24">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          <h3 class="modal-title" id="shareModalTitle">Share Your Logo Design</h3>
+          <button class="modal-close-btn"
+                  id="shareModalClose"
+                  aria-label="Close">×</button>
+        </div>
+        <div class="modal-body">
+          <p id="shareDesc">
+            Share a unique link to this exact logo configuration:
+          </p>
+          <div class="control-group">
+            <label for="shareUrlInput" class="visually-hidden">Logo URL</label>
+            <div class="url-copy-container">
+              <input type="text" id="shareUrlInput" readonly aria-describedby="shareDesc copyShareUrlBtn">
+              <button id="copyShareUrlBtn"
+                      class="url-copy-btn"
+                      title="Copy URL to clipboard">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="18" height="18"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round"
+                     viewBox="0 0 24 24">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4
+                           a2 2 0 0 1-2-2V4
+                           a2 2 0 0 1 2-2h9
+                           a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <span aria-live="polite">Copy</span>
+              </button>
+            </div>
+          </div>
+          <div class="share-options-container">
+            <h4>Share via</h4>
+            <div class="share-options" role="group" aria-label="Share options">
+              <a href="#" id="shareTwitter"
+                 class="share-option-btn"
+                 target="_blank" rel="noopener noreferrer"
+                 title="Share on X (Twitter)">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="18" height="18"
+                     viewBox="0 0 24 24"
+                     fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26
+                           8.502 11.24H16.17l-5.214-6.817
+                           L4.99 21.75H1.68l7.73-8.835
+                           L1.254 2.25H8.08l4.713 6.231zm
+                           -1.161 17.52h1.833L7.084 4.126
+                           H5.117z"/>
+                </svg> X / Twitter
+              </a>
+              <a href="#" id="shareFacebook"
+                 class="share-option-btn"
+                 target="_blank" rel="noopener noreferrer"
+                 title="Share on Facebook">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="18" height="18"
+                     viewBox="0 0 24 24"
+                     fill="currentColor">
+                  <path d="M18.77 7.46H14.5v-1.9
+                           c0-.9.6-1.1 1-1.1h3V.5h
+                           -4.33C10.24.5 9.5 3.44
+                           9.5 5.32v2.15h-3v4h3v12h5
+                           v-12h3.85l.42-4z"/>
+                </svg> Facebook
+              </a>
+              <a href="#" id="shareEmail"
+                 class="share-option-btn"
+                 title="Share via Email">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="18" height="18"
+                     viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2
+                           v12c0 1.1-.9 2-2 2H4
+                           c-1.1 0-2-.9-2-2V6
+                           c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg> Email
+              </a>
+            </div>
+          </div>
+          <div class="qr-code-container">
+            <h4>QR Code</h4>
+            <div id="qrCodeDisplay"
+                 class="qr-code-display"
+                 aria-label="QR Code for shared URL">
+              <div class="qr-placeholder">Generating...</div>
+            </div>
+            <button id="downloadQrCode" class="download-qr-btn"
+                    disabled title="Download QR code as PNG">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="16" height="16"
+                   viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor"
+                   stroke-width="2.5" stroke-linecap="round"
+                   stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5
+                         a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download QR
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="shareModalCancel" class="modal-btn modal-btn-cancel">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Indicator (during export etc.) -->
+    <div id="loadingIndicator"
+         class="loading-indicator"
+         role="status"
+         aria-live="assertive"
+         style="display: none;">
+      <div class="loading-indicator-content">
+        <div class="spinner"></div>
+        <div class="progress-text">Processing...</div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="sponsor-banner">
+        <div class="hearts">
+          <span class="heart">❤️</span>
+          <span class="heart">💜</span>
+          <span class="heart">💙</span>
+        </div>
+        <p>Enjoying Logomaker? It’s free & <a href="https://github.com/manicinc/logomaker"
+           target="_blank" rel="noopener noreferrer">open source</a>!</p>
+        <div class="github-stats">
+          <a href="https://github.com/manicinc/logomaker"
+             target="_blank"
+             class="github-link"
+             title="View source & star on GitHub!"
+             rel="noopener noreferrer">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16" height="16"
+                 fill="currentColor"
+                 viewBox="0 0 24 24">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12
+                       0 5.303 3.438 9.8 8.205 11.385
+                       .6.113.82-.258.82-.577
+                       0-.285-.01-1.04-.015-2.04
+                       -3.338.724-4.042-1.61-4.042-1.61
+                       C4.422 18.07 3.633 17.7 3.633 17.7
+                       c-1.087-.744.084-.729.084-.729
+                       1.205.084 1.838 1.236 1.838 1.236
+                       1.07 1.835 2.809 1.305 3.495.998
+                       .108-.776.417-1.305.76-1.605
+                       -2.665-.3-5.466-1.332-5.466-5.93
+                       0-1.31.465-2.38 1.235-3.22
+                       -.135-.303-.54-1.523.105-3.176
+                       0 0 1.005-.322 3.3 1.23
+                       .96-.267 1.98-.399 3-.405
+                       1.02.006 2.04.138 3 .405
+                       2.28-1.552 3.285-1.23 3.285-1.23
+                       .645 1.653.24 2.873.12 3.176
+                       .765.84 1.23 1.91 1.23 3.22
+                       0 4.61-2.805 5.625-5.475 5.92
+                       .42.36.81 1.096.81 2.22
+                       0 1.606-.015 2.896-.015 3.286
+                       0 .315.21.69.825.57
+                       C20.565 22.092 24 17.592 24 12.297
+                       c0-6.627-5.373-12-12-12" />
+            </svg>
+            <span id="github-star-count">...</span> Stars
+          </a>
+          <a href="https://github.com/sponsors/manicinc"
+             target="_blank"
+             class="sponsor-button"
+             title="Sponsor Logomaker development"
+             rel="noopener noreferrer">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16" height="16"
+                 viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0
+                       L12 5.67l-1.06-1.06
+                       a5.5 5.5 0 0 0-7.78 7.78
+                       l1.06 1.06L12 21.23
+                       l7.78-7.78 1.06-1.06
+                       a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            Sponsor
+          </a>
+        </div>
+      </div>
+      <hr class="footer-hr">
+      <div class="footer-content">
+        <div class="manic-logo">
+          <a href="https://manic.agency"
+             target="_blank"
+             rel="noopener noreferrer"
+             title="Visit Manic Agency">
+            <div class="logo-text-animated">Manic</div>
+            <span class="logo-agency">Agency</span>
+          </a>
+        </div>
+        <div class="social-links">
+          <span class="footer-label">Connect:</span>
+          <div class="social-icons">
+            <a href="https://manic.agency"
+               target="_blank"
+               class="social-icon"
+               title="Manic Agency Website"
+               rel="noopener noreferrer">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="18" height="18"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round"
+                   viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10
+                         15.3 15.3 0 0 1-4 10
+                         15.3 15.3 0 0 1-4-10
+                         15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </a>
+            <a href="mailto:team@manic.agency"
+               class="social-icon"
+               title="Email Manic">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="18" height="18"
+                   viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round"
+                   stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2
+                         v12c0 1.1-.9 2-2 2H4
+                         c-1.1 0-2-.9-2-2V6
+                         c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </a>
+            <a href="https://github.com/manicinc"
+               target="_blank"
+               class="social-icon"
+               title="Manic Inc on GitHub"
+               rel="noopener noreferrer">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="18" height="18"
+                   viewBox="0 0 24 24"
+                   fill="currentColor">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12
+                         0 5.303 3.438 9.8 8.205 11.385
+                         .6.113.82-.258.82-.577
+                         0-.285-.01-1.04-.015-2.04
+                         -3.338.724-4.042-1.61-4.042-1.61
+                         C4.422 18.07 3.633 17.7
+                         3.633 17.7 c-1.087-.744.084-.729.084-.729
+                         1.205.084 1.838 1.236 1.838 1.236
+                         1.07 1.835 2.809 1.305 3.495.998
+                         .108-.776.417-1.305.76-1.605
+                         -2.665-.3-5.466-1.332-5.466-5.93
+                         0-1.31.465-2.38 1.235-3.22
+                         -.135-.303-.54-1.523.105-3.176
+                         0 0 1.005-.322 3.3 1.23
+                         .96-.267 1.98-.399 3-.405
+                         1.02.006 2.04.138 3 .405
+                         2.28-1.552 3.285-1.23 3.285-1.23
+                         .645 1.653.24 2.873.12 3.176
+                         .765.84 1.23 1.91 1.23 3.22
+                         0 4.61-2.805 5.625-5.475 5.92
+                         .42.36.81 1.096.81 2.22
+                         0 1.606-.015 2.896-.015 3.286
+                         0 .315.21.69.825.57
+                         C20.565 22.092 24 17.592 24 12.297
+                         c0-6.627-5.373-12-12-12"/>
+              </svg>
+            </a>
+            <a href="https://x.com/manicagency"
+               target="_blank"
+               class="social-icon"
+               title="Manic Agency on X (Twitter)"
+               rel="noopener noreferrer">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   width="18" height="18"
+                   viewBox="0 0 24 24"
+                   fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26
+                         8.502 11.24H16.17l-5.214-6.817
+                         L4.99 21.75H1.68l7.73-8.835
+                         L1.254 2.25H8.08l4.713 6.231zm
+                         -1.161 17.52h1.833L7.084 4.126
+                         H5.117z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/manicinc/logomaker/issues"
+             target="_blank" rel="noopener noreferrer">Report Issue</a>
+          <a href="mailto:team@manic.agency?subject=Logomaker%20Feedback"
+             class="contact-button"
+             title="Send Feedback via Email">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="16" height="16"
+                 viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2
+                       v12c0 1.1-.9 2-2 2H4
+                       c-1.1 0-2-.9-2-2V6
+                       c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Feedback
+          </a>
+        </div>
+      </div>
+      <p class="copyright">
+        &copy; 2024<span id="copyright-year"></span>
+        Manic Agency &amp; Collaborators. MIT Licensed.
+      </p>
+      <p class="ai-collab-footer-note"
+         style="font-size: 0.75em; text-align: center; opacity: 0.6; margin-top: 5px;">
+        Powered by Human+AI Collaboration
+        (<a href="#"
+            onclick="document.getElementById('infoButton').click(); document.getElementById('info-tab-ai-collab').click(); return false;"
+            style="color: inherit;">
+          Details
+        </a>)
+      </p>
+    </footer>
+  </div>
+  <!-- end container -->
+
+  <!-- External libs (optional) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+          integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+  </script>
+
+  <!-- Utility / Base JS -->
+  <script src="./js/utils/loading.js"></script>
+  <script type="module" src="./js/utils/utils.js"></script>
+  <script src="./js/utils/cssUtils.js"></script>
+
+  <!-- Main Font & Settings Manager -->
+  <script type="module" src="./js/fontManager.js"></script>
+  <script type="module" src="./js/settingsManager.js"></script>
+  <!-- Additional UI modules -->
+  <script type="module" src="./js/utils/tabs.js"></script>
+  <script type="module" src="./js/utils/numInputControls.js"></script>
+  <script type="module" src="./js/utils/resetConfirmation.js"></script>
+  <script type="module" src="./js/utils/mobile.js"></script>
+  <script type="module" src="./js/notificationsDropInAlerts.js"></script>
+
+  <!-- Capture & Renderers -->
+  <script type="module" src="./js/captureTextStyles.js"></script>
+  <script type="module" src="./js/renderers/RendererCore.js"></script>
+  <script type="module" src="./js/renderers/SVGRenderer.js"></script>
+  <script type="module" src="./js/renderers/PNGRenderer.js"></script>
+  <script type="module" src="./js/renderers/GIFRenderer.js"></script>
+
+  <script type="module" src="./js/exportHandler.js"></script>
+  <script type="module" src="./js/urlParamsHandler.js"></script>
+  <script type="module" src="./js/utils/html2Canvas.js"></script>
+  <script type="module" src="./js/utils/svgAnimationInfo.js"></script>
+  <script type="module" src="./js/misc.js"></script>
+  <script type="module" src="./js/randomize.js"></script>
+  <script type="module" src="./js/main.js"></script>
+  <script src="./js/uiInit.js"></script>
 
 </body>
 </html>
