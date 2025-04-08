@@ -134,8 +134,8 @@
 
 /* --- Text Stroke --- */
 .logo-text.text-stroke-none {
-  -webkit-text-stroke: 0 transparent;
-          text-stroke: 0 transparent;
+  -webkit-text-stroke: 0 transparent !important;
+          text-stroke: 0 transparent !important;
 }
 .logo-text.text-stroke-thin {
   -webkit-text-stroke: 1px var(--dynamic-border-color, #ffffff) !important;
