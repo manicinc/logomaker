@@ -138,17 +138,15 @@ const TEXT_DECORATION_MAP = {
 };
 
 const TEXT_STYLE_MAP = {
-  'normal': 'text-style-normal',
-  'italic': 'text-style-italic',
-  'oblique': 'text-style-oblique', // Ensure CSS supports 'oblique 15deg' or similar
+  normal: 'text-style-normal',
+  italic: 'text-style-italic',
+  oblique: 'text-style-oblique',
 };
 
 const TEXT_STROKE_MAP = {
-  'none': 'text-stroke-none',
-  'thin': 'text-stroke-thin',
-  'medium': 'text-stroke-medium',
-  'thick': 'text-stroke-thick',
-  'contrast': 'text-stroke-contrast',
+  none: 'text-stroke-none',
+  thin: 'text-stroke-thin',
+  bold: 'text-stroke-bold',
 };
 
 // Note: Basic text effects (textShadow setting) are assumed to have values
@@ -349,7 +347,8 @@ const SettingsManager = {
 
     // Check if critical elements were found
     if (!this._logoElement || !this._logoContainer || !this._previewContainer) {
-      return Promise.reject(this._initializationError("Missing core preview elements ('.logo-text', '.logo-container', '#previewContainer'). Check HTML structure."));
+      console.log("No dom elements found for the logo.")
+      return;
     }
 
     try {
@@ -365,25 +364,9 @@ const SettingsManager = {
     } catch (error) {
       this._isInitialized = false; // Ensure flag is false if init fails
       // Log the error and potentially notify the user
-      return Promise.reject(this._initializationError(error.message || String(error)));
+      console.log(error);
+      return;
     }
-  },
-
-  /**
-   * Handles critical initialization errors. Logs the error, optionally shows an alert,
-   * and adds an error class to the main container for visual feedback.
-   * @private
-   * @param {string} message - The error message.
-   * @returns {Error} An Error object with the provided message.
-   */
-  _initializationError(message) {
-    console.error(`[SM CRITICAL] Initialization failed: ${message}`);
-    // Use a global alert function if available, otherwise standard alert
-    const notifyError = typeof window.showAlert === 'function' ? window.showAlert : alert;
-    notifyError(`Application Initialization Failed: ${message}. Please check console and reload.`, "error", { duration: null });
-    // Add a visual indicator to the UI if possible
-    document.querySelector('.container')?.classList?.add('initialization-error');
-    return new Error(message);
   },
 
   /**
@@ -439,7 +422,7 @@ const SettingsManager = {
           case 'fontWeight': this._applyFontWeight(value); break;
           case 'textAlign': this._applyTextAlign(value); break;
           case 'textCase':
-            this._applyClass(this._logoElement, `${PREFIX.TEXT_CASE}${value}`, PREFIX.TEXT_CASE);
+            this._applyTextCase(value); // Apply text case
             break;
           case 'textDecoration': this._applyTextDecoration(value); break;
           case 'textStyle': this._applyTextStyle(value); break;
@@ -803,7 +786,8 @@ const SettingsManager = {
     // --- 2. Apply Styles and Classes ---
     console.log('[SM] Applying styles and classes...');
     if (!this._logoElement || !this._previewContainer || !this._logoContainer) {
-      return Promise.reject(this._initializationError("Cannot apply styles: Missing core elements."));
+      console.log("No dom elements found for the logo.")
+      return;
     }
 
     // Apply text content and data-text attribute
@@ -832,13 +816,15 @@ const SettingsManager = {
     // Font family needs async loading, handled carefully
     await this._applyFontFamily(settingsToApply.fontFamily); // Apply font family (async)
     this._applyFontWeight(settingsToApply.fontWeight);     // Apply font weight class
-    this._applyClass(this._logoElement, `<span class="math-inline">\{PREFIX\.TEXT\_CASE\}</span>{settingsToApply.textCase}`, PREFIX.TEXT_CASE); // Apply text case class
+    this._applyClass(this._logoElement, `${PREFIX.TEXT_CASE}${settingsToApply.textCase}`, PREFIX.TEXT_CASE);
+
+    //  case class
     this._applyTextAlign(settingsToApply.textAlign);       // Apply text alignment via container
 
     // Advanced Text Styling (Decoration, Style, Stroke)
     this._applyTextDecoration(settingsToApply.textDecoration);
-    this._applyTextStyle(settingsToApply.textStyle);
-    this._applyTextStroke(settingsToApply.textStroke);
+    this._applyTextStyle(settingsToApply.textStyle || 'normal');
+    this._applyTextStroke(settingsToApply.textStroke || 'none');
 
     // Text Color (Solid vs Gradient)
     this._handleColorModeChange(settingsToApply.textColorMode); // Applies solid or gradient
@@ -1104,21 +1090,40 @@ const SettingsManager = {
     return css.trim();
   },
 
+  _clearInlineVisualStyles(target) {
+    if (!target) return;
+    const propsToRemove = [
+      'background-image',
+      'color',
+      'background-clip',
+      '-webkit-background-clip',
+      '-webkit-text-fill-color',
+      'text-shadow',
+      'font-style',
+    ];
+    propsToRemove.forEach((prop) => target.style.removeProperty(prop));
+  },  
+
   // Simple class management
-  _applyClass(target, className, prefix = null) {
-    if (!target || !className) return;
+  _applyClass(target, newClass, prefix = null) {
+    if (!target || !newClass) return;
+  
     try {
+      // Remove old prefixed classes (e.g., text-effect-*)
       if (prefix) {
-        const toRemove = Array.from(target.classList).filter((c) => c.startsWith(prefix));
-        if (toRemove.length > 0) {
+        const toRemove = Array.from(target.classList)
+          .filter((cls) => cls.startsWith(prefix));
+        if (toRemove.length) {
           target.classList.remove(...toRemove);
         }
       }
-      if (!className.endsWith('-none')) {
-        target.classList.add(className);
+  
+      // Only add the new class if it's not "none"
+      if (!newClass.endsWith('-none')) {
+        target.classList.add(newClass);
       }
-    } catch (e) {
-      console.error(`[SM] Error applying class "${className}":`, e);
+    } catch (err) {
+      console.error(`[SM] Failed to apply class "${newClass}":`, err);
     }
   },
 
@@ -1148,93 +1153,68 @@ const SettingsManager = {
     }
   },
 
-  _applyFontWeight(weightVal) {
-    this._logoElement.style.fontWeight = weightVal || '400';
+  _applyFontWeight(value) {
+    if (!this._logoElement) return;
+    this._clearInlineVisualStyles(this._logoElement);
+    const className = `${PREFIX.FONT_WEIGHT}${value}`;
+    this._applyClass(this._logoElement, className, PREFIX.FONT_WEIGHT);
   },
 
-  _applyTextAlign(alignVal) {
+  _applyTextAlign(value) {
     if (!this._logoContainer) return;
-    switch ((alignVal || 'center').toLowerCase()) {
-      case 'left':
-        this._logoContainer.style.justifyContent = 'flex-start';
-        break;
-      case 'right':
-        this._logoContainer.style.justifyContent = 'flex-end';
-        break;
-      default:
-        this._logoContainer.style.justifyContent = 'center';
-        break;
-    }
+    this._clearInlineVisualStyles(this._logoContainer);
+    const map = {
+      left: 'flex-start',
+      right: 'flex-end',
+      center: 'center'
+    };
+    this._logoContainer.style.justifyContent = map[(value || 'center').toLowerCase()];
   },
 
-    // A new helper to remove old text-decoration class and add the new one immediately
-    _applyTextDecoration(val) {
-      if (!this._logoElement) return;
-      // Remove old
-      const old = Array.from(this._logoElement.classList)
-        .filter((c) => c.startsWith(PREFIX.TEXT_DECORATION));
-      if (old.length) this._logoElement.classList.remove(...old);
-  
-      // Map from "underline" => "text-decoration-underline"
-      const mapped = PREFIX.TEXT_DECORATION_MAP[val] || 'text-decoration-none';
-      if (mapped !== 'text-decoration-none') {
-        this._logoElement.classList.add(mapped);
-      } else {
-        // If none, we ensure no text-decoration class remains
-        this._logoElement.classList.add('text-decoration-none');
-      }
-    },
+  _applyTextDecoration(value) {
+    if (!this._logoElement) return;
+    this._clearInlineVisualStyles(this._logoElement);
+    const className = TEXT_DECORATION_MAP[value] || 'text-decoration-none';
+    this._applyClass(this._logoElement, className, PREFIX.TEXT_DECORATION);
+  },
   
     // Another helper for immediate textStyle
-    _applyTextStyle(val) {
+    _applyTextStyle(target, value) {
       if (!this._logoElement) return;
-      const old = Array.from(this._logoElement.classList)
-        .filter((c) => c.startsWith(PREFIX.TEXT_STYLE));
-      if (old.length) this._logoElement.classList.remove(...old);
-  
-      const mapped = PREFIX.TEXT_STYLE_MAP[val] || 'text-style-normal';
-      if (mapped !== 'text-style-normal') {
-        this._logoElement.classList.add(mapped);
-      } else {
-        this._logoElement.classList.add('text-style-normal');
+      this._clearInlineVisualStyles(this._logoContainer);
+      const styleObj = TEXT_STYLE_MAP[value];
+      if (!styleObj) {
+        console.warn(`[SM] Unknown textStyle value: '${value}'`);
+        return;
       }
+      console.log("[SM] Applying textStyle", value);
+      this._applyClass(target, styleObj.value);
     },
   
     // Another for textStroke
-    _applyTextStroke(val) {
+    _applyTextStroke(target, value) {
       if (!this._logoElement) return;
-      const old = Array.from(this._logoElement.classList)
-        .filter((c) => c.startsWith(PREFIX.TEXT_STROKE));
-      if (old.length) this._logoElement.classList.remove(...old);
-  
-      const mapped = PREFIX.TEXT_STROKE_MAP[val] || 'text-stroke-none';
-      if (mapped !== 'text-stroke-none') {
-        this._logoElement.classList.add(mapped);
-      } else {
-        this._logoElement.classList.add('text-stroke-none');
+      this._clearInlineVisualStyles(this._logoContainer);
+      const strokeObj = TEXT_STROKE_MAP?.[value];
+      if (!strokeObj) {
+        console.warn(`[SM] Unknown textStroke value: '${value}'`);
+        return;
       }
+      console.log("[SM] Applying textStroke", value);
+      this._applyClass(target, strokeObj.none, PREFIX.TEXT_STROKE);
     },
   
-    // (We keep your old `_applyTextCase`, `_applyFontWeight`, `_applyTextAlign` if you had them)
-    _applyTextCase(val) {
+    _applyTextCase(value) {
       if (!this._logoElement) return;
-      // Remove old text-case-*
-      const old = Array.from(this._logoElement.classList)
-        .filter((c) => c.startsWith(PREFIX.TEXT_CASE));
-      if (old.length) this._logoElement.classList.remove(...old);
-  
-      if (val && val !== 'none') {
-        const newClass = PREFIX.TEXT_CASE + val;
-        this._logoElement.classList.add(newClass);
-      } else {
-        // fallback to 'text-case-none' if you want
-        this._logoElement.classList.add('text-case-none');
-      }
-    },
+      this._clearInlineVisualStyles(this._logoElement);
+      const className = value && value !== 'none' ? `${PREFIX.TEXT_CASE}${value}` : 'text-case-none';
+      this._applyClass(this._logoElement, className, PREFIX.TEXT_CASE);
+    },    
   
     _applyFontWeight(val) {
       if (!this._logoElement) return;
       // Remove old
+      this._clearInlineVisualStyles(this._logoContainer);
       const old = Array.from(this._logoElement.classList)
         .filter((c) => c.startsWith(PREFIX.FONT_WEIGHT));
       if (old.length) this._logoElement.classList.remove(...old);
@@ -1243,22 +1223,12 @@ const SettingsManager = {
       this._logoElement.classList.add(newClass);
     },
   
-    // textShadow remains your old `_applyTextEffect` or `_handleTextEffectChange`.
-    // We'll do a short version:
-    _applyTextShadowEffect(effectVal) {
+    _applyTextShadowEffect(value) {
       if (!this._logoElement) return;
-      // remove old
-      const old = Array.from(this._logoElement.classList)
-        .filter((c) => c.startsWith(PREFIX.TEXT_EFFECT));
-      if (old.length) this._logoElement.classList.remove(...old);
-  
-      const mapped = PREFIX.TEXT_EFFECTS_MAP[effectVal] || 'text-effect-none';
-      if (mapped !== 'text-effect-none') {
-        this._logoElement.classList.add(mapped);
-      } else {
-        this._logoElement.classList.add('text-effect-none');
-      }
-    },
+      this._clearInlineVisualStyles(this._logoElement);
+      const className = TEXT_EFFECTS_MAP?.[value] || 'text-effect-none';
+      this._applyClass(this._logoElement, className, PREFIX.TEXT_EFFECT);
+    },    
 
   // Color Mode Handling
   _handleColorModeChange(mode) {
@@ -1816,11 +1786,6 @@ const SettingsManager = {
     // fallback
     return 'solid';
   },
-
-  _applyTextDecoration(decoration) {
-    document.documentElement.style.setProperty('--dynamic-text-decoration', decoration);
-  },
-  
 
   _updateBorderColorRGB(hexColor) {
     const rgb = this._extractColorRGB(hexColor);
