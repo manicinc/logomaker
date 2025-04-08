@@ -10,7 +10,7 @@
 
 // Ensure this runs after DOM is ready but before user interaction
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initUrlParamsHandler, 100); // Small delay to ensure SettingsManager is ready
+    setTimeout(initUrlParamsHandler, 500); // Small delay to ensure SettingsManager is ready
 });
 
 function initUrlParamsHandler() {

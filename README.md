@@ -4,9 +4,10 @@
 
 Logomaker is a free, open-source, client-side text logo generator featuring ~400 fonts, dynamic effects, and versatile export options. Designed for **extreme portability** and **offline-first use**, it leverages an optimized build process with intelligent font loading, that allows for users to easily import and manage their own fonts.
 
-This project is more than just a tool; it's a **Human+AI collaborative coding experiment** developed by [Manic Agency](https://manic.agency). Roughly 90% of the codebase originated from AI (LLMs like GPT-4, Claude 3, Gemini families) guided by **technical prompt engineering** and refined through an **iterative collaborative development and testing process**, or **✨ Vibe Coding ✨** – an attempt to harness AI for rapid development while maintaining robust engineering practices and a distinct creative workflow. It's a practical look at the potential and challenges of this emerging development paradigm, built by an agency focused on experimental tech (AR/VR, AI/ML, GenAI, Crypto, Game Design).
+This project is more than just a tool; it's a **Human+AI collaborative coding experiment** developed by [Manic Agency](https://manic.agency). Over 90% of the codebase originated from AI (LLMs like GPT-4, Claude 3, Gemini families) guided by **technical prompt engineering** and refined through an **iterative collaborative development and testing process**, or **✨ Vibe Coding ✨** – an attempt to harness AI for rapid development while maintaining robust engineering practices and a distinct creative workflow. **Every single function** was written by a LLM using their respective web UIs (no CLI or API), testing how each organization implements conversational memory and meta-analysis to give appropriate responses (which is done in the UIs to chat with the LLMs, not through APIs), and what their limitations were.
 
-See the [Technical Deep Dive (coming soon)](https://manic.agency/blog) for more insights into the process and structure.
+
+It's a practical look at the potential and challenges of this emerging development paradigm, built by an agency focused on experimental tech (AR/VR, AI/ML, GenAI, Crypto, Game Design). See the [Technical Deep Dive (coming soon)](https://manic.agency/blog) for more insights into the process and structure.
 
 ---
 
@@ -112,6 +113,10 @@ Logomaker employs distinct loading strategies tailored for different use cases:
 **The build script (`node scripts/build.js`) handles the complexities of generating both modes.**
 
 ---
+
+## Random Styles
+
+The `Randomize Style` feature intelligently generates combinations for rapid exploration and inspiration (press the `R` key to use it). Core text and settings are preserved as other settings are guided by weighted probabilities favoring common and subtle styles over extreme ones. It also incorporates coherence rules to automatically prevent visual clashes (e.g., simplifying effects when complex animations are active), and employs intelligent value generation such as HSL-based color theming for better contrast and font-size proportional border sizing, ensuring the results are often usable starting points.
 
 ## 🛠️ Technical Deep Dive: The "Vibe Coding" Experiment
 
