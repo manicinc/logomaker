@@ -1,9 +1,10 @@
 /* css/variables.css */
 /* REVAMPED - v1.1 - Added Border Vars */
+/* CORRECTED - v1.2 - Added missing Exporter Modal variables */
 
 :root {
   /* === COLOR PALETTE (Dark Mode Default) === */
-  --primary-color: #ff1493;        /* Deep Pink - Main Accent */
+  --primary-color: #ff1493;         /* Deep Pink - Main Accent */
   --secondary-color: #8a2be2;       /* Blue Violet - Secondary Accent */
   --accent-color: #00f2ea;         /* Bright Cyan - Highlight/Interactive */
   --accent-color-darker: #00b3a9;   /* Darker Cyan for contrast */
@@ -21,10 +22,10 @@
   --text-color-on-accent: #05060a;    /* Dark text for accent backgrounds */
 
   /* --- Background Colors --- */
-  --background-color: #0d0f18;          /* Very dark blue/black main background */
-  --panel-bg: rgba(28, 32, 48, 0.9);    /* Semi-transparent panel background */
+  --background-color: #0d0f18;         /* Very dark blue/black main background */
+  --panel-bg: rgba(28, 32, 48, 0.9);   /* Semi-transparent panel background */
   --panel-bg-opaque: #1c2030;        /* Opaque panel background */
-  --input-bg: rgba(15, 17, 26, 0.6);    /* Slightly transparent input background */
+  --input-bg: rgba(15, 17, 26, 0.6);   /* Slightly transparent input background */
   --input-bg-opaque: #141722;        /* Opaque input background */
   --hover-bg-subtle: rgba(255, 255, 255, 0.05); /* Subtle background hover */
   --hover-bg-strong: rgba(255, 255, 255, 0.1);  /* Stronger background hover */
@@ -33,14 +34,14 @@
 
   /* --- Border Colors --- */
   --border-color: #35394a;             /* Standard border */
-  --border-highlight: #50556b;          /* Border on hover/focus */
+  --border-highlight: #50556b;         /* Border on hover/focus */
   --border-subtle: rgba(53, 57, 74, 0.5); /* More subtle border */
 
   /* --- State Colors --- */
-  --success-color: #2ecc71;          /* Green */
-  --error-color: #e74c3c;            /* Red */
-  --warning-color: #f39c12;          /* Orange */
-  --info-color: #3498db;             /* Blue */
+  --success-color: #2ecc71;         /* Green */
+  --error-color: #e74c3c;           /* Red */
+  --warning-color: #f39c12;         /* Orange */
+  --info-color: #3498db;            /* Blue */
   --focus-ring-color: rgba(var(--accent-color-rgb), 0.4); /* Focus outline */
 
   /* --- Gradients --- */
@@ -80,7 +81,7 @@
   --font-size-sm: clamp(0.8rem, 0.7rem + 0.5vw, 0.9rem);      /* ~12.8px to 14.4px */
   --font-size-md: clamp(0.9rem, 0.75rem + 0.75vw, 1.05rem);   /* ~14.4px to 16.8px */ /* Base */
   --font-size-lg: clamp(1.1rem, 0.85rem + 1.25vw, 1.3rem);    /* ~17.6px to 20.8px */
-  --font-size-xl: clamp(1.4rem, 1rem + 2vw, 1.8rem);         /* ~22.4px to 28.8px */
+  --font-size-xl: clamp(1.4rem, 1rem + 2vw, 1.8rem);       /* ~22.4px to 28.8px */
   --font-size-xxl: clamp(1.8rem, 1.2rem + 3vw, 2.5rem);       /* ~28.8px to 40px */
 
   --font-weight-light: 300;
@@ -123,7 +124,7 @@
   --tooltip-bg: var(--panel-bg-opaque);
   --tooltip-text: var(--text-color);
 
-  /* --- Modal --- */
+  /* --- Modal (General) --- */
   --modal-bg: var(--panel-bg-opaque); /* Explicit modal background */
 
   /* ==================================================== */
@@ -133,16 +134,32 @@
   --dynamic-letter-spacing: 0.03em;
   --dynamic-rotation: 0deg;
   --dynamic-border-color: var(--border-highlight); /* Default border color for effects */
-  --dynamic-border-color-rgb: 80, 85, 107;      /* RGB for --border-highlight */
-  --dynamic-border-width: 2px;                  /* Default border width for effects */
-  --dynamic-border-radius: 0px;                 /* NEW: Default border radius */
-  --dynamic-border-padding: 10px;               /* NEW: Default border padding */
-  --animation-duration: 2s;                     /* Base duration for text animations */
-  --gradient-direction: 45deg;                  /* Text gradient direction */
-  --bg-gradient-direction: 90deg;               /* Background gradient direction */
-  --bg-animation-duration: 15s;                 /* Duration for animated BG */
-  --dynamic-bg-color: #000000;                  /* Default solid bg for preview */
+  --dynamic-border-color-rgb: 80, 85, 107;     /* RGB for --border-highlight */
+  --dynamic-border-width: 2px;                 /* Default border width for effects */
+  --dynamic-border-radius: 0px;                /* NEW: Default border radius */
+  --dynamic-border-padding: 10px;              /* NEW: Default border padding */
+  --animation-duration: 2s;                    /* Base duration for text animations */
+  --gradient-direction: 45deg;                 /* Text gradient direction */
+  --bg-gradient-direction: 90deg;              /* Background gradient direction */
+  --bg-animation-duration: 15s;                /* Duration for animated BG */
+  --dynamic-bg-color: #000000;                 /* Default solid bg for preview */
   --dynamic-bg-gradient: var(--bg-primary-gradient); /* Default gradient bg for preview */
+
+
+  /* == Additions/Adjustments for Exporters (Dark Mode Defaults) == */
+  --accent-color-hover: var(--accent-color-darker, #00b3a9); /* Use existing darker version or define explicitly */
+  --button-secondary-text: var(--text-color, #e9eaf1);    /* Text color for secondary buttons */
+  --bg-base: var(--input-bg-opaque, #141722);            /* Background for readonly inputs */
+  --input-bg-disabled: #11131c;                         /* Slightly different readonly bg (using code-bg for distinct look) */
+  --text-color-emphasis: var(--text-color-strong, #ffffff); /* Emphasis text (e.g., dark mode legend) */
+  --warning-text: var(--warning-color, #f39c12);        /* Text color for warning areas (often keep same) */
+  --warning-color-rgb: 243, 156, 18;                     /* RGB for --warning-color */
+  --warning-bg-subtle: rgba(var(--warning-color-rgb), 0.15); /* Subtle warning background */
+  --info-bg-subtle: rgba(52, 152, 219, 0.1);             /* Subtle info background (using info-color) */
+  --border-color-dark: var(--border-color, #35394a);      /* Explicit name for dark border */
+  /* Variables named *-dark used by exporter CSS fall back to these values in dark mode */
+  --warning-text-dark: var(--warning-text);
+  --warning-bg-subtle-dark: var(--warning-bg-subtle);
 }
 
 
@@ -151,7 +168,7 @@ body.light-mode {
   /* === COLOR PALETTE === */
   --primary-color: #e6007e;         /* Strong Pink */
   --secondary-color: #6a11cb;        /* Strong Purple */
-  --accent-color: #009688;          /* Teal */
+  --accent-color: #009688;         /* Teal */
   --accent-color-darker: #00796b;    /* Darker Teal */
 
   /* RGB versions */
@@ -160,26 +177,26 @@ body.light-mode {
   --accent-color-rgb: 0, 150, 136;
 
   /* --- Text Colors --- */
-  --text-color: #212529;             /* Dark gray */
-  --text-color-strong: #000000;        /* Black */
-  --text-color-muted: #6c757d;         /* Medium gray */
+  --text-color: #212529;            /* Dark gray */
+  --text-color-strong: #000000;       /* Black */
+  --text-color-muted: #6c757d;        /* Medium gray */
   --text-color-on-primary: #ffffff;
-  --text-color-on-accent: #ffffff;     /* White text on Teal */
+  --text-color-on-accent: #ffffff;    /* White text on Teal */
 
   /* --- Background Colors --- */
-  --background-color: #f8f9fa;         /* Very light gray */
+  --background-color: #f8f9fa;        /* Very light gray */
   --panel-bg: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
-  --panel-bg-opaque: #ffffff;         /* White */
+  --panel-bg-opaque: #ffffff;        /* White */
   --input-bg: rgba(233, 236, 239, 0.8); /* Light gray input */
-  --input-bg-opaque: #e9ecef;         /* Opaque light gray input */
+  --input-bg-opaque: #e9ecef;        /* Opaque light gray input */
   --hover-bg-subtle: rgba(0, 0, 0, 0.03);
   --hover-bg-strong: rgba(0, 0, 0, 0.06);
   --modal-backdrop-bg: rgba(200, 200, 200, 0.5); /* Lighter backdrop */
-  --code-bg: #f1f3f5;                 /* Light code background */
+  --code-bg: #f1f3f5;                /* Light code background */
 
   /* --- Border Colors --- */
-  --border-color: #ced4da;             /* Light gray border */
-  --border-highlight: #adb5bd;          /* Medium gray border */
+  --border-color: #ced4da;            /* Light gray border */
+  --border-highlight: #adb5bd;         /* Medium gray border */
   --border-subtle: rgba(0, 0, 0, 0.1);
 
   /* --- State Colors (can remain the same or adjust saturation/brightness) --- */
@@ -220,7 +237,24 @@ body.light-mode {
   --dynamic-border-color-rgb: 173, 181, 189; /* RGB for --border-highlight in light mode */
   --dynamic-bg-color: #ffffff; /* Default solid bg for preview */
   --dynamic-bg-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); /* Default gradient for preview */
+
+
+  /* == Additions/Adjustments for Exporter (Light Mode) == */
+  --accent-color-hover: var(--accent-color-darker, #00796b);
+  --button-secondary-text: var(--text-color, #212529);
+  --bg-base: var(--input-bg-opaque, #e9ecef);
+  --input-bg-disabled: #f8f9fa; /* Slightly different readonly bg */
+  --text-color-emphasis: var(--text-color-strong, #000000);
+  --warning-text: var(--warning-color, #f39c12); /* Often same color */
+  --warning-color-rgb: 243, 156, 18; /* Stays same */
+  --warning-bg-subtle: rgba(var(--warning-color-rgb), 0.1);
+  --info-bg-subtle: rgba(0, 150, 136, 0.07); /* Subtle info bg using accent */
+  /* Fallbacks for specific dark-named variables if exporter CSS uses them */
+  --warning-text-dark: var(--warning-text);
+  --warning-bg-subtle-dark: var(--warning-bg-subtle);
+  --border-color-dark: var(--border-color, #ced4da);
 }
+
 
 /* --- Reduced Motion Preference --- */
 @media (prefers-reduced-motion: reduce) {
