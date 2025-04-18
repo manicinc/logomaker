@@ -114,8 +114,13 @@ export function extractSVGAnimationDetails() {
  *
  * @param {string} animationName - E.g. 'pulse', 'bounce'
  * @returns {string|null} The raw CSS text of the keyframes or null if not found.
- */
-export function getAnimationKeyframes(animationName) {
+ *//**
+ * Retrieves the @keyframes CSS text for a given animation by scanning styleSheets.
+ * Falls back to a built-in dictionary if not found.
+ *
+ * @param {string} animationName - E.g. 'pulse', 'bounce', 'liquify'
+ * @returns {string|null} The raw CSS text of the keyframes or null if not found.
+ */export function getAnimationKeyframes(animationName) {
     if (!animationName || animationName === 'none') return null;
     console.log(`[SVGAnimInfo] Searching keyframes for animation: ${animationName}`);
 
@@ -123,46 +128,70 @@ export function getAnimationKeyframes(animationName) {
     try {
         for (const sheet of document.styleSheets) {
             if (sheet.disabled) continue;
-            let rules;
-            try { rules = sheet.cssRules || sheet.rules; } catch(e) { continue; } // cross-origin or restricted
-            if (!rules) continue;
+            let cssRules; // Use a different variable name inside the try block scope
+            try { cssRules = sheet.cssRules || sheet.rules; } catch (e) {
+                 // Log cross-origin/access errors only once per sheet if needed
+                 // console.warn(`[SVGAnimInfo] Cannot access rules for stylesheet: ${sheet.href}`, e.message);
+                 continue;
+             }
+            if (!cssRules) continue;
 
-            for (const rule of rules) {
-                // Keyframes rule => type===CSSRule.KEYFRAMES_RULE (7) in modern browsers
-                if ((CSSRule.KEYFRAMES_RULE && rule.type === CSSRule.KEYFRAMES_RULE) || rule.type === 7) {
-                    if (rule.name === animationName) {
-                        console.log(`[SVGAnimInfo] Found @keyframes for '${animationName}' in a stylesheet.`);
-                        return rule.cssText;
-                    }
-                }
-            }
+            // --- FIX: Iterate using index or a different variable ---
+            for (let i = 0; i < cssRules.length; i++) {
+                 const currentRule = cssRules[i]; // Use a clearly named variable
+                // Check if it's a keyframes rule
+                 const isKfRule = (CSSRule.KEYFRAMES_RULE && currentRule.type === CSSRule.KEYFRAMES_RULE) || currentRule.type === 7;
+                 // Check if the name matches (use currentRule.name)
+                 if (isKfRule && currentRule.name === animationName) {
+                    console.log(`[SVGAnimInfo] Found @keyframes for '${animationName}' in stylesheet: ${sheet.href || 'inline style'}`);
+                    return currentRule.cssText; // Return the found rule text
+                 }
+             }
+            // --- END FIX ---
         }
-    } catch(e) {
-        // Possibly cross-origin or parse error
+    } catch (e) {
+        // This outer catch might catch errors iterating document.styleSheets itself
         console.warn(`[SVGAnimInfo] Error scanning styleSheets for '${animationName}':`, e);
     }
 
-    // 2. Fallback dictionary
+    // 2. Fallback dictionary (ensure this is populated as per previous step)
     const fallbackKeyframes = {
-        pulse: `@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9;} }`,
-        bounce: `@keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform: translateY(-15px); } }`,
-        shake: `@keyframes shake { 0%,100% {transform:translateX(0);} 10%,30%,50%,70%,90%{transform:translateX(-4px) rotate(-0.5deg);} 20%,40%,60%,80%{transform:translateX(4px) rotate(0.5deg);} }`,
+        pulse: `@keyframes pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.08);opacity:.9;} }`,
+        bounce: `@keyframes bounce { 0%,100% {transform:translateY(0);animation-timing-function:cubic-bezier(0.5,0,0.5,1);} 50% {transform:translateY(-15px);animation-timing-function:cubic-bezier(0.5,0,0.5,1);} }`,
+        shake: `@keyframes shake { 0%,100%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-4px) rotate(-0.5deg)} 20%,40%,60%,80%{transform:translateX(4px) rotate(0.5deg)} }`,
         float: `@keyframes float { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-15px) rotate(1deg)} }`,
-        rotate: `@keyframes rotate { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }`,
-        wave: `@keyframes wave { 0%,100%{transform:skewX(0) skewY(0);}25%{transform:skewX(5deg) skewY(1deg);}75%{transform:skewX(-5deg) skewY(-1deg);} }`,
-        glitch: `@keyframes glitch { 0%,100%{clip-path:inset(50% 0 30% 0);transform:translate(-4px,1px) scaleY(1.02);} 20%{clip-path:inset(10% 0 80% 0);transform:translate(3px,-2px) scaleY(0.98);} 40%{clip-path:inset(70% 0 5% 0);transform:translate(-3px,2px) scaleY(1.01);} 60%{clip-path:inset(45% 0 45% 0);transform:translate(4px,-1px) scaleY(0.99);}80%{clip-path:inset(85% 0 10% 0);transform:translate(-2px,1px) scaleY(1.03);} }`,
-        fade: `@keyframes fadeInOut { 0%,100%{opacity:0.3;}50%{opacity:1;} }`,
-        flicker: `@keyframes flicker {0%,18%,22%,25%,53%,57%,100%{opacity:1;text-shadow:inherit;}20%,24%,55%{opacity:0.6;text-shadow:none;} }`
+        rotate: `@keyframes rotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }`,
+        wave: `@keyframes wave { 0%,100%{transform:skewX(0) skewY(0)} 25%{transform:skewX(5deg) skewY(1deg)} 75%{transform:skewX(-5deg) skewY(-1deg)} }`,
+        glitch: `@keyframes glitch { 0%,100%{clip-path:inset(50% 0 30% 0);transform:translate(-4px,1px) scaleY(1.02)} 20%{clip-path:inset(10% 0 80% 0);transform:translate(3px,-2px) scaleY(0.98)} 40%{clip-path:inset(70% 0 5% 0);transform:translate(-3px,2px) scaleY(1.01)} 60%{clip-path:inset(45% 0 45% 0);transform:translate(4px,-1px) scaleY(0.99)} 80%{clip-path:inset(85% 0 10% 0);transform:translate(-2px,1px) scaleY(1.03)} }`,
+        'glitch-1': `@keyframes glitch-1 { 0%,100%{clip-path:inset(50% 0 30% 0);transform:translate(-4px,1px) scaleY(1.02)} 20%{clip-path:inset(10% 0 80% 0);transform:translate(3px,-2px) scaleY(0.98)} 40%{clip-path:inset(70% 0 5% 0);transform:translate(-3px,2px) scaleY(1.01)} 60%{clip-path:inset(45% 0 45% 0);transform:translate(4px,-1px) scaleY(0.99)} 80%{clip-path:inset(85% 0 10% 0);transform:translate(-2px,1px) scaleY(1.03)} }`, // Add glitch parts if needed separately
+        'glitch-2': `@keyframes glitch-2 { 0%,100%{clip-path:inset(40% 0 50% 0);transform:translate(3px,-1px) scaleY(0.98)} 20%{clip-path:inset(90% 0 5% 0);transform:translate(-4px,2px) scaleY(1.02)} 40%{clip-path:inset(15% 0 70% 0);transform:translate(2px,-2px) scaleY(0.99)} 60%{clip-path:inset(60% 0 30% 0);transform:translate(-3px,1px) scaleY(1.01)} 80%{clip-path:inset(5% 0 80% 0);transform:translate(3px,-1px) scaleY(1.03)} }`, // Add glitch parts if needed separately
+        fadeInOut: `@keyframes fadeInOut { 0%,100%{opacity:0.3;} 50%{opacity:1;} }`, // Keyframe name from effects.css
+        fade: `@keyframes fadeInOut { 0%,100%{opacity:0.3;} 50%{opacity:1;} }`, // Alias for consistency if needed
+        flicker: `@keyframes flicker { 0%,18%,22%,25%,53%,57%,100%{opacity:1;text-shadow:inherit;} 20%,24%,55%{opacity:0.6;text-shadow:none;} }`,
+        // --- ADD MISSING ADVANCED ANIMATIONS ---
+        liquify: `@keyframes liquify { 0%,100%{ transform: perspective(400px) rotateX(0deg) scaleY(1); } 25% { transform: perspective(400px) rotateX(3deg) scaleY(.97) translateY(5px);} 50% { transform: perspective(400px) rotateX(-2deg) scaleY(1.04) translateY(-5px);} 75% { transform: perspective(400px) rotateX(3deg) scaleY(.97) translateY(7px);} }`,
+        wobble: `@keyframes wobble { 0%,100% { transform: translateX(0); letter-spacing: var(--dynamic-letter-spacing,0.03em); } 25% { transform: translateX(-10px); letter-spacing: calc(var(--dynamic-letter-spacing,0.03em)+0.02em); } 75% { transform: translateX(10px); letter-spacing: calc(var(--dynamic-letter-spacing,0.03em)-0.02em); } }`,
+        'perspective-tilt': `@keyframes perspective-tilt { 0%,100%{ transform:perspective(500px) rotateY(0deg); } 50% { transform:perspective(500px) rotateY(15deg); } }`, // Key from effects.css uses perspective-tilt
+        perspective: `@keyframes perspective-tilt { 0%,100%{ transform:perspective(500px) rotateY(0deg); } 50% { transform:perspective(500px) rotateY(15deg); } }`, // Alias if needed
+        'split-text': `@keyframes split-text { 0%,100%{ letter-spacing:var(--dynamic-letter-spacing,0.03em); opacity:1; } 50% { letter-spacing:calc(var(--dynamic-letter-spacing,0.03em)+0.3em); opacity:0.7; } }`, // Key from effects.css uses split-text
+        split: `@keyframes split-text { 0%,100%{ letter-spacing:var(--dynamic-letter-spacing,0.03em); opacity:1; } 50% { letter-spacing:calc(var(--dynamic-letter-spacing,0.03em)+0.3em); opacity:0.7; } }`, // Alias if needed
+        'text-magnify': `@keyframes text-magnify { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }`, // Key from effects.css uses text-magnify
+        magnify: `@keyframes text-magnify { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }`, // Alias if needed
+        'multicolor-glow': `@keyframes multicolor-glow { 0%,100% { text-shadow: 0 0 10px rgba(var(--primary-color-rgb,255,20,147), 0.8), 0 0 20px rgba(var(--primary-color-rgb,255,20,147), 0.5); } 33% { text-shadow: 0 0 10px rgba(var(--secondary-color-rgb,138,43,226), 0.8), 0 0 20px rgba(var(--secondary-color-rgb,138,43,226), 0.5); } 66% { text-shadow: 0 0 10px rgba(var(--accent-color-rgb,255,215,0), 0.8), 0 0 20px rgba(var(--accent-color-rgb,255,215,0), 0.5); } }`, // Key from effects.css uses multicolor-glow
+        'glow-multicolor': `@keyframes multicolor-glow { 0%,100% { text-shadow: 0 0 10px rgba(var(--primary-color-rgb,255,20,147), 0.8), 0 0 20px rgba(var(--primary-color-rgb,255,20,147), 0.5); } 33% { text-shadow: 0 0 10px rgba(var(--secondary-color-rgb,138,43,226), 0.8), 0 0 20px rgba(var(--secondary-color-rgb,138,43,226), 0.5); } 66% { text-shadow: 0 0 10px rgba(var(--accent-color-rgb,255,215,0), 0.8), 0 0 20px rgba(var(--accent-color-rgb,255,215,0), 0.5); } }`, // Alias if needed
+        'flip-3d': `@keyframes flip-3d { 0% { transform:perspective(400px) rotateY(0); } 50% { transform:perspective(400px) rotateY(180deg); } 100% { transform:perspective(400px) rotateY(360deg); } }`,
+        'swing-3d': `@keyframes swing-3d { 0%,100% { transform: perspective(600px) rotateX(0) rotateY(0); } 25% { transform: perspective(600px) rotateX(10deg) rotateY(10deg); } 50% { transform: perspective(600px) rotateX(0) rotateY(0); } 75% { transform: perspective(600px) rotateX(-10deg) rotateY(-10deg); } }`
+        // Add any other missing keyframes from effects.css here
     };
-
     if (fallbackKeyframes[animationName]) {
         console.log(`[SVGAnimInfo] Using fallback for '${animationName}'.`);
-        return fallbackKeyframes[animationName];
+        return fallbackKeyframes[animationName].replace(/@keyframes\s+\w+/, `@keyframes ${animationName}`);
     }
 
     console.warn(`[SVGAnimInfo] Keyframes for '${animationName}' not found even in fallback.`);
     return null;
 }
+
 
 /**
  * Generates the CSS for a single animation class from a metadata object.

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Logomaker: Free Design Playground</title>
-  <meta name="description" content="Instantly craft unique text logos with Logomaker v3 by Manic Agency. Featuring optimized loading, border controls, and enhanced export fidelity! Explore fonts, dynamic effects, gradients, animations, and export SVG, PNG, or frames. Free, open-source, offline-capable.">
+  <meta name="description" content="Instantly craft unique text l rogos with Logomaker v3 by Manic Agency. Featuring optimized loading, border controls, and enhanced export fidelity! Explore fonts, dynamic effects, gradients, animations, and export SVG, PNG, or frames. Free, open-source, offline-capable.">
   <meta name="keywords" content="logo maker, logo generator, free logo tool, text logo, animated logo, svg logo export, png logo export, brand identity, design tool, web tool, open source, offline tool, portable app, font chunking, manic agency, ai generated code, border radius, border padding">
   <meta name="author" content="Manic.agency">
 
@@ -14,7 +14,7 @@
   <meta property="og:url" content="https://manicinc.github.io/logomaker">
   <meta property="og:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Logomaker v3 by Manic - Free, Optimized, Offline Logo Creator with Borders">
+  <meta name="twitter:title" content="Logomaker v1 - Free Design Playground">
   <meta name="twitter:description" content="Generate unique text logos instantly. Optimized loading, offline capability. Customize fonts, effects, borders, animations & export SVG/PNG.">
   <meta name="twitter:image" content="https://raw.githubusercontent.com/manicinc/logomaker/main/preview.png">
 
@@ -90,7 +90,7 @@
           <a href="https://manic.agency/contact"
              target="_blank"
              class="promo-link"
-             title="Contact Manic Agency for professional services"
+             title="Contact Manic Agency"
              rel="noopener noreferrer">
             Work with Manic
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none"
@@ -138,6 +138,7 @@
             <li>Only a small index loads first, then full font data (~400 fonts total) is fetched in small chunks as needed.</li>
             <li><strong>Portable Mode:</strong> The <strong>portable build</strong> (dist/portable/logomaker-portable.html) <strong>embeds all font data</strong> (~90MB).</li>
             <li>This dual approach provides both speed (online chunking) and guaranteed offline operation (portable)!</li>
+            <li>The site currently has some bugs with rendering, for PNGs with text gradients, and issues rendering SVGs. Fixes coming soon.</li>
             <li>Source Code on GitHub: <a href="https://github.com/manicinc/logomaker" target="_blank" rel="noopener noreferrer">Logomaker</a></li>
           </ul>
         </div>
@@ -149,7 +150,7 @@
             <li>Logomaker is an experimental project from <a href="https://manic.agency" target="_blank" rel="noopener noreferrer">Manic Agency</a> exploring Human+AI collaborative development.</li>
             <li>It was built with <strong>vibe coding</strong>. ~90% code from LLM suggestions, refined by humans.</li>
             <li><strong>Every single function</strong> in the <a href="https://github.com/manicinc/logomaker" target="_blank">source code</a> was written by a LLM.</li>
-            <li>Take a practical look at the potential and challenges of this emerging development paradigm!</li>
+            <li>Take a practical look at the potential and challenges of this emerging development paradigm! Read the <a href="https://manic.agency/blog/thinkpieces/logomaker-an-experiment-in-human-computer-interaction-vibe-coding" target="_blank">here</a>.</li>
           </ul>
         </div>
 
@@ -1705,11 +1706,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-          integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer">
-  </script>
+
+    <script src="
+  https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js
+  "></script>
 
   <!-- Utility / Base JS -->
   <script src="./js/utils/loading.js"></script>

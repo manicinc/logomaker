@@ -1,45 +1,38 @@
 /**
- * cssUtils.js (Revamped v2.x)
+ * cssUtils.js (v3.0 - Combined Utilities)
  * ==============================================
- * A unified utility for CSS variable handling,
- * border/padding logic, color normalization, etc.
- *
- * Integrates references to "effects.css" style classes
- * for named border-radius shortcuts (e.g., 'rounded-sm',
- * 'rounded-md', 'rounded-lg', 'pill', 'circle').
+ * Unified utility for CSS variable handling, style application/calculation,
+ * color normalization, and complex style extraction for renderers.
  */
 
-console.log("[CSSUtils v2.x] Loading...");
+console.log("[CSSUtils v3.0 - Combined] Loading...");
 
-(function() {
+(function(window) {
+    'use strict';
 
-  /**
-   * Retrieves a CSS variable from :root or returns a fallback.
-   * @param {string} varName - The variable name (with or without '--')
-   * @param {string} [defaultValue=''] - fallback if not found
-   * @returns {string} The resolved CSS var value (trimmed)
-   */
-  function getCSSVariable(varName, defaultValue = '') {
-    if (!varName.startsWith('--')) {
-      varName = `--${varName}`;
+    // --- Basic Variable Handling ---
+
+    function getCSSVariable(varName, defaultValue = '') {
+        if (!varName || typeof varName !== 'string') return defaultValue;
+        if (!varName.startsWith('--')) { varName = `--${varName}`; }
+        try {
+            const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+            return val || defaultValue;
+        } catch (e) {
+            // console.warn(`[CSSUtils] Error getting CSS variable ${varName}:`, e.message);
+            return defaultValue;
+        }
     }
-    const val = getComputedStyle(document.documentElement)
-      .getPropertyValue(varName)
-      .trim();
-    return val || defaultValue;
-  }
 
-  /**
-   * Sets a CSS variable on :root
-   * @param {string} varName - e.g. 'primary-color'
-   * @param {string} value
-   */
-  function setCSSVariable(varName, value) {
-    if (!varName.startsWith('--')) {
-      varName = `--${varName}`;
+    function setCSSVariable(varName, value) {
+        if (!varName || typeof varName !== 'string') return;
+        if (!varName.startsWith('--')) { varName = `--${varName}`; }
+        try {
+             document.documentElement.style.setProperty(varName, value);
+        } catch (e) {
+             console.error(`[CSSUtils] Error setting CSS variable ${varName}:`, e.message);
+        }
     }
-    document.documentElement.style.setProperty(varName, value);
-  }
 
   /**
    * Extracts the border style info from an element's computed style,
@@ -72,6 +65,46 @@ console.log("[CSSUtils v2.x] Loading...");
       padding: paddingVal
     };
   }
+  
+   // --- Color Utilities ---
+
+    /**
+     * Normalizes various color formats to a standard (e.g., hex, rgba).
+     * Tries to return hex for solid colors, rgba if alpha < 1.
+     * Returns input if conversion fails or not recognized.
+     */
+    function normalizeColor(color, context = 'color') {
+      if (!color || typeof color !== 'string' || color === 'transparent' || color === 'none') {
+          // console.warn(`[normalizeColor] Received invalid/transparent color for ${context}:`, color);
+          return 'transparent'; // Return transparent explicitly
+      }
+      const lower = color.toLowerCase().trim();
+      if (lower.startsWith('#')) return lower; // Assume hex is fine
+      if (lower.startsWith('rgb')) return lower; // Assume rgb/rgba is fine
+
+      // Basic color name map
+      const colorMap = { /* ... keep basic map ... */ };
+      if (colorMap[lower]) return colorMap[lower];
+
+      // Attempt conversion using a temporary element (might not always work)
+      try {
+          const temp = document.createElement('div');
+          temp.style.color = lower;
+          document.body.appendChild(temp); // Must be in DOM for getComputedStyle
+          const computed = window.getComputedStyle(temp).color;
+          document.body.removeChild(temp);
+          if (computed && computed !== 'rgba(0, 0, 0, 0)') { // Check if it resolved to something valid
+               // console.log(`[normalizeColor] Normalized "${color}" to "${computed}" via computed style.`);
+               return computed; // Return computed style (likely rgb/rgba)
+          }
+      } catch (e) {
+           console.warn(`[normalizeColor] Error normalizing color "${color}" for ${context} via computed style:`, e);
+      }
+
+      console.warn(`[normalizeColor] Could not normalize unrecognized color "${color}" for ${context}. Returning original.`);
+      return color; // Return original if all else fails
+  }
+
 
   /**
    * Decides if black or white is better for text over a given background color.
@@ -107,9 +140,11 @@ console.log("[CSSUtils v2.x] Loading...");
    * @returns {string} e.g. "255, 255, 255"
    */
   function extractRGB(color) {
+    
     if (!color) return "255, 255, 255";
-    const lower = color.toLowerCase().trim();
-
+    const normalized = normalizeColor(color, 'extractRGB'); // Normalize first
+    if (!normalized || normalized === 'transparent') return "0, 0, 0"; // Default black for transparency
+    const lower = normalized.toLowerCase();
     // hex
     if (lower.startsWith('#')) {
       let hex = lower.slice(1);
@@ -139,6 +174,175 @@ console.log("[CSSUtils v2.x] Loading...");
     }
     // fallback
     return "255, 255, 255";
+  }
+
+     /** Extracts primary font family name */
+     function getPrimaryFontFamily(fontFamilyCss) {
+      if (!fontFamilyCss || typeof fontFamilyCss !== 'string') return 'sans-serif';
+      return fontFamilyCss.split(',')[0].trim().replace(/['"]/g, '') || 'sans-serif';
+  }
+
+  /** Extracts gradient colors */
+  function extractGradientColors(element, isTextGradient, computedStyle = null) {
+      // Use provided computedStyle or get it if needed and element exists
+      const style = computedStyle || (element ? window.getComputedStyle(element) : null);
+      const image = style?.backgroundImage; // Use computed style if available
+      const source = isTextGradient ? 'Text' : 'Background';
+      let colors = [];
+
+      // Prioritize SettingsManager state IF available
+      if (typeof SettingsManager !== 'undefined' && SettingsManager?.getCurrentSettings) {
+          const settings = SettingsManager.getCurrentSettings();
+          if (isTextGradient && settings.textColorMode === 'gradient') {
+               colors.push(normalizeColor(settings.color1 || '#FF1493', `${source} Setting c1`));
+               colors.push(normalizeColor(settings.color2 || '#8A2BE2', `${source} Setting c2`));
+               if (settings.useColor3) colors.push(normalizeColor(settings.color3 || '#FF4500', `${source} Setting c3`));
+               console.log(`[CSSUtils extractGradientColors ${source}] Using colors from SettingsManager:`, colors);
+               return colors;
+          } else if (!isTextGradient && settings.backgroundType?.includes('gradient') && settings.backgroundGradientPreset === 'custom') {
+               colors.push(normalizeColor(settings.bgColor1 || '#3a1c71', `${source} Setting c1`));
+               colors.push(normalizeColor(settings.bgColor2 || '#ffaf7b', `${source} Setting c2`));
+               console.log(`[CSSUtils extractGradientColors ${source}] Using colors from SettingsManager:`, colors);
+               return colors;
+          } else if (!isTextGradient && settings.backgroundType?.includes('gradient')) {
+                const presetVarName = `--${settings.backgroundGradientPreset}`;
+                const presetValue = getCSSVariable(presetVarName)?.trim();
+                if (presetValue?.startsWith('linear-gradient')) {
+                     const matches = presetValue.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)/g);
+                     if (matches) { colors = matches.map((c, i) => normalizeColor(c, `${source} Preset ${presetVarName} c${i+1}`)); console.log(`[CSSUtils extractGradientColors ${source}] Using colors from Preset CSS Var ${presetVarName}:`, colors); return colors; }
+                }
+          }
+      }
+
+      // Fallback to Computed Style if element and style object available
+      if (image && image.startsWith('linear-gradient')) {
+          const matches = image.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\)/g);
+          if (matches) {
+              colors = matches.map((c, i) => normalizeColor(c, `${source} Computed c${i+1}`));
+              console.log(`[CSSUtils extractGradientColors ${source}] Using colors from Computed Style:`, colors);
+              return colors;
+          }
+      }
+
+      // Absolute fallback
+      console.warn(`[CSSUtils extractGradientColors ${source}] Could not determine gradient colors. Using defaults.`);
+      return isTextGradient ? ['#FF1493', '#8A2BE2'] : ['#3a1c71', '#ffaf7b'];
+  }
+
+
+  /** Extracts gradient angle */
+  function extractGradientAngle(computedBgImage, isTextGradient) {
+      const settings = (typeof SettingsManager !== 'undefined' && SettingsManager?.getCurrentSettings) ? SettingsManager.getCurrentSettings() : {};
+      const source = isTextGradient ? 'Text' : 'Background';
+      const defaultAngle = isTextGradient ? '45deg' : '90deg';
+
+      // Prioritize settings
+      if (isTextGradient && settings.textColorMode === 'gradient' && settings.animationDirection) { return `${settings.animationDirection}deg`; }
+      if (!isTextGradient && settings.backgroundType?.includes('gradient') && settings.bgGradientDirection) { return `${settings.bgGradientDirection}deg`; }
+      if (!isTextGradient && settings.backgroundType?.includes('gradient') && settings.backgroundGradientPreset !== 'custom') {
+           const presetVarName = `--${settings.backgroundGradientPreset}`;
+           const presetValue = getCSSVariable(presetVarName)?.trim();
+           if (presetValue?.startsWith('linear-gradient')) { const m=presetValue.match(/linear-gradient\(\s*(-?[\d.]+deg)/); if(m && m[1]) return m[1]; }
+      }
+
+      // Fallback to computed style string
+      if (computedBgImage && typeof computedBgImage === 'string' && computedBgImage.startsWith('linear-gradient')) {
+          const m = computedBgImage.match(/linear-gradient\(\s*(-?[\d.]+deg)/); if (m && m[1]) return m[1];
+      }
+      return defaultAngle; // Absolute fallback
+  }
+
+
+  /** Detects border style */
+  function detectBorderStyle(element, computedStyle = null, currentSettings = null) {
+      if (!element) return null;
+      const settings = currentSettings || (typeof SettingsManager !== 'undefined' && SettingsManager?.getCurrentSettings ? SettingsManager.getCurrentSettings() : {});
+      const style = computedStyle || window.getComputedStyle(element);
+
+      let borderStyleKey = 'none'; let className = null; let source = 'none';
+      const styleSetting = settings.borderStyle || 'border-none';
+      const advStyleSetting = settings.advancedBorderStyle || 'none';
+      const BORDER_STYLE_EFFECT_MAP = { /* ... copy map here from settingsManager ... */ }; // Need the map definition
+
+      if (advStyleSetting !== 'none' && BORDER_STYLE_EFFECT_MAP[advStyleSetting]) { borderStyleKey = advStyleSetting; className = BORDER_STYLE_EFFECT_MAP[advStyleSetting]; source = 'settings (advanced)'; }
+      else if (styleSetting !== 'border-none' && BORDER_STYLE_EFFECT_MAP[styleSetting]) { borderStyleKey = styleSetting; className = BORDER_STYLE_EFFECT_MAP[styleSetting]; source = 'settings (basic)'; }
+      else {
+           for (const key in BORDER_STYLE_EFFECT_MAP) { const classVal = BORDER_STYLE_EFFECT_MAP[key]; if (classVal && classVal !== 'border-style-none' && element.classList.contains(classVal)) { borderStyleKey = key; className = classVal; source = 'class'; break; } }
+      }
+      if (borderStyleKey === 'none') { const computed = style.borderTopStyle; if (computed && computed !== 'none') { const foundKey = Object.keys(BORDER_STYLE_EFFECT_MAP).find(k => k.endsWith(computed) || /* add specific maps like groove/ridge */ false); if (foundKey) { borderStyleKey = foundKey; className = BORDER_STYLE_EFFECT_MAP[foundKey]; source = 'computed'; } else { borderStyleKey = 'none'; } } }
+
+      if (!borderStyleKey || borderStyleKey === 'none' || borderStyleKey === 'border-none') return null;
+
+      const isGlow = borderStyleKey.includes('glow') || borderStyleKey.includes('neon');
+      let glowColor = isGlow ? normalizeColor(settings.borderColorPicker || style.borderTopColor || '#ffffff', 'border glow fallback') : null;
+
+      // Width and Color should be captured separately using settings/computed fallbacks
+      return { style: borderStyleKey, isGlow, glowColor, source, className };
+  }
+
+
+  /** Gets border-radius CSS value */
+  function getBorderRadiusCSSValue(radiusSetting, customRadiusSetting) {
+      const BORDER_RADIUS_MAP = { /* ... copy map here from settingsManager ... */ }; // Need the map
+      const radiusClass = BORDER_RADIUS_MAP[radiusSetting]; // Get class if needed, e.g., rounded-md
+
+      switch (radiusSetting) {
+          case 'none': case 'square': return '0px';
+          case 'rounded-sm': return getCSSVariable('border-radius-sm', '4px');
+          case 'rounded-md': return getCSSVariable('border-radius-md', '8px');
+          case 'rounded-lg': return getCSSVariable('border-radius-lg', '16px');
+          case 'pill': return '999px';
+          case 'circle': return '50%';
+          case 'custom':
+               const customVal = String(customRadiusSetting || '').trim();
+               return (/^[\d.%pxemrem\s\/]+$/.test(customVal) && customVal) ? customVal : '0px'; // Basic validation
+          default: return '0px';
+      }
+  }
+
+
+  /** Parses effect details */
+  function getEffectDetails(effectSetting, computedTextShadow, effectColorSetting = null) {
+      let type = 'none'; let color = effectColorSetting || '#000'; let blur = 0; let dx = 0; let dy = 0; let opacity = 1; let source = 'none';
+      const ADVANCED_3D_EFFECT_MAP = { /* ... copy map here from settingsManager ... */ }; // Need map
+
+      if (effectSetting && effectSetting !== 'none' && effectSetting !== 'text-effect-none') {
+           source = 'setting/class';
+           // Basic type mapping (needs improvement based on actual effect keys/classes)
+           if (effectSetting.includes('glow') || effectSetting.includes('neon')) type = 'glow';
+           else if (effectSetting.includes('shadow')) type = 'shadow';
+           else if (effectSetting.includes('3d') || effectSetting.includes('extrude') || effectSetting.includes('bevel') || effectSetting.includes('isometric')) type = 'shadow';
+           else if (effectSetting.includes('reflection')) type = 'reflection';
+           else if (effectSetting.includes('cutout')) type = 'cutout';
+           else type = 'shadow'; // Default assumption
+
+          // Extract params (simplified - needs knowledge of specific effect class values)
+           if (effectSetting.includes('soft')) { blur = 5; opacity = 0.6; }
+           if (effectSetting.includes('medium')) { blur = 10; opacity = 0.7; }
+           if (effectSetting.includes('strong')) { blur = 15; opacity = 0.8; }
+           if (effectSetting.includes('hard-sm')) { dx = 1; dy = 1; blur = 0.1; opacity = 1; color = effectColorSetting || getCSSVariable('dynamic-border-color', '#fff'); }
+           if (effectSetting.includes('hard-md')) { dx = 2; dy = 2; blur = 0.1; opacity = 1; color = effectColorSetting || getCSSVariable('dynamic-border-color', '#fff'); }
+           // ... add more specific parsing based on your actual effect classes ...
+
+      } else if (computedTextShadow && computedTextShadow !== 'none') {
+          source = 'computed'; type = 'shadow';
+          // Basic computed parsing (limited)
+          const parts = computedTextShadow.split(' '); try { color = normalizeColor(parts[0], 'effect computed'); dx = parseFloat(parts[1]) || 0; dy = parseFloat(parts[2]) || 0; blur = parseFloat(parts[3]) || 0; opacity = extractOpacityFromColor(parts[0]); } catch(e){}
+      } else { return null; }
+
+      return { type, color: normalizeColor(color, 'effect'), blur, dx, dy, opacity, source };
+  }
+
+
+  /** Applies text transform */
+  function getTransformedTextContent(element, transform) {
+      const originalText = element?.textContent || ''; if (!originalText) return '';
+      switch (transform) {
+          case 'uppercase': return originalText.toUpperCase();
+          case 'lowercase': return originalText.toLowerCase();
+          case 'capitalize': return originalText.replace(/\b\w/g, char => char.toUpperCase());
+          default: return originalText;
+      }
   }
 
   /**
@@ -234,52 +438,35 @@ console.log("[CSSUtils v2.x] Loading...");
   }
 
   // Create an object with all these utility methods
-  const CSSUtils = {
+   // Create the main object to attach to window
+   const CSSUtils = {
+    // Basic Get/Set
     getCSSVariable,
     setCSSVariable,
-    getBorderStyles,
+    // Simple Info Extraction
     getTextColorForBackground,
     extractRGB,
+    getBorderStyles, // Keep original simple version
+    // Calculation/Formatting Helpers
+    getBorderDashArray,
+    getBorderRadiusCSSValue, // New calculation function
+    getPrimaryFontFamily,
+    getTransformedTextContent,
+    // Complex Style Detection/Extraction
+    extractGradientColors,
+    extractGradientAngle,
+    detectBorderStyle, // New complex version
+    getEffectDetails,
+    // Direct Style Application (Keep originals if still used elsewhere)
     applyBorderRadius,
-    applyBorderPadding,
-    getBorderDashArray
-  };
-
-  // Attach to window globally
-  window.CSSUtils = CSSUtils;
-
-  console.log("[CSSUtils] Ready. v2.x");
-
-})();
-
-/**
- * A separate function for normalizing color names to hex (or just returns # or rgb).
- * Attached to `window` for usage in other modules, so e.g. "red" => "#ff0000".
- */
-window.normalizeColor = function normalizeColor(color, context = 'color') {
-  if (!color || color === 'transparent' || color === 'none') {
-    return null;
-  }
-
-  // Already # or rgb(...) => pass through
-  const lower = color.toLowerCase().trim();
-  if (lower.startsWith('#') || lower.startsWith('rgb')) {
-    return color;
-  }
-
-  // A partial HTML color name -> hex map
-  const colorMap = {
-    'black': '#000000', 'white': '#ffffff',
-    'red': '#ff0000', 'green': '#008000', 'blue': '#0000ff',
-    'yellow': '#ffff00', 'purple': '#800080', 'orange': '#ffa500',
-    // Expand as needed...
-  };
-
-  if (colorMap[lower]) {
-    return colorMap[lower];
-  }
-
-  // If not recognized, warn and pass the string
-  console.warn(`[normalizeColor] Unrecognized color "${color}" for ${context}; passing through.`);
-  return color;
+    applyBorderPadding
 };
+
+// Attach to window globally
+window.CSSUtils = CSSUtils;
+// Also attach normalizeColor globally
+window.normalizeColor = normalizeColor;
+
+console.log("[CSSUtils v3.0 - Combined] Ready.");
+
+})(window);
