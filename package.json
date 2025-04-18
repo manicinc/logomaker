@@ -1,7 +1,7 @@
 {
     "name": "logomaker",
     "version": "0.1.0",
-    "description": "Logomaker v3 - Free Online & Offline Logo Generator",
+    "description": "Free zero-dependency design playground",
     "author": "Manic.agency",
     "license": "MIT",
     "private": true,
