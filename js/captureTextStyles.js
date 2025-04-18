@@ -1,808 +1,488 @@
 /**
- * captureTextStyles.js - v17+ (Major Upgrade + Enhanced Support)
- * ==============================================================
- * Captures computed styles and relevant settings from the preview container,
- * integrating detection for advanced effects:
- *   - Text decoration classes (underline/overline/line-through, etc.)
- *   - Text style classes (italic/oblique)
- *   - Text stroke classes (thin, medium, thick, contrast)
- *   - 3D text effects, reflection, cutout, etc.
- *   - Border & background detection (both static & animated)
- *   - Animations & keyframe extraction
- *
- * The final returned object is used for generating consistent CSS, SVG, or
- * other exports. 
+ * captureTextStyles.js (v17.8 - Refactored Alignment, Fixed xPos Error)
+ * ===================================================================
+ * Captures computed styles and settings for rendering engines.
+ * Uses styleExtractionUtils helpers and fontManager for hybrid SVG embedding.
+ * RELIES ON RendererCore.js (or similar) TO USE CAPTURED textAnchor
+ * TO DETERMINE x/y/dominant-baseline DURING SVG STRING GENERATION.
  */
 
-console.log("[CaptureStyles] Enhanced Module v17+ loaded.");
+// Imports (Ensure paths are correct)
+import SettingsManager from './settingsManager.js'; // Correctly imported
+import { getFontDataAsync } from './fontManager.js'; // Assuming getFontDataByName is not needed here
+import { extractSVGAnimationDetails } from './utils/svgAnimationInfo.js'; // Assuming getAnimationKeyframes isn't directly needed here
+import {
+    extractGradientColors, extractGradientAngle, detectBorderStyle,
+    getCSSVariable, getBorderRadiusCSSValue, getEffectDetails,
+    getTransformedTextContent, getPrimaryFontFamily, // Using specific imports
+    normalizeColor, // Assuming normalizeColor is also exported from utils now for consistency
+    // Make sure normalizeCSSTransformForSVG and escapeSVGAttribute are available if used later
+} from './utils/styleExtractionUtils.js';
+
+// Helper delay function
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Main function to capture all computed styles from the logo elements.
- * @returns {object|null} Complete style object or null on critical failure.
+ * Attempts to retrieve the Base64 dataUrl for embedding fonts.
+ * Uses getFontDataAsync to ensure font data (including dataUrl) is loaded.
+ * @param {string} fontFamily - The primary font family name.
+ * @param {string|number} fontWeight - The desired font weight.
+ * @param {string} fontStyle - The desired font style ('normal', 'italic').
+ * @returns {Promise<string|null>} The Base64 dataUrl or null.
  */
-/**
- * Main function to capture all computed styles from the logo elements.
- * Identifies and extracts all styling information needed for accurate rendering.
- * @returns {object|null} Complete style object or null on critical failure.
- */
-export function captureAdvancedStyles() {
-    console.log("[Style Capture v17+] STARTING ENHANCED STYLE CAPTURE...");
-
-    // 1. Basic environment checks
-    if (typeof window.normalizeColor !== 'function') {
-        console.error("[Style Capture] CRITICAL: window.normalizeColor is not available!");
+async function getFontEmbedData(fontFamily, fontWeight, fontStyle) {
+    console.log(`[Font Embed v1.2] Searching for: Family='${fontFamily}', Weight=${fontWeight}, Style=${fontStyle}`);
+    if (!fontFamily) {
+        console.warn("[Font Embed v1.2] No font family provided.");
         return null;
     }
 
-    // 2. Get DOM elements
-    const previewContainer = document.getElementById('previewContainer');
-    const logoContainer = document.querySelector('.logo-container');
-    const logoText = document.querySelector('.logo-text');
+    let embedDataUrl = null;
+    try {
+        // Use getFontDataAsync to ensure chunk is loaded (contains url+dataUrl)
+        const fontData = await getFontDataAsync(fontFamily);
 
-    if (!logoContainer || !logoText) {
-        console.error("[Style Capture] CRITICAL ERROR: Missing .logo-container or .logo-text!");
-        return null;
-    }
-    if (!previewContainer) {
-        console.warn("[Style Capture] WARNING: #previewContainer not found. Some background detection may be limited.");
-    }
+        if (fontData?.variants) {
+            const targetWeight = String(fontWeight);
+            const targetStyle = fontStyle || 'normal';
+            const targetVariant = fontData.variants.find(v => v && String(v.weight) === targetWeight && v.style === targetStyle);
 
-    // 3. Compute bounding box info for the container
-    const containerRect = logoContainer.getBoundingClientRect();
-    const originalWidth = containerRect.width;
-    const originalHeight = containerRect.height;
-    let originalAspectRatio = 1;
-    if (originalHeight > 0 && originalWidth > 0) {
-        originalAspectRatio = originalWidth / originalHeight;
-    }
-    console.log(`[Style Capture] Container dims: ${originalWidth.toFixed(2)}x${originalHeight.toFixed(2)} (AR=${originalAspectRatio.toFixed(4)})`);
-
-    // 4. Grab computed styles
-    const containerStyle = window.getComputedStyle(logoContainer);
-    const textStyle = window.getComputedStyle(logoText);
-    const previewContainerStyle = previewContainer ? window.getComputedStyle(previewContainer) : {};
-    const rootStyle = window.getComputedStyle(document.documentElement);
-
-    // 5. Optionally read from SettingsManager if available
-    const currentSettings = window.SettingsManager?.getCurrentSettings?.() || {};
-
-    // 6. Initialize final result object
-    const styles = {
-        // Basic container dimension info
-        originalDimensions: {
-            width: originalWidth,
-            height: originalHeight,
-            aspectRatio: originalAspectRatio
-        },
-        containerOpacity: containerStyle.opacity || '1',
-        
-        // Export config (width, height, transparency, etc.)
-        exportConfig: {
-            width: parseInt(document.getElementById('exportWidth')?.value || currentSettings.exportWidth || '800'),
-            height: parseInt(document.getElementById('exportHeight')?.value || currentSettings.exportHeight || '400'),
-            transparent: document.getElementById('exportTransparent')?.checked ?? currentSettings.exportTransparent ?? false
-        },
-
-        // Main text content info
-        textContent: {
-            finalText: logoText.textContent || currentSettings.logoText || 'Logo',
-            transform: textStyle.textTransform || 'none',
-            transformedText: '' // will fill below
-        },
-
-        // Font info
-        font: {
-            family: textStyle.fontFamily || 'sans-serif',
-            size: textStyle.fontSize || '100px',
-            weight: textStyle.fontWeight || '400',
-            style: textStyle.fontStyle || 'normal',
-            letterSpacing: textStyle.letterSpacing || 'normal',
-            embedData: null // fill if we have base64 embed
-        },
-
-        // Basic color fill (solid or gradient)
-        color: {
-            mode: 'solid',
-            value: textStyle.color || '#ffffff'
-        },
-        opacity: textStyle.opacity || '1',
-
-        // Text alignment / anchor
-        textAnchor: 'middle', // default
-        textAlign: 'center',  // default
-
-        // Background info
-        background: {
-            type: 'bg-solid',
-            color: 'transparent',
-            opacity: '1',
-            classList: [],
-            patternClass: null,
-            gradient: null,
-            image: null,
-            size: 'cover',
-            position: 'center',
-            repeat: 'no-repeat'
+            if (targetVariant) {
+                // Look specifically for dataUrl property
+                if (targetVariant.dataUrl && typeof targetVariant.dataUrl === 'string' && targetVariant.dataUrl.startsWith('data:')) {
+                    console.log(`[Font Embed v1.2] SUCCESS: Found dataUrl for variant ${targetVariant.name}.`);
+                    embedDataUrl = targetVariant.dataUrl;
+                } else {
+                    console.warn(`[Font Embed v1.2] Variant ${targetVariant.name} found, but it has no valid 'dataUrl' property.`);
+                    // Optionally: Trigger loading if only URL is present and embedding is critical? Requires fontManager changes.
+                }
+            } else {
+                console.warn(`[Font Embed v1.2] Could not find matching variant for W=${targetWeight}, S=${targetStyle} in '${fontFamily}'. Available:`, fontData.variants.map(v => `W:${v.weight}/S:${v.style}`));
+            }
+        } else {
+            console.warn(`[Font Embed v1.2] No font data or variants returned from getFontDataAsync for '${fontFamily}'.`);
         }
-        // Additional fields (like stroke, border, textEffect, animation, etc.)
-        // will be added as we detect them.
+    } catch (error) {
+        console.error(`[Font Embed v1.2] Error retrieving/processing font data for '${fontFamily}':`, error);
+    }
+
+    if (!embedDataUrl) {
+        console.warn(`[Font Embed v1.2] No embeddable dataUrl found for '${fontFamily}' (W: ${fontWeight}, S: ${fontStyle}). SVG may rely on system fonts or @font-face loading.`);
+    }
+    return embedDataUrl;
+}
+
+/**
+ * Determines text alignment properties based on computed styles and settings.
+ * This function NO LONGER calculates xPos/yPos or builds SVG elements.
+ * It provides the necessary 'text-anchor' for the SVG rendering engine.
+ *
+ * @param {CSSStyleDeclaration} textStyle - Computed style of the text element.
+ * @param {CSSStyleDeclaration} containerStyle - Computed style of the container element.
+ * @param {object} currentSettings - The current application settings object.
+ * @returns {{textAlign: string, textAnchor: string}} Object with CSS textAlign and SVG textAnchor.
+ */
+function captureTextAlignmentProperties(textStyle, containerStyle, currentSettings) {
+    // Prefer text-align from settings if available, otherwise check computed text style
+    const textAlignSetting = currentSettings?.textAlign; // e.g., 'left', 'center', 'right' from settings
+    const computedTextStyleAlign = textStyle?.textAlign; // e.g., 'start', 'center', 'end' computed
+
+    // Fallback: Check container's flex alignment if text-align isn't explicit
+    const justifyContent = containerStyle?.justifyContent; // e.g., 'flex-start', 'center', 'flex-end'
+
+    let finalCssTextAlign = 'center'; // Default
+
+    if (textAlignSetting && ['left', 'center', 'right'].includes(textAlignSetting)) {
+        finalCssTextAlign = textAlignSetting;
+        console.log(`[Alignment Capture] Using textAlign from Setting: '${finalCssTextAlign}'`);
+    } else if (computedTextStyleAlign && ['left', 'center', 'right', 'start', 'end'].includes(computedTextStyleAlign)) {
+        // Map CSS computed values ('start'/'end') to standard names
+        finalCssTextAlign = computedTextStyleAlign === 'start' ? 'left' : computedTextStyleAlign === 'end' ? 'right' : computedTextStyleAlign;
+        console.log(`[Alignment Capture] Using computed textStyle.textAlign: '${finalCssTextAlign}' (Original: ${computedTextStyleAlign})`);
+    } else if (justifyContent) {
+        // Infer from container alignment as a last resort
+        if (justifyContent === 'flex-start' || justifyContent === 'start') {
+            finalCssTextAlign = 'left';
+        } else if (justifyContent === 'flex-end' || justifyContent === 'end') {
+            finalCssTextAlign = 'right';
+        } else {
+            finalCssTextAlign = 'center'; // Default for 'center', 'space-around', etc.
+        }
+        console.log(`[Alignment Capture] Inferring textAlign from container justifyContent ('${justifyContent}'): '${finalCssTextAlign}'`);
+    } else {
+        console.log(`[Alignment Capture] Using default textAlign: '${finalCssTextAlign}'`);
+    }
+
+
+    // Map the determined CSS text-align value to the corresponding SVG text-anchor
+    let textAnchor;
+    switch (finalCssTextAlign) {
+        case 'left':
+            textAnchor = 'start';
+            break;
+        case 'right':
+            textAnchor = 'end';
+            break;
+        case 'center':
+        default:
+            textAnchor = 'middle';
+            break;
+    }
+
+    console.log(`[Alignment Capture] Determined CSS textAlign: '${finalCssTextAlign}', SVG textAnchor: '${textAnchor}'`);
+
+    // Return the relevant properties for the styles object
+    return {
+        textAlign: finalCssTextAlign, // Store the CSS equivalent ('left', 'center', 'right')
+        textAnchor: textAnchor      // Store the SVG equivalent ('start', 'middle', 'end')
+    };
+}
+
+
+/**
+ * Main function to capture styles.
+ * FIXED: Refactored alignment capture. Uses imported SettingsManager.
+ * @param {HTMLElement} [targetElement=null] - Optional specific element (currently unused).
+ * @param {object} [options={}] - Optional configuration options (currently unused).
+ * @returns {Promise<object|null>} A promise resolving to the captured styles object or null on critical error.
+ */
+export async function captureAdvancedStyles(targetElement = null, options = {}) {
+    console.log(`[Style Capture v17.8 - Refactored Alignment] STARTING CAPTURE at ${new Date().toISOString()}...`);
+
+    // 1. Critical Dependency Checks
+    if (typeof SettingsManager?.getCurrentSettings !== 'function') { console.error("[Style Capture] CRITICAL: SettingsManager.getCurrentSettings is not available!"); return null; }
+    if (typeof normalizeColor !== 'function') { console.error("[Style Capture] CRITICAL: normalizeColor function (from styleExtractionUtils) not found!"); return null; }
+    if (typeof getFontDataAsync !== 'function') { console.warn("[Style Capture] Non-critical: getFontDataAsync not found. Font embedding may fail."); }
+    if (typeof extractSVGAnimationDetails !== 'function') { console.warn("[Style Capture] Non-critical: extractSVGAnimationDetails not found. SVG Animations may not be captured."); }
+    // Check other imported utils implicitly by trying to use them later
+
+    // 2. Wait for Fonts (Best effort)
+    try {
+        await document.fonts.ready;
+        await delay(50); // Extra small delay after fonts ready
+        console.log("[Style Capture] Document fonts reported ready.");
+    } catch (fontError) {
+        console.warn("[Style Capture] Error waiting for document.fonts.ready, proceeding anyway:", fontError);
+    }
+
+    // 3. Get DOM Elements & Validate
+    const previewContainer = document.getElementById('previewContainer'); // Used for background/padding
+    const logoContainer = document.querySelector('.logo-container');     // Used for border, dimensions, maybe background fallback
+    const logoText = document.querySelector('.logo-text');             // Primary target for text styles
+
+    if (!logoText) { console.error("[Style Capture] CRITICAL ERROR: '.logo-text' element not found!"); return null; }
+    if (!logoContainer) { console.warn("[Style Capture] WARNING: '.logo-container' not found. Dimensions, border, and some fallbacks may be inaccurate."); }
+    if (!previewContainer) { console.warn("[Style Capture] WARNING: '#previewContainer' not found. Background styles might default to logoContainer."); }
+    console.log("[Style Capture] Required DOM elements located (logoText found).");
+
+    // 4. Get SettingsManager State
+    let currentSettings = {};
+    try {
+        currentSettings = SettingsManager.getCurrentSettings();
+        if (!currentSettings) {
+            console.warn("[Style Capture] SettingsManager.getCurrentSettings() returned null/undefined. Using empty settings.");
+            currentSettings = {};
+        } else {
+            console.log("[Style Capture] Successfully retrieved current settings.");
+        }
+    } catch (e) {
+        console.error("[Style Capture] CRITICAL: Error calling SettingsManager.getCurrentSettings():", e);
+        return null;
+    }
+
+    // --- Initialize styles object ONCE ---
+    // Default values should represent a basic, non-styled state.
+    const styles = {
+        captureVersion: '17.8 Refactored Alignment', timestamp: new Date().toISOString(),
+        originalDimensions: { width: 0, height: 0, aspectRatio: 1 }, // Captured from logoContainer
+        containerOpacity: '1', // Default, may be overridden by background capture
+        exportConfig: {}, // Populated from settings
+        textContent: { finalText: 'Logo', transform: 'none', transformedText: 'Logo' },
+        font: { family: 'sans-serif', size: '100px', weight: '400', style: 'normal', letterSpacing: 'normal', embedDataUrl: null },
+        color: { mode: 'solid', value: '#000000', gradient: null }, // Default to black
+        opacity: '1', // Text opacity
+        textAlign: 'center', // CSS Alignment
+        textAnchor: 'middle', // SVG Alignment Anchor (determined by captureTextAlignmentProperties)
+        background: { type: 'bg-transparent', color: 'transparent', opacity: '1', classList: [], patternClass: null, gradient: null, image: null, size: 'cover', position: 'center', repeat: 'no-repeat' }, // Default transparent bg
+        previewPadding: '0px', // Padding of the main preview area
+        border: null, // Border of logoContainer
+        borderRadius: '0px', // Border radius of logoContainer
+        borderPadding: '0px', // Padding of logoContainer (used for inner spacing with border)
+        textStroke: null,
+        textDecorations: [], // e.g., ['text-decoration-underline']
+        textStyleClass: null, // e.g., 'text-style-outline'
+        textEffect: null, // Shadow/glow details
+        transform: null, // CSS transform on logoText
+        animation: null // Animation details for logoText
     };
 
-    // 7. Overwrite letterSpacing if we have a --dynamic-letter-spacing var
-    const letterSpacingVar = rootStyle.getPropertyValue('--dynamic-letter-spacing').trim();
-    if (letterSpacingVar) {
-        styles.font.letterSpacing = letterSpacingVar;
+    // 5. Force Reflow (Minimal attempt)
+    try { const _unused = logoText.offsetHeight; } catch (e) { /* ignore error if element not found/visible */ }
+
+    // 6. Get Computed Styles (Safely)
+    let textStyle = {}, containerStyle = {}, previewContainerStyle = {}, rootStyle = {};
+    try {
+        textStyle = window.getComputedStyle(logoText);
+        if (logoContainer) { containerStyle = window.getComputedStyle(logoContainer); }
+        if (previewContainer) { previewContainerStyle = window.getComputedStyle(previewContainer); }
+        rootStyle = window.getComputedStyle(document.documentElement); // For CSS variables
+        console.log('[Style Capture] Computed styles obtained.');
+    } catch (e) {
+        console.error("[Style Capture] CRITICAL: Error getting computed styles:", e);
+        // If we can't get computed styles, we can't proceed reliably
+        return null;
     }
 
-    // 8. Determine text alignment
-    const textAlignComputed = textStyle.textAlign.trim().toLowerCase();
-    if (textAlignComputed === 'left') {
-        styles.textAlign = 'left';
-        styles.textAnchor = 'start';
-    } else if (textAlignComputed === 'right') {
-        styles.textAlign = 'right';
-        styles.textAnchor = 'end';
+    // 7. Get Container Dimensions & Update Styles Object
+    if (logoContainer) {
+        try {
+            const rect = logoContainer.getBoundingClientRect();
+            if (rect && rect.width > 0 && rect.height > 0) {
+                styles.originalDimensions.width = rect.width;
+                styles.originalDimensions.height = rect.height;
+                styles.originalDimensions.aspectRatio = rect.width / rect.height;
+                 console.log(`[Style Capture] logoContainer dimensions: ${styles.originalDimensions.width.toFixed(2)}x${styles.originalDimensions.height.toFixed(2)}`);
+            } else {
+                console.warn(`[Style Capture] logoContainer has zero or invalid dimensions (${rect?.width}x${rect?.height}).`);
+                // Fallback or indicate error? For now, defaults remain 0.
+            }
+        } catch (e) {
+            console.error("[Style Capture] Error getting logoContainer dimensions:", e);
+        }
     } else {
+        console.warn("[Style Capture] Cannot capture dimensions, logoContainer not found.");
+    }
+
+
+    // --- 9. Populate `styles` Object ---
+
+    // 9a. Export Config (from settings)
+    try {
+        styles.exportConfig = {
+            width: parseInt(currentSettings.exportWidth || '800', 10),
+            height: parseInt(currentSettings.exportHeight || '400', 10),
+            transparent: !!currentSettings.exportTransparent
+        };
+    } catch (e) { console.error("Error parsing export config settings:", e); }
+
+    // 9b. Text Content (from settings or element, transformed)
+    try {
+        styles.textContent.finalText = currentSettings.logoText ?? logoText.textContent ?? 'Logo';
+        styles.textContent.transform = textStyle?.textTransform || 'none';
+        styles.textContent.transformedText = getTransformedTextContent(logoText, styles.textContent.transform); // Use imported helper
+    } catch (e) { console.error("Error capturing text content:", e); }
+
+
+    // 9c. Font Details (from settings or computed, CSS vars checked)
+    try {
+        styles.font.family = currentSettings.fontFamily || getPrimaryFontFamily(textStyle?.fontFamily) || 'sans-serif'; // Use imported helper
+        styles.font.size = currentSettings.fontSize ? `${currentSettings.fontSize}px` : (textStyle?.fontSize || '100px');
+        styles.font.weight = String(currentSettings.fontWeight || textStyle?.fontWeight || '400');
+        styles.font.style = currentSettings.textStyle?.includes('italic') ? 'italic' : 'normal'; // Check setting first
+        let lsVal = currentSettings.letterSpacing;
+        if (typeof lsVal === 'number') lsVal = `${lsVal}em`; // Assume number is 'em'
+        // Prefer setting, then CSS var, then computed style
+        styles.font.letterSpacing = lsVal ?? getCSSVariable('--dynamic-letter-spacing', logoText) ?? textStyle?.letterSpacing ?? 'normal'; // Use imported helper
+
+        console.log(`[Style Capture] Font: Family='${styles.font.family}', Size=${styles.font.size}, Weight=${styles.font.weight}, Style=${styles.font.style}, Spacing=${styles.font.letterSpacing}`);
+
+        // Attempt font embedding (async)
+        styles.font.embedDataUrl = await getFontEmbedData(styles.font.family, styles.font.weight, styles.font.style);
+        console.log(`[Style Capture] Font Embed dataUrl Retrieved: ${!!styles.font.embedDataUrl}`);
+
+    } catch (e) { console.error("Error capturing font details:", e); }
+
+
+    // 9d. Text Color & Opacity (handles solid/gradient)
+    try {
+        styles.opacity = String(currentSettings.textOpacity ?? textStyle?.opacity ?? '1');
+        styles.color.mode = currentSettings.textColorMode === 'gradient' ? 'gradient' : 'solid';
+
+        if (styles.color.mode === 'gradient') {
+            const gradCols = extractGradientColors(logoText, true, textStyle); // true = text gradient
+            const gradAngle = extractGradientAngle(textStyle?.backgroundImage, true); // true = text gradient
+            styles.color.value = null; // No single value for gradient
+            styles.color.gradient = {
+                preset: currentSettings.gradientPreset || null, // Store preset name if available
+                colors: gradCols,
+                angle: gradAngle
+            };
+             console.log(`[Style Capture] Text Color Mode: Gradient (Angle: ${gradAngle}, Colors: ${JSON.stringify(gradCols)})`);
+        } else {
+            // Use setting color picker first, fallback to computed text color
+            const rawColor = currentSettings.solidColorPicker || textStyle?.color || '#000000';
+            styles.color.value = normalizeColor(rawColor, 'text-solid'); // Normalize the chosen color
+            styles.color.gradient = null;
+            console.log(`[Style Capture] Text Color Mode: Solid (Raw: ${rawColor}, Normalized: ${styles.color.value})`);
+        }
+    } catch (e) { console.error("Error capturing text color/opacity:", e); }
+
+    // 9e. Text Alignment (Uses refactored helper)
+    try {
+        const alignmentInfo = captureTextAlignmentProperties(textStyle, containerStyle, currentSettings);
+        styles.textAlign = alignmentInfo.textAlign;
+        styles.textAnchor = alignmentInfo.textAnchor;
+        // xPos/yPos/dominantBaseline are NOT stored here, they are determined by the renderer using textAnchor.
+        console.log(`[Style Capture] Captured Alignment: textAlign='${styles.textAlign}', textAnchor='${styles.textAnchor}'`);
+    } catch(e) {
+        console.error("Error capturing text alignment:", e);
+        // Keep defaults if error occurs
         styles.textAlign = 'center';
         styles.textAnchor = 'middle';
     }
 
-    // 9. Handle text transform + actual text
-    styles.textContent.transformedText = getTransformedTextContent(logoText, styles.textContent.transform);
 
-    // 10. Gather text classes
-    const textClassList = Array.from(logoText.classList) || [];
-    styles.textClassList = textClassList.slice(); // store them
+    // 9f. Background (uses previewContainer primarily, falls back to logoContainer)
+    try {
+        const bgElement = previewContainer || logoContainer; // Prefer previewContainer for background styles
+        const bgStyle = previewContainer ? previewContainerStyle : containerStyle;
+        styles.previewPadding = previewContainerStyle?.padding || containerStyle?.padding || '0px'; // Use padding from the element providing the background
 
-    // 11. Detect enhanced text features (moved from line 147 where it caused errors)
-    // 11a. Text decoration (underline, overline, etc.)
-    const textDecorationClass = textClassList.find(cls => 
-        cls.startsWith('text-decoration-') && cls !== 'text-decoration-none'
-    );
-    if (textDecorationClass) {
-        styles.textDecoration = textDecorationClass;
-    }
-    
-    // 11b. Text style (italic, oblique)
-    const textStyleClass = textClassList.find(cls => cls.startsWith('text-style-'));
-    if (textStyleClass) {
-        styles.textStyle = textStyleClass;
-    }
-    
-    // 11c. Comprehensive detection of decorations for backwards compatibility
-    styles.textDecorations = textClassList.filter(cls =>
-        cls.startsWith('text-decoration-') ||
-        cls.startsWith('text-style-')
-    );
+        // Determine background type from settings or element classes/styles
+        styles.background.type = currentSettings.backgroundType || 'bg-solid'; // Default or from setting
+         // TODO: Maybe add detection logic based on bgStyle if setting is absent?
+         // Example: if (bgStyle?.backgroundImage && bgStyle.backgroundImage !== 'none') type = 'bg-image' or 'bg-gradient'?
 
-    // 12. Detect text stroke classes (thin, medium, thick, contrast)
-    styles.textStrokeClass = textClassList.find(cls => cls.startsWith('text-stroke-')) || null;
+        styles.background.opacity = String(currentSettings.bgOpacity ?? bgStyle?.opacity ?? '1');
+        styles.background.classList = bgElement ? Array.from(bgElement.classList) : [];
+        styles.background.patternClass = styles.background.classList.find(cls => cls.startsWith('bg-pattern-')) || null;
+        styles.background.size = bgStyle?.backgroundSize || 'cover';
+        styles.background.position = bgStyle?.backgroundPosition || 'center';
+        styles.background.repeat = bgStyle?.backgroundRepeat || 'no-repeat';
 
-    // 13. Detect 3D effects / reflection, etc.
-    styles.text3DEffects = textClassList.filter(cls => 
-        cls.startsWith('text-effect-3d-') || 
-        cls.includes('reflection') || 
-        cls.includes('cutout')
-    );
-    
-    // 13a. Detect enhanced 3D effects more explicitly for SVG export
-    const enhanced3D = textClassList.find(cls => 
-        cls.startsWith('text-effect-3d-') || 
-        cls === 'text-effect-reflection' || 
-        cls === 'text-effect-cutout'
-    );
-    if (enhanced3D) {
-        styles.enhanced3D = enhanced3D;
-    }
-
-    // 14. Detect background type
-    const bgElement = previewContainer || logoContainer;
-    styles.background.type = extractBackgroundType(bgElement);
-    const bgStyle = previewContainer ? previewContainerStyle : containerStyle;
-    styles.background.color = bgStyle.backgroundColor || 'transparent';
-    styles.background.opacity = bgStyle.opacity || '1';
-    styles.background.classList = Array.from(bgElement.classList).filter(c => c.startsWith('bg-'));
-    
-    // Check for special background patterns
-    if (styles.background.type.match(/^bg-(grid|dots|lines|checkerboard|carbon|noise|circuit|matrix|stars|nebula|geometric|synthwave|hexagons|diamonds|wave-pattern|graph-paper|gradient-pulse|floating-particles)/)) {
-        styles.background.patternClass = styles.background.type;
-    }
-
-    // If there's a gradient, parse it from computed style or from settings
-    if (bgStyle.backgroundImage && bgStyle.backgroundImage.includes('gradient')) {
-        styles.background.gradient = {
-            colors: extractGradientColors(bgElement, false),
-            direction: extractGradientAngle(bgStyle.backgroundImage, false)
-        };
-    }
-
-    // 15. Detect preview padding if set
-    if (previewContainer) {
-        const previewPadding = previewContainerStyle.padding;
-        if (previewPadding && previewPadding !== '0px') {
-            styles.previewPadding = previewPadding;
+        if (styles.background.type === 'bg-transparent') {
+            styles.background.color = 'transparent';
+            styles.background.gradient = null; styles.background.image = null;
+        } else if (styles.background.type.includes('gradient')) {
+            const bgGradCols = extractGradientColors(bgElement, false, bgStyle); // false = background gradient
+            const bgGradAngle = extractGradientAngle(bgStyle?.backgroundImage, false); // false = background gradient
+            styles.background.color = null; // Gradients don't have a single solid color
+            styles.background.gradient = { preset: currentSettings.backgroundGradientPreset || null, colors: bgGradCols, angle: bgGradAngle };
+            styles.background.image = null;
+             console.log(`[Style Capture] Background: Gradient (Angle: ${bgGradAngle}, Colors: ${JSON.stringify(bgGradCols)})`);
+        } else if (styles.background.type === 'bg-image') {
+            // Capture background color underneath image, if any
+            styles.background.color = normalizeColor(bgStyle?.backgroundColor || 'transparent', 'bg-image-fallback');
+            styles.background.gradient = null;
+            styles.background.image = bgStyle?.backgroundImage || null; // Capture the URL/gradient string
+             console.log(`[Style Capture] Background: Image (${styles.background.image}), Fallback Color: ${styles.background.color}`);
+        } else { // Default to solid
+            styles.background.type = 'bg-solid';
+            // Use setting first, then computed background color
+            const rawBgColor = currentSettings.backgroundColor || bgStyle?.backgroundColor || 'transparent';
+            styles.background.color = normalizeColor(rawBgColor, 'bg-solid');
+            styles.background.gradient = null; styles.background.image = null;
+            console.log(`[Style Capture] Background: Solid (Raw: ${rawBgColor}, Normalized: ${styles.background.color})`);
         }
-    }
+         // Capture overall container opacity if needed (might affect background rendering)
+        styles.containerOpacity = String(bgStyle?.opacity ?? '1');
 
-    // 16. Detect text fill as gradient vs solid
-    if ((textStyle.backgroundClip === 'text' || textStyle.webkitBackgroundClip === 'text') && 
-        textStyle.backgroundImage && textStyle.backgroundImage.includes('gradient')) {
-        styles.color.mode = 'gradient';
-        styles.color.gradient = {
-            colors: extractGradientColors(logoText, true),
-            direction: extractGradientAngle(textStyle.backgroundImage, true)
-        };
-    } else {
-        styles.color.mode = 'solid';
-        styles.color.value = textStyle.color || '#ffffff';
-    }
+    } catch (e) { console.error("Error capturing background styles:", e); }
 
-    // 17. Check for raw text stroke from computed style
-    const textStrokeWidth = textStyle.textStrokeWidth || textStyle.webkitTextStrokeWidth;
-    const textStrokeColor = textStyle.textStrokeColor || textStyle.webkitTextStrokeColor;
-    if (textStrokeWidth && parseFloat(textStrokeWidth) > 0 && textStrokeColor && textStrokeColor !== 'transparent') {
-        styles.stroke = {
-            style: 'solid',
-            color: textStrokeColor,
-            width: textStrokeWidth,
-            isTextStroke: true
-        };
-        console.log(`[Style Capture] Computed text stroke: width=${styles.stroke.width}, color=${styles.stroke.color}`);
-    } else {
-        // 18. Detect container border styles
-        const borderInfo = detectBorderStyle(logoContainer);
-        if (borderInfo) {
-            const dynamicBorderColorVar = rootStyle.getPropertyValue('--dynamic-border-color').trim();
-            const computedBorderColor = containerStyle.borderColor;
-            const borderColorToUse = dynamicBorderColorVar || computedBorderColor || '#ffffff';
-            
-            styles.border = {
-                style: borderInfo.style,
-                color: borderColorToUse,
-                width: containerStyle.borderWidth || '1px',
-                isGlow: borderInfo.isGlow || false,
-                glowColor: borderInfo.glowColor || borderColorToUse
-            };
 
-            // If CSSUtils is available, attempt dash array
-            if (window.CSSUtils && typeof window.CSSUtils.getBorderDashArray === 'function') {
-                const dashArray = window.CSSUtils.getBorderDashArray(styles.border.style, styles.border.width);
-                if (dashArray) {
-                    styles.border.dasharray = dashArray;
+    // 9g. Border (of logoContainer, uses helper)
+    try {
+        if (logoContainer) {
+            styles.border = detectBorderStyle(logoContainer, containerStyle, currentSettings);
+            // Override color/width from settings if provided
+            if (styles.border) {
+                if (currentSettings.borderColorPicker) {
+                    styles.border.color = normalizeColor(currentSettings.borderColorPicker, 'border');
                 }
-            }
+                if (currentSettings.borderWidth) {
+                    styles.border.width = `${currentSettings.borderWidth}px`;
+                }
+                 console.log(`[Style Capture] Border: Style=${styles.border.style}, Width=${styles.border.width}, Color=${styles.border.color}`);
+            } else { console.log("[Style Capture] Border: None detected.");}
         }
-    }
+    } catch (e) { console.error("Error capturing border styles:", e); }
 
-    // 19. Border radius & padding
-    const br = containerStyle.borderRadius;
-    if (br && br !== '0px') {
-        styles.borderRadius = br;
-        // Quick shape check
-        if (br.includes('50%')) styles.borderShape = 'circle';
-        else if (parseFloat(br) >= 50) styles.borderShape = 'pill';
-        else styles.borderShape = 'rounded';
-    }
-    const pad = containerStyle.padding;
-    if (pad && pad !== '0px') {
-        styles.borderPadding = pad;
-    }
+    // 9h. Border Radius & Padding (of logoContainer)
+    try {
+        styles.borderRadius = getBorderRadiusCSSValue(currentSettings.borderRadius, currentSettings.customBorderRadius);
+        // Use padding from settings if available, otherwise computed container padding
+        styles.borderPadding = currentSettings.borderPadding ? `${currentSettings.borderPadding}px` : (containerStyle?.padding || '0px');
+        console.log(`[Style Capture] BorderRadius: ${styles.borderRadius}, BorderPadding: ${styles.borderPadding}`);
+    } catch (e) { console.error("Error capturing border radius/padding:", e); }
 
-    // 20. textEffect from classes & computed text-shadow
-    const effectClass = textClassList.find(c => 
-        c.startsWith('text-effect-') || 
-        c.startsWith('text-glow-') || 
-        c.startsWith('text-shadow-')
-    );
-    const dynamicEffectColor = rootStyle.getPropertyValue('--dynamic-border-color').trim() || styles.color.value;
-    const effectDetails = getEffectDetails(effectClass, textStyle.textShadow, dynamicEffectColor);
-    if (effectDetails) {
-        styles.textEffect = effectDetails;
-    }
 
-    // 21. Advanced animation detection
-    const advancedAnimationClass = textClassList.find(c => 
-        c.startsWith('anim-liquify') || 
-        c.startsWith('anim-wobble') || 
-        c.startsWith('anim-perspective') ||
-        c.startsWith('anim-split') ||
-        c.startsWith('anim-magnify') ||
-        c.startsWith('anim-glow-multicolor') ||
-        c.startsWith('anim-flip-3d') ||
-        c.startsWith('anim-swing-3d') 
-    );
-    if (advancedAnimationClass) {
-        styles.advancedAnimation = advancedAnimationClass;
-    }
+    // 9i. Text Stroke (from settings)
+    try {
+        const strokeSetting = currentSettings.textStroke || 'none';
+        if (strokeSetting !== 'none') {
+            const strokeWidthMap = {'thin': '1px', 'medium': '2px', 'thick': '3px'};
+            const strokeColorSetting = currentSettings.strokeColor; // Assumes a color picker setting exists
+            let strokeW = strokeWidthMap[strokeSetting] || '1px'; // Default to thin if setting value is unexpected
+            // Determine stroke color based on setting type (contrast or specific color)
+             // TODO: Refine contrast color logic if needed (e.g., check background brightness)
+            let rawStrokeColor = strokeSetting === 'contrast' ? '#000000' : (strokeColorSetting || '#cccccc'); // Fallback for contrast/specific color
+            let strokeC = normalizeColor(rawStrokeColor, 'text-stroke');
 
-    // 22. Transform
-    if (textStyle.transform && textStyle.transform !== 'none') {
-        styles.transform = { cssValue: textStyle.transform };
-    }
+            styles.textStroke = { style: strokeSetting, width: strokeW, color: strokeC };
+            console.log(`[Style Capture] Text Stroke: Style=${strokeSetting}, Width=${strokeW}, Color=${strokeC}`);
+        } else {
+            styles.textStroke = null;
+        }
+    } catch (e) { console.error("Error capturing text stroke:", e); }
 
-    // 23. Animations (class-based or from settings)
-    const animClass = textClassList.find(c => c.startsWith('anim-'));
-    const activeAnimation = animClass || currentSettings.textAnimation || 'anim-none';
-    if (activeAnimation && activeAnimation !== 'anim-none') {
-        const animationName = activeAnimation.replace('anim-', '');
-        const animDurationSetting = currentSettings.animationSpeed !== undefined 
-            ? `${currentSettings.animationSpeed}s`
-            : null;
-        const animDurationVar = getRootCSSVariable('--animation-duration') || '2s';
-        const finalDuration = animDurationSetting || animDurationVar;
-        const animationDurationMs = parseAnimationDuration(finalDuration);
 
-        styles.animation = {
-            class: activeAnimation,
-            type: animationName,
-            duration: finalDuration,
-            durationMs: animationDurationMs,
-            timingFunction: textStyle.animationTimingFunction || 'ease',
-            iterationCount: textStyle.animationIterationCount || 'infinite',
-            activeKeyframes: extractKeyframesCSS(animationName)
-        };
-    }
+    // 9j. Text Decorations & Style Class (from element classes)
+    try {
+        styles.textDecorations = Array.from(logoText.classList).filter(cls => cls.startsWith('text-decoration-') && cls !== 'text-decoration-none');
+        styles.textStyleClass = Array.from(logoText.classList).find(cls => cls.startsWith('text-style-')) || null; // e.g., text-style-outline
+    } catch (e) { console.error("Error capturing text decorations/style class:", e); }
 
-    // 24. Font embedding
-    const primaryFontName = getPrimaryFontFamily(styles.font.family);
-    styles.font.embedData = getFontEmbedData(primaryFontName, styles.font.weight, styles.font.style);
 
-    console.log("[Style Capture] Enhanced style capture COMPLETE. Returning final object.");
+    // 9k. Text Effect (Shadow/Glow, from settings or computed)
+    try {
+        // Use setting value first, fallback to computed text-shadow
+        const effectSetting = currentSettings.textShadow || currentSettings.advanced3dEffect || 'none';
+        const effectColorSetting = currentSettings.effectColor; // Assumes color picker setting
+        styles.textEffect = getEffectDetails(effectSetting, textStyle?.textShadow, effectColorSetting);
+        if(styles.textEffect) {console.log(`[Style Capture] Text Effect: Type=${styles.textEffect.type}, Color=${styles.textEffect.color}, CSS=${styles.textEffect.cssValue}`);}
+
+    } catch (e) { console.error("Error capturing text effect:", e); }
+
+
+    // 9l. CSS Transform (on logoText, prefers settings rotation)
+    try {
+        const transformComputed = textStyle?.transform;
+        const rotationSetting = currentSettings.rotation ? parseFloat(currentSettings.rotation) : 0;
+
+        if (rotationSetting !== 0) {
+            // If rotation setting exists, use it primarily
+            styles.transform = {
+                cssValue: `rotate(${rotationSetting}deg)`, // Construct basic rotate
+                rotation: `${rotationSetting}deg`
+                // Note: This overrides other computed transforms like scale/skew if only rotation is set.
+            };
+             console.log(`[Style Capture] Transform: Using Rotation Setting (${styles.transform.rotation})`);
+        } else if (transformComputed && transformComputed !== 'none') {
+            // If no rotation setting, use the computed transform
+            styles.transform = {
+                cssValue: transformComputed,
+                rotation: null // Rotation wasn't set via setting
+            };
+            console.log(`[Style Capture] Transform: Using Computed Value (${styles.transform.cssValue})`);
+        } else {
+            styles.transform = null; // No transform
+        }
+    } catch (e) { console.error("Error capturing transform:", e); }
+
+
+    // 9m. Animation (from logoText, uses helper)
+    try {
+        styles.animation = extractSVGAnimationDetails(logoText); // Use imported helper
+        if(styles.animation) { console.log(`[Style Capture] Animation: Class=${styles.animation.class}, Duration=${styles.animation.duration}, Delay=${styles.animation.delay}`); }
+    } catch (e) { console.error("Error capturing animation:", e); }
+
+
+    // --- FINAL LOGS ---
+    console.log("-------------------------------------------");
+    console.log("[Style Capture] FINAL CAPTURED STYLES OBJECT:");
+    console.log(JSON.stringify(styles, null, 2)); // Log the full object for debugging
+    console.log("-------------------------------------------");
+    console.log(`[Style Capture v17.8 - Refactored Alignment] CAPTURE COMPLETE at ${new Date().toISOString()}.`);
+
     return styles;
 }
-/* ------------------------------------------------------------------------
-   HELPER FUNCTIONS
-   ------------------------------------------------------------------------ */
-
-/** 
- * Return a root-level CSS variable, if available. 
- * e.g. getRootCSSVariable('--animation-duration') -> '2s'
- */
-function getRootCSSVariable(varName) {
-    if (!varName || typeof document === 'undefined') return '';
-    try {
-        const root = document.documentElement;
-        return window.getComputedStyle(root).getPropertyValue(varName).trim();
-    } catch (e) {
-        console.error(`[CaptureStyles] Error retrieving root CSS var '${varName}':`, e);
-        return '';
-    }
-}
-
-/** 
- * Convert "2s" or "500ms" to an integer in milliseconds 
- */
-function parseAnimationDuration(duration) {
-    if (!duration || typeof duration !== 'string') return 0;
-    const trimmed = duration.trim();
-    const val = parseFloat(trimmed);
-    if (isNaN(val)) return 0;
-    if (trimmed.endsWith('ms')) return val;
-    if (trimmed.endsWith('s')) return val * 1000;
-    return val * 1000; // default to seconds
-}
-
-/**
- * Extract the "primary" font from a font-family string (handles quotes & fallbacks).
- * e.g. "Orbitron, Arial, sans-serif" => "Orbitron"
- */
-function getPrimaryFontFamily(fontFamilyString) {
-    if (!fontFamilyString) return 'sans-serif';
-    const primary = fontFamilyString.split(',')[0].trim().replace(/^['"]|['"]$/g, '');
-    return primary || 'sans-serif';
-}
-
-/** 
- * Transform text according to text-transform style (uppercase, etc.) 
- */
-function getTransformedTextContent(element, transformStyle) {
-    const txt = element?.textContent || '';
-    switch ((transformStyle || '').toLowerCase()) {
-        case 'uppercase': return txt.toUpperCase();
-        case 'lowercase': return txt.toLowerCase();
-        case 'capitalize': return txt.replace(/\b\w/g, c => c.toUpperCase());
-        default: return txt;
-    }
-}
-
-/**
- * Detect the background "type" by checking classes or computed style 
- */
-function extractBackgroundType(element) {
-    if (!element) return 'bg-solid';
-    const classList = Array.from(element.classList);
-    const bgClass = classList.find(cls => cls.startsWith('bg-'));
-    if (bgClass) return bgClass;
-
-    const computedStyle = window.getComputedStyle(element);
-    const bgImage = computedStyle.backgroundImage;
-    if (bgImage && bgImage.includes('gradient')) {
-        return 'bg-gradient';
-    } else if (bgImage && bgImage.includes('url(')) {
-        return 'bg-image';
-    }
-    return 'bg-solid';
-}
-
-/**
- * Extract gradient colors from either text or background computed style (with fallback to Settings).
- * @param {HTMLElement} element 
- * @param {boolean} isTextGradient 
- */
-function extractGradientColors(element, isTextGradient) {
-    const elementType = isTextGradient ? 'Text' : 'Background';
-    const currentSettings = window.SettingsManager?.getCurrentSettings?.();
-
-    // 1. Use Settings if available
-    if (currentSettings) {
-        if (isTextGradient && currentSettings.textColorMode === 'gradient') {
-            // check for custom
-            if (currentSettings.gradientPreset === 'custom' && currentSettings.color1 && currentSettings.color2) {
-                const colors = [currentSettings.color1, currentSettings.color2];
-                if (currentSettings.useColor3 && currentSettings.color3) colors.push(currentSettings.color3);
-                return colors.map(c => normalizeColor(c));
-            } 
-            else if (currentSettings.gradientPreset !== 'custom') {
-                // attempt to read from a CSS var
-                const presetVar = getRootCSSVariable(`--${currentSettings.gradientPreset}`);
-                if (presetVar) {
-                    const colorMatches = presetVar.match(/#[0-9a-f]{3,8}|rgba?\([^)]+\)/gi);
-                    if (colorMatches?.length) {
-                        return colorMatches.map(c => normalizeColor(c.trim()));
-                    }
-                }
-            }
-        } 
-        else if (!isTextGradient && currentSettings.backgroundType?.includes('gradient')) {
-            if (currentSettings.backgroundGradientPreset === 'custom' && currentSettings.bgColor1 && currentSettings.bgColor2) {
-                return [currentSettings.bgColor1, currentSettings.bgColor2].map(c => normalizeColor(c));
-            } 
-            else if (currentSettings.backgroundGradientPreset !== 'custom') {
-                const presetVar = getRootCSSVariable(`--${currentSettings.backgroundGradientPreset}`);
-                if (presetVar) {
-                    const colorMatches = presetVar.match(/#[0-9a-f]{3,8}|rgba?\([^)]+\)/gi);
-                    if (colorMatches?.length) {
-                        return colorMatches.map(c => normalizeColor(c.trim()));
-                    }
-                }
-            }
-        }
-    }
-
-    // 2. Fallback: parse computed style
-    const computedStyle = window.getComputedStyle(element);
-    const bgImage = computedStyle.backgroundImage;
-    if (!bgImage || !bgImage.includes('gradient')) return [];
-
-    const colorRegex = /#[0-9a-f]{3,8}|rgba?\(\s*\d[\d.,\s%]+\)/gi;
-    const matches = bgImage.match(colorRegex) || [];
-    return matches.map(c => normalizeColor(c.trim()));
-}
-
-/**
- * Extract gradient angle/direction from backgroundImage or from Settings
- */
-function extractGradientAngle(backgroundImage, isTextGradient) {
-    const defaultAngle = '180deg';
-    const currentSettings = window.SettingsManager?.getCurrentSettings?.();
-
-    if (isTextGradient && currentSettings?.animationDirection !== undefined) {
-        return `${currentSettings.animationDirection}deg`;
-    } 
-    else if (!isTextGradient && currentSettings?.bgGradientDirection !== undefined) {
-        return `${currentSettings.bgGradientDirection}deg`;
-    }
-
-    // parse from the backgroundImage string
-    if (backgroundImage && backgroundImage.includes('gradient')) {
-        const match = backgroundImage.match(/linear-gradient\(\s*([^,]+),/i);
-        if (match && match[1]) {
-            const directionPart = match[1].trim();
-            if (directionPart.startsWith('to ') || directionPart.endsWith('deg') || directionPart.endsWith('turn')) {
-                return directionPart.endsWith('deg') ? directionPart : `${parseFloat(directionPart)}deg`;
-            }
-        }
-    }
-
-    // fallback to a relevant CSS var
-    const varName = isTextGradient ? '--gradient-direction' : '--bg-gradient-direction';
-    const varValue = getRootCSSVariable(varName);
-    if (varValue) return varValue;
-
-    return defaultAngle; 
-}
-
-/**
- * Attempt to detect the border style/effect from classes or computed style
- */
-function detectBorderStyle(element) {
-    if (!element) return null;
-    const borderClasses = Array.from(element.classList).filter(cls =>
-        (cls.startsWith('border-') && cls !== 'border-none') ||
-        (cls.startsWith('border-style-') && cls !== 'border-style-none') ||
-        (cls.startsWith('border-effect-') && cls !== 'border-effect-none')
-    );
-
-    const knownMap = {
-        // Basic
-        'border-solid': 'solid', 'border-dashed': 'dashed', 'border-dotted': 'dotted',
-        'border-double': 'double', 'border-groove': 'groove', 'border-ridge': 'ridge',
-        'border-inset': 'inset', 'border-outset': 'outset', 'border-pixel': 'pixel',
-        'border-thick': 'thick',
-
-        // "border-style-xxx" or "border-effect-xxx"
-        'border-style-none': null, 'border-style-solid': 'solid', 'border-style-dashed': 'dashed',
-        'border-style-dotted': 'dotted', 'border-style-double': 'double',
-        'border-style-groove': 'groove','border-style-ridge': 'ridge',
-        'border-style-inset': 'inset','border-style-outset': 'outset',
-        'border-style-pixel': 'pixel','border-style-thick': 'thick',
-
-        // Effects
-        'border-glow': 'glow','border-neon': 'neon','border-pulse': 'pulse','border-gradient': 'gradient',
-        'border-effect-glow-soft': 'glow','border-effect-glow-strong': 'glow-strong',
-        'border-effect-glow-pulse': 'pulse','border-effect-neon-animated': 'neon',
-        'border-effect-gradient-animated': 'gradient',
-
-        // multi-layer, corners, etc. => We map them to "solid" for basic.
-        'border-style-multi-layer': 'solid',
-        'border-style-image-dots': 'solid',
-        'border-style-image-zigzag': 'solid',
-        'border-style-corners-cut': 'solid',
-        'border-style-corners-rounded-different': 'solid',
-        'border-effect-marching-ants': 'dashed',
-        'border-effect-rotating-dash': 'dashed',
-        'border-effect-double-glow': 'solid'
-    };
-
-    let detectedStyle = null;
-    let isGlow = false;
-    let glowColor = null;
-
-    // Check class
-    for (const cls of borderClasses) {
-        if (knownMap[cls] !== undefined) {
-            detectedStyle = knownMap[cls];
-            // Possibly check if it's glow
-            if (cls.includes('glow') || cls.includes('neon') || cls.includes('pulse') || cls.includes('gradient')) {
-                isGlow = true;
-            }
-            break;
-        }
-        // check prefix
-        const prefixStr = cls.replace(/^border-(style|effect)-/, '').replace(/^border-/, '');
-        if (knownMap[prefixStr] !== undefined) {
-            detectedStyle = knownMap[prefixStr];
-            if (prefixStr.includes('glow') || prefixStr.includes('neon') || prefixStr.includes('pulse') || prefixStr.includes('gradient')) {
-                isGlow = true;
-            }
-            break;
-        }
-    }
-
-    // If no class-based style found, fallback to computed style
-    if (!detectedStyle) {
-        const cs = window.getComputedStyle(element);
-        const cStyle = cs.borderStyle;
-        const cWidth = parseFloat(cs.borderWidth);
-        if (cStyle && cStyle !== 'none' && cWidth > 0) {
-            detectedStyle = cStyle.toLowerCase();
-        }
-    }
-
-    if (detectedStyle) {
-        // If it is a glow-type
-        if (isGlow) {
-            const rootStyle = getComputedStyle(document.documentElement);
-            glowColor = rootStyle.getPropertyValue('--dynamic-border-color').trim() || '#ffffff';
-        }
-        return { style: detectedStyle, isGlow, glowColor };
-    }
-    return null;
-}
-
-/**
- * Attempt to find & return base64 font embed data for the requested family, weight, style
- */
-function getFontEmbedData(familyName, targetWeight='400', targetStyle='normal') {
-    if (!familyName || typeof window.getFontDataByName !== 'function') {
-        return null;
-    }
-    try {
-        const fontData = window.getFontDataByName(familyName);
-        if (!fontData?.variants?.length) return null;
-
-        const wStr = String(targetWeight);
-        const stStr = targetStyle.toLowerCase();
-
-        // filter to data: URIs only
-        const candidates = fontData.variants.filter(v => v.file?.startsWith('data:'));
-        if (candidates.length === 0) return null;
-
-        // attempt best match
-        let best = candidates.find(v => String(v.weight)===wStr && String(v.style||'normal').toLowerCase()===stStr)
-                || candidates.find(v => String(v.weight)===wStr && String(v.style||'normal').toLowerCase()==='normal')
-                || candidates.find(v => String(v.weight)==='400' && String(v.style||'normal').toLowerCase()==='normal')
-                || candidates[0];
-        if (best) {
-            const formatMatch = best.file.match(/^data:font\/([\w+-]+);/);
-            const format = formatMatch ? formatMatch[1] : (best.format || 'woff2');
-            return {
-                file: best.file,
-                format,
-                weight: best.weight || 400,
-                style: best.style || 'normal'
-            };
-        }
-        return null;
-    } catch (e) {
-        console.error(`[CaptureStyles] Error retrieving font embed for '${familyName}':`, e);
-        return null;
-    }
-}
-
-/**
- * Based on an effect class or textShadow, build a standardized textEffect object for possible SVG filter usage.
- */
-function getEffectDetails(effectClass, textShadowCss, effectColor) {
-    const details = {
-        type: null,
-        color: normalizeColor(effectColor || '#ffffff'),
-        blur: 0,
-        dx: 0,
-        dy: 0,
-        opacity: 0.75,
-        filterId: 'svgTextEffect'
-    };
-
-    let effectFound = false;
-
-    // 1. If we have an effect class
-    if (effectClass && effectClass !== 'text-glow-none' && effectClass !== 'text-shadow-none' && effectClass !== 'text-effect-none') {
-        const isLegacy = effectClass.startsWith('text-glow-') || effectClass.startsWith('text-shadow-');
-        const effectType = isLegacy
-            ? (effectClass.startsWith('text-glow-') ? 'glow' : 'shadow')
-            : effectClass.replace(/^text-effect-/, '').split('-')[0];
-
-        const effectSubtype = isLegacy
-            ? effectClass.replace(/^text-(glow|shadow)-/, '')
-            : effectClass.replace(/^text-effect-[^-]+-/, '');
-
-        if (effectType === 'glow') {
-            effectFound = true;
-            details.type = 'glow';
-            details.opacity = 0.85;
-
-            if (effectSubtype.includes('soft')) details.blur = 5;
-            else if (effectSubtype.includes('medium')) details.blur = 8;
-            else if (effectSubtype.includes('strong')) details.blur = 12;
-            else if (effectSubtype.includes('sharp')) { details.blur = 1; details.opacity = 1; }
-            else if (effectSubtype.includes('neon')) { details.blur = 10; details.opacity = 0.9; }
-            else { details.blur = 3; } // default
-        } 
-        else if (effectType === 'shadow') {
-            effectFound = true;
-            details.type = 'shadow';
-            details.opacity = 0.6;
-
-            if (effectSubtype.includes('soft')) { details.blur = 5; details.dx=2; details.dy=2; }
-            else if (effectSubtype.includes('medium')) { details.blur=8; details.dx=3; details.dy=3; }
-            else if (effectSubtype.includes('hard')) { details.blur=0; details.dx=2; details.dy=2; details.opacity=0.8; }
-            else if (effectSubtype.includes('outline')) {
-                return null; // Outline is better handled as stroke
-            }
-            else if (effectSubtype.includes('emboss') || effectSubtype.includes('inset')) {
-                details.blur=1; 
-                details.dx = effectSubtype.includes('inset') ? -1 : 1;
-                details.dy = effectSubtype.includes('inset') ? -1 : 1;
-                details.color='rgba(0,0,0,0.6)';
-            }
-            else { details.blur=3; details.dx=1; details.dy=1; }
-        }
-
-        if (effectFound) return details;
-    }
-
-    // 2. If there's a textShadow in CSS
-    if (textShadowCss && textShadowCss !== 'none') {
-        // parse only the first shadow
-        const shadowRegex = /^\s*(?:(#[0-9a-f]{3,8}|rgba?\([\d.\s%,\/]+\))\s+)?(-?\d+(?:\.\d+)?(?:px|em|rem)?)\s+(-?\d+(?:\.\d+)?(?:px|em|rem)?)(?:\s+(-?\d+(?:\.\d+)?(?:px|em|rem)?))?/;
-        const match = textShadowCss.match(shadowRegex);
-        if (match) {
-            const parsedColor = match[1] ? normalizeColor(match[1]) : '#000';
-            const dx = parseFloat(match[2]) || 0;
-            const dy = parseFloat(match[3]) || 0;
-            const blur = parseFloat(match[4]) || 0;
-
-            details.dx = dx; 
-            details.dy = dy;
-            details.blur = Math.max(0, blur);
-            details.type = blur>0 ? 'glow':'shadow';
-            details.color = parsedColor;
-            details.opacity = 1.0; // assume
-
-            if (details.color.startsWith('rgba')) {
-                try {
-                    const alpha = parseFloat(details.color.split(',')[3]);
-                    if (!isNaN(alpha)) details.opacity=alpha;
-                } catch {}
-            }
-            details.opacity = Math.max(0, Math.min(1, details.opacity));
-            return details;
-        }
-    }
-    return null;
-}
-
-/**
- * Extract or generate the CSS @keyframes rule for a named animation.
- */
-function extractKeyframesCSS(animationName) {
-    if (!animationName || typeof animationName !== 'string') return null;
-
-    // 1. Try a global function
-    if (typeof window.getActiveAnimationKeyframes === 'function') {
-        try {
-            const fromWin = window.getActiveAnimationKeyframes(animationName);
-            if (fromWin) return fromWin;
-        } catch {}
-    }
-
-    // 2. Attempt to parse stylesheets
-    try {
-        for (const sheet of document.styleSheets) {
-            if (sheet.disabled) continue;
-            let rules;
-            try { rules = sheet.cssRules || sheet.rules; }
-            catch { continue; }
-            if (!rules) continue;
-
-            for (const rule of rules) {
-                // KEYFRAMES_RULE typically is .type===7 in many browsers
-                const isKfRule = (CSSRule.KEYFRAMES_RULE && rule.type===CSSRule.KEYFRAMES_RULE) || rule.type===7;
-                if (isKfRule && rule.name === animationName) {
-                    return rule.cssText;
-                }
-            }
-        }
-    } catch {}
-
-    // 3. Hardcoded fallback keyframes if known
-    const FALLBACK_KEYFRAMES = {
-        pulse: `@keyframes pulse { 0%,100% { transform: scale(1); opacity:1;} 50% { transform: scale(1.08);opacity:0.9;} }`,
-        bounce: `@keyframes bounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-15px); } }`,
-        shake: `@keyframes shake { 0%,100%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-4px) rotate(-0.5deg)} 20%,40%,60%,80%{transform:translateX(4px) rotate(0.5deg)} }`,
-        float: `@keyframes float { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-15px) rotate(1deg)} }`,
-        rotate: `@keyframes rotate { 0%{transform:rotate(0deg)}100%{transform:rotate(360deg)} }`,
-        wave: `@keyframes wave { 0%,100%{transform:skewX(0) skewY(0)} 25%{transform:skewX(5deg) skewY(1deg)} 75%{transform:skewX(-5deg) skewY(-1deg)} }`,
-        glitch: `@keyframes glitch { 0%,100%{clip-path:inset(50% 0 30% 0);transform:translate(-4px,1px) scaleY(1.02)}... }`, // truncated example
-        fade: `@keyframes fadeInOut { 0%,100%{opacity:0.3}50%{opacity:1} }`
-        // etc. Add more as needed
-    };
-
-    if (FALLBACK_KEYFRAMES[animationName]) {
-        // rename the keyframes block to match exactly
-        return FALLBACK_KEYFRAMES[animationName].replace(/@keyframes\s+\w+/, `@keyframes ${animationName}`);
-    }
-
-    return null;
-}
-
-/* 
-   If using ES modules, the "export" above is enough. 
-   If you want it on window as well, do: 
-       window.captureAdvancedStyles = captureAdvancedStyles;
-*/
-
-/**
- * Utility to ensure color is in a consistent string format, e.g. #rrggbb or rgba().
- * If your environment has a better function, use that instead.
- */
-const normalizeColor = (color, context = 'color') => {
-    if (typeof window.normalizeColor === 'function') {
-        return window.normalizeColor(color, context);
-    } else {
-        console.warn(`[normalizeColor] window.normalizeColor function not found! Using fallback for color: ${color}`);
-        // Extremely basic fallback, ideally cssUtils.js should always load first
-        return typeof color === 'string' ? color.trim() : '#000000';
-    }
-};

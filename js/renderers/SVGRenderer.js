@@ -660,222 +660,274 @@ function syncExportSettings() {
         console.warn('[SVGRenderer] Could not sync settings from main UI elements.', err);
     }
 }
+// Inside js/renderers/SVGRenderer.js
 
 /** Updates the SVG preview image and metadata in the modal */
 async function updatePreview() {
-    // Abort if not ready or modal not visible
-    if (!isInitialized || !modalElement || !modalElement.classList.contains('active')) {
-        console.log("[SVGRenderer updatePreview] Aborting: Not initialized or modal not visible.");
-        return;
-    }
-     // Check required elements for preview
-     if (!previewImage || !loadingIndicator || !metadataInfoDiv || !widthInput || !heightInput || !transparentCheckbox) {
-         console.error("[SVGRenderer updatePreview] Aborting: Required elements for preview missing.");
-         showLoading(true, "Preview Error: UI elements missing.");
-         return;
-     }
+  // Abort if not ready or modal not visible
+  if (!isInitialized || !modalElement || !modalElement.classList.contains('active')) {
+      console.log("[SVGRenderer updatePreview] Aborting: Not initialized or modal not visible.");
+      return;
+  }
+   // Check required elements for preview
+   if (!previewImage || !loadingIndicator || !metadataInfoDiv || !widthInput || !heightInput || !transparentCheckbox) {
+      console.error("[SVGRenderer updatePreview] Aborting: Required elements for preview missing.");
+      showLoading(true, "Preview Error: UI elements missing.");
+      return;
+   }
 
-    const w = parseInt(widthInput.value, 10) || 800;
-    const h = parseInt(heightInput.value, 10) || 400;
-    const transparent = transparentCheckbox.checked;
+  const w = parseInt(widthInput.value, 10) || 800;
+  const h = parseInt(heightInput.value, 10) || 400;
+  const transparent = transparentCheckbox.checked;
 
-    console.log(`[SVGRenderer] Updating preview (Size: ${w}x${h}, Transparent: ${transparent})`);
-    showLoading(true, "Generating SVG preview...");
-    previewImage.style.display = 'none';
-    previewImage.removeAttribute('src');
-    // Reset metadata display while loading
-    metadataInfoDiv.innerHTML = '<h4>SVG Export Details</h4><ul><li>Generating preview...</li></ul>';
+  console.log(`[SVGRenderer] Updating preview (Size: ${w}x${h}, Transparent: ${transparent})`);
+  // Show loading immediately
+  showLoading(true, "Capturing styles...");
+  previewImage.style.display = 'none';
+  previewImage.removeAttribute('src');
+  metadataInfoDiv.innerHTML = '<h4>SVG Export Details</h4><ul><li>Capturing styles...</li></ul>';
 
-    try {
-        // Use generateConsistentPreview to get SVG data URL
-        const result = await generateConsistentPreview(
-            { width: w, height: h, transparentBackground: transparent },
-            previewImage,
-            loadingIndicator, // Pass loading indicator reference
-            'svg' // Specify SVG type for preview
-        );
+  let capturedStyles = null; // Variable to hold the styles
 
-        if (!result || !result.dataUrl) {
-            throw new Error("Preview generation failed to return a data URL.");
-        }
+  try {
+      // --- REMOVED: Wait for event logic ---
 
-        // generateConsistentPreview should handle showing the image and hiding the loader on success.
-        // If it doesn't, manual handling would be needed here based on result.
-        console.log("[SVGRenderer] Preview generated successfully.");
+      // --- CAPTURE STYLES DIRECTLY ---
+      // Assumes this function is called *after* SettingsManager's apply cycle completes
+      // (triggered by the event listener or initial openModal timeout)
+      console.log("[SVGRenderer updatePreview] Calling captureAdvancedStyles...");
+      capturedStyles = await captureAdvancedStyles();
 
-        // Update the metadata panel *after* successful preview generation
-        showMetadata();
+      if (!capturedStyles) {
+          throw new Error("Failed to capture styles.");
+      }
+      console.log("[SVGRenderer updatePreview] Styles captured. Font:", capturedStyles.font?.family);
 
-    } catch (err) {
-        console.error("[SVGRenderer] updatePreview error:", err);
-        showLoading(true, `Preview Failed: ${err.message}`); // Show error in loader
-        metadataInfoDiv.innerHTML = `<h4>SVG Export Details</h4><ul><li>Preview failed: ${err.message}</li></ul>`;
-        previewImage.style.display = 'none';
-        previewImage.alt = 'Preview Failed';
-    }
+      showLoading(true, "Generating SVG preview..."); // Update message again
+
+      // Pass styles to preview generation
+      const result = await generateConsistentPreview(
+          {
+              width: w,
+              height: h,
+              transparentBackground: transparent,
+              preCapturedStyles: capturedStyles // Pass the captured styles
+          },
+          previewImage,
+          loadingIndicator,
+          'svg'
+      );
+
+      if (!result || !result.dataUrl) {
+          throw new Error("Preview generation failed to return a data URL.");
+      }
+
+      console.log("[SVGRenderer] Preview generation complete (blob/dataUrl created). Image loading initiated by generateConsistentPreview.");
+      // NOTE: The image loading (onload/onerror) is now handled within generateConsistentPreview
+
+      // Update metadata using the successfully captured styles
+      console.log("[SVGRenderer updatePreview] Calling showMetadata...");
+      await showMetadata(capturedStyles); // Pass the captured styles
+      console.log("[SVGRenderer updatePreview] showMetadata finished.");
+
+  } catch (err) {
+      console.error("[SVGRenderer] updatePreview error:", err);
+      showLoading(true, `Preview Failed: ${err.message}`);
+      metadataInfoDiv.innerHTML = `<h4>SVG Export Details</h4><ul><li>Preview failed: ${err.message}</li></ul>`;
+      previewImage.style.display = 'none';
+      previewImage.alt = 'Preview Failed';
+      // Attempt to show metadata even if preview failed
+      if (capturedStyles) {
+          try {
+               await showMetadata(capturedStyles);
+          } catch (metaErr) {
+               console.error("[SVGRenderer] Error showing metadata after preview failure:", metaErr);
+          }
+      }
+  }
+  // Note: Loading indicator is hidden by generateConsistentPreview's img.onload typically
 }
 
-/** Gathers style/animation info and displays it in the metadata panel */
-function showMetadata() {
-    if (!metadataInfoDiv || !transparentCheckbox) {
-         console.warn("[SVGRenderer showMetadata] Metadata div or transparency checkbox missing.");
-         return; // Cannot display metadata
+
+async function showMetadata(styles) {
+  if (!metadataInfoDiv || !transparentCheckbox) {
+    console.warn('[SVGRenderer showMetadata] Required elements missing.');
+    return;
+  }
+  
+  metadataInfoDiv.innerHTML = '<h4>SVG Export Details</h4><ul><li>Loading details...</li></ul>';
+
+  try {
+    // Extract animation details
+    const anim = typeof extractSVGAnimationDetails === 'function' ? extractSVGAnimationDetails() : {};
+    
+    // Build HTML info content
+    let html = '<h4>SVG Export Details</h4><ul>';
+    
+    // Font info
+    if (styles?.font) {
+      html += `<li><strong>Font:</strong> ${styles.font.family || 'Unknown'}, ${styles.font.weight || '400'}, ${styles.font.style || 'normal'}, ${styles.font.size || '100px'}</li>`;
+      html += `<li><strong>Letter Spacing:</strong> ${styles.font.letterSpacing || 'normal'}</li>`;
     }
-
-    // Clear previous content and show loading state
-    metadataInfoDiv.innerHTML = '<h4>SVG Export Details</h4><ul><li>Loading details...</li></ul>';
-
-    try {
-        // Check if dependent functions exist
-        if (typeof captureAdvancedStyles !== 'function') {
-            throw new Error("captureAdvancedStyles function is not available.");
-        }
-         if (typeof extractSVGAnimationDetails !== 'function') {
-            console.warn("[SVGRenderer] extractSVGAnimationDetails function not available. Skipping animation info.");
-            // Continue without animation details if function missing
-        }
-
-        // Capture styles (can throw if elements not found)
-        const styles = captureAdvancedStyles(); // Assumes this targets the correct elements
-        if (!styles) {
-             // This might happen if #logoText or similar isn't found by captureAdvancedStyles
-             console.warn("[SVGRenderer showMetadata] captureAdvancedStyles returned null or undefined.");
-             metadataInfoDiv.innerHTML = `<h4>SVG Export Details</h4><ul><li>Could not retrieve style details.</li></ul>`;
-             return;
-        }
-
-
-        // Extract animation details (optional)
-        const anim = typeof extractSVGAnimationDetails === 'function' ? extractSVGAnimationDetails() : {};
-
-        let html = '<h4>SVG Export Details</h4><ul>';
-
-        // --- Display gathered info ---
-
-        // Font
-        const fontFam = styles.font?.family?.split(',')[0].replace(/['"]/g, '').trim() || 'Default';
-        const fontWt = styles.font?.weight || 'N/A';
-        const fontSty = styles.font?.style || 'N/A';
-        html += `<li>Font: <code>${fontFam}</code> (Weight: ${fontWt}, Style: ${fontSty})</li>`;
-
-        // Color
-        const colorMode = styles.color?.mode || 'Solid';
-        if (colorMode.toLowerCase() === 'gradient' && styles.color?.gradient?.colors?.length) {
-            const gradColors = styles.color.gradient.colors.map(c => `<code>${c}</code>`).join(', ');
-            html += `<li>Text Color: Gradient → ${gradColors}</li>`;
-        } else {
-            html += `<li>Text Color: <code>${styles.color?.value || 'N/A'}</code></li>`;
-        }
-
-        // Border
-        if (styles.border?.style && styles.border.style !== 'none') {
-            html += `<li>Border: ${styles.border.style} (Width: <code>${styles.border.width || 'N/A'}</code>)</li>`;
-        } else {
-            html += `<li>Border: None</li>`;
-        }
-
-        // Background
-        const isTransparent = transparentCheckbox.checked;
-        html += `<li>Background: ${isTransparent ? 'Transparent' : (styles.background?.type || 'Solid Fill')}</li>`;
-
-        // Animation (Check both sources: extracted details and potentially basic style info)
-        const animName = anim?.name || styles.animation?.type || 'None';
-        html += `<li>Animation: <code>${animName}</code>`;
-        if (anim?.duration) {
-            html += ` (Duration: ${anim.duration})`;
-        } else if (styles.animation?.duration) {
-            html += ` (Duration: ${styles.animation.duration})`;
-        }
-        html += `</li>`;
-
-        // Add more details as needed (e.g., text effects, transforms)
-
-        html += '</ul>';
-        metadataInfoDiv.innerHTML = html;
-
-    } catch (err) {
-        console.error("[SVGRenderer] showMetadata error:", err);
-        metadataInfoDiv.innerHTML = `<h4>SVG Export Details</h4><ul><li style="color: var(--error-text, red);">Metadata Error: ${err.message}</li></ul>`;
+    
+    // Text content info
+    if (styles?.textContent) {
+      html += `<li><strong>Text:</strong> "${styles.textContent.transformedText || styles.textContent.finalText || 'Logo'}"</li>`;
+      html += `<li><strong>Transform:</strong> ${styles.textContent.transform || 'none'}</li>`;
     }
+    
+    // Text alignment - IMPORTANT: This needs to show the actual alignment being used
+    html += `<li><strong>Text Alignment:</strong> ${styles.textAlign || 'center'} (maps to SVG <code>text-anchor="${styles.textAlign === 'left' ? 'start' : (styles.textAlign === 'right' ? 'end' : 'middle')}"</code>)</li>`;
+    
+    // Color mode
+    if (styles?.color) {
+      if (styles.color.mode === 'gradient') {
+        html += `<li><strong>Text Color:</strong> Gradient (${styles.color.gradient?.colors?.length || 0} colors)</li>`;
+      } else {
+        html += `<li><strong>Text Color:</strong> Solid (${styles.color.value || '#ffffff'})</li>`;
+      }
+      html += `<li><strong>Text Opacity:</strong> ${styles.opacity || '1'}</li>`;
+    }
+    
+    // Effects and decoration
+    if (styles?.textEffect) {
+      html += `<li><strong>Text Effect:</strong> ${styles.textEffect.type || 'none'}</li>`;
+    }
+    if (styles?.textStroke) {
+      html += `<li><strong>Text Stroke:</strong> ${styles.textStroke.width || '0'}px ${styles.textStroke.color || 'none'}</li>`;
+    }
+    
+    // Background
+    if (styles?.background) {
+      const bgType = styles.background.type || 'bg-solid';
+      if (bgType === 'bg-solid') {
+        html += `<li><strong>Background:</strong> Solid (${styles.background.color || 'transparent'})</li>`;
+      } else if (bgType.includes('gradient')) {
+        html += `<li><strong>Background:</strong> Gradient (${bgType})</li>`;
+      } else if (bgType === 'bg-transparent') {
+        html += `<li><strong>Background:</strong> Transparent</li>`;
+      } else {
+        html += `<li><strong>Background:</strong> ${bgType}</li>`;
+      }
+      html += `<li><strong>Bg Opacity:</strong> ${styles.background.opacity || '1'}</li>`;
+    }
+    
+    // Animation
+    if (anim && anim.name && anim.name !== 'none') {
+      html += `<li><strong>Animation:</strong> ${anim.name}, ${anim.duration}, ${anim.iterationCount}</li>`;
+    } else {
+      html += `<li><strong>Animation:</strong> None</li>`;
+    }
+    
+    // Border
+    if (styles?.border) {
+      html += `<li><strong>Border:</strong> ${styles.border.width || '0'}px ${styles.border.style || 'none'}</li>`;
+      html += `<li><strong>Border Radius:</strong> ${styles.borderRadius || '0px'}</li>`;
+    }
+    
+    // Export settings
+    html += `<li><strong>Size:</strong> ${widthInput.value || '800'}x${heightInput.value || '400'} px</li>`;
+    html += `<li><strong>Background:</strong> ${transparentCheckbox.checked ? 'Transparent' : 'Opaque'}</li>`;
+    
+    html += '</ul>';
+    metadataInfoDiv.innerHTML = html;
+    
+    console.log("[SVGRenderer showMetadata] Metadata updated successfully");
+  } catch (err) {
+    console.error("[SVGRenderer] showMetadata error:", err);
+    metadataInfoDiv.innerHTML = `<h4>SVG Export Details</h4><ul><li style="color: var(--error-text, red);">Metadata Error: ${err.message}</li></ul>`;
+  }
 }
 
 
 /** Handles the final SVG export process */
+/** Handles the final SVG export process */
 async function doExport() {
-     if (!isInitialized || !modalElement) return;
+  if (!isInitialized || !modalElement) return;
+  if (!exportBtn || !loadingIndicator || !widthInput || !heightInput || !transparentCheckbox) {
+      console.error("[SVGRenderer doExport] Required elements missing for export.");
+      if (typeof showAlert === 'function') showAlert('Export failed: UI elements missing.', 'error');
+      return;
+  }
 
-     if (!exportBtn || !loadingIndicator || !widthInput || !heightInput || !transparentCheckbox) {
-          console.error("[SVGRenderer doExport] Required elements missing for export.");
-          if (typeof showAlert === 'function') showAlert('Export failed: UI elements missing.', 'error');
-          return;
-     }
+  exportBtn.disabled = true;
+  exportBtn.textContent = 'Exporting...';
+  // Show loading immediately
+  showLoading(true, 'Capturing styles for export...');
 
-    exportBtn.disabled = true;
-    exportBtn.textContent = 'Exporting...';
-    showLoading(true, 'Generating final SVG...');
+  const w = parseInt(widthInput.value, 10) || 800;
+  const h = parseInt(heightInput.value, 10) || 400;
+  const transparent = transparentCheckbox.checked;
+  let exportSuccess = false;
+  let stylesForExport = null;
 
-    const w = parseInt(widthInput.value, 10) || 800;
-    const h = parseInt(heightInput.value, 10) || 400;
-    const transparent = transparentCheckbox.checked;
-    let exportSuccess = false;
+  console.log(`[SVGRenderer] Starting export action (Size: ${w}x${h}, Transparent: ${transparent})`);
 
-    console.log(`[SVGRenderer] Starting export (Size: ${w}x${h}, Transparent: ${transparent})`);
+  try {
+      // --- REMOVED: Wait for event logic ---
 
-    try {
-        const blob = await generateSVGBlob({
-            width: w,
-            height: h,
-            transparentBackground: transparent
-            // Add any other options needed by generateSVGBlob (like embedding fonts, etc.)
-        });
+      // --- CAPTURE STYLES DIRECTLY ---
+      // Assumes the current state is the desired state when user clicks Export
+      console.log("[SVGRenderer doExport] Calling captureAdvancedStyles...");
+      stylesForExport = await captureAdvancedStyles();
 
-        if (!blob) {
-            throw new Error("SVG Blob generation failed.");
-        }
+      if (!stylesForExport || !stylesForExport.font) {
+           console.error("[SVGRenderer doExport] CRITICAL: Failed to capture valid styles before final export!", stylesForExport);
+           throw new Error("Failed to capture styles for export.");
+      }
+      console.log("[SVGRenderer doExport] Styles captured successfully for export. Font:", stylesForExport.font?.family);
 
-        // Build filename
-        let baseName = 'logo';
-        if (typeof window.Utils?.getLogoFilenameBase === 'function') {
-             baseName = window.Utils.getLogoFilenameBase() || baseName;
-        }
-        const filename = `${baseName}_${w}x${h}.svg`;
+      showLoading(true, 'Generating final SVG...'); // Update message
 
-        // Trigger download
-        if (typeof window.Utils?.downloadBlob === 'function') {
-            window.Utils.downloadBlob(blob, filename);
-             console.log(`[SVGRenderer] Initiated download for ${filename} via Utils.downloadBlob`);
-        } else { // Fallback
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 100); // Cleanup
-            console.log(`[SVGRenderer] Initiated download for ${filename} via fallback`);
-        }
+      console.log("[SVGRenderer doExport] Calling generateSVGBlob with preCapturedStyles...");
+      const blob = await generateSVGBlob({
+          width: w,
+          height: h,
+          transparentBackground: transparent,
+          preCapturedStyles: stylesForExport // Pass the captured styles
+      });
+      console.log("[SVGRenderer doExport] generateSVGBlob call completed.");
 
-        if (typeof showToast === 'function') {
-            showToast({ message: `SVG exported: ${filename}`, type: 'success' });
-        }
-        exportSuccess = true;
-        closeModal(); // Close modal on success
+      if (!blob) {
+          throw new Error("SVG Blob generation failed (returned null/undefined).");
+      }
+      console.log("[SVGRenderer doExport] SVG Blob received successfully.");
 
-    } catch (err) {
-        console.error("[SVGRenderer] Export failed:", err);
-        showLoading(true, `Export Failed: ${err.message}`); // Show error in loader
-        if (typeof showAlert === 'function') {
-            showAlert(`SVG export failed: ${err.message}`, 'error');
-        }
-        // Keep modal open for feedback
-    } finally {
-        // Only re-enable button if export failed (modal stays open)
-         if (!exportSuccess) {
-             exportBtn.disabled = false;
-             exportBtn.textContent = 'Export SVG';
-         }
-    }
+      // ... (rest of filename generation, download logic) ...
+      let baseName = 'logo';
+      if (typeof window.Utils?.getLogoFilenameBase === 'function') {
+         baseName = window.Utils.getLogoFilenameBase() || baseName;
+      }
+      const filename = `${baseName}_${w}x${h}.svg`;
+
+      if (typeof window.Utils?.downloadBlob === 'function') {
+         window.Utils.downloadBlob(blob, filename);
+         console.log(`[SVGRenderer] Initiated download for ${filename} via Utils.downloadBlob`);
+      } else { /* ... fallback download ... */ }
+
+      exportSuccess = true;
+      if (typeof showToast === 'function') {
+           showToast({ message: `SVG exported: ${filename}`, type: 'success' });
+      }
+      closeModal(); // Close modal on success
+
+  } catch (err) {
+      console.error("[SVGRenderer] Export process failed:", err);
+      showLoading(true, `Export Failed: ${err.message}`);
+      if (typeof showAlert === 'function') {
+          showAlert(`SVG export failed: ${err.message}`, 'error');
+      }
+  } finally {
+      // Re-enable button only if export failed
+      if (!exportSuccess && exportBtn) {
+          exportBtn.disabled = false;
+          exportBtn.textContent = 'Export SVG';
+      }
+      // Ensure loading indicator is hidden if export fails and modal stays open
+      if (!exportSuccess && loadingIndicator && !loadingIndicator.textContent.includes("Failed")) {
+           showLoading(false);
+      }
+  }
 }
 
 
