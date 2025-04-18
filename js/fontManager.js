@@ -1,75 +1,52 @@
 /**
  * Enhanced Font Manager with Improved Caching, Loading Feedback, and Load All option
- * v2.1 - Added detailed logging to _injectFontFaceRules
+ * v2.2 - Hybrid Chunk Support (Chunks contain url + dataUrl)
+ * - Prefers URL for @font-face injection for performance.
+ * - Simplified getFontDataAsync (no merge needed).
  * Exports: initializeFonts, getFontDataAsync, getFontDataByName, preloadFontData, loadAllFonts, event names
  */
 
 // --- Module-level variables ---
-let _fontDataCache = null; // Complete data cache (inline/traditional)
-let _fontIndex = null; // Lightweight index (chunked mode)
-let _loadedFontChunks = new Map(); // Cache for loaded chunks [chunkId, fonts[]]
-let _isChunkedMode = false; // Operating mode flag
-let _pendingFontLoads = new Map(); // Tracks in-progress chunk loads [chunkId, Promise]
-let _injectedFontFaces = new Set(); // Tracks injected rules to prevent duplicates [familyName-weight-style]
-let _dynamicStyleSheet = null; // Reference to the dynamic <style> sheet
+let _fontDataCache = null; // Cache for inline mode OR fully loaded traditional mode
+let _fontIndex = null;
+let _loadedFontChunks = new Map();
+let _isChunkedMode = false;
+let _pendingFontLoads = new Map();
+let _injectedFontFaces = new Set();
+let _dynamicStyleSheet = null;
 
 // --- Constants ---
 const CACHE_PREFIX = 'logomaker_font_';
 const FONT_INDEX_CACHE_KEY = `${CACHE_PREFIX}index_v1`;
 const FONT_CHUNK_CACHE_PREFIX = `${CACHE_PREFIX}chunk_`;
 const FREQUENT_FONTS_CACHE_KEY = `${CACHE_PREFIX}frequent_v1`;
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL = 24 * 60 * 60 * 1000;
 const MAX_FREQUENT_FONTS = 10;
-const CHUNK_PATH = './font-chunks'; // Relative path to chunk dir
+const CHUNK_PATH = './font-chunks';
 const LOADING_STARTED_EVENT = 'logomaker:font-loading-started';
 const LOADING_COMPLETE_EVENT = 'logomaker:font-loading-complete';
 const LOADING_PROGRESS_EVENT = 'logomaker:font-loading-progress';
 const DYNAMIC_STYLE_ID = 'dynamic-font-style';
-const DEFAULT_FETCH_RETRIES = 2; // Reduced retries slightly
+const DEFAULT_FETCH_RETRIES = 2;
 const INITIAL_FETCH_RETRY_DELAY = 300;
-const ESSENTIAL_FONTS = ['Orbitron', 'Audiowide', 'Russo One', 'Press Start 2P', 'Arial']; // Fonts to preload
+const ESSENTIAL_FONTS = ['Orbitron', 'Audiowide', 'Russo One', 'Press Start 2P', 'Arial'];
 
 // --- IndexedDB Setup ---
-const DB_NAME = 'logomakerFontDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'fontCacheStore';
+const DB_NAME = 'logomakerFontDB'; const DB_VERSION = 1; const STORE_NAME = 'fontCacheStore';
 let dbPromise = null;
+function _openDB() { if(!dbPromise){dbPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onerror=e=>{console.error('[FontMan DB] Error:',e.target.error);reject(new Error('DB error'))};r.onsuccess=e=>{resolve(e.target.result)};r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:'key'})}})}return dbPromise }
+function _getDBStore(db, mode) { return db.transaction(STORE_NAME,mode).objectStore(STORE_NAME) }
+async function _saveToDBStore(key, value) { try{const db=await _openDB();const s=_getDBStore(db,'readwrite');const d={key,value,timestamp:Date.now()};const r=s.put(d);return new Promise((res,rej)=>{r.onsuccess=res;r.onerror=e=>{console.error(`DB Save Error ${key}:`,e.target.error);if(e.target.error?.name==='QuotaExceededError'){_cleanupDBStore(key).then(res).catch(rej)}else{rej(e.target.error)}}})}catch(e){console.error(`DB Save Fail ${key}:`,e)} }
+async function _loadFromDBStore(key) { try{const db=await _openDB();const s=_getDBStore(db,'readonly');const r=s.get(key);return new Promise(res=>{r.onsuccess=e=>{const d=e.target.result;if(d&&d.timestamp&&(Date.now()-d.timestamp<CACHE_TTL)){res(d.value)}else{if(d)_deleteFromDBStore(key).catch(()=>{});res(null)}};r.onerror=e=>{console.error(`DB Load Error ${key}:`,e.target.error);res(null)}})}catch(e){console.error(`DB Load Fail ${key}:`,e);return null} }
+async function _deleteFromDBStore(key) { try{const db=await _openDB();const s=_getDBStore(db,'readwrite');const r=s.delete(key);return new Promise((res,rej)=>{r.onsuccess=res;r.onerror=e=>{rej(e.target.error)}})}catch(e){} }
+async function _cleanupDBStore(keyToKeep) { console.warn('[FontMan DB] Running cache cleanup...'); let deletedCount = 0; try { const db = await _openDB(); const tx = db.transaction(STORE_NAME, 'readwrite'); const store = tx.objectStore(STORE_NAME); const req = store.openCursor(); return new Promise((resolve, reject) => { req.onsuccess = e => { const cursor = e.target.result; if (cursor) { const data = cursor.value; if (data.key !== keyToKeep && (!data.timestamp || (Date.now() - data.timestamp >= CACHE_TTL))) { cursor.delete(); deletedCount++; } cursor.continue(); } else { console.info(`[FontMan DB] Cleanup done. Deleted ${deletedCount} items.`); resolve(); } }; req.onerror = e => { reject(e.target.error); }; }); } catch (err) { console.error('[FontMan DB] Cleanup DB open error:', err); } }
 
-function _openDB() { /* ... Keep function code from previous full version ... */
-    if(!dbPromise){dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open(DB_NAME,DB_VERSION);request.onerror=event=>{console.error('[FontMan DB] DB error:',event.target.error);reject(new Error('IndexedDB error: '+event.target.error?.message))};request.onsuccess=event=>{console.info('[FontMan DB] DB opened successfully.');resolve(event.target.result)};request.onupgradeneeded=event=>{console.info('[FontMan DB] DB upgrade needed.');const db=event.target.result;if(!db.objectStoreNames.contains(STORE_NAME)){db.createObjectStore(STORE_NAME,{keyPath:'key'});console.info(`[FontMan DB] Store '${STORE_NAME}' created.`)}}})}return dbPromise;
-}
-function _getDBStore(db, mode) { /* ... Keep function code from previous full version ... */
-     const transaction=db.transaction(STORE_NAME,mode);return transaction.objectStore(STORE_NAME);
- }
-async function _saveToDBStore(key, value) { /* ... Keep function code from previous full version ... */
-    try{const db=await _openDB();const store=_getDBStore(db,'readwrite');const data={key:key,value:value,timestamp:Date.now()};const request=store.put(data);return new Promise((resolve,reject)=>{request.onsuccess=()=>{console.info(`[FontMan DB] Saved key: ${key}`);resolve()};request.onerror=event=>{console.error(`[FontMan DB] Error saving key ${key}:`,event.target.error);if(event.target.error?.name==='QuotaExceededError'){console.warn('[FontMan DB] Quota exceeded? Cleanup...');_cleanupDBStore(key).then(resolve).catch(reject)}else{reject(new Error('DB save error: '+event.target.error?.message))}}})}catch(error){console.error(`[FontMan DB] Failed DB open for save key ${key}:`,error)}
-}
-async function _loadFromDBStore(key) { /* ... Keep function code from previous full version ... */
-     try{const db=await _openDB();const store=_getDBStore(db,'readonly');const request=store.get(key);return new Promise((resolve,reject)=>{request.onsuccess=event=>{const data=event.target.result;if(data&&data.timestamp&&(Date.now()-data.timestamp<CACHE_TTL)){console.info(`[FontMan DB] Using cached data for ${key}`);resolve(data.value)}else{if(data){console.info(`[FontMan DB] Cache expired for ${key}`);_deleteFromDBStore(key).catch(e=>console.warn(`[FontMan DB] Failed delete expired ${key}:`,e))}resolve(null)}};request.onerror=event=>{console.error(`[FontMan DB] Error loading key ${key}:`,event.target.error);resolve(null)}})}catch(error){console.error(`[FontMan DB] Failed DB open for load key ${key}:`,error);return null}
- }
-async function _deleteFromDBStore(key) { /* ... Keep function code from previous full version ... */
-    try{const db=await _openDB();const store=_getDBStore(db,'readwrite');const request=store.delete(key);return new Promise((resolve,reject)=>{request.onsuccess=()=>{console.info(`[FontMan DB] Deleted key: ${key}`);resolve()};request.onerror=event=>{console.error(`[FontMan DB] Error deleting key ${key}:`,event.target.error);reject(new Error('DB delete error: '+event.target.error?.message))}})}catch(error){console.error(`[FontMan DB] Failed DB open for delete key ${key}:`,error)}
-}
-async function _cleanupDBStore(keyToKeep) { /* ... Keep function code from previous full version ... */
-     console.warn('[FontMan DB] Running cache cleanup...');let deletedCount=0;try{const db=await _openDB();const transaction=db.transaction(STORE_NAME,'readwrite');const store=transaction.objectStore(STORE_NAME);const request=store.openCursor();return new Promise((resolve,reject)=>{request.onsuccess=event=>{const cursor=event.target.result;if(cursor){const data=cursor.value;if(data.key!==keyToKeep&&(!data.timestamp||(Date.now()-data.timestamp>=CACHE_TTL))){console.info(`[FontMan DB] Cleaning key: ${data.key}`);cursor.delete();deletedCount++}cursor.continue()}else{console.info(`[FontMan DB] Cleanup done. Deleted ${deletedCount} items.`);resolve()}};request.onerror=event=>{console.error('[FontMan DB] Cursor cleanup error:',event.target.error);reject(event.target.error)}})}catch(error){console.error('[FontMan DB] Failed DB open for cleanup:',error)}
- }
-
-// --- localStorage Cache Helpers (for index and frequency) ---
-function _loadFromCache(key) { /* ... Keep function code from previous full version ... */
-     try{const cached=localStorage.getItem(key);if(cached){const data=JSON.parse(cached);if(data?.timestamp&&(Date.now()-data.timestamp<CACHE_TTL)){console.info(`[FontMan] Using localStorage cache for ${key}`);return data.value}else{console.info(`[FontMan] localStorage cache expired for ${key}`)}}}catch(e){console.warn(`[FontMan] localStorage load failed for ${key}:`,e)}return null;
- }
-function _saveToCache(key, value) { /* ... Keep function code from previous full version ... */
-    try{const data={timestamp:Date.now(),value:value};localStorage.setItem(key,JSON.stringify(data));console.info(`[FontMan] Saved to localStorage: ${key}`)}catch(e){console.warn(`[FontMan] localStorage save failed for ${key}:`,e);_cleanupOldCaches(key,value)}
-}
-function _cleanupOldCaches(keyToSave, valueToSave) { /* ... Keep function code from previous full version ... */
-     try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(CACHE_PREFIX)){try{const data=JSON.parse(localStorage.getItem(key));if(data?.timestamp&&(Date.now()-data.timestamp>=CACHE_TTL)){localStorage.removeItem(key);console.info(`[FontMan] Removed expired localStorage: ${key}`)}}catch(parseErr){localStorage.removeItem(key)}}}localStorage.setItem(keyToSave,JSON.stringify({timestamp:Date.now(),value:valueToSave}));console.info(`[FontMan] Saved to localStorage after cleanup: ${keyToSave}`)}catch(storageErr){console.warn(`[FontMan] Still cannot save localStorage, removing chunks:`,storageErr);const chunkCaches=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(FONT_CHUNK_CACHE_PREFIX)&&key!==keyToSave){try{const data=JSON.parse(localStorage.getItem(key));if(data?.timestamp){chunkCaches.push({key,timestamp:data.timestamp})}}catch(e){}}}chunkCaches.sort((a,b)=>a.timestamp-b.timestamp);for(const cache of chunkCaches){localStorage.removeItem(cache.key);console.info(`[FontMan] Removed old chunk localStorage: ${cache.key}`);try{localStorage.setItem(keyToSave,JSON.stringify({timestamp:Date.now(),value:valueToSave}));console.info(`[FontMan] Saved after removing chunk cache`);return}catch(e){console.warn(`[FontMan] Still not enough space...`)}}console.error(`[FontMan] Failed localStorage save after removing all chunks`)}
- }
-function _trackFontUsage(fontFamily) { /* ... Keep function code from previous full version ... */
-     if(!fontFamily)return;try{const frequentFonts=_loadFromCache(FREQUENT_FONTS_CACHE_KEY)||{};frequentFonts[fontFamily]=(frequentFonts[fontFamily]||0)+1;const fontEntries=Object.entries(frequentFonts);if(fontEntries.length>MAX_FREQUENT_FONTS){const mostFrequent=fontEntries.sort((a,b)=>b[1]-a[1]).slice(0,MAX_FREQUENT_FONTS);const prunedFrequent={};for(const[font,count]of mostFrequent){prunedFrequent[font]=count}_saveToCache(FREQUENT_FONTS_CACHE_KEY,prunedFrequent)}else{_saveToCache(FREQUENT_FONTS_CACHE_KEY,frequentFonts)}}catch(e){console.warn(`[FontMan] Failed track usage:`,e)}
- }
-function _getFrequentFonts() { /* ... Keep function code from previous full version ... */
-     try{const frequentFonts=_loadFromCache(FREQUENT_FONTS_CACHE_KEY)||{};return Object.entries(frequentFonts).sort((a,b)=>b[1]-a[1]).map(entry=>entry[0])}catch(e){console.warn(`[FontMan] Failed get frequent:`,e);return[]}
- }
+// --- localStorage Cache Helpers ---
+function _loadFromCache(key) { try{const c=localStorage.getItem(key);if(c){const d=JSON.parse(c);if(d?.timestamp&&(Date.now()-d.timestamp<CACHE_TTL))return d.value}}catch(e){} return null; }
+function _saveToCache(key, value) { try{localStorage.setItem(key,JSON.stringify({timestamp:Date.now(),value}))}catch(e){console.warn(`LS Save Fail ${key}:`,e);_cleanupOldCaches(key,value)} }
+function _cleanupOldCaches(keyToSave, valueToSave) { try { for (let i = localStorage.length - 1; i >= 0; i--) { const key = localStorage.key(i); if (key?.startsWith(CACHE_PREFIX)) { try { const data = JSON.parse(localStorage.getItem(key)); if (!data?.timestamp || (Date.now() - data.timestamp >= CACHE_TTL)) { localStorage.removeItem(key); } } catch (parseErr) { localStorage.removeItem(key); } } } localStorage.setItem(keyToSave, JSON.stringify({ timestamp: Date.now(), value: valueToSave })); } catch (storageErr) { console.error(`LS Cleanup/Save Fail ${keyToSave}:`, storageErr); } }
+function _trackFontUsage(fontFamily) { try { const freq = _loadFromCache(FREQUENT_FONTS_CACHE_KEY) || {}; freq[fontFamily] = (freq[fontFamily] || 0) + 1; const entries = Object.entries(freq); if (entries.length > MAX_FREQUENT_FONTS) { const pruned = Object.fromEntries(entries.sort((a, b) => b[1] - a[1]).slice(0, MAX_FREQUENT_FONTS)); _saveToCache(FREQUENT_FONTS_CACHE_KEY, pruned); } else { _saveToCache(FREQUENT_FONTS_CACHE_KEY, freq); } } catch (e) {} }
+function _getFrequentFonts() { try { const freq = _loadFromCache(FREQUENT_FONTS_CACHE_KEY) || {}; return Object.entries(freq).sort((a, b) => b[1] - a[1]).map(e => e[0]); } catch (e) { return []; } }
 
 // --- UI Update Functions ---
 /** @private Populates the font dropdown */
@@ -88,131 +65,79 @@ function _dispatchProgressEvent(percent, message) { /* ... Keep function code fr
 
 // --- Core Font Data Retrieval & Loading ---
 
-/** @private Loads font chunk JSON file with retry and caching */
-async function _loadFontChunk(chunkId) { /* ... Keep function code from previous full version ... */
-    if(_loadedFontChunks.has(chunkId)&&_loadedFontChunks.get(chunkId).length>0){console.info(`[FontMan] DEBUG: Using memory cache chunk '${chunkId}'.`);return _loadedFontChunks.get(chunkId)}const cacheKey=`${FONT_CHUNK_CACHE_PREFIX}${chunkId}_v1`;const cachedChunk=await _loadFromDBStore(cacheKey);if(cachedChunk){_loadedFontChunks.set(chunkId,cachedChunk);console.info(`[FontMan] Using IndexedDB cache chunk '${chunkId}'.`);return cachedChunk}console.info(`[FontMan] INFO: Loading font chunk: ${chunkId}.json`);const url=`${CHUNK_PATH}/${chunkId}.json`;try{const response=await _fetchWithRetry(url,{},DEFAULT_FETCH_RETRIES,INITIAL_FETCH_RETRY_DELAY);const chunkData=await response.json();const fontsInChunk=chunkData?.fonts||(Array.isArray(chunkData)?chunkData:null);if(!Array.isArray(fontsInChunk)){throw new Error(`Invalid data format in ${chunkId}.json`)}_loadedFontChunks.set(chunkId,fontsInChunk);await _saveToDBStore(cacheKey,fontsInChunk);console.info(`[FontMan] INFO: Loaded & cached chunk ${chunkId} to IndexedDB.`);return fontsInChunk}catch(err){console.error(`[FontMan] ERROR: Failed load/parse chunk ${chunkId} from ${url}:`,err);_loadedFontChunks.set(chunkId,[]);throw err}
+
+// --- Core Font Data Retrieval & Loading ---
+
+// --- Core Font Data Retrieval & Loading ---
+
+async function _loadFontChunk(chunkId) {
+    if (_loadedFontChunks.has(chunkId) && _loadedFontChunks.get(chunkId).length > 0) { return _loadedFontChunks.get(chunkId); }
+    const cacheKey = `${FONT_CHUNK_CACHE_PREFIX}${chunkId}_v1`;
+    const cachedChunk = await _loadFromDBStore(cacheKey);
+    if (cachedChunk) { _loadedFontChunks.set(chunkId, cachedChunk); console.info(`[FontMan] Using IndexedDB cache chunk '${chunkId}'.`); return cachedChunk; }
+    console.info(`[FontMan] INFO: Loading font chunk: ${chunkId}.json`);
+    const url = `${CHUNK_PATH}/${chunkId}.json`;
+    try {
+        const response = await _fetchWithRetry(url, {}, DEFAULT_FETCH_RETRIES, INITIAL_FETCH_RETRY_DELAY);
+        const chunkData = await response.json();
+        const fontsInChunk = chunkData?.fonts || (Array.isArray(chunkData) ? chunkData : null);
+        if (!Array.isArray(fontsInChunk)) { throw new Error(`Invalid data format in ${chunkId}.json`); }
+        _loadedFontChunks.set(chunkId, fontsInChunk);
+        await _saveToDBStore(cacheKey, fontsInChunk);
+        console.info(`[FontMan] INFO: Loaded & cached chunk ${chunkId} to IndexedDB.`);
+        return fontsInChunk;
+    } catch (err) { console.error(`[FontMan] ERROR: Failed load/parse chunk ${chunkId} from ${url}:`, err); _loadedFontChunks.set(chunkId, []); throw err; }
 }
 
 /**
- * Injects @font-face CSS rules into the dynamic stylesheet if they haven't been added already.
- * Includes detailed logging for debugging.
- * @param {Object} fontData - The full font data object containing the `variants` array.
+ * Injects @font-face CSS rules. Prefers URL for src, uses dataUrl as fallback only.
+ * @param {Object} fontData - Font data containing variants with url and potentially dataUrl.
  * @private
  */
 function _injectFontFaceRules(fontData) {
-    // Re-verify stylesheet availability before injecting
-    if (!_dynamicStyleSheet) {
-        const styleEl = document.getElementById(DYNAMIC_STYLE_ID);
-        // Robust check for sheet access
-        try { _dynamicStyleSheet = styleEl?.sheet; } catch (e) { console.error(`[Inject Rule] Error accessing stylesheet for ${DYNAMIC_STYLE_ID}:`, e); }
-
-        if (!_dynamicStyleSheet) {
-            console.error(`[Inject Rule] CRITICAL: Cannot inject for ${fontData?.familyName}: Dynamic stylesheet unavailable or inaccessible.`);
-            return; // Cannot proceed
-        }
-    }
-
-    if (!fontData || !Array.isArray(fontData.variants)) {
-        console.warn(`[Inject Rule] Invalid font data for ${fontData?.familyName}, skipping injection.`);
-        return;
-    }
-
+    if (!_dynamicStyleSheet) { try { _dynamicStyleSheet = document.getElementById(DYNAMIC_STYLE_ID)?.sheet; } catch (e) { console.error(`[Inject Rule] Error accessing stylesheet:`, e); } }
+    if (!_dynamicStyleSheet) { console.error(`[Inject Rule] CRITICAL: Cannot inject for ${fontData?.familyName}: Stylesheet unavailable.`); return; }
+    if (!fontData || !Array.isArray(fontData.variants) || !fontData.familyName) { console.warn(`[Inject Rule] Invalid font data for injection: ${fontData?.familyName}`); return; }
     const familyName = fontData.familyName;
-    if (!familyName) {
-         console.warn(`[Inject Rule] Skipping injection - missing familyName in fontData.`);
-         return;
-    }
 
-    console.log(`[Inject Rule] Processing variants for: "${familyName}"`);
+    // console.log(`[Inject Rule v2.2] Processing variants for: "${familyName}"`); // Less verbose
 
     fontData.variants.forEach(variant => {
-        // Validate variant object structure minimally
-        if (!variant || typeof variant !== 'object') {
-             console.warn(`[Inject Rule] Invalid variant object found for ${familyName}. Skipping.`);
-             return;
-        }
+        if (!variant || typeof variant !== 'object') { return; }
+        const weight = variant.weight || '400'; const style = variant.style || 'normal';
 
-        const weight = variant.weight || '400';
-        const style = variant.style || 'normal';
-        // ** Crucial Check: Use dataUrl (portable) OR url (deploy/dev) **
-        const fontUrl = variant.dataUrl || variant.url;
+        // *** Prefer URL for browser loading, use dataUrl as fallback ***
+        const fontUrlSrc = variant.url || variant.dataUrl;
+        const using = variant.url ? 'URL' : (variant.dataUrl ? 'DataURL' : 'NONE');
 
-        // ** If NEITHER url nor dataUrl exists, SKIP **
-        if (!fontUrl) {
-            console.warn(`[Inject Rule] SKIP Variant: No url/dataUrl property found for ${familyName} ${weight} ${style}. Check generate-fonts-json.js output.`);
-            return; // Cannot inject without a source
-        }
+        if (!fontUrlSrc) { console.warn(`[Inject Rule v2.2] SKIP Variant: NEITHER url NOR dataUrl property found for ${familyName} ${weight} ${style}.`); return; }
 
         const faceKey = `${familyName}-${weight}-${style}`;
-        // console.log(`[Inject Rule] Checking variant: ${faceKey}`); // Verbose: Log variant check
-
-        // ** Check if this exact variant face was already injected **
-        if (_injectedFontFaces.has(faceKey)) {
-            // console.log(`[Inject Rule] SKIP Variant: ${faceKey} already injected.`); // Verbose: Log skip reason
-            return; // Skip if already injected
-        }
+        if (_injectedFontFaces.has(faceKey)) { return; } // Skip if already injected
 
         // Determine format string for CSS
-        let format = 'woff2'; // Default assumption
-        const sourceFormat = variant.format; // Use the format from the data if available
+        let format = 'woff2'; const sourceFormat = variant.format;
+        if (sourceFormat) { switch(sourceFormat.toLowerCase()){ case 'woff':format='woff';break; case 'woff2':format='woff2';break; case 'truetype':case 'ttf':format='truetype';break; case 'opentype':case 'otf':format='opentype';break; case 'embedded-opentype':case 'eot':format='embedded-opentype';break; default:format=sourceFormat; } }
+        else if (typeof fontUrlSrc === 'string') { if (fontUrlSrc.endsWith('.woff2')) format = 'woff2'; else if (fontUrlSrc.endsWith('.woff')) format = 'woff'; else if (fontUrlSrc.endsWith('.ttf')) format = 'truetype'; else if (fontUrlSrc.endsWith('.otf')) format = 'opentype'; else if (fontUrlSrc.endsWith('.eot')) format = 'embedded-opentype'; else if (fontUrlSrc.startsWith('data:')) { const m=fontUrlSrc.match(/^data:(?:font|application)\/([\w+-]+);/); if(m&&m[1]){ switch(m[1].toLowerCase()){ case 'woff':format='woff';break; case 'woff2':format='woff2';break; case 'truetype':case 'ttf':format='truetype';break; case 'opentype':case 'otf':format='opentype';break; case 'vnd.ms-fontobject':format='embedded-opentype';break; default:format=m[1].toLowerCase();}} } }
 
-        if (sourceFormat) {
-             switch(sourceFormat.toLowerCase()) {
-                 case 'woff': format = 'woff'; break;
-                 case 'woff2': format = 'woff2'; break;
-                 case 'truetype': case 'ttf': format = 'truetype'; break;
-                 case 'opentype': case 'otf': format = 'opentype'; break;
-                 case 'embedded-opentype': case 'eot': format = 'embedded-opentype'; break;
-                 default: format = sourceFormat; // Use original if specific but unknown
-             }
-        } else if (typeof fontUrl === 'string') { // Fallback: Guess from URL if format missing in data
-            if (fontUrl.endsWith('.woff2')) format = 'woff2';
-            else if (fontUrl.endsWith('.woff')) format = 'woff';
-            else if (fontUrl.endsWith('.ttf')) format = 'truetype';
-            else if (fontUrl.endsWith('.otf')) format = 'opentype';
-            else if (fontUrl.endsWith('.eot')) format = 'embedded-opentype';
-            else if (fontUrl.startsWith('data:')) { /* ... (keep data URI format detection logic) ... */
-                const mimeMatch = fontUrl.match(/^data:(font|application)\/([\w+-]+);/); if (mimeMatch && mimeMatch[2]) { switch(mimeMatch[2].toLowerCase()) { case 'woff': format = 'woff'; break; case 'woff2': format = 'woff2'; break; case 'truetype': case 'ttf': format = 'truetype'; break; case 'opentype': case 'otf': format = 'opentype'; break; case 'vnd.ms-fontobject': format = 'embedded-opentype'; break; default: format = mimeMatch[2].toLowerCase(); } }
-            }
-        }
-        // console.log(`[Inject Rule]   - Format determined: ${format}`); // Verbose: Log detected format
+        const rule = `@font-face {font-family: "${familyName}"; src: url("${fontUrlSrc}") format("${format}"); font-weight: ${weight}; font-style: ${style}; font-display: swap;}`;
 
-        // Construct the @font-face rule string
-        // Ensure font family name is quoted
-        const rule = `
-            @font-face {
-                font-family: "${familyName}";
-                src: url("${fontUrl}") format("${format}");
-                font-weight: ${weight};
-                font-style: ${style};
-                font-display: swap; /* Use swap for better perceived performance */
-            }
-        `;
-        // console.log(`[Inject Rule]   - Generated Rule Snippet: ${rule.substring(0, 120).replace(/\s+/g, ' ')}...`); // Verbose
-
-        // Inject the rule into the dynamic stylesheet
         try {
             _dynamicStyleSheet.insertRule(rule, _dynamicStyleSheet.cssRules.length);
-            _injectedFontFaces.add(faceKey); // Mark as successfully injected
-            console.log(`[Inject Rule]   - SUCCESS: Injected @font-face for: ${faceKey}`);
-        } catch (e) {
-            // Log specific errors during CSS rule insertion
-            console.error(`[Inject Rule]   - ERROR: Failed to inject CSS rule for ${faceKey}:`, e.message);
-            // console.error(`[Inject Rule]   - Failing Rule: ${rule}`); // Uncomment for deep CSS debugging
-        }
-    }); // End forEach variant
-     // console.log(`[Inject Rule] Finished processing variants for: "${familyName}"`); // Verbose
+            _injectedFontFaces.add(faceKey);
+            // console.log(`[Inject Rule v2.2]  - SUCCESS: Injected @font-face for: ${faceKey} (using ${using})`); // Less verbose
+        } catch (e) { console.error(`[Inject Rule v2.2]  - ERROR: Failed to inject CSS rule for ${faceKey}:`, e.message); }
+    });
 }
 
-/** @private Determines the chunk ID for a font family */
-function _getChunkId(familyName) { /* ... Keep function code from previous full version ... */
-     if(!familyName)return'symbols';const firstChar=familyName.trim().charAt(0).toLowerCase();if(firstChar>='a'&&firstChar<='f')return'a-f';if(firstChar>='g'&&firstChar<='m')return'g-m';if(firstChar>='n'&&firstChar<='z')return'n-z';if(firstChar>='0'&&firstChar<='9')return'0-9';return'symbols';
- }
 
-/** @private Fetches URL with retry logic */
-async function _fetchWithRetry(url, options, retries = DEFAULT_FETCH_RETRIES, initialDelay = INITIAL_FETCH_RETRY_DELAY) { /* ... Keep function code from previous full version ... */
-    let delay=initialDelay;for(let i=0;i<=retries;i++){try{const response=await fetch(url,options);if(!response.ok){if(response.status>=400&&response.status<500){throw new Error(`Client Error ${response.status}`)}throw new Error(`HTTP Error ${response.status}`)}if(i>0)console.info(`[FontMan] Fetch ok for ${url} on retry ${i}.`);return response}catch(error){if(i===retries){console.error(`[FontMan] Fetch failed for ${url} after ${retries} retries.`,error);throw error}console.warn(`[FontMan] Fetch fail ${url}(${i+1}/${retries+1}), retry in ${delay}ms...`,error.message);await new Promise(resolve=>setTimeout(resolve,delay));delay*=2}}throw new Error(`[FontMan] Fetch failed unexpectedly for ${url}`);
+function _getChunkId(familyName) {
+    if (!familyName) return 'symbols'; const firstChar = familyName.trim().charAt(0).toLowerCase();
+    if (firstChar >= 'a' && firstChar <= 'f') return 'a-f'; if (firstChar >= 'g' && firstChar <= 'm') return 'g-m';
+    if (firstChar >= 'n' && firstChar <= 'z') return 'n-z'; if (firstChar >= '0' && firstChar <= '9') return '0-9';
+    return 'symbols';
 }
+async function _fetchWithRetry(url, options, retries = DEFAULT_FETCH_RETRIES, initialDelay = INITIAL_FETCH_RETRY_DELAY) { let delay=initialDelay;for(let i=0;i<=retries;i++){try{const r=await fetch(url,options);if(!r.ok){if(r.status>=400&&r.status<500)throw new Error(`Client ${r.status}`);throw new Error(`HTTP ${r.status}`)}return r}catch(e){if(i===retries)throw e;await new Promise(res=>setTimeout(res,delay));delay*=2}}throw new Error(`Workspace failed: ${url}`); }
 
 // --- Initialization ---
 
@@ -226,113 +151,68 @@ async function initializeFonts() { /* ... Keep function code from previous full 
 
 /**
  * Asynchronously retrieves font data for a specific font family name.
- * Handles fetching chunks and injecting @font-face rules if operating in chunked mode.
- * Includes logging to check variant data integrity after loading/finding in chunk.
- * @param {string} familyName - The case-insensitive font family name.
- * @returns {Promise<Object|null>} A promise resolving to the full font data object or null.
+ * Handles fetching chunks (now containing url+dataUrl) and injecting @font-face rules.
+ * Data returned contains BOTH url and dataUrl (if generated successfully).
  */
 async function getFontDataAsync(familyName) {
-    if (!familyName) {
-        console.warn('[FontMan] WARN: getFontDataAsync called with null/empty familyName.');
-        return null;
-    }
+    if (!familyName) { return null; }
     const lowerFamilyName = familyName.toLowerCase();
-
-    _trackFontUsage(familyName); // Track usage
+    _trackFontUsage(familyName);
 
     let fontData = null;
+    let source = 'unknown';
 
-    // --- Check Caches First ---
-    // 1. Full cache (inline/traditional mode)
-    if (_fontDataCache) {
-        fontData = _fontDataCache.find(f => f && f.familyName?.toLowerCase() === lowerFamilyName);
-        if (fontData) {
-            console.info(`[FontMan] DEBUG: Found '${familyName}' in full _fontDataCache.`);
-             // --- >>> DEBUG LOG BEFORE INJECT <<< ---
-             console.log(`[FontMan DEBUG getFontDataAsync] Found in Full Cache - fontData object (variants check):`, JSON.stringify(fontData?.variants?.slice(0, 2), null, 2)); // Log first 2 variants
-            _injectFontFaceRules(fontData);
-            return fontData;
-        }
-    }
+    // Check caches first
+    if (_fontDataCache) { fontData = _fontDataCache.find(f => f?.familyName?.toLowerCase() === lowerFamilyName); if (fontData) source = 'inlineOrFullCache'; }
+    if (!fontData && _isChunkedMode) { const chunkId = _getChunkId(familyName); const loadedChunk = _loadedFontChunks.get(chunkId); if (loadedChunk) { fontData = loadedChunk.find(f => f.familyName?.toLowerCase() === lowerFamilyName); if (fontData) source = 'chunkMemoryCache'; } }
 
-    // 2. Loaded chunks cache (chunked mode)
-    if (_isChunkedMode) {
-        const chunkId = _getChunkId(familyName);
-        const loadedChunk = _loadedFontChunks.get(chunkId);
-        if (loadedChunk) {
-            fontData = loadedChunk.find(f => f.familyName?.toLowerCase() === lowerFamilyName);
-            if (fontData) {
-                console.info(`[FontMan] DEBUG: Found '${familyName}' in loaded chunk cache '${chunkId}'.`);
-                // --- >>> DEBUG LOG BEFORE INJECT <<< ---
-                console.log(`[FontMan DEBUG getFontDataAsync] Found in Chunk Cache - fontData object (variants check):`, JSON.stringify(fontData?.variants?.slice(0, 2), null, 2)); // Log first 2 variants
-                _injectFontFaceRules(fontData);
-                return fontData;
-            }
-        }
-    }
-
-    // --- Load if Necessary (Chunked Mode Only) ---
-    if (_isChunkedMode && _fontIndex) {
+    // Load if necessary (Chunked Mode Only)
+    if (!fontData && _isChunkedMode && _fontIndex) {
         const fontInfoFromIndex = _fontIndex.find(f => f.familyName?.toLowerCase() === lowerFamilyName);
         if (!fontInfoFromIndex) { console.warn(`[FontMan] WARN: Font '${familyName}' not in index.`); return null; }
-
         const chunkId = _getChunkId(familyName);
 
-        // Check if chunk is currently being loaded by another request
         if (_pendingFontLoads.has(chunkId)) {
-            console.info(`[FontMan] DEBUG: Waiting pending load chunk '${chunkId}' for '${familyName}'.`);
-            try {
-                await _pendingFontLoads.get(chunkId); // Wait for existing promise
-                const chunk = _loadedFontChunks.get(chunkId); // Get data loaded by the other process
-                fontData = chunk?.find(f => f.familyName?.toLowerCase() === lowerFamilyName) || null;
-            } catch(loadError) { console.error(`[FontMan] ERROR: Pending load chunk '${chunkId}' failed.`, loadError); return null; }
+             // console.info(`[FontMan] DEBUG: Waiting pending load chunk '${chunkId}' for '${familyName}'.`); // Less verbose
+             try { await _pendingFontLoads.get(chunkId); const chunk = _loadedFontChunks.get(chunkId); fontData = chunk?.find(f => f.familyName?.toLowerCase() === lowerFamilyName) || null; if(fontData) source = 'chunkLoadPending'; }
+             catch(loadError) { console.error(`[FontMan] ERROR: Pending load chunk '${chunkId}' failed.`, loadError); return null; }
         } else if (!_loadedFontChunks.has(chunkId)) {
-            // Chunk not loaded and not pending, initiate load
             console.info(`[FontMan] INFO: Initiating load chunk '${chunkId}' for '${familyName}'.`);
-            const loadPromise = _loadFontChunk(chunkId);
-            _pendingFontLoads.set(chunkId, loadPromise);
-            try {
-                const newlyLoadedChunk = await loadPromise;
-                fontData = newlyLoadedChunk?.find(f => f.familyName?.toLowerCase() === lowerFamilyName) || null;
-            } catch (loadError) { console.error(`[FontMan] ERROR: Failed load chunk '${chunkId}' for '${familyName}'.`, loadError); return null; }
+            const loadPromise = _loadFontChunk(chunkId); _pendingFontLoads.set(chunkId, loadPromise);
+            try { const newlyLoadedChunk = await loadPromise; fontData = newlyLoadedChunk?.find(f => f.familyName?.toLowerCase() === lowerFamilyName) || null; if(fontData) source = 'chunkLoadNew'; }
+            catch (loadError) { console.error(`[FontMan] ERROR: Failed load chunk '${chunkId}' for '${familyName}'.`, loadError); return null; }
             finally { _pendingFontLoads.delete(chunkId); }
-        }
-        // At this point, fontData should be populated if found in the loaded chunk
-
-        // --- >>> DEBUG LOG BEFORE INJECT <<< ---
-        // Log the retrieved fontData *after* loading/finding it in the chunk, before injecting
-        if (fontData) {
-             console.log(`[FontMan DEBUG getFontDataAsync] Found after Load - fontData object (variants check):`, JSON.stringify(fontData?.variants?.slice(0, 2), null, 2)); // Log first 2 variants
         } else {
-             console.warn(`[FontMan DEBUG getFontDataAsync] Font '${familyName}' NOT found within loaded/pending chunk '${chunkId}'.`);
-        }
-        // --- >>> END DEBUG LOG <<< ---
-
-
-        if (fontData) {
-            _injectFontFaceRules(fontData); // Pass the potentially modified/corrupted object
-            return fontData;
-        } else {
-            console.warn(`[FontMan] WARN: Chunk '${chunkId}' loaded, but font '${familyName}' not found within it.`);
-            return null;
+             const chunk = _loadedFontChunks.get(chunkId); fontData = chunk?.find(f => f.familyName?.toLowerCase() === lowerFamilyName) || null; if (fontData) source = 'chunkMemoryCacheRace';
         }
     }
 
-    // Fallback if none of the above found the font
-    console.warn(`[FontMan] WARN: Font '${familyName}' not found.`);
-    return null;
+    // Process Found Data
+    if (fontData) {
+        // console.log(`[FontMan DEBUG getFontDataAsync] Found '${familyName}' (source: ${source}). Variants check (first):`, JSON.stringify(fontData?.variants?.slice(0, 1), null, 2)); // Less verbose
+        _injectFontFaceRules(fontData); // Inject rules (prefers URL)
+        return fontData; // Return the full data with both url and dataUrl
+    } else {
+        console.warn(`[FontMan] WARN: Font '${familyName}' not found after checking all sources.`);
+        return null;
+    }
 }
 
 /**
- * Synchronously retrieves font data ONLY from already loaded caches. Does NOT trigger loading.
- * @param {string} familyName - The case-insensitive font family name.
- * @returns {Object|null} The font data object if readily available in cache, otherwise null.
+ * Synchronously retrieves font data ONLY from already loaded caches.
+ * Returns data including url and dataUrl if available in cache.
  */
-function getFontDataByName(familyName) { /* ... Keep function code from previous full version ... */
-    if(!familyName)return null;const lowerFamilyName=familyName.toLowerCase();if(_fontDataCache){const font=_fontDataCache.find(f=>f?.familyName?.toLowerCase()===lowerFamilyName);if(font?.variants)return font}if(_isChunkedMode){const chunkId=_getChunkId(familyName);const chunk=_loadedFontChunks.get(chunkId);if(chunk){const font=chunk.find(f=>f.familyName?.toLowerCase()===lowerFamilyName);if(font?.variants)return font}}if(!_fontDataCache&&Array.isArray(window._INLINE_FONTS_DATA)){const font=window._INLINE_FONTS_DATA.find(f=>f?.familyName?.toLowerCase()===lowerFamilyName);if(font?.variants)return font}return null;
+function getFontDataByName(familyName) {
+    if (!familyName) return null;
+    const lowerFamilyName = familyName.toLowerCase();
+
+    // Check full cache (from inline)
+    if (_fontDataCache) { const font = _fontDataCache.find(f => f?.familyName?.toLowerCase() === lowerFamilyName); if (font?.variants?.length > 0 && (font.variants[0].url || font.variants[0].dataUrl)) { return font; } }
+    // Check loaded chunk cache
+    if (_isChunkedMode) { const chunkId = _getChunkId(familyName); const chunk = _loadedFontChunks.get(chunkId); if (chunk) { const font = chunk.find(f => f.familyName?.toLowerCase() === lowerFamilyName); if (font?.variants?.length > 0 && (font.variants[0].url || font.variants[0].dataUrl)) { return font; } } }
+    // console.log(`[FontMan DEBUG getFontDataByName] Font '${familyName}' not found in any sync cache.`); // Less verbose
+    return null;
 }
-
-
 
 /** Initiates loading for a specific font's data (preloading). */
 async function preloadFontData(familyName) { /* ... Keep function code from previous full version ... */

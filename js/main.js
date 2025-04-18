@@ -9,7 +9,7 @@
 // Core Managers
 import SettingsManager from './settingsManager.js';
 import { initializeFonts } from './fontManager.js'; // Assuming fontManager exports this
-
+import { initializeRandomizeShortcut } from './randomize.js';
 import { setupThemeToggle } from './misc.js';
 // UI Initializers / Handlers (Ensure these files export the functions)
 import { setupTabNavigation } from './utils/tabs.js'; // ** FIX: Import function **
@@ -17,10 +17,13 @@ import { setupTooltips, updateSizeIndicator, throttle, openShareModal } from './
 import { randomizeStyle } from './randomize.js'; // Assuming this is the correct path
 import { showToast, showAlert } from './notificationsDropInAlerts.js'; // Assuming notificationsDropInAlerts.js exports these
 
-// Action Handlers
 import {
-    handlePNGExport, handleSVGExport, handleGIFExport, handleHTMLCopy, handleCSSCopy
+    handlePNGExport, handleSVGExport, handleGIFExport
 } from './exportHandler.js';
+
+import { 
+    handleHTMLCopy, handleCSSCopy
+} from './exportCopyHandlers.js';
 
 console.log('[Main] Logomaker main.js executing (v12 - Refactored).');
 
@@ -182,31 +185,33 @@ function bindButtonHandlers() {
         if (btnElement) {
             // Prevent adding listener multiple times
             if (btnElement.dataset.listenerBound === 'true') return;
-
+    
             if (typeof config.handler === 'function') {
+                // Ensure the handler receives the 'event' object
                 btnElement.addEventListener('click', async (event) => {
-                    console.log(`[Main] Button clicked: ${config.label} (#${config.id})`);
-                    // Optional: Add temporary disabled state
-                    // btnElement.disabled = true; btnElement.classList.add('loading');
+                    // ---------------------------------------> FIX <---------------------------------------
+                    event.stopPropagation(); // Prevent the click from bubbling further
+                    // ------------------------------------------------------------------------------------
+                    console.log(`[Main] Button clicked: <span class="math-inline">\{config\.label\} \(\#</span>{config.id})`);
                     try {
-                        await config.handler(event); // Await async handlers
+                        // Pass the event object if the handler needs it (likely not needed for export)
+                        await config.handler(event);
                     } catch (error) {
                         console.error(`[Main] Error during ${config.label} action:`, error);
                         showAlert(`Error performing ${config.label}: ${error.message}`, 'error');
                     } finally {
-                        // Optional: Remove temporary disabled state
-                        // btnElement.disabled = false; btnElement.classList.remove('loading');
+                        // Optional cleanup like removing loading state
                     }
                 });
                 btnElement.dataset.listenerBound = 'true'; // Mark as bound
                 console.log(`[Main] Bound handler for: ${config.label} button.`);
             } else {
-                console.error(`[Main] Handler missing or invalid for button #${config.id} (${config.label}). Disabling.`);
+                console.error(`[Main] Handler missing or invalid for button #<span class="math-inline">\{config\.id\} \(</span>{config.label}). Disabling.`);
                 btnElement.disabled = true;
                 btnElement.title = `Action for ${config.label} is unavailable.`;
             }
         } else {
-             console.warn(`[Main] Button element not found for binding: #${config.id}`);
+            console.warn(`[Main] Button element not found for binding: #${config.id}`);
         }
     });
 }
@@ -214,7 +219,7 @@ function bindButtonHandlers() {
 /** Initialize global listeners like window resize */
 function initializeGlobalListeners() {
     console.log('[Main] Initializing global listeners...');
-
+    initializeRandomizeShortcut();
     // Throttled Resize Listener
     // Ensure listener isn't added multiple times if init runs again
     if (!window._resizeListenerBound) {

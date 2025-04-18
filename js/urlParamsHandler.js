@@ -2,19 +2,17 @@
  * urlParamsHandler.js - Fixed version
  * 
  * Handles loading settings from URL parameters and provides URL generation for sharing.
- * Fixes include:
- * 1. Proper handling of all parameter types (colors, numbers, booleans)
- * 2. Notification to the user when settings are loaded from URL
- * 3. Better integration with SettingsManager
  */
 
-// Ensure this runs after DOM is ready but before user interaction
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initUrlParamsHandler, 500); // Small delay to ensure SettingsManager is ready
-});
+// Make sure we have access to the required modules
+import SettingsManager from './settingsManager.js';
+import { showToast, showAlert } from './notificationsDropInAlerts.js';
 
+console.log('[URLParams] Initializing URL parameters handler...');
+
+// Function to initialize parameters - will be called after fully loaded
 function initUrlParamsHandler() {
-    console.log('[URLParams] Initializing URL parameters handler...');
+    console.log('[URLParams] Processing URL parameters...');
     
     // First check if we have URL parameters to process
     const urlParams = new URLSearchParams(window.location.search);
@@ -31,18 +29,17 @@ function initUrlParamsHandler() {
  * Loads settings from URL parameters and applies them
  */
 function loadSettingsFromURL(urlParams) {
-    // Ensure SettingsManager is available
-    const settingsManager = window.SettingsManager;
-    if (!settingsManager || typeof settingsManager.getCurrentSettings !== 'function') {
-        console.error('[URLParams] SettingsManager not available, cannot load settings from URL');
+    // Ensure SettingsManager is initialized
+    if (!SettingsManager || !SettingsManager._isInitialized) {
+        console.warn('[URLParams] SettingsManager not ready, waiting...');
+        // Try again after a short delay
+        setTimeout(() => loadSettingsFromURL(urlParams), 300);
         return;
     }
     
     // Get current and default settings as base
-    const currentSettings = settingsManager.getCurrentSettings();
-    const defaults = typeof settingsManager.getDefaults === 'function' 
-        ? settingsManager.getDefaults() 
-        : {}; 
+    const currentSettings = SettingsManager.getCurrentSettings();
+    const defaults = SettingsManager.getDefaults();
     
     // Create a new settings object starting with current settings
     const newSettings = { ...currentSettings };
@@ -58,7 +55,7 @@ function loadSettingsFromURL(urlParams) {
             changesMade = true;
             
             // Handle different types of settings
-            if (key === 'useColor3' || key === 'exportTransparent') {
+            if (key === 'useColor3' || key === 'exportTransparent' || key === 'aspectRatioLock') {
                 // Boolean values are stored as "1" or "0" in URL
                 newSettings[key] = value === '1' || value === 'true';
                 console.log(`[URLParams] Set boolean ${key} = ${newSettings[key]}`);
@@ -68,12 +65,14 @@ function loadSettingsFromURL(urlParams) {
                 newSettings[key] = `#${value}`;
                 console.log(`[URLParams] Set color ${key} = ${newSettings[key]}`);
             }
-            else if (['fontSize', 'exportWidth', 'exportHeight', 'exportQuality', 'exportFrames', 'exportFrameRate'].includes(key)) {
+            else if (['fontSize', 'exportWidth', 'exportHeight', 'exportQuality', 'exportFrames', 
+                      'exportFrameRate', 'borderWidth', 'borderPadding', 'fontWeight'].includes(key)) {
                 // Number values
                 newSettings[key] = String(parseInt(value, 10));
                 console.log(`[URLParams] Set numeric ${key} = ${newSettings[key]}`);
             }
-            else if (['letterSpacing', 'animationSpeed', 'bgOpacity'].includes(key)) {
+            else if (['letterSpacing', 'animationSpeed', 'bgOpacity', 'textOpacity', 'rotation', 
+                      'animationDirection', 'bgGradientDirection'].includes(key)) {
                 // Float values
                 newSettings[key] = String(parseFloat(value));
                 console.log(`[URLParams] Set float ${key} = ${newSettings[key]}`);
@@ -93,20 +92,24 @@ function loadSettingsFromURL(urlParams) {
         console.log('[URLParams] Applying settings from URL parameters');
         
         // Apply the settings with UI update
-        settingsManager.applySettings(newSettings, true);
-        
-        // Notify the user
-        setTimeout(() => {
-            if (typeof showToast === 'function') {
-                showToast({
-                    message: 'Settings loaded from shared URL! 🔄',
-                    type: 'info',
-                    duration: 4000
-                });
-            } else if (typeof showAlert === 'function') {
-                showAlert('Settings loaded from shared URL!', 'info');
-            }
-        }, 1000); // Slight delay for better UX
+        SettingsManager.applySettings(newSettings, true)
+            .then(() => {
+                // Notify the user
+                setTimeout(() => {
+                    if (typeof showToast === 'function') {
+                        showToast({
+                            message: 'Settings loaded from shared URL! 🔄',
+                            type: 'info',
+                            duration: 4000
+                        });
+                    } else if (typeof showAlert === 'function') {
+                        showAlert('Settings loaded from shared URL!', 'info');
+                    }
+                }, 1000); // Slight delay for better UX
+            })
+            .catch(err => {
+                console.error('[URLParams] Error applying settings:', err);
+            });
     } else {
         console.log('[URLParams] No settings changes from URL parameters');
     }
@@ -117,18 +120,15 @@ function loadSettingsFromURL(urlParams) {
  * This is a utility function that can be called from other modules if needed
  */
 export function generateShareURL() {
-    const settingsManager = window.SettingsManager;
-    if (!settingsManager || typeof settingsManager.getCurrentSettings !== 'function') {
-        console.error("[URLParams] SettingsManager not available to generate URL.");
+    if (!SettingsManager._isInitialized) {
+        console.error("[URLParams] SettingsManager not ready to generate URL.");
         return null;
     }
     
     try {
         const baseUrl = window.location.origin + window.location.pathname;
-        const currentSettings = settingsManager.getCurrentSettings();
-        const defaults = typeof settingsManager.getDefaults === 'function' 
-            ? settingsManager.getDefaults() 
-            : {};
+        const currentSettings = SettingsManager.getCurrentSettings();
+        const defaults = SettingsManager.getDefaults();
             
         const params = new URLSearchParams();
         
@@ -179,6 +179,17 @@ export function generateShareURL() {
         return null;
     }
 }
+
+// Set up an event to run after the SettingsManager is initialized
+document.addEventListener('logomaker-settings-applied', initUrlParamsHandler, { once: true });
+
+// Also add a direct initialization after a delay as fallback
+setTimeout(() => {
+    if (!document.querySelector('.logomaker-initialized')) {
+        console.log('[URLParams] Fallback initialization after timeout');
+        initUrlParamsHandler();
+    }
+}, 1500);
 
 // Expose the URL generation function globally
 window.generateShareURL = generateShareURL;

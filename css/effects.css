@@ -582,7 +582,56 @@
 .logo-text.anim-flicker { animation-name: flicker !important; animation-duration: calc(var(--animation-duration, 2s) * 1.5) !important; animation-timing-function: steps(1, end) !important; }
 
 /* --- Advanced Animations --- */
-.logo-text.anim-liquify { animation-name: liquify !important; animation-duration: calc(var(--animation-duration,2s)*2) !important; animation-timing-function: ease-in-out !important; }
+
+
+@keyframes liquify {
+  0%, 100% {
+    /* Start and end state - normal */
+    transform: skew(0deg, 0deg) scale(1, 1);
+    opacity: 1;
+    filter: blur(0px); /* Ensure no blur at start/end */
+  }
+  15% {
+    /* Start to 'drip' or stretch down-right */
+    transform: skew(4deg, -2deg) scale(0.98, 1.03) translateY(2px);
+    opacity: 0.95;
+  }
+  35% {
+    /* Wobble back - slight squash and left skew */
+    transform: skew(-3deg, 3deg) scale(1.02, 0.96) translateY(-3px);
+    opacity: 0.98;
+    filter: blur(0.5px); /* Add a subtle blur during distortion */
+  }
+  55% {
+    /* Stretch up-left */
+    transform: skew(2deg, -4deg) scale(0.97, 1.04) translateY(-1px);
+    opacity: 0.97;
+  }
+  75% {
+    /* Settle back - less skew, slight vertical squash */
+    transform: skew(-2deg, 1deg) scale(1.01, 0.98) translateY(1px);
+    opacity: 1;
+    filter: blur(0.2px);
+  }
+  90% {
+    /* Final small wobble before returning to normal */
+    transform: skew(1deg, -1deg) scale(1.01, 1.01);
+    opacity: 0.98;
+  }
+}
+
+/* --- Ensure the CSS rule applying it exists --- */
+/* You might want to adjust the duration multiplier */
+.logo-text.anim-liquify {
+    animation-name: liquify !important;
+    /* Maybe slightly longer duration for a smoother feel? Try * 2.0 or * 2.5 */
+    animation-duration: calc(var(--animation-duration, 2s) * 2.0) !important;
+    animation-timing-function: ease-in-out !important;
+    /* Optional: Add will-change, but use with caution */
+    /* will-change: transform, opacity, filter; */
+}
+
+
 .logo-text.anim-wobble { animation-name: wobble !important; animation-duration: calc(var(--animation-duration,2s)*1.5) !important; animation-timing-function: cubic-bezier(0.68,-0.55,0.27,1.55) !important; }
 .logo-text.anim-perspective { animation-name: perspective-tilt !important; animation-duration: calc(var(--animation-duration,2s)*2) !important; animation-timing-function: ease-in-out !important; }
 .logo-text.anim-split { animation-name: split-text !important; animation-duration: calc(var(--animation-duration,2s)*1.5) !important; animation-timing-function: cubic-bezier(0.25,0.46,0.45,0.94) !important; }
@@ -603,7 +652,6 @@
 @keyframes glitch-2 { 0%,100%{clip-path:inset(40% 0 50% 0);transform:translate(3px,-1px) scaleY(0.98)} 20%{clip-path:inset(90% 0 5% 0);transform:translate(-4px,2px) scaleY(1.02)} 40%{clip-path:inset(15% 0 70% 0);transform:translate(2px,-2px) scaleY(0.99)} 60%{clip-path:inset(60% 0 30% 0);transform:translate(-3px,1px) scaleY(1.01)} 80%{clip-path:inset(5% 0 80% 0);transform:translate(3px,-1px) scaleY(1.03)} }
 @keyframes fadeInOut { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
 @keyframes flicker { 0%,18%,22%,25%,53%,57%,100%{opacity:1;text-shadow:inherit;} 20%,24%,55%{opacity:0.6;text-shadow:none;} }
-@keyframes liquify { 0%,100%{ transform: perspective(400px) rotateX(0deg) scaleY(1); } 25% { transform: perspective(400px) rotateX(3deg) scaleY(.97) translateY(5px);} 50% { transform: perspective(400px) rotateX(-2deg) scaleY(1.04) translateY(-5px);} 75% { transform: perspective(400px) rotateX(3deg) scaleY(.97) translateY(7px);} }
 @keyframes wobble { 0%,100% { transform: translateX(0); letter-spacing: var(--dynamic-letter-spacing,0.03em); } 25% { transform: translateX(-10px); letter-spacing: calc(var(--dynamic-letter-spacing,0.03em)+0.02em); } 75% { transform: translateX(10px); letter-spacing: calc(var(--dynamic-letter-spacing,0.03em)-0.02em); } }
 @keyframes perspective-tilt { 0%,100%{ transform:perspective(500px) rotateY(0deg); } 50% { transform:perspective(500px) rotateY(15deg); } }
 @keyframes split-text { 0%,100%{ letter-spacing:var(--dynamic-letter-spacing,0.03em); opacity:1; } 50% { letter-spacing:calc(var(--dynamic-letter-spacing,0.03em)+0.3em); opacity:0.7; } }

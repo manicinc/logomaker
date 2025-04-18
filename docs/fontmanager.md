@@ -1,57 +1,66 @@
+
 # FontManager
 
 ## Overview
 
-The Logomaker project implements a sophisticated, multi-strategy font loading and build system designed for portability, web performance, and offline functionality. This system allows Logomaker to handle a large font library efficiently across different deployment scenarios (web vs. offline/Electron) using conditional builds and HTML templates.
+The Logomaker project implements a sophisticated, multi-strategy font loading and build system designed for portability, web performance, and offline functionality. This system allows Logomaker to handle a large font library efficiently across different deployment scenarios (web vs. offline/Electron) using conditional builds and HTML templates, ensuring reliable font display and SVG embedding.
 
-## Font Management Architecture (`fontManager.js`)
+## Font Management Architecture (`js/fontManager.js`)
 
-The system revolves around `fontManager.js`, which intelligently selects a loading strategy based on the build target and available data.
+The system revolves around `js/fontManager.js`, which intelligently selects a loading strategy based on the build target (`deploy` or `portable`) and available data detected at runtime.
 
 ### Key Loading Strategies
 
-1.  **Embedded Mode (Portable Target)**
-    * **Mechanism:** Detects `window._INLINE_FONTS_DATA` global variable upon initialization. This variable is expected to be created by the `<script src="inline-fonts-data.js"></script>` tag present in the HTML output of the `portable` build.
-    * All font data (including Base64 data URLs for variants) is pre-loaded.
-    * **Use Case:** Perfect for offline/standalone/Electron use (`npm run build:portable`).
+1.  **Embedded Mode (`portable` Target)**
+    * **Mechanism:** Detects `window._INLINE_FONTS_DATA` global variable upon initialization. This variable is created by the `<script src="inline-fonts-data.js"></script>` tag included in the HTML output of the `portable` build (`npm run build:portable`).
+    * All font data, including **Base64 `dataUrl`s** for variants, is loaded directly from this embedded object.
+    * `@font-face` rules are injected using these Base64 `dataUrl`s.
+    * SVG export reads Base64 data from the loaded cache for embedding.
+    * **Use Case:** Offline/standalone/Electron use. Requires building the `portable` target.
     * **Pros:**
-        * Fully self-contained directory output.
-        * Works completely offline.
+        * ✅ Fully self-contained directory output.
+        * ✅ Works completely offline (no network requests for fonts).
+        * ✅ Reliable SVG font embedding.
     * **Cons:**
-        * Very large `inline-fonts-data.js` file (~50-100MB+ depending on fonts), increasing storage footprint.
-        * Slower initial HTML parse and script execution time due to the large inline script. Potentially higher initial memory usage.
+        * ⚠️ Very large `inline-fonts-data.js` file (~50-100MB+), increasing storage footprint.
+        * ⚠️ **Significantly slower initial load time** due to parsing the large inline script. Higher initial memory usage.
 
-2.  **Chunked Lazy Loading (Deploy Target)**
-    * **Mechanism:** Used when Embedded Mode data is not found. Optimized for web performance.
+2.  **Hybrid Chunked Lazy Loading (`deploy` Target)**
+    * **Mechanism:** Default mode when Embedded Mode data is not found. Used for the live demo and `npm run dev`. Optimized for a balance between initial load speed and SVG embedding support.
     * **Process:**
-        1.  Initial load of core HTML, CSS, JS (HTML generated from `index.template.html`, *without* `inline-fonts-data.js` script).
-        2.  Fetch `/font-chunks/index.json` (small metadata file) to populate the font selector. Relies on `/fonts.json` for additional metadata if needed.
-        3.  On user font selection:
-            * Identify required data chunk (e.g., `a-f.json`) based on font name.
-            * Check cache (in-memory then IndexedDB).
-            * Fetch chunk `.json` file via network if not cached.
-            * Extract Base64 font variant data from the chunk.
-            * Dynamically inject `@font-face` CSS rule using the Base64 data URL.
-            * Browser renders font using the injected rule. (No separate font file download needed if using Base64 chunks).
-    * **Use Case:** Web hosting (`npm run build:deploy`).
+        1.  Initial load of core HTML, CSS, JS (from `deploy` build output in `dist/github-pages/`).
+        2.  Fetch `/font-chunks/index.json` (small metadata file, ~100KB) to populate the font selector dropdown.
+        3.  On user font selection (or other trigger needing font data like SVG export):
+            * Identify required data chunk file (e.g., `a-f.json`) based on font name using the index.
+            * Check cache (in-memory `Map`, then IndexedDB `logomakerFontDB`).
+            * Fetch chunk `.json` file (e.g., `/font-chunks/g-m.json`) via network if not cached.
+            * Chunk files contain **both `url`s** (pointing to actual font files like `.woff2`) **and Base64 `dataUrl`s** for each variant.
+            * Store the loaded chunk data (with both URL & Base64) in memory and IndexedDB cache.
+            * Inject dynamic `@font-face` CSS rules, **preferring the `url` property** in the `src`. The browser uses this URL to efficiently fetch the `.woff2` file needed for display.
+            * **SVG Export:** When exporting SVG, the rendering logic requests the font data from `fontManager` (accessing the cached chunk data), finds the required variant, extracts its **`dataUrl` property (Base64)**, and uses *that* to embed the font directly within the SVG file's `<style>` tag.
+    * **Use Case:** Web hosting (GitHub Pages), local development (`npm run dev`). Requires building the `deploy` target (`npm run build:deploy` or `npm run build`).
     * **Pros:**
-        * Fast initial page load.
-        * Efficient bandwidth (only loads needed font data).
-        * Persistent caching via IndexedDB improves subsequent loads.
+        * ✅ **Fast initial page load** (only small index loaded initially).
+        * ✅ **Reliable SVG font embedding** using the included Base64 data.
+        * ✅ Browser display uses efficient URL-based font file loading via `@font-face`.
+        * ✅ Persistent caching of chunks via IndexedDB improves subsequent loads.
     * **Cons:**
-        * Requires a web server capable of serving static files.
-        * Needs network access for uncached font chunks.
+        * ⚠️ Requires a web server capable of serving static files (`.html`, `.css`, `.js`, `.json`, `.woff2`, etc.).
+        * ⚠️ Needs network access for the initial `index.json`, uncached font chunks (`*.json`), and the actual font files (`*.woff2`).
+        * ⚠️ Chunk files (`*.json`) are significantly larger than if they contained only URLs, impacting download time *when a chunk is first loaded*.
 
-3.  **Traditional JSON (Dev/Fallback)**
-    * Can load a single, potentially large, `fonts.json` containing relative URLs to font files (not Base64).
-    * Used as a fallback or potentially in simpler development setups without chunking.
-    * Requires separate font file requests (`.woff2`, etc.).
+3.  **Traditional JSON (Fallback/Alternative)**
+    * `fontManager.js` *could* be adapted to load a single, potentially large, `fonts.json` containing relative URLs to font files (not Base64).
+    * This is not the primary mode but could serve as a fallback if chunking fails or for simpler setups.
+    * Requires separate browser requests for each font file (`.woff2`, etc.). SVG embedding would not work without Base64 data.
 
 4.  **System Font Fallback**
-    * Graceful degradation using common system fonts if all custom font loading methods fail.
-    * Ensures basic application functionality.
+    * If all custom font loading methods fail during initialization (e.g., cannot load index, cannot access inline data), `fontManager.js` attempts to populate the dropdown with common system fonts (Arial, Verdana, etc.) as a last resort.
+    * Ensures basic application functionality even in heavily restricted environments.
 
 ## Font Directory Structure & Requirements
+
+*(This section remains the same as your provided version - structure looks correct)*
 
 ### Font Storage Guidelines
 
@@ -87,17 +96,42 @@ The system revolves around `fontManager.js`, which intelligently selects a loadi
 5.  **License Handling**:
     * Optionally include a license file in each font family directory.
     * Supported filenames (case-insensitive): `license.txt`, `license.md`, `license`, `readme.md`, `readme.txt`, `ofl.txt`.
-    * The build script embeds the license text in `inline-fonts-data.js` for the portable build.
+    * The build script can embed the license text (check `generate-fonts-json.js` logic for details on which builds include it where).
 
-## Build Process Workflow
+## Build Process Workflow Overview
+
+*(This section remains mostly the same - workflow description looks correct)*
 
 ### 1. Font Conversion (Optional): `convert-fonts.sh`
-A utility script provided to convert source fonts (e.g., `.otf`) to the highly optimized `.woff2` format using `fontTools`. This is typically run manually *before* the build process if needed.
 
-```bash
-# Example: Convert all OTF fonts in ./fonts to WOFF2 in ./converted_fonts
-./scripts/convert-fonts.sh
-# (You would then replace the OTFs with WOFF2s in the ./fonts directory)
+A utility script provided to convert source fonts (e.g., `.otf`) to the highly optimized `.woff2` format using `fontTools`. This is typically run manually *before* the build process if needed to optimize font file sizes.
+
+### 2. Font Data Generation: `generate-fonts-json.js`
+
+* Scans the `./fonts/` directory.
+* Extracts metadata (family name, variants, formats, guessed weight/style).
+* Generates **both** relative `url` paths **and** Base64 `dataUrl`s for each font variant internally.
+* Writes `fonts.json` containing **only URLs** and metadata.
+* Writes `inline-fonts-data.js`, whose content depends on the `--base64` flag:
+    * If `--base64` (for `portable` build): Contains **only Base64 `dataUrl`s** and metadata.
+    * If **no** `--base64` (for `deploy` build): Contains **both URLs and Base64 `dataUrl`s** and metadata (this file serves as input for the next step).
+* Writes `css/generated-font-classes.css` for basic font family application via classes (though inline styles are often preferred).
+
+### 3. Font Chunking (Deploy Target Only): `split-fonts.js`
+
+* **Only runs during the `deploy` build.**
+* Reads the `inline-fonts-data.js` file generated *without* the `--base64` flag (which contains both URLs and dataUrls).
+* Creates `font-chunks/index.json` containing only minimal metadata needed to populate the font dropdown.
+* Creates chunk files (`font-chunks/a-f.json`, etc.) containing the full font family objects, including variants with **both `url` and `dataUrl`**.
+
+### 4. Build Assembly: `build.js`
+
+* Orchestrates the entire process based on the `--target` flag (`deploy` or `portable`).
+* Calls `generate-fonts-json.js` with appropriate flags.
+* Calls `split-fonts.js` **only** for the `deploy` target.
+* Copies necessary assets (HTML template, CSS, JS, generated font files/chunks) to the correct `./dist/` subdirectory (`github-pages` or `portable`).
+
 ---
 
 🚀 Crafted by Manic Agency
+
