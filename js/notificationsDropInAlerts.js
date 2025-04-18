@@ -699,6 +699,111 @@ export function notifyFeature(id, message, title = 'New Feature!') {
   }
 }
 
+
+
+/**
+ * Shows a notification, choosing between toast or modal display.
+ * Acts as a central dispatcher for the notification system.
+ *
+ * @param {object|string} options - Notification options object or just the message string.
+ * @param {string} options.message - The core message content (required).
+ * @param {string} [options.type='info'] - The type of notification ('success', 'error', 'info', 'warning'). Affects style and default title.
+ * @param {string} [options.title] - An optional title. If omitted, a default based on 'type' is used (e.g., "Success!", "Error").
+ * @param {string} [options.displayType='auto'] - Specifies how to display:
+ * 'toast': Forces a toast notification.
+ * 'modal': Forces a modal notification.
+ * 'auto': Decides automatically (default logic: modal for 'error'/'warning', toast otherwise).
+ * @param {number} [options.duration=3000] - Auto-close duration in milliseconds for TOASTS. Use 0 for no auto-close.
+ * @param {string} [options.filename] - Optional filename string to display within TOASTS.
+ * @param {Function} [options.onClose] - A callback function executed when a MODAL is closed (by OK button, overlay click, or Escape key).
+ * @param {number} [options.autoClose=null] - Auto-close duration in milliseconds for MODALS. Use null or 0 for no auto-close.
+ * @param {string} [fallbackType='info'] - If 'options' is provided as just a string, this type will be used.
+ */
+export function showNotification(options, fallbackType = 'info') {
+  // --- 1. Configuration Setup ---
+  let config = {
+      message: '',
+      type: 'info',       // Default type
+      title: '',          // Default title (will be set later based on type)
+      displayType: 'auto',// Default display behavior
+      duration: 3000,     // Default for toasts
+      filename: null,     // Specific to toasts
+      onClose: null,      // Specific to modals
+      autoClose: null     // Specific to modals
+  };
+
+  // --- 2. Parse Input Options ---
+  if (typeof options === 'string') {
+      // If only a message string is passed
+      config.message = options;
+      config.type = ['success', 'error', 'info', 'warning'].includes(fallbackType) ? fallbackType : 'info';
+  } else if (typeof options === 'object' && options !== null) {
+      // If an options object is passed, merge it with defaults
+      config = { ...config, ...options };
+      // Ensure type is valid
+      config.type = ['success', 'error', 'info', 'warning'].includes(config.type) ? config.type : 'info';
+  } else {
+      console.error("[showNotification] Invalid options provided. Must be a string or an object:", options);
+      return; // Stop execution if options are invalid
+  }
+
+  // --- 3. Validate Message ---
+  if (!config.message) {
+      console.error("[showNotification] Notification message cannot be empty.");
+      return; // Stop execution if no message
+  }
+
+  // --- 4. Set Default Title (if none provided) ---
+  if (!config.title) {
+      config.title = getDefaultTitle(config.type); // Use the existing helper
+  }
+
+  // --- 5. Determine Final Display Type ---
+  let finalDisplayType = config.displayType;
+
+  if (finalDisplayType === 'auto') {
+      // Default 'auto' logic: Use modal for critical messages (error, warning), toast for others.
+      if (config.type === 'error' || config.type === 'warning') {
+          finalDisplayType = 'modal';
+      } else {
+          finalDisplayType = 'toast';
+      }
+      // --- Optional alternative 'auto' logic (example): ---
+      // if (isMobileDevice()) { // Always use modal on mobile?
+      //     finalDisplayType = 'modal';
+      // } else { // Desktop: use modal for critical, toast otherwise
+      //     finalDisplayType = (config.type === 'error' || config.type === 'warning') ? 'modal' : 'toast';
+      // }
+  }
+
+  // --- 6. Dispatch to Correct Function ---
+  console.log(`[showNotification] Dispatching as ${finalDisplayType}. Type: ${config.type}, Title: "${config.title}"`);
+
+  if (finalDisplayType === 'modal') {
+      // Prepare options specifically for showModal
+      const modalOptions = {
+          message: config.message,
+          type: config.type,
+          title: config.title,
+          onClose: config.onClose,       // Pass the callback
+          autoClose: config.autoClose    // Pass the auto-close duration
+      };
+      showModal(modalOptions); // Call the existing showModal function
+
+  } else { // Default to 'toast' if not 'modal' or if displayType was explicitly 'toast'
+      // Prepare options specifically for showToast
+      const toastOptions = {
+          message: config.message,
+          type: config.type,
+          title: config.title,
+          duration: config.duration,   // Pass the duration
+          filename: config.filename    // Pass the filename
+      };
+      showToast(toastOptions); // Call the existing showToast function
+  }
+}
+
+
 // --- Global Exports ---
 window.showAlert = showAlert;
 window.showToast = showToast;
@@ -708,5 +813,5 @@ window.notifyExportError = notifyExportError;
 window.notifyExportSuccess = notifyExportSuccess;
 window.notifyResetSuccess = notifyResetSuccess;
 window.notifyFeature = notifyFeature;
-
+window.showNotification = showNotification;
 console.log("[Notifications] Module loaded, functions exposed globally.");

@@ -1,348 +1,267 @@
 /**
- * js/utils/html2Canvas.js (Enhanced v2.7 - Copy All Computed Styles)
+ * js/utils/html2Canvas.js (v3.0 - Adapted for html2canvas-pro)
  * ===================================================================
- * Provides enhanced HTML2Canvas implementation attempting maximum style fidelity
- * by copying *all* computed styles in the onclone callback for the target element
- * and its primary children (.logo-container, .logo-text).
+ * Provides HTML2Canvas capture functionality, expecting html2canvas-pro
+ * to be loaded globally via a <script> tag from a local file.
+ * Uses a minimal onclone callback to avoid interfering with html2canvas-pro's
+ * potentially improved rendering logic. It relies on the new library handling
+ * CSS interpretation better, especially for complex styles like gradients.
  * Targets #previewContainer specifically based on its ID.
  */
 
-console.log("[HTML2Canvas Util] Module loading (v2.7 - Copy All Computed Styles)...");
+// NOTE: We are NOT using "import html2canvas from 'html2canvas-pro';"
+// We expect the 'html2canvas' function (from the pro version script tag)
+// to be available in the global scope (window.html2canvas).
+
+console.log("[HTML2Canvas Util] Loading (v3.0 - For html2canvas-pro)...");
 
 /**
- * Copies all computed styles from a source element to a target element's inline style.
- * @param {HTMLElement} sourceElement - The original element to get styles from.
- * @param {HTMLElement} targetElement - The cloned element to apply styles to.
- */
-function copyAllComputedStyles(sourceElement, targetElement) {
-    if (!sourceElement || !targetElement) return;
-
-    const computedStyles = window.getComputedStyle(sourceElement);
-    // console.log(`[Copy Styles] Copying ${computedStyles.length} styles from`, sourceElement, 'to', targetElement); // DEBUG
-
-    // Copy classes first, as they define much of the styling context
-    targetElement.className = sourceElement.className;
-
-    // Copy all computed style properties
-    for (const prop of computedStyles) {
-        let value = computedStyles.getPropertyValue(prop);
-        let priority = computedStyles.getPropertyPriority(prop);
-        // Basic check to skip properties that might cause issues if copied directly (can be expanded)
-        if (prop === 'width' && value === 'auto') continue;
-        if (prop === 'height' && value === 'auto') continue;
-        
-        try {
-            targetElement.style.setProperty(prop, value, priority);
-        } catch (e) {
-            // Ignore properties that cannot be set this way (e.g., internal properties)
-             // console.warn(`[Copy Styles] Could not set property "${prop}" with value "${value}" (priority: ${priority})`, e.message); // DEBUG
-        }
-    }
-     // Ensure critical text rendering styles are applied, even if the loop missed them somehow
-     // (These are often needed for gradient text effects)
-     if (computedStyles.webkitBackgroundClip) targetElement.style.webkitBackgroundClip = computedStyles.webkitBackgroundClip;
-     if (computedStyles.backgroundClip) targetElement.style.backgroundClip = computedStyles.backgroundClip;
-     if (computedStyles.webkitTextFillColor) targetElement.style.webkitTextFillColor = computedStyles.webkitTextFillColor;
-}
-
-
-/**
- * Capture an element (specifically #previewContainer) with HTML2Canvas with enhanced accuracy.
- * Uses an onclone callback attempting to copy all computed styles for maximum fidelity.
+ * Capture an element (specifically #previewContainer) using the globally available html2canvas (PRO version).
+ * Uses a minimal onclone callback, assuming html2canvas-pro handles styles better.
  * @param {HTMLElement} elementToCapture - The element to capture (MUST be #previewContainer).
- * @param {object} options - Additional options for html2canvas (e.g., { width, height, transparentBackground }).
+ * @param {object} options - Additional options for html2canvas (e.g., { width, height, transparentBackground, scale }).
  * @returns {Promise<HTMLCanvasElement>} Canvas with captured content.
  */
 export async function captureLogoWithHTML2Canvas(elementToCapture, options = {}) {
+    // 1. Validate Input Element
     if (!elementToCapture || elementToCapture.id !== 'previewContainer') {
-        throw new Error("This capture function is specifically designed for #previewContainer.");
+        throw new Error("Capture function requires the #previewContainer element.");
     }
-    console.log('[Capture v2.7] Capturing #previewContainer with HTML2Canvas...');
+    console.log('[Capture Pro] Capturing #previewContainer with html2canvas-pro...');
 
-    // --- Prepare Element (Set explicit dimensions, wait for fonts) ---
-    // This step is crucial for html2canvas to know the intended capture size
-    // Pass width/height from options if provided, otherwise use element's current size
+    // 2. Prepare Element (Force dimensions for capture context)
     const prepOptions = {
-        width: options.width || elementToCapture.offsetWidth,
-        height: options.height || elementToCapture.offsetHeight
+        width: options.width || elementToCapture.offsetWidth || 800, // Fallback width
+        height: options.height || elementToCapture.offsetHeight || 400 // Fallback height
     };
-    await prepareElementForCapture(elementToCapture, prepOptions); // Ensure this runs before html2canvas
+    await prepareElementForCapture(elementToCapture, prepOptions); // Temporarily styles the element
 
+    // 3. Define html2canvas Options
     const defaultOptions = {
-        scale: window.devicePixelRatio || 1,
-        allowTaint: true,
-        useCORS: true,
-        logging: false, // Set to true for more detailed html2canvas logs if needed
-        backgroundColor: options.transparentBackground ? null : (window.getComputedStyle(elementToCapture).backgroundColor || '#000000'), // Use actual bg color unless transparent requested
-        ignoreElements: (element) => {
-            // Ignore size indicator and any other elements we don't want
-            return element.classList && (
-                element.classList.contains('size-indicator') ||
-                element.classList.contains('loading-spinner')
-            );
-        },
-        imageTimeout: 15000, // Increased timeout for images/fonts within canvas
-        removeContainer: true, // Clean up the clone container afterwards
-        onclone: (documentClone, elementBeingCloned) => { // elementBeingCloned is the clone of elementToCapture
-             console.log('[Capture v2.7 - onclone] Cloning document for #previewContainer...');
-             const targetElement = elementBeingCloned; // This IS the clone of #previewContainer
+        // Use scale from options if provided, otherwise default to devicePixelRatio or 1
+        scale: options.scale ?? (window.devicePixelRatio || 1),
+        allowTaint: true, // Allows cross-origin images if server headers permit
+        useCORS: true,    // Attempts to load cross-origin images using CORS
+        logging: false,   // Set true for verbose debugging from html2canvas-pro
+        backgroundColor: options.transparentBackground ? null : (window.getComputedStyle(elementToCapture).backgroundColor || '#000000'), // Use computed background unless transparent
+        ignoreElements: (element) => element.classList?.contains('size-indicator'), // Example: ignore size display
+        imageTimeout: 15000, // Wait 15s for images to load
+        removeContainer: true, // Clean up the temporary DOM clone container
 
-             if (targetElement) {
-                 console.log('[Capture v2.7 - onclone] Applying all computed styles to #previewContainer clone...');
-                 // 1. Copy all styles for the main #previewContainer
-                 copyAllComputedStyles(elementToCapture, targetElement);
+        /**
+         * Minimal onclone callback for html2canvas-pro.
+         * We primarily ensure essential attributes are copied and inject keyframes.
+         * We AVOID copying computed styles inline, hoping the pro version renders CSS better.
+         */
+        onclone: (documentClone, elementBeingCloned) => {
+            console.log('[Capture Pro - onclone] Cloning document (Minimal Clone Logic)...');
+            const targetPreviewContainer = elementBeingCloned; // This is the clone of #previewContainer
 
-                 // 2. Copy styles for direct important children (.logo-container, .logo-text)
-                 const sourceLogoContainer = elementToCapture.querySelector('.logo-container');
-                 const targetLogoContainer = targetElement.querySelector('.logo-container');
-                 if (sourceLogoContainer && targetLogoContainer) {
-                     console.log('[Capture v2.7 - onclone] Applying all computed styles to .logo-container clone...');
-                     copyAllComputedStyles(sourceLogoContainer, targetLogoContainer);
-                      // Explicitly copy animation properties as backup (computed style might not capture dynamic state perfectly)
-                      if (window.getComputedStyle(sourceLogoContainer).animation) {
-                          targetLogoContainer.style.animation = window.getComputedStyle(sourceLogoContainer).animation;
-                      }
-                 } else {
-                     console.warn('[Capture v2.7 - onclone] Could not find .logo-container in source or clone.');
-                 }
+            if (targetPreviewContainer) {
+                // Ensure the container clone gets the same classes as the original
+                targetPreviewContainer.className = elementToCapture.className;
 
-                 const sourceLogoText = elementToCapture.querySelector('.logo-text');
-                 const targetLogoText = targetElement.querySelector('.logo-text');
-                 if (sourceLogoText && targetLogoText) {
-                     console.log('[Capture v2.7 - onclone] Applying all computed styles to .logo-text clone...');
-                     copyAllComputedStyles(sourceLogoText, targetLogoText);
+                // Find the text element within the clone
+                const sourceLogoText = elementToCapture.querySelector('.logo-text');
+                const targetLogoText = targetPreviewContainer.querySelector('.logo-text');
 
-                     // Ensure text content itself is copied
-                     targetLogoText.textContent = sourceLogoText.textContent;
-
-                     // Ensure data-text attribute is copied (for effects like glitch)
-                    const dataText = sourceLogoText.getAttribute('data-text');
+                if (sourceLogoText && targetLogoText) {
+                    // Ensure critical attributes are present on the text clone
+                    targetLogoText.className = sourceLogoText.className; // Apply classes
+                    targetLogoText.textContent = sourceLogoText.textContent; // Copy text content
+                    const dataText = sourceLogoText.getAttribute('data-text'); // Copy data-text for effects
                     if (dataText !== null) {
                         targetLogoText.setAttribute('data-text', dataText);
                     } else {
                         targetLogoText.removeAttribute('data-text');
                     }
+                    console.log('[Capture Pro - onclone] Applied minimal attributes to .logo-text clone.');
+                } else {
+                    console.warn('[Capture Pro - onclone] Could not find .logo-text in source or clone.');
+                }
 
-                     // Explicitly copy animation properties as backup
-                     if (window.getComputedStyle(sourceLogoText).animation) {
-                         targetLogoText.style.animation = window.getComputedStyle(sourceLogoText).animation;
-                     }
-                     // Explicitly copy transform as it's crucial
-                     if (window.getComputedStyle(sourceLogoText).transform) {
-                         targetLogoText.style.transform = window.getComputedStyle(sourceLogoText).transform;
-                     }
-                     // Copy text shadow explicitly
-                     if (window.getComputedStyle(sourceLogoText).textShadow) {
-                          targetLogoText.style.textShadow = window.getComputedStyle(sourceLogoText).textShadow;
-                     }
+                // --- Inject necessary global styles (keyframes, base alignment) ---
+                // Still useful for animations and ensuring base styles are available
+                const styleElement = documentClone.createElement('style');
+                // --- IMPORTANT: Ensure these keyframes match your actual CSS definitions ---
+                styleElement.textContent = `
+                    /* Injected Keyframes & Base Styles for html2canvas-pro */
 
+                    /* --- ADD ALL YOUR @keyframes rules from effects.css here --- */
+                    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.9; } }
+                    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                    @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+                    @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-15px); } 60% { transform: translateY(-8px); } }
+                    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                    @keyframes fade { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } } /* Assuming fadeInOut */
+                    @keyframes flicker { 0%, 19.9%, 22%, 62.9%, 64%, 64.9%, 70%, 100% { opacity: 0.99; } 20%, 21.9%, 63%, 63.9%, 65%, 69.9% { opacity: 0.4; } }
+                    /* @keyframes glitch { ... your full glitch keyframes ... } */
+                    /* @keyframes wave { ... your full wave keyframes ... } */
+                    /* ... add ALL others used in your effects.css ... */
 
-                 } else {
-                    console.warn('[Capture v2.7 - onclone] Could not find .logo-text in source or clone.');
-                 }
+                    /* Base Alignment & Display (Define fallbacks or ensure classes work) */
+                    .text-align-center { text-align: center !important; }
+                    .text-align-left { text-align: left !important; }
+                    .text-align-right { text-align: right !important; }
+                    /* Ensure .logo-text display allows background-clip to work if library supports it */
+                    .logo-text { display: inline-block; vertical-align: middle; /* Match your actual CSS */ }
 
-                 // 3. Inject necessary global styles (keyframes, base alignment)
-                 // This is still needed as inline styles don't define keyframes.
-                 // Add any keyframes used by your animations here.
-                 const styleElement = documentClone.createElement('style');
-                 styleElement.textContent = `
-                     /* Injected Keyframes & Base Styles */
-                     @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.9; } }
-                     @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-                     @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
-                     @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-15px); } 60% { transform: translateY(-8px); } }
-                     @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                     @keyframes fade { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
-                     @keyframes flicker { 0%, 19.9%, 22%, 62.9%, 64%, 64.9%, 70%, 100% { opacity: 0.99; /* Slightly reduced for effect */ } 20%, 21.9%, 63%, 63.9%, 65%, 69.9% { opacity: 0.4; } }
+                    /* Glitch Pseudo-element Styling (Requires data-text attribute) */
+                   .logo-text.anim-glitch::before,
+                   .logo-text.anim-glitch::after {
+                       content: attr(data-text); position: absolute; top: 0; left: 0;
+                       width: 100%; height: 100%; background: inherit;
+                       /* The hope is html2canvas-pro handles these better */
+                       background-clip: inherit; -webkit-background-clip: inherit;
+                       color: inherit; overflow: hidden;
+                       /* ... rest of your specific glitch animation/clip styles ... */
+                    }
+                `;
+                documentClone.head.appendChild(styleElement);
+                console.log('[Capture Pro - onclone] Injected keyframes and base styles.');
 
-                     /* TODO: Add keyframes for glitch, wave if needed */
-
-                     /* Base Alignment Classes (can help if computed style isn't enough) */
-                     .text-align-left { text-align: left !important; }
-                     .text-align-center { text-align: center !important; }
-                     .text-align-right { text-align: right !important; }
-
-                     /* Ensure logo-text display is appropriate if needed */
-                     .logo-text { display: inline-block; } /* Or block depending on original */
-
-                     /* Attempt basic styling for glitch pseudo-elements (HIGHLY EXPERIMENTAL) */
-                     /* This likely WON'T capture complex animations/clips */
-                    .logo-text.anim-glitch::before,
-                    .logo-text.anim-glitch::after {
-                        content: attr(data-text); /* Requires data-text attribute copied */
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: inherit; /* Try to inherit background */
-                        -webkit-background-clip: inherit;
-                        background-clip: inherit;
-                        color: inherit; /* Ensure text color is inherited */
-                        overflow: hidden; /* Prevent pseudo-elements spilling out */
-                         /* It's extremely hard to copy dynamic clips/animations here */
-                     }
-                 `;
-                 documentClone.head.appendChild(styleElement);
-                 console.log('[Capture v2.7 - onclone] Injected keyframes and base styles.');
-
-             } else {
-                 console.error('[Capture v2.7 - onclone] Could not find target #previewContainer in the cloned document!');
-             }
-        }
+            } else {
+                // If the clone itself is missing, log error. Patch might still have issues.
+                console.error('[Capture Pro - onclone] Critical: elementBeingCloned (the clone of #previewContainer) was not provided to onclone!');
+            }
+        } // End of onclone
     };
 
-    // Merge default options with provided options, potentially overriding width/height for capture context
+    // 4. Merge default options with user-provided options
     const mergedOptions = { ...defaultOptions, ...options };
-    // Override width/height in html2canvas options based on prepared element dimensions
-    mergedOptions.width = prepOptions.width;
+    mergedOptions.width = prepOptions.width; // Ensure capture uses prepared dimensions
     mergedOptions.height = prepOptions.height;
+    // Force background to null if transparency was requested
+    if (options.transparentBackground) {
+        mergedOptions.backgroundColor = null;
+    }
 
-    // If background is meant to be transparent, force backgroundColor to null
-     if (options.transparentBackground) {
-         mergedOptions.backgroundColor = null;
-     }
-
-
-    console.log('[Capture v2.7] Final html2canvas options:', mergedOptions);
-    console.log('[Capture v2.7] Beginning HTML2Canvas rendering...');
+    console.log('[Capture Pro] Final html2canvas-pro options:', mergedOptions);
+    console.log('[Capture Pro] Beginning html2canvas-pro rendering...');
 
     let canvas;
     try {
-        // Ensure html2canvas library is available
+        // 5. Check if html2canvas function exists globally (loaded via script tag)
         if (typeof html2canvas !== 'function') {
-            throw new Error("html2canvas library not found! Make sure it's included globally.");
+            throw new Error("html2canvas-pro not loaded globally! Check the <script> tag in index.html.");
         }
 
-        // Call html2canvas
+        // 6. Execute html2canvas-pro
         canvas = await html2canvas(elementToCapture, mergedOptions);
-        console.log('[Capture v2.7] HTML2Canvas rendering successful.');
+        console.log('[Capture Pro] html2canvas-pro rendering successful.');
 
     } catch (error) {
-        console.error('[Capture v2.7] HTML2Canvas rendering failed:', error);
-        // Attempt cleanup even if capture failed
-         cleanupAfterCapture(elementToCapture);
-        throw error; // Re-throw error
+        console.error('[Capture Pro] html2canvas-pro rendering failed:', error);
+        cleanupAfterCapture(elementToCapture); // Attempt cleanup on error
+        throw error; // Re-throw error to be caught by caller
     } finally {
-        // --- Cleanup ---
-        // Restore original styles modified by prepareElementForCapture
-        cleanupAfterCapture(elementToCapture);
+        // 7. Cleanup: Restore original element styles
+        cleanupAfterCapture(elementToCapture); // Ensure cleanup runs even on success
     }
 
+    // 8. Return the resulting canvas
     return canvas;
 }
 
 // ==========================================================================
-// == Prepare & Cleanup Helpers (Copied from original, ensure they exist) ==
+// == Prepare & Cleanup Helper Functions (Essential - Keep As Is) =========
 // ==========================================================================
 
 /**
- * Prepare element for more accurate capture (v2.5 adjusted)
+ * Prepare element for more accurate capture (v3.0 - Unchanged logic)
  * Sets explicit dimensions, ensures fonts are ready, handles glitch text.
- * @param {HTMLElement} element - Original element to capture (will be modified)
- * @param {object} options - Capture options, including explicit width/height.
- * @returns {Promise<HTMLElement>} Prepared element ready for capture
+ * @param {HTMLElement} element
+ * @param {object} options - { width, height }
+ * @returns {Promise<HTMLElement>}
  */
 async function prepareElementForCapture(element, options = {}) {
-    console.log("[Capture Prep v2.7] Preparing element...");
-
+    console.log("[Capture Prep v3.0] Preparing element...");
     const originalInlineStyle = element.getAttribute('style') || '';
-    let originalDataText = null;
-    const logoText = element.querySelector('.logo-text');
+    // Store data needed for cleanup directly on the element
+    element._capturePreparationData = { originalInlineStyle };
 
     // --- Set Explicit Dimensions ---
-    // Use dimensions passed in options (which should match desired canvas size)
-    const explicitWidth = options.width || element.offsetWidth || 800;
-    const explicitHeight = options.height || element.offsetHeight || 400;
-    console.log(`[Capture Prep v2.7] Setting explicit capture dimensions: ${explicitWidth}x${explicitHeight}`);
+    const explicitWidth = options.width;
+    const explicitHeight = options.height;
+    console.log(`[Capture Prep v3.0] Setting explicit capture dimensions: ${explicitWidth}x${explicitHeight}`);
     element.style.width = `${explicitWidth}px`;
     element.style.height = `${explicitHeight}px`;
-    element.style.overflow = 'hidden'; // Prevent content bleed affecting capture size
+    element.style.overflow = 'hidden'; // Prevent content spill
 
     // --- Ensure Fonts Are Ready ---
-    console.log("[Capture Prep v2.7] Waiting for document.fonts.ready...");
+    console.log("[Capture Prep v3.0] Waiting for document.fonts.ready...");
     try {
+        // Wait for fonts to be loaded and ready, with a timeout
         await Promise.race([
             document.fonts.ready,
-            new Promise((_, reject) => setTimeout(() => reject(new Error('fonts.ready timeout')), 5000)) // 5 second timeout
+            new Promise((_, reject) => setTimeout(() => reject(new Error('fonts.ready timeout')), 7000)) // 7 second timeout
         ]);
-        console.log("[Capture Prep v2.7] document.fonts.ready resolved or timed out.");
+        console.log("[Capture Prep v3.0] document.fonts.ready resolved or timed out.");
     } catch (fontError) {
-        console.warn("[Capture Prep v2.7] Error or timeout waiting for document.fonts.ready:", fontError.message);
+        // Log warning but continue, maybe system fonts will work
+        console.warn("[Capture Prep v3.0] Error/timeout waiting for fonts:", fontError.message);
     }
 
     // --- Handle Glitch Animation Data Attribute ---
+    const logoText = element.querySelector('.logo-text');
     if (logoText) {
-        originalDataText = logoText.getAttribute('data-text'); // Store original
+        // Store original data-text for cleanup
+        element._capturePreparationData.logoTextElement = logoText;
+        element._capturePreparationData.originalDataText = logoText.getAttribute('data-text');
+        // Ensure data-text matches current text content for glitch effect
         if (logoText.classList.contains('anim-glitch')) {
-             const currentText = logoText.textContent || '';
-             if (logoText.getAttribute('data-text') !== currentText) {
-                 logoText.setAttribute('data-text', currentText);
-                 console.log("[Capture Prep v2.7] Applied data-text for glitch animation.");
-             }
+            const currentText = logoText.textContent || '';
+            if (logoText.getAttribute('data-text') !== currentText) {
+                logoText.setAttribute('data-text', currentText);
+                // console.log("[Capture Prep v3.0] Applied data-text for glitch animation.");
+            }
         }
     }
 
-    // --- Store data needed for cleanup ---
-    element._capturePreparationData = {
-        originalInlineStyle,
-        originalDataText,
-        logoTextElement: logoText
-    };
+    // --- Delay slightly for rendering engines to potentially catch up ---
+    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 60))); // Wait a frame + small delay
 
-    // --- Delay slightly for rendering engines ---
-    await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 50))); // Wait a frame + small delay
-
-    console.log("[Capture Prep v2.7] Element preparation finished.");
+    console.log("[Capture Prep v3.0] Element preparation finished.");
     return element;
 }
 
 /**
- * Clean up after capture to restore original element state (v2.5 adjusted)
- * Restores original inline style attribute and data-text.
- * @param {HTMLElement} modifiedElement - Element that was prepared
- */
-// In html2canvas.js
-
-/**
- * Clean up after capture to restore original element state (v2.8 - Improved Restore)
+ * Clean up after capture to restore original element state (v3.0 - Unchanged logic)
  * Restores original inline style attribute, data-text, and removes explicit overrides.
  * @param {HTMLElement} modifiedElement - Element that was prepared
  */
 function cleanupAfterCapture(modifiedElement) {
-    console.log("[Capture Cleanup v2.8] Cleaning up element...");
-
+    console.log("[Capture Cleanup v3.0] Cleaning up element...");
     const prepData = modifiedElement._capturePreparationData;
     if (prepData) {
         // Restore the original inline style attribute FIRST
         modifiedElement.setAttribute('style', prepData.originalInlineStyle);
 
-        // --- NEW: Explicitly remove styles added during prep ---
-        // This ensures that even if the original style attribute was empty or
-        // didn't define these, we remove the explicit overrides, letting
-        // CSS classes take precedence again.
+        // Explicitly remove styles added during prep to ensure CSS classes take precedence again.
         modifiedElement.style.removeProperty('width');
         modifiedElement.style.removeProperty('height');
         modifiedElement.style.removeProperty('overflow');
-        // --- END NEW ---
 
         // Restore data-text attribute if it was changed
         const logoText = prepData.logoTextElement;
         if (logoText) {
             const currentDataText = logoText.getAttribute('data-text');
             if (prepData.originalDataText === null && currentDataText !== null) {
+                // If original was null but it has one now, remove it
                 logoText.removeAttribute('data-text');
             } else if (prepData.originalDataText !== null && currentDataText !== prepData.originalDataText) {
+                // If original was something else, restore it
                 logoText.setAttribute('data-text', prepData.originalDataText);
             }
+            // If original and current are the same (or both null), do nothing
         }
 
-        // Remove preparation data marker
+        // Remove the temporary data marker
         delete modifiedElement._capturePreparationData;
-        console.log("[Capture Cleanup v2.8] Cleanup complete.");
+        console.log("[Capture Cleanup v3.0] Cleanup complete.");
     } else {
-        console.warn("[Capture Cleanup v2.8] No preparation data found. Cannot restore state precisely. Removing potentially added styles as fallback.");
-        // Fallback remains the same: attempt to remove specific styles
+        // Fallback if preparation data was somehow lost
+        console.warn("[Capture Cleanup v3.0] No preparation data found. Removing potentially added styles as fallback.");
         modifiedElement.style.removeProperty('width');
         modifiedElement.style.removeProperty('height');
         modifiedElement.style.removeProperty('overflow');
