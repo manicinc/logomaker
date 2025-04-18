@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/manicinc/logomaker/compare/v0.1.6...v0.1.7) (2025-04-18)
+
+
+### Bug Fixes
+
+* version number labels ([c571702](https://github.com/manicinc/logomaker/commit/c57170200224ae04970ca058c61399d1e34b4963))
+
 ### [0.1.6](https://github.com/manicinc/logomaker/compare/v0.1.5...v0.1.6) (2025-04-18)
 
 ### [0.1.5](https://github.com/manicinc/logomaker/compare/v0.1.4...v0.1.5) (2025-04-09)
