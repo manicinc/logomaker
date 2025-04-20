@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write # NEEDED for standard-version to commit/tag & electron-builder to release
+  actions: write
   # pages: write    # Add back if deploying pages in same workflow
   # id-token: write # Add back if deploying pages in same workflow
 
