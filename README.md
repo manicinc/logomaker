@@ -2,11 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE) [![Live Demo](https://img.shields.io/badge/Live_Demo-Online-brightgreen)](https://manicinc.github.io/logomaker/) [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-ff69b4)](https://github.com/sponsors/manicinc)
 
-Logomaker is a free, open-source, zero-dependency client-side logo generator featuring ~400 fonts, dynamic effects, and versatile export options. Designed for **portability** and offering an **offline-first option**, it leverages an optimized build process with intelligent font loading, allowing users to easily manage a large font library.
+Logomaker is a free, open-source, zero-dependency client-side logo generator featuring ~400 fonts, dynamic effects, and versatile export options. Designed for **portability** and offering an **offline-first option**, it leverages an optimized build process with intelligent font loading, allowing users to easily manage a large font library, in any type of web service. Released for desktop as an Electron app.
 
-This project is more than just a tool; it's a **Human+AI collaborative coding experiment** developed by [Manic Agency](https://manic.agency). Over 90% of the codebase originated from AI (LLMs like GPT-4, Claude 3, Gemini families) guided by **technical prompt engineering** and refined through an **iterative collaborative development and testing process**, or **✨ Vibe Coding ✨** – an attempt to harness AI for rapid development while maintaining robust engineering practices and a distinct creative workflow. **Every single function** was written by a LLM using their respective web UIs (no CLI or API), testing how each organization implements conversational memory and meta-analysis to give appropriate responses, and what their limitations were.
+This project is more than just a tool; it's a **Human+AI collaborative coding experiment** developed by [Manic Agency](https://manic.agency). Over 90% of the codebase originated from AI (LLMs like GPT-4, Claude 3, Gemini families) guided by **technical prompt engineering** and refined through an **iterative collaborative development and testing process**, or **✨ vibe coding ✨.** 
 
-It's a practical look at the potential and challenges of this emerging development paradigm, built by an agency focused on experimental tech (AR/VR, AI/ML, GenAI, Crypto, Game Design). See the [Technical Deep Dive](https://manic.agency/blog/logomaker-an-experiment-in-human-computer-interaction-vibe-coding) for more insights into the process and structure.
+**Every single function** was written by a LLM using their respective web UIs (no CLI or API), testing how each organization implements conversational memory and meta-analysis to give appropriate responses, and what their limitations were.
+
+See the [Technical Deep Dive](https://manic.agency/blog/logomaker-an-experiment-in-human-computer-interaction-vibe-coding).
 
 ---
 
@@ -38,17 +40,12 @@ The fastest way to get started online. Experience the web-optimized version with
 * Fetches font data chunks (`*.json`, now containing both URL and Base64 data) on demand as you select fonts. Chunks are cached in IndexedDB.
 * Supports SVG font embedding.
 
-**2. Portable Version (Offline - Folder)** 📦
+**2. Download Offline (~100mb app, all fonts data included)**  📦
+* Built for desktop using Electron / electron-builder
+* Releases are automatically done for each OS through GH actions (also written by the LLMs)
+* Download for your machine [here](https://github.com/manicinc/logomaker/releases/).
 
-Ideal for offline environments, workshops, or easy sharing as a self-contained folder.
-
-* **Build it first:** Run `npm run build:portable` locally (see instructions below). This creates the `dist/portable/` directory.
-* **Run:** Open the `index.html` file inside the `dist/portable/` directory in any modern browser (can be opened directly from the filesystem via `file:///`). All assets, including fonts (Base64 encoded in `inline-fonts-data.js`), are self-contained.
-* *Note:* Expect a **significantly slower initial load time** compared to the optimized online version due to the large (~50-100MB+) embedded font data script that needs to be parsed. Supports SVG font embedding.
-
-## Background
-
-From conception, this was designed as a lightweight client-side application. While it requires Node.js and npm for the development environment and build process, the final built outputs (`deploy` and `portable` targets) aim for minimal runtime dependencies. The goal is a tool that can be easily deployed online or used offline (via the portable build), embedding a full extendable font library with flexible loading options. We use a standard `package.json` for managing dev dependencies like `chokidar` and `http-server`, keeping the build process streamlined. The core application logic resides in `index.html` and static assets in `css/` and `js/`. Fonts are stored in `fonts/` (managed via Git LFS), with various build options dictating how these assets are processed and served.
+From conception, this was designed as a lightweight client-side application. While it requires Node.js and npm for the development environment and build. Fonts are stored in `fonts/` (managed via Git LFS), with various build options dictating how these assets are processed and served.
 
 ## 🛠️ Local Development
 
@@ -91,14 +88,14 @@ See development.md for more info on development mode.
 
 See release.md for more info on the release process for potential Electron app packaging.
 
-The repository is set up to automatically build and deploy the deploy target to GitHub Pages via the .github/workflows/deploy-gh-pages.yml. The live GitHub Pages files reside in the gh-pages branch: https://github.com/manicinc/logomaker/tree/gh-pages.
-
 ## 🛠️ Building the Project
 
 Logomaker offers two primary build targets managed by node scripts/build.js:
 
 1. **deploy (Default)**: Creates a web-optimized build in ./dist/github-pages/. Uses font chunking (with hybrid URL+Base64 data) for balanced performance and full SVG embedding support. Ideal for web hosting. Run with npm run build:deploy or npm run build.
 2. **portable**: Creates a self-contained build in ./dist/portable/. Embeds all font data using Base64 in inline-fonts-data.js for complete offline use. Ideal for local file usage or packaging (e.g., Electron). Run with npm run build:portable.
+
+The repository is set up to automatically build and deploy the deploy target to GitHub Pages via the .github/workflows/deploy-gh-pages.yml. The live GitHub Pages files reside in the gh-pages branch: https://github.com/manicinc/logomaker/tree/gh-pages.
 
 The project uses a lightweight Node.js build process with no external bundling dependencies like Webpack or Rollup. See build.md for details.
 
@@ -122,7 +119,7 @@ The build script (node scripts/build.js) handles generating the correct assets f
 
 The Randomize Style feature intelligently generates combinations for rapid exploration and inspiration (press the R key to use it). Core text is preserved while other settings are guided by weighted probabilities favoring common styles. It incorporates coherence rules to prevent visual clashes and employs intelligent value generation (HSL color theming, proportional sizing) for usable starting points.
 
-## 🛠️ Technical Deep Dive: The "Vibe Coding" Experiment
+## The "Vibe Coding" Experiment
 
 Logomaker's development was a deliberate exploration of Human+AI Collaborative Coding, termed "Vibe Coding".
 
@@ -133,9 +130,8 @@ Logomaker's development was a deliberate exploration of Human+AI Collaborative C
 ## ⚠️ Known Limitations & Future Ideas
 
 - **CSS ➡️ Export Fidelity**: Complex CSS effects may render differently or be simplified in SVG/PNG exports compared to the live browser preview.
-- **Animation Frame Export**: Generating many PNG frames for the ZIP export remains slow and memory-intensive. Currently captures static render, not animation over time.
-- **Future Polish**: More font validation, better text overflow handling, additional effects/animations, improved theming.
-- **Electron App**: Packaging for native desktop use is a potential future enhancement.
+- **HTML2Canvas.js issue with text gradients**: See [https://github.com/niklasvh/html2canvas/issues/2366](https://github.com/niklasvh/html2canvas/issues/2366).
+- GIF support is limited to separate PNGs that must be combined later (can add a separate library for this as an optional dep)
 
 ## ❤️ Support & Connect
 

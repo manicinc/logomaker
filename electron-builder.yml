@@ -1,0 +1,29 @@
+directories:
+  output: "release/"
+  buildResources: "assets"
+files:
+  - "dist/portable/**/*"
+  - "electron.js"
+  - "preload.js"
+  - "node_modules/electron-updater/**/*"
+  - "node_modules/electron-log/**/*"
+win:
+  target: nsis
+  icon: "assets/icon.ico"
+  signAndEditExecutable: false
+  forceCodeSigning: false
+  publisherName: "Manic.agency"
+mac:
+  target: dmg
+  category: "public.app-category.graphics-design"
+  icon: "assets/icon.icns"
+linux:
+  target: AppImage
+  category: Graphics
+  icon: "assets/icons"
+publish:
+  provider: github
+  owner: manicinc
+  repo: logomaker
+electronDownload:
+  mirror: "https://github.com/electron/electron/releases/download/"
