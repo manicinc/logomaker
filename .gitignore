@@ -54,3 +54,5 @@ fonts.json
 
 # Generated single-file portable HTML bundle (if using PortaPack)
 logomaker-portable.html
+
+release/

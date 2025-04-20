@@ -1,7 +1,7 @@
 {
     "name": "logomaker",
     "version": "0.1.0",
-    "description": "Free zero-dependency design playground",
+    "description": "Zero-dependency design playground for logos.",
     "author": "Manic.agency",
     "license": "MIT",
     "private": true,
@@ -11,13 +11,13 @@
         "preview": "node scripts/dev.js --mode=prod-preview --port=3001",
         "build": "npm run build:deploy",
         "build:deploy": "node scripts/build.js --target=deploy",
-        "build:portable": "node scripts/generate-fonts-json.js --base64 && node scripts/build.js --target=portable",
+        "build:portable": "node scripts/build.js --target=portable",
         "generate-fonts": "node scripts/generate-fonts-json.js",
         "generate-fonts:base64": "node scripts/generate-fonts-json.js --base64",
         "pack": "electron-builder --dir",
-        "dist": "npm run build:portable && electron-builder",
-        "release:electron": "npm run build:portable && electron-builder --publish always",
-        "comment": "--- Versioning & Release ---",
+        "clear-cache": "node scripts/clear-cache.js",
+        "build:electron": "npm run clear-cache && npm run build:portable && electron-builder --config electron-builder.yml",
+        "release:electron": "npm run clear-cache && npm run build:portable && electron-builder --publish always",
         "commit": "cz",
         "release": "standard-version",
         "release:first": "standard-version --first-release",
@@ -25,14 +25,14 @@
         "start": "npx electron electron.js"
     },
     "devDependencies": {
-        "chokidar": "^3.5.3",
+        "chokidar": "^3.5.3",       
         "commitizen": "^4.3.1",
         "conventional-changelog-cli": "^5.0.0",
         "cz-conventional-changelog": "^3.3.0",
         "electron": "^29.1.5",
         "electron-builder": "^24.13.3",
         "electron-log": "^5.3.3",
-        "electron-updater": "^6.1.8",
+        "electron-updater": "^6.6.2",
         "http-server": "^14.1.1",
         "standard-version": "^9.5.0"
     },
@@ -60,7 +60,18 @@
         ],
         "win": {
             "target": "nsis",
-            "icon": "assets/icon.ico"
+            "icon": "assets/icon.ico",
+            "artifactName": "${productName}-Setup-${version}.${ext}",
+            "extraResources": [
+                {
+                    "from": "assets",
+                    "to": "assets",
+                    "filter": [
+                        "**/*",
+                        "!**/*.dylib"
+                    ]
+                }
+            ]
         },
         "mac": {
             "target": "dmg",
