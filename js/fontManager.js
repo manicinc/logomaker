@@ -1,13 +1,13 @@
 /**
  * Enhanced Font Manager with Improved Caching, Loading Feedback, and Load All option
- * v2.2 - Hybrid Chunk Support (Chunks contain url + dataUrl)
+ * v2.3 - Added explicit inline data check for Electron/Portable builds.
  * - Prefers URL for @font-face injection for performance.
  * - Simplified getFontDataAsync (no merge needed).
  * Exports: initializeFonts, getFontDataAsync, getFontDataByName, preloadFontData, loadAllFonts, event names
  */
 
-// --- Module-level variables ---
-let _fontDataCache = null; // Cache for inline mode OR fully loaded traditional mode
+// --- Module-level variables
+let _fontDataCache = null;
 let _fontIndex = null;
 let _loadedFontChunks = new Map();
 let _isChunkedMode = false;
@@ -15,7 +15,7 @@ let _pendingFontLoads = new Map();
 let _injectedFontFaces = new Set();
 let _dynamicStyleSheet = null;
 
-// --- Constants ---
+// --- Constants --- 
 const CACHE_PREFIX = 'logomaker_font_';
 const FONT_INDEX_CACHE_KEY = `${CACHE_PREFIX}index_v1`;
 const FONT_CHUNK_CACHE_PREFIX = `${CACHE_PREFIX}chunk_`;
@@ -31,9 +31,10 @@ const DEFAULT_FETCH_RETRIES = 2;
 const INITIAL_FETCH_RETRY_DELAY = 300;
 const ESSENTIAL_FONTS = ['Orbitron', 'Audiowide', 'Russo One', 'Press Start 2P', 'Arial'];
 
-// --- IndexedDB Setup ---
+// --- IndexedDB Setup --- 
 const DB_NAME = 'logomakerFontDB'; const DB_VERSION = 1; const STORE_NAME = 'fontCacheStore';
 let dbPromise = null;
+
 function _openDB() { if(!dbPromise){dbPromise=new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onerror=e=>{console.error('[FontMan DB] Error:',e.target.error);reject(new Error('DB error'))};r.onsuccess=e=>{resolve(e.target.result)};r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(STORE_NAME))db.createObjectStore(STORE_NAME,{keyPath:'key'})}})}return dbPromise }
 function _getDBStore(db, mode) { return db.transaction(STORE_NAME,mode).objectStore(STORE_NAME) }
 async function _saveToDBStore(key, value) { try{const db=await _openDB();const s=_getDBStore(db,'readwrite');const d={key,value,timestamp:Date.now()};const r=s.put(d);return new Promise((res,rej)=>{r.onsuccess=res;r.onerror=e=>{console.error(`DB Save Error ${key}:`,e.target.error);if(e.target.error?.name==='QuotaExceededError'){_cleanupDBStore(key).then(res).catch(rej)}else{rej(e.target.error)}}})}catch(e){console.error(`DB Save Fail ${key}:`,e)} }
@@ -62,11 +63,6 @@ async function _populateFontDropdownWithFallbacks() { /* ... Keep function code 
 function _dispatchProgressEvent(percent, message) { /* ... Keep function code from previous full version ... */
     window.dispatchEvent(new CustomEvent(LOADING_PROGRESS_EVENT,{detail:{percent:percent,message:message}}));console.info(`[FontMan] Progress: ${percent}% - ${message}`);
 }
-
-// --- Core Font Data Retrieval & Loading ---
-
-
-// --- Core Font Data Retrieval & Loading ---
 
 // --- Core Font Data Retrieval & Loading ---
 
@@ -145,9 +141,173 @@ async function _fetchWithRetry(url, options, retries = DEFAULT_FETCH_RETRIES, in
  * Initializes the font system. Determines loading strategy (inline, cached index, chunked, traditional, fallback).
  * @returns {Promise<boolean>} True if initialized with custom fonts, false if only fallbacks used or critical error.
  */
-async function initializeFonts() { /* ... Keep function code from previous full version ... */
-    console.info('[FontMan] INFO: Initializing font system...');window.dispatchEvent(new CustomEvent(LOADING_STARTED_EVENT));try{const styleEl=document.getElementById(DYNAMIC_STYLE_ID);if(!styleEl||!(styleEl instanceof HTMLStyleElement)){throw new Error(`Missing <style id="${DYNAMIC_STYLE_ID}">`)}_dynamicStyleSheet=styleEl.sheet;if(!_dynamicStyleSheet){await new Promise(resolve=>setTimeout(resolve,50));_dynamicStyleSheet=styleEl.sheet;if(!_dynamicStyleSheet)throw new Error(`Cannot access sheet for #${DYNAMIC_STYLE_ID}`)}}catch(styleSheetError){console.error('[FontMan] CRITICAL: Stylesheet access failed.',styleSheetError);window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT,{detail:{success:false,mode:'error',error:`Stylesheet Error: ${styleSheetError.message}`}}));return false}const dropdown=document.getElementById('fontFamily');if(!dropdown){console.error("[FontMan] CRITICAL: #fontFamily dropdown missing!");window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT,{detail:{success:false,mode:'error',error:'Dropdown missing'}}));return false}_dispatchProgressEvent(10,'Starting font system...');try{_fontIndex=_loadFromCache(FONT_INDEX_CACHE_KEY);if(_fontIndex&&Array.isArray(_fontIndex)&&_fontIndex.length>0){console.info(`[FontMan] INFO: Using cached index (${_fontIndex.length} fonts). Mode: cached`);_isChunkedMode=true;_dispatchProgressEvent(30,`Loading index from cache(${_fontIndex.length})...`);await _populateFontDropdown(_fontIndex);_dispatchProgressEvent(60,'Preloading essential...');const preloadPromises=[];const essentialFonts=[...ESSENTIAL_FONTS,..._getFrequentFonts()];for(const font of essentialFonts){if(dropdown.querySelector(`option[value="${font}"]`)){console.info(`[FontMan] Preloading essential:${font}`);preloadPromises.push(preloadFontData(font).catch(e=>console.warn(`[FontMan] Preload failed ${font}:`,e)))}}await Promise.allSettled(preloadPromises);_dispatchProgressEvent(100,`Init ok with ${_fontIndex.length} from cache`);window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT,{detail:{success:true,mode:'cached',fontCount:_fontIndex.length}}));return true}if(Array.isArray(window._INLINE_FONTS_DATA)&&window._INLINE_FONTS_DATA.length>0){console.info(`[FontMan] INFO: Using inline data(${window._INLINE_FONTS_DATA.length}). Mode: inline`);_fontDataCache=window._INLINE_FONTS_DATA;_dispatchProgressEvent(50,`Loading ${_fontDataCache.length} embedded...`);await _populateFontDropdown(_fontDataCache);_dispatchProgressEvent(100,`Init ok with ${_fontDataCache.length} embedded`);window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT,{detail:{success:true,mode:'inline',fontCount:_fontDataCache.length}}));return true}console.info('[FontMan] DEBUG: No inline data found.');_dispatchProgressEvent(20,'Attempting chunked loading...');try{console.info(`[FontMan] DEBUG: Fetching ${CHUNK_PATH}/index.json`);const indexResponse=await _fetchWithRetry(`${CHUNK_PATH}/index.json`);_dispatchProgressEvent(40,'Parsing index...');_fontIndex=await indexResponse.json();if(!Array.isArray(_fontIndex))throw new Error("Invalid index.");_isChunkedMode=true;console.info(`[FontMan] INFO: Loaded index(${_fontIndex.length}). Mode: chunked`);_saveToCache(FONT_INDEX_CACHE_KEY,_fontIndex);_dispatchProgressEvent(60,`Populating dropdown(${_fontIndex.length})...`);await _populateFontDropdown(_fontIndex);_dispatchProgressEvent(80,'Preloading essential...');const defaultFontFamily=dropdown.value;const essentialFonts=new Set([defaultFontFamily,...ESSENTIAL_FONTS.filter(f=>dropdown.querySelector(`option[value="${f}"]`)),..._getFrequentFonts().slice(0,3)]);for(const font of essentialFonts){if(font){console.info(`[FontMan] Proactive preload:${font}`);preloadFontData(font).catch(e=>console.warn(`[FontMan] Preload fail '${font}':`,e.message))}}_dispatchProgressEvent(100,`Init ok with ${_fontIndex.length} indexed`);window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT,{detail:{success:true,mode:'chunked',fontCount:_fontIndex.length}}));return true}catch(chunkIndexError){console.warn('[FontMan] WARN: Chunked load failed:',chunkIndexError.message);_dispatchProgressEvent(50,'Chunked failed, trying JSON...')}}catch(error){console.error('[FontMan] CRITICAL: Unhandled init error:',error);_dispatchProgressEvent(100,'Init critically failed.');try{await _populateFontDropdownWithFallbacks()}catch(fbError){}window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT,{detail:{success:false,mode:'error',error:error.message}}));return false}
+// --- Initialization ---
+/**
+ * Initializes the font system. Determines loading strategy (inline, cached index, chunked, traditional, fallback).
+ * @returns {Promise<boolean>} True if initialized with custom fonts, false if only fallbacks used or critical error.
+ */
+async function initializeFonts() {
+    // ---> ADDED DEBUG LOG <---
+    console.log('[FontMan DEBUG] Entered initializeFonts function.');
+
+    console.info('[FontMan] INFO: Initializing font system...');
+    window.dispatchEvent(new CustomEvent(LOADING_STARTED_EVENT));
+
+    // 1. Prepare Stylesheet Access (Crucial first step)
+    try {
+        const styleEl = document.getElementById(DYNAMIC_STYLE_ID);
+        if (!styleEl || !(styleEl instanceof HTMLStyleElement)) {
+            throw new Error(`Required <style id="${DYNAMIC_STYLE_ID}"> element missing or invalid.`);
+        }
+        _dynamicStyleSheet = styleEl.sheet;
+        if (!_dynamicStyleSheet) {
+            // Sometimes the sheet isn't immediately available, wait a tick.
+            await new Promise(resolve => setTimeout(resolve, 50));
+            _dynamicStyleSheet = styleEl.sheet;
+            if (!_dynamicStyleSheet) {
+                throw new Error(`Cannot access CSSStyleSheet for #${DYNAMIC_STYLE_ID}. Check permissions/timing.`);
+            }
+        }
+        console.log('[FontMan DEBUG] Dynamic stylesheet access successful.');
+    } catch (styleSheetError) {
+        console.error('[FontMan] CRITICAL: Stylesheet access failed.', styleSheetError);
+        window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT, { detail: { success: false, mode: 'error', error: `Stylesheet Error: ${styleSheetError.message}` } }));
+        return false; // Cannot proceed without stylesheet
+    }
+
+    // 2. Check Dropdown Exists
+    const dropdown = document.getElementById('fontFamily');
+    if (!dropdown) {
+        console.error("[FontMan] CRITICAL: #fontFamily dropdown element missing!");
+        window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT, { detail: { success: false, mode: 'error', error: 'Font dropdown missing' } }));
+        return false; // Cannot proceed without dropdown
+    }
+    console.log('[FontMan DEBUG] Font dropdown element found.');
+
+    _dispatchProgressEvent(10, 'Starting font system...');
+
+    // 3. Determine Loading Strategy
+    try {
+        // ---> STRATEGY 1: Inline Data (Primary for Electron/Portable) <---
+        console.log('[FontMan DEBUG] Checking for window._INLINE_FONTS_DATA...');
+        // Check if the global variable exists AND is a non-empty array
+        if (typeof window._INLINE_FONTS_DATA !== 'undefined' && Array.isArray(window._INLINE_FONTS_DATA) && window._INLINE_FONTS_DATA.length > 0) {
+            // ---> ADDED SUCCESS LOG <---
+            console.log(`[FontMan DEBUG] Found inline data with ${window._INLINE_FONTS_DATA.length} entries.`);
+            console.info(`[FontMan] INFO: Using inline data (${window._INLINE_FONTS_DATA.length} fonts). Mode: inline`);
+
+            _fontDataCache = window._INLINE_FONTS_DATA; // Assign data to cache
+            _isChunkedMode = false; // Ensure chunked mode is off
+
+            _dispatchProgressEvent(50, `Loading ${_fontDataCache.length} embedded fonts...`);
+            await _populateFontDropdown(_fontDataCache); // Populate dropdown
+             // Inject CSS rules for essential/default fonts immediately if needed
+             // Example: Injecting the default font 'Orbitron'
+             const defaultFontData = _fontDataCache.find(f => f.familyName === 'Orbitron');
+             if (defaultFontData) { _injectFontFaceRules(defaultFontData); }
+
+            _dispatchProgressEvent(100, `Initialization complete with ${_fontDataCache.length} embedded fonts.`);
+            window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT, { detail: { success: true, mode: 'inline', fontCount: _fontDataCache.length } }));
+            return true; // Success using inline data
+        } else {
+             // ---> ADDED FAILURE LOG <---
+             console.log('[FontMan DEBUG] window._INLINE_FONTS_DATA not found or invalid. Proceeding to other strategies...');
+        }
+
+        // ---> STRATEGY 2: Cached Index (For faster subsequent loads in chunked mode) <---
+        console.log('[FontMan DEBUG] Checking for cached font index...');
+        _fontIndex = _loadFromCache(FONT_INDEX_CACHE_KEY); // Load index from localStorage
+        if (_fontIndex && Array.isArray(_fontIndex) && _fontIndex.length > 0) {
+            console.info(`[FontMan] INFO: Using cached index (${_fontIndex.length} fonts). Mode: cached-chunked`);
+            _isChunkedMode = true; // Enable chunked mode logic
+
+            _dispatchProgressEvent(30, `Loading index from cache (${_fontIndex.length})...`);
+            await _populateFontDropdown(_fontIndex);
+
+            _dispatchProgressEvent(60, 'Preloading essential fonts from cache...');
+            const essentialToPreload = new Set([...ESSENTIAL_FONTS, ..._getFrequentFonts().slice(0, 3)]);
+            const preloadPromises = [];
+            for (const fontName of essentialToPreload) {
+                // Check if font exists in the dropdown before trying to preload
+                if (dropdown.querySelector(`option[value="${fontName}"]`)) {
+                    console.info(`[FontMan] Preloading essential/frequent: ${fontName}`);
+                    preloadPromises.push(preloadFontData(fontName).catch(e => console.warn(`[FontMan] Preload failed for ${fontName}:`, e)));
+                }
+            }
+            await Promise.allSettled(preloadPromises);
+
+            _dispatchProgressEvent(100, `Initialization complete with ${_fontIndex.length} fonts from cached index.`);
+            window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT, { detail: { success: true, mode: 'cached-chunked', fontCount: _fontIndex.length } }));
+            return true; // Success using cached index
+        } else {
+            console.log('[FontMan DEBUG] No valid cached index found.');
+        }
+
+        // ---> STRATEGY 3: Fresh Chunked Loading (Fetch index, then chunks on demand) <---
+         console.log('[FontMan DEBUG] Attempting fresh chunked loading...');
+         _dispatchProgressEvent(20, 'Attempting chunked loading...');
+         try {
+             const indexUrl = `${CHUNK_PATH}/index.json`;
+             console.info(`[FontMan] DEBUG: Fetching font index: ${indexUrl}`);
+             const indexResponse = await _fetchWithRetry(indexUrl); // Use retry logic
+             _dispatchProgressEvent(40, 'Parsing font index...');
+             const indexData = await indexResponse.json();
+
+             if (!Array.isArray(indexData) || indexData.length === 0) {
+                 throw new Error("Fetched index.json is invalid or empty.");
+             }
+             _fontIndex = indexData;
+             _isChunkedMode = true; // Enable chunked mode
+             console.info(`[FontMan] INFO: Loaded fresh index (${_fontIndex.length} fonts). Mode: chunked`);
+             _saveToCache(FONT_INDEX_CACHE_KEY, _fontIndex); // Save index to localStorage cache
+
+             _dispatchProgressEvent(60, `Populating dropdown (${_fontIndex.length})...`);
+             await _populateFontDropdown(_fontIndex);
+
+             _dispatchProgressEvent(80, 'Preloading essential fonts (fresh)...');
+             const defaultFontFamily = dropdown.value; // Get default from dropdown
+             const freshEssential = new Set([defaultFontFamily, ...ESSENTIAL_FONTS.filter(f => dropdown.querySelector(`option[value="${f}"]`))]);
+             for (const fontName of freshEssential) {
+                 if (fontName) {
+                     console.info(`[FontMan] Proactive preload (fresh): ${fontName}`);
+                     preloadFontData(fontName).catch(e => console.warn(`[FontMan] Preload fail '${fontName}':`, e.message));
+                 }
+             }
+
+             _dispatchProgressEvent(100, `Initialization complete with ${_fontIndex.length} fonts via fresh index.`);
+             window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT, { detail: { success: true, mode: 'chunked', fontCount: _fontIndex.length } }));
+             return true; // Success using fresh chunked mode
+
+         } catch (chunkIndexError) {
+             console.warn('[FontMan] WARN: Chunked loading failed (cannot fetch/parse index):', chunkIndexError.message);
+             // Don't return false yet, fall through to fallback
+              _dispatchProgressEvent(50, 'Chunked loading failed...');
+             // Log the specific error for better debugging
+             console.error('[FontMan] Detailed chunk index load error:', chunkIndexError);
+         }
+
+         // ---> STRATEGY 4: Fallback to System Fonts <---
+          console.warn('[FontMan] All custom font loading methods failed. Using system fallback fonts.');
+          _dispatchProgressEvent(90, 'Using system fallback fonts...');
+          await _populateFontDropdownWithFallbacks();
+          _dispatchProgressEvent(100, 'Initialization complete with system fallback fonts.');
+          window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT, { detail: { success: true, mode: 'fallback', fontCount: _fontDataCache?.length || 0 } })); // Success, but indicate fallback mode
+          return true; // Indicate success (app can run), but quality is degraded
+
+    } catch (error) {
+        // Catch unexpected errors during the strategy selection/execution
+        console.error('[FontMan] CRITICAL: Unhandled error during font initialization sequence:', error);
+        _dispatchProgressEvent(100, 'Initialization critically failed.');
+        try {
+            await _populateFontDropdownWithFallbacks(); // Attempt fallback even on critical error
+        } catch (fbError) {
+             console.error('[FontMan] Error populating fallbacks during critical failure:', fbError);
+        }
+        window.dispatchEvent(new CustomEvent(LOADING_COMPLETE_EVENT, { detail: { success: false, mode: 'error', error: error.message } }));
+        return false; // Critical failure
+    }
 }
+
 
 /**
  * Asynchronously retrieves font data for a specific font family name.
@@ -273,9 +433,9 @@ export {
     LOADING_STARTED_EVENT, LOADING_COMPLETE_EVENT, LOADING_PROGRESS_EVENT, clearFontCacheDB
 };
 
-// --- Expose Globally (for compatibility/ease of access) ---
+// --- Expose Globally (for compatibility/ease of access if needed) ---
+// These might be useful for calling from the console during debugging
 window.clearFontCacheDB = clearFontCacheDB;
 window.getFontDataAsync = getFontDataAsync;
 window.getFontDataByName = getFontDataByName;
-// Keep if needed: window.getActiveAnimationKeyframes = window.getActiveAnimationKeyframes;
 window.loadAllFonts = loadAllFonts;
