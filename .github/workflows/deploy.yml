@@ -88,9 +88,6 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest] # Build on all platforms
     runs-on: ${{ matrix.os }}
 
-    permissions: # Permissions might be needed again for checkout/setup? Usually inherited or default is ok.
-        contents: read # Read is usually enough for build job
-
     steps:
       # Checkout the specific commit/tag created by standard-version (or just the latest)
       - name: Check out Git repository
