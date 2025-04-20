@@ -6,7 +6,8 @@ on:
   workflow_dispatch: # ONLY allow manual trigger from Actions tab
 
 permissions:
-  contents: write # Still needed for electron-builder to create release/tag
+  contents: write
+  actions: write
 
 jobs:
   build_and_publish: # Combined job is fine for manual trigger
